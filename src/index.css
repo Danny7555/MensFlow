@@ -1,0 +1,87 @@
+:root {
+  --mf-sidebar-w: 268px;
+  --mf-sidebar-collapsed-w: 72px;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  font-size: 16px;
+  line-height: 1.45;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+  --mf-text: #3d3a43;
+  --mf-text-strong: #0c0a10;
+  --mf-muted: #6f6a76;
+  --mf-main-bg: #ffffff;
+  --mf-sidebar-bg: #f3f3f5;
+  --mf-elevated: #fafafa;
+  --mf-card: #ffffff;
+  --mf-composer-bg: #f6f6f8;
+  --mf-border: #e6e4ea;
+  --mf-border-strong: #c4bec9;
+  --mf-hover: rgba(12, 10, 16, 0.06);
+  --mf-active: rgba(12, 10, 16, 0.09);
+  --mf-accent: #db2777;
+  --mf-accent-hover: #be185d;
+  --mf-accent-soft: rgba(219, 39, 119, 0.14);
+  --mf-accent-border: rgba(219, 39, 119, 0.38);
+  --mf-danger: #b42318;
+  --mf-success: #067647;
+  --mf-shadow: 0 16px 48px rgba(15, 12, 22, 0.08);
+  --mf-shadow-pop: 0 12px 32px rgba(15, 12, 22, 0.12);
+  --mf-dropdown-bg: #ffffff;
+  --mf-ring: rgba(219, 39, 119, 0.4);
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --mf-text: #c9c4d1;
+  --mf-text-strong: #f4f2f8;
+  --mf-muted: #9d96a8;
+  --mf-main-bg: #0d0d0f;
+  --mf-sidebar-bg: #121214;
+  --mf-elevated: #18181b;
+  --mf-card: #141416;
+  --mf-composer-bg: #18181b;
+  --mf-border: #27272c;
+  --mf-border-strong: #4b4658;
+  --mf-hover: rgba(255, 255, 255, 0.06);
+  --mf-active: rgba(255, 255, 255, 0.1);
+  --mf-accent: #f472b6;
+  --mf-accent-hover: #f9a8d4;
+  --mf-accent-soft: rgba(244, 114, 182, 0.2);
+  --mf-accent-border: rgba(244, 114, 182, 0.48);
+  --mf-danger: #f97066;
+  --mf-success: #75dda8;
+  --mf-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+  --mf-shadow-pop: 0 16px 48px rgba(0, 0, 0, 0.65);
+  --mf-dropdown-bg: #1c1c1f;
+  --mf-ring: rgba(244, 114, 182, 0.45);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--mf-text);
+  background: var(--mf-main-bg);
+}
+
+#root {
+  min-height: 100svh;
+  width: 100%;
+}

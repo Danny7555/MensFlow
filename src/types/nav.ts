@@ -1,0 +1,15 @@
+/** Unique section ids for main canvas + sidebar selection */
+export type SectionId =
+  | 'dashboard'
+  | 'new-chat'
+  | 'calendar'
+  | 'ask'
+  | 'health-insights'
+  | 'wellness-tips'
+  | 'history'
+  | 'symptoms'
+  | 'insights'
+  | 'education'
+  | 'tracker'
+  | 'tips'
+  | 'settings'
