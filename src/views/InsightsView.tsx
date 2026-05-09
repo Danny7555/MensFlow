@@ -1,8 +1,8 @@
 import { ChartLineUp, TrendDown, TrendUp } from '@phosphor-icons/react'
 import {
-  INSIGHT_METRICS_DUMMY,
   INSIGHT_TRENDS_DUMMY,
 } from '../data/insightsData'
+import { InteractiveAreaChart } from '../components/InteractiveAreaChart'
 
 export function InsightsView() {
   return (
@@ -13,7 +13,7 @@ export function InsightsView() {
         </div>
         <h1 className="page-hero-title">Health insights</h1>
         <p className="page-hero-desc">
-          Dummy trends and patterns — replace with analytics from your tracker and logs when integrated.
+          Interactive trends and patterns based on your logged history.
         </p>
       </header>
 
@@ -45,26 +45,8 @@ export function InsightsView() {
         <h2 id="charts-title" className="insights-section-title">
           Patterns over time
         </h2>
-        <div className="insight-metrics">
-          {INSIGHT_METRICS_DUMMY.map((m) => {
-            const max = Math.max(...m.bars, 1)
-            return (
-              <div key={m.id} className="insight-metric-panel">
-                <h3 className="insight-metric-title">{m.title}</h3>
-                <div className="insight-bars" role="img" aria-label={m.caption}>
-                  {m.bars.map((v, i) => (
-                    <div key={i} className="insight-bar-wrap">
-                      <div
-                        className="insight-bar-fill"
-                        style={{ height: `${(v / max) * 100}%` }}
-                      />
-                    </div>
-                  ))}
-                </div>
-                <p className="insight-metric-caption">{m.caption}</p>
-              </div>
-            )
-          })}
+        <div className="mt-4 border rounded-xl overflow-hidden bg-card">
+          <InteractiveAreaChart />
         </div>
       </section>
 
