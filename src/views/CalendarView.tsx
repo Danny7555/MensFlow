@@ -192,16 +192,6 @@ export function CalendarView() {
               const isSelected = selectedDate.getDate() === d && selectedDate.getMonth() === month && selectedDate.getFullYear() === year
               const isOvulation = d === 5 && month === 8 // Mock ovulation on Sep 5
               
-              // Calculate period day number for red badge
-              let periodDayNum = 0
-              if (isPeriod) {
-                // simple mock: find how many consecutive period days before this one
-                for (let j = d; j > 0; j--) {
-                  if (periodDates.has(dateToKey(j))) periodDayNum++
-                  else break
-                }
-              }
-
               return (
                 <div 
                   key={d} 

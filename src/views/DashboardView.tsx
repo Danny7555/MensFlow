@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   CalendarBlank,
   ClipboardText,
@@ -31,6 +31,9 @@ function getGreeting() {
 export function DashboardView() {
   const { data, update, lastSaved } = useDashboardData()
   const [isEditingGuidance, setIsEditingGuidance] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => setMounted(true), [])
 
   const cycleDay = useMemo(
     () => computeCycleDay(data.lastPeriodStart, data.typicalCycleDays),
@@ -56,12 +59,14 @@ export function DashboardView() {
   return (
     <div className="dashboard-live">
       <header className="dash-header">
-        <div>
-          <p className="dash-kicker">Home</p>
-          <h1 className="dash-title">{getGreeting()}, Daniella</h1>
-          <p className="dash-sub">
-            Here&apos;s your cycle overview and health insights for today.
-          </p>
+        <div className="dash-header-left">
+          <img src="/images/girl.png" alt="" className="dash-avatar" />
+          <div>
+            <p className="dash-kicker">Home</p>
+            <h1 className="dash-title">
+              {mounted ? getGreeting() : 'Welcome back'}, Daniella
+            </h1>
+          </div>
         </div>
         <div className="dash-header-meta">
           <span className="dash-pill">
@@ -72,6 +77,9 @@ export function DashboardView() {
             Saved {fmtSaved}
           </span>
         </div>
+        <p className="dash-sub">
+          Here&apos;s your cycle overview and health insights for today.
+        </p>
       </header>
 
       <div className="dash-stats-row">

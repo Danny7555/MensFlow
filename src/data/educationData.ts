@@ -1,3 +1,4 @@
+import * as React from 'react'
 import { Brain, Drop, Moon, Heartbeat, ShieldPlus, Sparkle } from '@phosphor-icons/react'
 
 export type EduCategory = 'All' | 'Hormones' | 'Phases' | 'Care'
@@ -8,7 +9,7 @@ export type ArticleDef = {
   description: string
   category: EduCategory
   readTime: string
-  icon: any
+  icon: React.ElementType
 }
 
 export const EDUCATION_CATEGORIES: EduCategory[] = ['All', 'Hormones', 'Phases', 'Care']

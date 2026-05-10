@@ -25,9 +25,12 @@ export function LandingView() {
   return (
     <div className="landing">
       <div className="landing-center">
+        <div className="landing-hero-image-wrap">
+          <img src="/images/lady.png" alt="" className="landing-hero-image" />
+        </div>
         <h1 className="landing-title">Ask MensFlow about your cycle?</h1>
         <p className="landing-sub">
-          Education, tracking context, and supportive guidance — not a substitute
+          Education, tracking context, and supportive guidance; not a substitute
           for medical care.
         </p>
         {lastPrompt && (

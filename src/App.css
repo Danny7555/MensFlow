@@ -429,7 +429,7 @@
 
 .composer-dropdown {
   position: absolute;
-  bottom: calc(100% + 8px);
+  top: calc(100% + 8px);
   left: 0;
   min-width: 260px;
   padding: 0.35rem;
@@ -578,9 +578,9 @@
 .landing {
   flex: 1;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 1.5rem 1rem 2rem;
+  padding: 8vh 1rem 2rem;
 }
 
 .landing-center {
@@ -1729,6 +1729,21 @@
   border-bottom: 1px solid var(--mf-border);
 }
 
+.dash-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1.15rem;
+}
+
+.dash-avatar {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--mf-accent-soft);
+  flex-shrink: 0;
+}
+
 .dash-kicker {
   margin: 0 0 0.25rem;
   font-size: 0.68rem;
@@ -2370,4 +2385,31 @@
 .tip-heart:focus-visible {
   outline: 2px solid var(--mf-ring);
   outline-offset: 2px;
+}
+
+/* Landing Hero Image */
+.landing-hero-image-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2.5rem;
+  animation: fade-in-up 0.8s ease-out;
+}
+
+.landing-hero-image {
+  width: 140px;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 4px solid var(--mf-accent-soft);
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

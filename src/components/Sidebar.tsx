@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import type { IconProps } from '@phosphor-icons/react'
 import {
   BookOpen,
@@ -24,9 +24,8 @@ type NavIcon = ComponentType<IconProps>
 
 const guestItems: { id: SectionId; label: string; Icon: NavIcon }[] = [
   { id: 'dashboard', label: 'Home', Icon: House },
-  { id: 'new-chat', label: 'New chat', Icon: ChatCircle },
-  { id: 'calendar', label: 'Calendar', Icon: CalendarBlank },
   { id: 'ask', label: 'Ask MensFlow', Icon: ChatCenteredDots },
+  { id: 'calendar', label: 'Calendar', Icon: CalendarBlank },
   { id: 'health-insights', label: 'Health insights', Icon: ChartLineUp },
   { id: 'wellness-tips', label: 'Wellness Tips', Icon: Heart },
   { id: 'settings', label: 'Settings', Icon: GearSix },
@@ -63,9 +62,17 @@ export function Sidebar({
   desktopCollapsed,
   onToggleDesktopCollapse,
 }: SidebarProps) {
-  const items = isAuthenticated ? authItems : guestItems
-  const collapsed = !isMobile && desktopCollapsed
+  const location = useLocation()
+  const isDashboard = location.pathname === '/' || location.pathname.startsWith('/dashboard')
 
+  const rawItems = isAuthenticated ? authItems : guestItems
+  const items = rawItems.filter(item => {
+    // Hide Home/Settings only for guests who aren't on the landing page
+    if (!isAuthenticated && (item.id === 'settings' || item.id === 'dashboard') && !isDashboard) return false
+    return true
+  })
+
+  const collapsed = !isMobile && desktopCollapsed
   const navIconSize = collapsed ? 22 : 20
 
   return (
@@ -96,7 +103,7 @@ export function Sidebar({
           {items.map(({ id, label, Icon }) => (
             <NavLink
               key={id}
-              to={id === 'dashboard' || (id === 'ask' && !isAuthenticated) ? '/' : `/${id}`}
+              to={id === 'dashboard' ? (isAuthenticated ? '/dashboard' : '/') : `/${id}`}
               title={collapsed ? label : undefined}
               className={({ isActive }) => `sidebar-link ${isActive ? 'sidebar-link--active' : ''}`}
               onClick={onCloseMobile}

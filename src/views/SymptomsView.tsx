@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Pill, Pulse, Drop, Smiley, SmileyWink, SmileyXEyes, SmileySad, Fire, CalendarBlank } from '@phosphor-icons/react'
 import { cn } from '../lib/utils'
 import { SYMPTOM_DEFS } from '../data/symptomsData'
 import type { SymptomCategory } from '../data/symptomsData'
 import { SymptomsChart } from '../components/SymptomsChart'
 
-const SYMPTOM_ICONS: Record<string, any> = {
+const SYMPTOM_ICONS: Record<string, React.ElementType> = {
   'mood-calm': Smiley,
   'mood-happy': SmileyWink,
   'mood-anxious': SmileyXEyes,
@@ -20,7 +20,7 @@ function SymptomCategoryList({
   toggleSymptom 
 }: { 
   category: SymptomCategory, 
-  IconComponent: any, 
+  IconComponent: React.ElementType, 
   activeSymptoms: Set<string>, 
   toggleSymptom: (id: string) => void 
 }) {
@@ -74,6 +74,14 @@ export function SymptomsView() {
   // purely visual local state for today's logs
   const [activeSymptoms, setActiveSymptoms] = useState<Set<string>>(new Set())
 
+  const [mounted, setMounted] = useState(false)
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => setMounted(true), [])
+
+  const todayStr = mounted 
+    ? new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric' })
+    : ''
+
   const toggleSymptom = (id: string) => {
     const next = new Set(activeSymptoms)
     if (next.has(id)) next.delete(id)
@@ -84,19 +92,22 @@ export function SymptomsView() {
   return (
     <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-10 animate-in fade-in duration-700">
       <header className="dash-header">
-        <div>
-          <p className="dash-kicker">Tracking</p>
-          <h1 className="dash-title">Daily symptoms</h1>
-          <p className="dash-sub">
-            Log how you feel to discover patterns and receive tailored health guidance.
-          </p>
+        <div className="dash-header-left">
+          <img src="/images/girl.png" alt="" className="dash-avatar" />
+          <div>
+            <p className="dash-kicker">Tracking</p>
+            <h1 className="dash-title">Daily symptoms</h1>
+          </div>
         </div>
         <div className="dash-header-meta">
           <span className="dash-pill">
             <CalendarBlank size={16} aria-hidden />
-            Today, {new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}
+            Today, {todayStr}
           </span>
         </div>
+        <p className="dash-sub">
+          Log how you feel to discover patterns 
+        </p>
       </header>
 
       <section aria-labelledby="today-log-title" className="space-y-6">
