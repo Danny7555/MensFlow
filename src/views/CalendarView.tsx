@@ -52,6 +52,7 @@ function calendarReducer(state: CalendarState, action: CalendarAction): Calendar
   }
 }
 
+
 export function CalendarView() {
   const today = new Date()
   const currentYear = today.getFullYear()
