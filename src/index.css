@@ -131,8 +131,10 @@
   --mf-sidebar-bg: #f3f3f5;
   --mf-elevated: #fafafa;
   --mf-card: #ffffff;
+  --mf-card-rgb: 255, 255, 255;
   --mf-composer-bg: #f6f6f8;
   --mf-border: #e6e4ea;
+  --mf-border-rgb: 230, 228, 234;
   --mf-border-strong: #c4bec9;
   --mf-hover: rgba(12, 10, 16, 0.06);
   --mf-active: rgba(12, 10, 16, 0.09);
@@ -157,8 +159,10 @@
   --mf-sidebar-bg: #121214;
   --mf-elevated: #18181b;
   --mf-card: #141416;
+  --mf-card-rgb: 20, 20, 22;
   --mf-composer-bg: #18181b;
   --mf-border: #27272c;
+  --mf-border-rgb: 39, 39, 44;
   --mf-border-strong: #4b4658;
   --mf-hover: rgba(255, 255, 255, 0.06);
   --mf-active: rgba(255, 255, 255, 0.1);

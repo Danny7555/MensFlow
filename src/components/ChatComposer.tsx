@@ -16,6 +16,7 @@ import {
   X,
 } from '@phosphor-icons/react'
 import { useSettings } from '../context/useSettings'
+import { cn } from '../lib/utils'
 
 const MAX_FILES = 12
 const MAX_BYTES = 15 * 1024 * 1024
@@ -67,6 +68,7 @@ export function ChatComposer({
   const rootRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
     if (!menuOpen) return
@@ -77,6 +79,14 @@ export function ChatComposer({
     document.addEventListener('mousedown', close)
     return () => document.removeEventListener('mousedown', close)
   }, [menuOpen])
+
+  // Auto-resize textarea
+  useEffect(() => {
+    const el = textareaRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight}px`
+  }, [value])
 
   const addFiles = (list: FileList | File[]) => {
     const arr = Array.from(list)
@@ -151,7 +161,7 @@ export function ChatComposer({
     : '⌘/Ctrl+Enter to send · Enter for newline'
 
   return (
-    <div className={`composer-stack ${minimal ? 'composer-stack--minimal' : ''}`} ref={rootRef}>
+    <div className={cn("composer-stack", minimal && "composer-stack--minimal")} ref={rootRef}>
       <input
         ref={fileInputRef}
         type="file"
@@ -175,9 +185,9 @@ export function ChatComposer({
       />
 
       {attachments.length > 0 && (
-        <ul className="composer-file-list" aria-label="Attachments ready to send">
+        <ul className="composer-file-list animate-in fade-in slide-in-from-bottom-2 duration-300" aria-label="Attachments ready to send">
           {attachments.map((a) => (
-            <li key={a.id} className="composer-file-chip">
+            <li key={a.id} className="composer-file-chip glass-morphism">
               <span className="composer-file-name" title={a.file.name}>
                 {a.file.name}
               </span>
@@ -196,13 +206,13 @@ export function ChatComposer({
       )}
 
       <form
-        className={`composer ${minimal ? 'composer--minimal' : ''}`}
+        className={cn("composer glass-morphism shadow-md transition-all duration-300 focus-within:ring-2 focus-within:ring-[var(--mf-accent)]", minimal && "composer--minimal")}
         onSubmit={handleSubmit}
       >
         <div className="composer-attach-wrap">
           <button
             type="button"
-            className={`composer-icon-btn ${menuOpen ? 'composer-icon-btn--active' : ''}`}
+            className={cn("composer-icon-btn transition-colors", menuOpen && "composer-icon-btn--active")}
             aria-label="Add attachments"
             aria-expanded={menuOpen}
             aria-haspopup="true"
@@ -212,7 +222,7 @@ export function ChatComposer({
             <Plus size={21} aria-hidden />
           </button>
           {menuOpen && (
-            <div className="composer-dropdown" id={menuId} role="menu">
+            <div className="composer-dropdown glass-morphism animate-in fade-in zoom-in-95 duration-200 origin-bottom-left" id={menuId} role="menu">
               <button
                 type="button"
                 className="composer-dropdown-item"
@@ -254,6 +264,7 @@ export function ChatComposer({
         </div>
 
         <textarea
+          ref={textareaRef}
           className="composer-input"
           rows={1}
           value={value}
@@ -263,24 +274,26 @@ export function ChatComposer({
           aria-label="Message"
         />
 
-        <button
-          type="button"
-          className="composer-icon-btn"
-          aria-label="Voice input"
-          title="Voice (coming soon)"
-        >
-          <Microphone size={21} aria-hidden />
-        </button>
-        <button
-          type="submit"
-          className="composer-send"
-          aria-label="Send"
-          disabled={!value.trim()}
-        >
-          <PaperPlaneRight size={20} weight="fill" aria-hidden />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            className="composer-icon-btn hidden sm:flex"
+            aria-label="Voice input"
+            title="Voice (coming soon)"
+          >
+            <Microphone size={21} aria-hidden />
+          </button>
+          <button
+            type="submit"
+            className="composer-send transition-all active:scale-95"
+            aria-label="Send"
+            disabled={!value.trim()}
+          >
+            <PaperPlaneRight size={20} weight="fill" aria-hidden />
+          </button>
+        </div>
       </form>
-      {showKeyboardHint && <p className="composer-hint">{hint}</p>}
+      {showKeyboardHint && <p className="composer-hint animate-in fade-in duration-700 delay-300">{hint}</p>}
     </div>
   )
 }

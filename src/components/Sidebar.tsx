@@ -17,8 +17,10 @@ import {
   Lightbulb,
   Pulse,
   Sparkle,
+  X,
 } from '@phosphor-icons/react'
 import type { SectionId } from '../types/nav'
+import { cn } from '../lib/utils'
 
 type NavIcon = ComponentType<IconProps>
 
@@ -78,15 +80,22 @@ export function Sidebar({
   return (
     <>
       <div
-        className={`sidebar-backdrop ${mobileOpen ? 'sidebar-backdrop--visible' : ''}`}
+        className={cn(
+          "sidebar-backdrop transition-all duration-300 ease-in-out",
+          mobileOpen ? "sidebar-backdrop--visible opacity-100" : "opacity-0 pointer-events-none"
+        )}
         aria-hidden={!mobileOpen}
         role="button"
-        tabIndex={0}
+        tabIndex={-1}
         onClick={onCloseMobile}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onCloseMobile() }}
       />
       <aside
-        className={`sidebar ${mobileOpen ? 'sidebar--open' : ''} ${collapsed ? 'sidebar--collapsed' : ''}`}
+        className={cn(
+          "sidebar",
+          mobileOpen && "sidebar--open",
+          collapsed && "sidebar--collapsed"
+        )}
         aria-label="Primary navigation"
       >
         <div className="sidebar-brand">
@@ -97,6 +106,16 @@ export function Sidebar({
             aria-hidden
           />
           <span className="sidebar-brand-text">MensFlow</span>
+          {isMobile && mobileOpen && (
+            <button
+              type="button"
+              className="ml-auto icon-btn"
+              onClick={onCloseMobile}
+              aria-label="Close sidebar"
+            >
+              <X size={20} />
+            </button>
+          )}
         </div>
 
         <nav className="sidebar-nav">
@@ -105,7 +124,10 @@ export function Sidebar({
               key={id}
               to={id === 'dashboard' ? (isAuthenticated ? '/dashboard' : '/') : `/${id}`}
               title={collapsed ? label : undefined}
-              className={({ isActive }) => `sidebar-link ${isActive ? 'sidebar-link--active' : ''}`}
+              className={({ isActive }) => cn(
+                "sidebar-link transition-all duration-200",
+                isActive && "sidebar-link--active"
+              )}
               onClick={onCloseMobile}
             >
               <Icon size={navIconSize} className="sidebar-link-icon" aria-hidden />
@@ -115,7 +137,7 @@ export function Sidebar({
         </nav>
 
         {!isAuthenticated && (
-          <div className={`sidebar-footer ${collapsed ? 'sidebar-footer--compact' : ''}`}>
+          <div className={cn("sidebar-footer", collapsed && "sidebar-footer--compact")}>
             {!collapsed && (
               <p className="sidebar-footer-text">
                 Get real-time responses from our model tailored to menstrual
@@ -124,7 +146,7 @@ export function Sidebar({
             )}
             <button
               type="button"
-              className={collapsed ? 'btn btn-primary sidebar-login-icon' : 'btn btn-primary'}
+              className={cn("btn btn-primary w-full transition-transform active:scale-95", collapsed && "sidebar-login-icon")}
               title={collapsed ? 'Log in' : undefined}
               onClick={onLogin}
             >
@@ -141,7 +163,7 @@ export function Sidebar({
           <div className="sidebar-rail-toggle">
             <button
               type="button"
-              className="icon-btn sidebar-rail-toggle-btn"
+              className="icon-btn sidebar-rail-toggle-btn hover:bg-[var(--mf-hover)] transition-colors"
               onClick={onToggleDesktopCollapse}
               aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
