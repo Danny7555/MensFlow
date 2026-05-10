@@ -4,7 +4,13 @@ import {
   ClipboardText,
   PencilSimple,
   Check,
+  Calendar as CalendarIcon,
 } from '@phosphor-icons/react'
+import { format, parseISO } from 'date-fns'
+import { Calendar } from '../components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover'
+import { Button } from '../components/ui/button'
+import { cn } from '../lib/utils'
 import { useDashboardData } from '../context/useDashboardData'
 
 function computeCycleDay(startIso: string, cycleLen: number) {
@@ -38,6 +44,14 @@ export function DashboardView() {
     }) ?? '-'
 
   const guidanceText = data.guidanceLines.join('\n')
+
+  const selectedDate = useMemo(() => {
+    try {
+      return data.lastPeriodStart ? parseISO(data.lastPeriodStart) : undefined
+    } catch {
+      return undefined
+    }
+  }, [data.lastPeriodStart])
 
   return (
     <div className="dashboard-live">
@@ -175,13 +189,32 @@ export function DashboardView() {
                 <label className="dash-field-label" htmlFor="dash-last-period">
                   Last period start
                 </label>
-                <input
-                  id="dash-last-period"
-                  type="date"
-                  className="dash-input dash-input--fill"
-                  value={data.lastPeriodStart}
-                  onChange={(e) => update({ lastPeriodStart: e.target.value })}
-                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      id="dash-last-period"
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal bg-card h-10 border-border",
+                        !data.lastPeriodStart && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon size={16} className="mr-2 opacity-60" />
+                      {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(day) => {
+                        if (day) {
+                          update({ lastPeriodStart: format(day, "yyyy-MM-dd") })
+                        }
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
 
               <div className="dash-snapshot-field">

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Pill, Pulse, Drop, Smiley, SmileyWink, SmileyXEyes, SmileySad, Fire } from '@phosphor-icons/react'
+import { Pill, Pulse, Drop, Smiley, SmileyWink, SmileyXEyes, SmileySad, Fire, CalendarBlank } from '@phosphor-icons/react'
 import { cn } from '../lib/utils'
 import { SYMPTOM_DEFS } from '../data/symptomsData'
 import type { SymptomCategory } from '../data/symptomsData'
@@ -28,12 +28,17 @@ function SymptomCategoryList({
   if (items.length === 0) return null
 
   return (
-    <div className="dash-panel p-6 flex flex-col gap-4">
-      <h3 className="text-sm font-medium text-foreground flex items-center gap-2 mb-2">
-        <IconComponent size={18} weight="bold" className="text-muted-foreground" />
-        {category}
-      </h3>
-      <div className="flex flex-wrap gap-2">
+    <div className="dash-panel p-6 flex flex-col gap-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium tracking-tight text-foreground flex items-center gap-2">
+          <IconComponent size={20} className="text-[var(--mf-accent)]" />
+          {category}
+        </h3>
+        <span className="text-[0.65rem] uppercase tracking-widest text-muted-foreground font-medium">
+          {items.length} options
+        </span>
+      </div>
+      <div className="flex flex-wrap gap-2.5">
         {items.map((symptom) => {
           const isActive = activeSymptoms.has(symptom.id)
           return (
@@ -42,16 +47,16 @@ function SymptomCategoryList({
               type="button"
               onClick={() => toggleSymptom(symptom.id)}
               className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200 cursor-pointer",
+                "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-all duration-300 cursor-pointer",
                 isActive
-                  ? "bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] border-[var(--mf-accent-border)] shadow-sm"
-                  : "bg-card text-muted-foreground border-border hover:border-foreground hover:text-foreground"
+                  ? "bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] border-[var(--mf-accent-border)] shadow-sm scale-[1.02]"
+                  : "bg-card text-muted-foreground border-border hover:border-[var(--mf-accent-border)] hover:text-foreground"
               )}
             >
               {SYMPTOM_ICONS[symptom.id] && (() => {
                 const Icon = SYMPTOM_ICONS[symptom.id]
                 return (
-                  <span className={isActive ? "text-white" : "text-muted-foreground"}>
+                  <span className={cn(isActive ? "text-[var(--mf-accent)]" : "text-muted-foreground/60")}>
                     <Icon size={16} />
                   </span>
                 )
@@ -77,13 +82,32 @@ export function SymptomsView() {
   }
 
   return (
-    <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-8 animate-in fade-in duration-500">
+    <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-10 animate-in fade-in duration-700">
+      <header className="dash-header">
+        <div>
+          <p className="dash-kicker">Tracking</p>
+          <h1 className="dash-title">Daily symptoms</h1>
+          <p className="dash-sub">
+            Log how you feel to discover patterns and receive tailored health guidance.
+          </p>
+        </div>
+        <div className="dash-header-meta">
+          <span className="dash-pill">
+            <CalendarBlank size={16} aria-hidden />
+            Today, {new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}
+          </span>
+        </div>
+      </header>
 
-
-      <section aria-labelledby="today-log-title" className="space-y-4">
-        <h2 id="today-log-title" className="text-xl font-medium tracking-tight text-foreground">
-          Log for Today
-        </h2>
+      <section aria-labelledby="today-log-title" className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 id="today-log-title" className="text-lg font-medium tracking-tight text-foreground">
+            Current Status
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            {activeSymptoms.size} symptoms logged
+          </p>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <SymptomCategoryList category="Physical" IconComponent={Pulse} activeSymptoms={activeSymptoms} toggleSymptom={toggleSymptom} />
           <SymptomCategoryList category="Mood" IconComponent={Pill} activeSymptoms={activeSymptoms} toggleSymptom={toggleSymptom} />
@@ -91,11 +115,11 @@ export function SymptomsView() {
         </div>
       </section>
 
-      <section aria-labelledby="trends-title" className="mt-8 pt-4">
-        <h2 id="trends-title" className="text-xl font-medium tracking-tight text-foreground mb-4">
-          Trends
+      <section aria-labelledby="trends-title" className="space-y-6 pt-4">
+        <h2 id="trends-title" className="text-lg font-medium tracking-tight text-foreground">
+          Historical Trends
         </h2>
-        <div className="dash-panel p-2 sm:p-6">
+        <div className="dash-panel p-2 sm:p-8 bg-card/30">
           <SymptomsChart />
         </div>
       </section>

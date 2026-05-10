@@ -53,15 +53,7 @@ export function LandingView() {
             placeholder="Ask MensFlow"
           />
         </div>
-        <div className="landing-bot" aria-hidden>
-          <div className="landing-bot-figure">
-            <span className="landing-bot-head" />
-            <span className="landing-bot-body" />
-            <span className="landing-bot-eye landing-bot-eye--l" />
-            <span className="landing-bot-eye landing-bot-eye--r" />
-          </div>
-          <span className="landing-bot-caption">Assistant</span>
-        </div>
+
       </div>
     </div>
   )

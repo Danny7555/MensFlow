@@ -10,7 +10,6 @@ import {
   ChartLineUp,
   ChatCircle,
   ChatCenteredDots,
-  ClockCounterClockwise,
   FlowerLotus,
   GearSix,
   Heart,
@@ -30,7 +29,6 @@ const guestItems: { id: SectionId; label: string; Icon: NavIcon }[] = [
   { id: 'ask', label: 'Ask MensFlow', Icon: ChatCenteredDots },
   { id: 'health-insights', label: 'Health insights', Icon: ChartLineUp },
   { id: 'wellness-tips', label: 'Wellness Tips', Icon: Heart },
-  { id: 'history', label: 'History / logs', Icon: ClockCounterClockwise },
   { id: 'settings', label: 'Settings', Icon: GearSix },
 ]
 
