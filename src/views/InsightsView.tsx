@@ -7,12 +7,7 @@ import { InteractiveAreaChart } from '../components/InteractiveAreaChart'
 export function InsightsView() {
   return (
     <div className="insights-page">
-      <header className="page-hero">
-        <h1 className="page-hero-title">Health insights</h1>
-        <p className="page-hero-desc">
-          Interactive trends and patterns based on your logged history.
-        </p>
-      </header>
+
 
       <section className="insights-section" aria-labelledby="trends-title">
         <h2 id="trends-title" className="insights-section-title">
@@ -47,21 +42,52 @@ export function InsightsView() {
         </div>
       </section>
 
-      <section className="dash-panel insight-narrative" aria-labelledby="narrative-title">
-        <h2 id="narrative-title" className="dash-panel-title">
-          What this could mean (demo copy)
-        </h2>
-        <ul className="insight-bullets">
-          <li>
-            Energy dips clustered in the last week of your cycle - consider lighter training loads there.
-          </li>
-          <li>
-            Bloating aligned with late-luteal weeks; salt and sleep hygiene are reasonable experiments (not medical advice).
-          </li>
-          <li>
-            When you connect real logs, we&apos;ll swap these paragraphs for data-grounded narrative.
-          </li>
-        </ul>
+      <section className="insight-narrative-container" aria-labelledby="narrative-title">
+        <div className="flex items-center justify-between mb-6">
+          <h2 id="narrative-title" className="text-xl font-semibold text-foreground">
+            What this could mean
+          </h2>
+          <div className="flex items-center gap-1.5 px-3 py-1 bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] rounded-full border border-[var(--mf-accent-border)]">
+            <ChartLineUp size={14} weight="bold" />
+            <span className="text-[10px] font-semibold uppercase tracking-wider">AI Analysis</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="dash-panel p-5 bg-gradient-to-br from-card to-[var(--mf-accent-soft)]/30 border-l-4 border-l-[var(--mf-accent)]">
+            <div className="flex gap-4">
+              <div className="p-2.5 bg-[var(--mf-accent-soft)] rounded-lg text-[var(--mf-accent)] shrink-0 h-fit">
+                <TrendDown size={20} weight="duotone" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="font-semibold text-sm text-foreground">Energy Pattern</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Energy dips clustered in the last week of your cycle - consider lighter training loads there.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="dash-panel p-5 bg-gradient-to-br from-card to-[var(--mf-accent-soft)]/30 border-l-4 border-l-[var(--mf-accent)]">
+            <div className="flex gap-4">
+              <div className="p-2.5 bg-[var(--mf-accent-soft)] rounded-lg text-[var(--mf-accent)] shrink-0 h-fit">
+                <ChartLineUp size={20} weight="duotone" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="font-semibold text-sm text-foreground">Physical Symptoms</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Bloating aligned with late-luteal weeks; salt and sleep hygiene are reasonable experiments.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 p-4 bg-muted/30 rounded-xl border border-dashed border-border text-center">
+          <p className="text-xs text-muted-foreground italic">
+            When you connect real logs, we&apos;ll swap these paragraphs for data-grounded narrative specifically tailored to your history.
+          </p>
+        </div>
       </section>
     </div>
   )

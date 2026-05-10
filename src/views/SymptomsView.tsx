@@ -44,7 +44,7 @@ function SymptomCategoryList({
               className={cn(
                 "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200 cursor-pointer",
                 isActive
-                  ? "bg-[#2ebcc5] text-white border-[#2ebcc5] shadow-sm"
+                  ? "bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] border-[var(--mf-accent-border)] shadow-sm"
                   : "bg-card text-muted-foreground border-border hover:border-foreground hover:text-foreground"
               )}
             >
@@ -78,15 +78,7 @@ export function SymptomsView() {
 
   return (
     <div className="flex-1 w-full max-w-[1200px] mx-auto p-4 sm:p-6 lg:p-8 space-y-8 animate-in fade-in duration-500">
-      <header className="page-hero mt-2">
-        <div className="page-hero-icon">
-          <Pulse size={26} weight="duotone" aria-hidden />
-        </div>
-        <h1 className="page-hero-title">Symptoms</h1>
-        <p className="page-hero-desc">
-          Daily symptom logging with gentle charts to visualize your well-being.
-        </p>
-      </header>
+
 
       <section aria-labelledby="today-log-title" className="space-y-4">
         <h2 id="today-log-title" className="text-xl font-semibold tracking-tight text-foreground">

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Heart, Lightbulb } from '@phosphor-icons/react'
+import { Heart } from '@phosphor-icons/react'
 import { TIPS_DUMMY, type WellnessTip } from '../data/tipsData'
 import { useDashboardData } from '../context/useDashboardData'
 
@@ -63,15 +63,7 @@ export function TipsView() {
 
   return (
     <div className="tips-page">
-      <header className="page-hero">
-        <div className="page-hero-icon">
-          <Lightbulb size={26} weight="duotone" aria-hidden />
-        </div>
-        <h1 className="page-hero-title">Wellness tips</h1>
-        <p className="page-hero-desc">
-          Phase-aware suggestions — dummy content plus lines you&apos;ve saved from your dashboard guidance.
-        </p>
-      </header>
+
 
       <div className="filter-chips" role="tablist" aria-label="Tip category">
         {CATS.map((c) => (

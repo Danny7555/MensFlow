@@ -128,7 +128,7 @@ export function ChatView() {
       {temporaryChat && isInitialState && (
         <div className="chat-temp-hero">
           <div className="chat-temp-hero-icon">
-            <Ghost size={48} weight="duotone" className="text-[#2ebcc5]" />
+            <Ghost size={48} weight="duotone" className="text-[var(--mf-accent)]" />
           </div>
           <h2 className="chat-temp-hero-title">Temporary Chat</h2>
           <p className="chat-temp-hero-desc">
