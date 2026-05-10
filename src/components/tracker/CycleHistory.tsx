@@ -23,7 +23,7 @@ export function CycleHistory() {
           <div className="flex flex-wrap gap-1.5 mt-4">
             {/* Red dots */}
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={`r-${i}`} className="w-2.5 h-2.5 rounded-full bg-[#fa426d]" />
+              <div key={`r-${i}`} className="w-2.5 h-2.5 rounded-full bg-[#dc2626]" />
             ))}
             {/* Light grey dots */}
             {Array.from({ length: 3 }).map((_, i) => (
@@ -63,7 +63,7 @@ export function CycleHistory() {
           </div>
           <div className="flex flex-wrap gap-1.5 mt-4">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={`r-${i}`} className="w-2.5 h-2.5 rounded-full bg-[#fa426d]" />
+              <div key={`r-${i}`} className="w-2.5 h-2.5 rounded-full bg-[#dc2626]" />
             ))}
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={`t1-${i}`} className="w-2.5 h-2.5 rounded-full bg-[#6fd0cd]" />
@@ -91,7 +91,7 @@ export function CycleHistory() {
           </div>
           <div className="flex flex-wrap gap-1.5 mt-4">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={`r-${i}`} className="w-2.5 h-2.5 rounded-full bg-[#fa426d]" />
+              <div key={`r-${i}`} className="w-2.5 h-2.5 rounded-full bg-[#dc2626]" />
             ))}
             {Array.from({ length: 2 }).map((_, i) => (
               <div key={`g1-${i}`} className="w-2.5 h-2.5 rounded-full bg-[#eaeaec]" />

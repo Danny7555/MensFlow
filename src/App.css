@@ -1,8 +1,8 @@
-/* MensFlow shell — ChatGPT-inspired layout */
+
 
 .app-shell {
   display: flex;
-  height: 100svh; /* Use svh for mobile keyboard friendliness */
+  height: 100svh;
   width: 100%;
   overflow: hidden;
   background: var(--mf-main-bg);
@@ -2689,35 +2689,57 @@
 }
 
 .mood-cta-card {
-  background: var(--mf-accent-soft);
-  border: 1px solid var(--mf-accent-border);
-  border-radius: 999px;
-  padding: 1rem 1.5rem;
+  background: var(--mf-card);
+  border: 1px solid var(--mf-border);
+  border-radius: 20px;
+  padding: 1.25rem 1.5rem;
   display: flex;
   align-items: center;
   gap: 1.25rem;
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.mood-cta-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+.mood-cta-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 100%);
+  z-index: 1;
 }
 
 .mood-icon {
-  font-size: 1.65rem;
-  background: #f60;
-  width: 44px;
-  height: 44px;
+  width: 32px;
+  height: 32px;
+  background: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
   color: white;
-  box-shadow: 0 2px 8px rgba(255, 102, 0, 0.3);
+  z-index: 2;
 }
 
 .mood-text {
   flex: 1;
-  font-weight: 500;
-  color: #4a4a4a;
-  font-size: 1.15rem;
+  font-weight: 600;
+  color: white;
+  font-size: 1.1rem;
   letter-spacing: -0.01em;
+  z-index: 2;
+}
+
+.mood-cta-card .caret-right {
+  color: white;
+  z-index: 2;
 }
 
 /* Stats Hero */
@@ -2726,18 +2748,45 @@
   max-width: 500px;
 }
 
+.stats-banner {
+  position: relative;
+  width: 100%;
+  height: 240px;
+  border-radius: 24px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+  border: 1px solid var(--mf-border);
+}
+
+.stats-banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+}
+
+.stats-banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 60%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 1.5rem;
+}
+
 .stats-title {
-  font-size: 1.85rem;
-  font-weight: 500;
-  color: var(--foreground);
-  margin-bottom: 0.5rem;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 0.25rem;
   letter-spacing: -0.02em;
 }
 
 .stats-subtitle {
-  font-size: 1rem;
-  color: #555;
-  margin-bottom: 1.25rem;
+  font-size: 0.95rem;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 0;
 }
 
 .stats-grid {
@@ -2753,7 +2802,6 @@
   display: flex;
   align-items: stretch;
   padding: 1rem 1.15rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.015);
 }
 
 .stats-card-main {
@@ -2831,4 +2879,227 @@
 
 .stats-more-btn--atypical {
   color: var(--foreground);
+}
+
+/* Symptom Logger UI (aligned with codebase) */
+.logger-overlay {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+}
+
+.logger-content {
+  background: var(--mf-main-bg);
+  border-radius: 32px 32px 0 0;
+  width: 100%;
+  max-width: 460px;
+  height: 86vh !important;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--mf-border) !important;
+  border-bottom: none !important;
+  padding: 0 !important;
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 101;
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from { transform: translate(-50%, 100%); }
+  to { transform: translate(-50%, 0); }
+}
+
+.logger-header {
+  padding: 1.5rem 1.25rem;
+  background: var(--mf-card);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--mf-border);
+  flex-shrink: 0;
+}
+
+.logger-header-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--mf-text-strong);
+  display: block;
+  letter-spacing: -0.02em;
+}
+
+.logger-header-sub {
+  font-size: 0.8rem;
+  color: var(--mf-muted);
+  font-weight: 500;
+}
+
+.logger-search-wrap {
+  padding: 1rem 1.25rem;
+  background: var(--mf-card);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.logger-search {
+  width: 100%;
+  background: var(--mf-hover);
+  border: 1px solid var(--mf-border);
+  border-radius: 16px;
+  padding: 0.85rem 1.25rem 0.85rem 3rem;
+  font-size: 1rem;
+  color: var(--mf-text);
+}
+
+.logger-search:focus {
+  outline: none;
+  border-color: var(--mf-accent);
+  background: var(--mf-card);
+}
+
+.logger-search-icon {
+  position: absolute;
+  left: 2.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--mf-muted);
+}
+
+.logger-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  background: var(--mf-main-bg);
+}
+
+.logger-section {
+  background: var(--mf-card);
+  border-radius: 24px;
+  padding: 1.25rem;
+  border: 1px solid var(--mf-border);
+}
+
+.logger-section-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--mf-text-strong);
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.015em;
+}
+
+.logger-feeling-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.feeling-icon-box {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  background: var(--mf-accent-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid transparent;
+}
+
+.feeling-item.active .feeling-icon-box {
+  background: var(--mf-accent);
+  border-color: var(--mf-accent);
+}
+
+.feeling-item.active .feeling-icon-box svg {
+  color: white !important;
+}
+
+.feeling-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--mf-text);
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+.logger-categories-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  padding: 0 0.5rem;
+}
+
+.logger-cat-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--mf-text-strong);
+  letter-spacing: -0.02em;
+}
+
+.logger-edit-btn {
+  color: var(--mf-accent);
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+}
+
+.logger-sub-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--mf-text-strong);
+  margin-bottom: 0.25rem;
+}
+
+.logger-sub-desc {
+  font-size: 0.9rem;
+  color: var(--mf-muted);
+  margin-bottom: 1.25rem;
+}
+
+.logger-chip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.logger-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: var(--mf-accent-soft);
+  padding: 0.65rem 1rem;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--mf-text);
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.logger-chip.active {
+  background: var(--mf-accent);
+  color: white;
+}
+
+.logger-chip-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mf-accent);
+}
+
+.logger-chip.active .logger-chip-icon {
+  color: white;
 }
