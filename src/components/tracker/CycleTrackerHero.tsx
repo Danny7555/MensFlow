@@ -3,9 +3,19 @@ import { CaretDown, CaretRight, Smiley, Info } from '@phosphor-icons/react'
 import { format, addDays, startOfDay } from 'date-fns'
 
 
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu'
+
 export function CycleTrackerHero() {
   const [selectedDay, setSelectedDay] = useState<number>(12);
   const [hoveredDay, setHoveredDay] = useState<number | null>(null);
+  const [trackingMode, setTrackingMode] = useState<string>('Period');
+
+  const modes = ['Period', 'Conception', 'Pregnancy', 'Perimenopause'];
 
   const cycleLength = 27;
   const currentDay = 12;
@@ -112,27 +122,42 @@ export function CycleTrackerHero() {
   return (
     <div className="cycle-tracker-hero">
       <div className="cycle-tracker-mode">
-        <button className="mode-chip">
-          Mode: Clue Period Tracking
-          <CaretDown size={14} weight="bold" />
-        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="mode-chip">
+              Mode: MensFlow {trackingMode}
+              <CaretDown size={14} weight="bold" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-56 bg-card border-border">
+            {modes.map((m) => (
+              <DropdownMenuItem 
+                key={m} 
+                onClick={() => setTrackingMode(m)}
+                className="text-sm font-regular focus:bg-[var(--mf-accent-soft)] focus:text-[var(--mf-accent)] cursor-pointer"
+              >
+                {m}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <div className="cycle-tracker-viz">
         <div className="viz-ring-container">
           <svg viewBox="0 0 100 100" className="viz-ring" style={{ overflow: 'visible' }}>
             {/* Background track (dashed) */}
-            <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" strokeWidth="12" className="opacity-10" strokeDasharray="0.1 2.5" strokeLinecap="round" />
+            <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" strokeWidth="8" className="opacity-10" strokeDasharray="0.1 2.5" strokeLinecap="round" />
             
             {/* Inner Dots */}
             {dots}
             
             {/* Segments */}
             <g className="viz-segments" style={{ pointerEvents: 'none' }}>
-              <path d={periodPath} fill="none" stroke="#dc2626" strokeWidth="12" strokeLinecap="round" opacity="1" />
-              <path d={predictedPath} fill="none" stroke="#ffc7c8" strokeWidth="12" strokeLinecap="round" opacity={activeDay > periodLength && activeDay <= periodLength + predictedPeriodLength ? 1 : 0.8} />
-              <path d={fertilePath} fill="none" stroke="#26899e" strokeWidth="12" strokeLinecap="round" opacity={activeDay >= fertileStart && activeDay <= fertileEnd ? 1 : 0.8} />
-              <path d={upcomingPath} fill="none" stroke="currentColor" strokeWidth="12" className="opacity-20" strokeLinecap="round" />
+              <path d={periodPath} fill="none" stroke="#dc2626" strokeWidth="8" strokeLinecap="round" opacity="1" />
+              <path d={predictedPath} fill="none" stroke="#ffc7c8" strokeWidth="8" strokeLinecap="round" opacity={activeDay > periodLength && activeDay <= periodLength + predictedPeriodLength ? 1 : 0.8} />
+              <path d={fertilePath} fill="none" stroke="#26899e" strokeWidth="8" strokeLinecap="round" opacity={activeDay >= fertileStart && activeDay <= fertileEnd ? 1 : 0.8} />
+              <path d={upcomingPath} fill="none" stroke="currentColor" strokeWidth="8" className="opacity-20" strokeLinecap="round" />
             </g>
 
             {/* Selection Marker */}

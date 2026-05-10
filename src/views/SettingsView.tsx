@@ -13,7 +13,18 @@ import {
   TreeStructure,
   UsersThree,
   UserCircle,
+  CaretRight,
 } from '@phosphor-icons/react'
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogTrigger,
+  DialogFooter
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 import { useQueryState, parseAsStringLiteral } from 'nuqs'
 import { useSettings } from '../context/useSettings'
 import type {
@@ -126,24 +137,176 @@ function ToggleRow({
   )
 }
 
+function MfaSetupModal({ trigger }: { trigger: ReactNode }) {
+  const [step, setStep] = useState<'choice' | 'setup' | 'verify' | 'success'>('choice')
+  const [method, setMethod] = useState<'app' | 'sms' | null>(null)
+  const [code, setCode] = useState('')
+
+  const reset = () => {
+    setStep('choice')
+    setMethod(null)
+    setCode('')
+  }
+
+  return (
+    <Dialog onOpenChange={(open) => !open && reset()}>
+      <DialogTrigger asChild>
+        {trigger}
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[420px] bg-card border-border p-0 overflow-hidden">
+        <div className="p-6">
+          <DialogHeader className="mb-6">
+            <DialogTitle className="text-2xl font-medium tracking-tight">
+              {step === 'choice' && 'Set up two-step verification'}
+              {step === 'setup' && (method === 'app' ? 'Scan QR Code' : 'Enter phone number')}
+              {step === 'verify' && 'Enter verification code'}
+              {step === 'success' && 'MFA is now active'}
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              {step === 'choice' && 'Add an extra layer of security to your MensFlow account.'}
+              {step === 'setup' && (method === 'app' 
+                ? 'Open your authenticator app (like Google Authenticator or Authy) and scan the code below.' 
+                : 'We will send a 6-digit code to your mobile device.')}
+              {step === 'verify' && 'We sent a code to your device. Please enter it below to confirm.'}
+              {step === 'success' && 'Your account is now protected with two-step verification.'}
+            </DialogDescription>
+          </DialogHeader>
+
+          {step === 'choice' && (
+            <div className="grid gap-3">
+              <button 
+                onClick={() => { setMethod('app'); setStep('setup'); }}
+                className="flex items-center gap-4 p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors text-left group"
+              >
+                <div className="size-10 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] shrink-0">
+                  <ShieldCheck size={24} weight="duotone" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-foreground">Authenticator App</p>
+                  <p className="text-xs text-muted-foreground">Use an app to generate codes (Recommended)</p>
+                </div>
+                <CaretRight size={16} className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+              <button 
+                onClick={() => { setMethod('sms'); setStep('setup'); }}
+                className="flex items-center gap-4 p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors text-left group"
+              >
+                <div className="size-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground shrink-0">
+                  <Bell size={24} weight="duotone" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-foreground">Text Message (SMS)</p>
+                  <p className="text-xs text-muted-foreground">Receive codes via your mobile phone</p>
+                </div>
+                <CaretRight size={16} className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+            </div>
+          )}
+
+          {step === 'setup' && (
+            <div className="flex flex-col items-center gap-6 py-4">
+              {method === 'app' ? (
+                <div className="size-48 bg-white p-3 rounded-xl border border-border flex items-center justify-center relative group">
+                  <img 
+                    src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=MensFlowDemo&bgcolor=ffffff&color=1a4d57&margin=10" 
+                    alt="MFA QR Code" 
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+              ) : (
+                <div className="w-full space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Phone number</label>
+                    <input 
+                      type="tel" 
+                      placeholder="+1 (555) 000-0000"
+                      className="w-full bg-muted border-border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[var(--mf-accent)] outline-none"
+                    />
+                  </div>
+                </div>
+              )}
+              <Button className="w-full rounded-xl py-6" onClick={() => setStep('verify')}>
+                Continue
+              </Button>
+            </div>
+          )}
+
+          {step === 'verify' && (
+            <div className="flex flex-col items-center gap-6 py-4">
+              <div className="flex gap-2">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="size-12 rounded-xl border-2 border-border bg-muted flex items-center justify-center text-xl font-medium focus-within:border-[var(--mf-accent)] transition-colors">
+                    {code[i] || ''}
+                  </div>
+                ))}
+              </div>
+              <div className="w-full space-y-2">
+                <input 
+                  autoFocus
+                  maxLength={6}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  className="sr-only"
+                />
+                <Button 
+                  className="w-full rounded-xl py-6" 
+                  disabled={code.length < 6}
+                  onClick={() => setStep('success')}
+                >
+                  Verify code
+                </Button>
+                <button className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors py-2">
+                  Didn't receive a code? Resend
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === 'success' && (
+            <div className="flex flex-col items-center gap-6 py-4 text-center">
+              <div className="size-20 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] animate-in zoom-in duration-500">
+                <ShieldCheck size={48} weight="duotone" />
+              </div>
+              <div className="space-y-2">
+                <p className="font-medium text-lg">You're all set!</p>
+                <p className="text-sm text-muted-foreground">
+                  Your account is much more secure. Keep your backup codes in a safe place.
+                </p>
+              </div>
+              <DialogFooter className="w-full mt-4">
+                <Button className="w-full rounded-xl py-6" variant="outline">
+                  Done
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 function MfaBanner() {
   const [hidden, setHidden] = useState(
     () => sessionStorage.getItem('mensflow-mfa-dismiss') === '1',
   )
   if (hidden) return null
   return (
-    <div className="settings-mfa-banner">
+    <div className="settings-mfa-banner mb-8">
       <div className="settings-mfa-banner-main">
         <ShieldCheck size={28} weight="duotone" className="settings-mfa-icon" aria-hidden />
         <div>
           <p className="settings-mfa-title">Secure your account</p>
           <p className="settings-mfa-text">
-            Add multi-factor authentication (MFA), such as SMS or an authenticator app,
-            to protect sign-in. Backend wiring comes next.
+            Add multi-factor authentication (MFA) to protect your health data and sign-in history.
           </p>
-          <button type="button" className="btn btn-mfa">
-            Set up MFA
-          </button>
+          <MfaSetupModal 
+            trigger={
+              <button type="button" className="btn btn-mfa mt-3">
+                Set up MFA
+              </button>
+            }
+          />
         </div>
       </div>
       <button
@@ -465,13 +628,30 @@ export function SettingsView({
       break
     case 'security':
       panel = (
-        <div className="settings-placeholder-block">
-          <ShieldCheck size={40} weight="duotone" aria-hidden />
-          <p className="settings-placeholder-title">Security</p>
-          <p className="settings-placeholder-desc">
-            Passkeys, active sessions, and login alerts will mirror ChatGPT&apos;s Security tab once authentication is backed by your API.
-          </p>
-        </div>
+        <>
+          <div className="settings-field-row border-b border-border/50 pb-6 mb-6">
+            <div className="settings-field-text">
+              <span className="settings-field-label">Multi-factor authentication (MFA)</span>
+              <p className="settings-field-desc">
+                Require a second step to sign in to your MensFlow account.
+              </p>
+            </div>
+            <MfaSetupModal 
+              trigger={
+                <Button variant="outline" className="rounded-xl">
+                  Set up
+                </Button>
+              }
+            />
+          </div>
+          <div className="settings-placeholder-block opacity-60">
+            <ShieldCheck size={40} weight="duotone" aria-hidden />
+            <p className="settings-placeholder-title">Login history</p>
+            <p className="settings-placeholder-desc">
+              Active sessions and device history will be visible here once your account is connected to the cloud.
+            </p>
+          </div>
+        </>
       )
       break
     case 'parental':

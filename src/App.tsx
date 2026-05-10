@@ -14,6 +14,7 @@ import { CalendarView } from './views/CalendarView'
 import { TrackerView } from './views/TrackerView'
 import { SymptomsView } from './views/SymptomsView'
 import { EducationView } from './views/EducationView'
+import { NotFoundView } from './views/NotFoundView'
 import { AuthProvider } from './context/AuthProvider'
 import { SettingsProvider } from './context/SettingsProvider'
 import { ChatSessionContext } from './context/chat-session-context'
@@ -114,6 +115,7 @@ function MainShell() {
                 : undefined
             }
             onLogout={handleLogout}
+            isMobile={isMobile}
           />
 
           <main className="app-canvas">
@@ -128,7 +130,7 @@ function MainShell() {
                   <Route path="/health-insights" element={<InsightsView />} />
                   <Route path="/wellness-tips" element={<TipsView />} />
                   <Route path="/history" element={guestPlaceholder('History / logs', 'Chat and symptom history stays private to your account.')} />
-                  <Route path="*" element={<Navigate to="/" />} />
+                  <Route path="*" element={<NotFoundView />} />
                 </>
               ) : (
                 <>
@@ -142,7 +144,7 @@ function MainShell() {
                   <Route path="/tracker" element={<TrackerView />} />
                   <Route path="/symptoms" element={<SymptomsView />} />
                   <Route path="/education" element={<EducationView />} />
-                  <Route path="*" element={<Navigate to="/dashboard" />} />
+                  <Route path="*" element={<NotFoundView />} />
                 </>
               )}
             </Routes>

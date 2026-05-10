@@ -1,6 +1,7 @@
 import { ChartLineUp, TrendDown, TrendUp } from '@phosphor-icons/react'
 import { INSIGHT_TRENDS_DUMMY } from '../data/insightsData'
 import { InteractiveAreaChart } from '../components/InteractiveAreaChart'
+import { SymptomTrendsChart } from '../components/SymptomTrendsChart'
 import { cn } from '../lib/utils'
 
 export function InsightsView() {
@@ -18,12 +19,12 @@ export function InsightsView() {
               <div className="flex flex-col h-full">
                 <span className="insight-trend-label">{t.label}</span>
                 <span className="insight-trend-value">{t.value}</span>
-                <div className="mt-auto pt-3">
+                <div className="mt-auto pt-1">
                   <div className={cn(
-                    "flex items-center gap-1.5 text-[11px] font-medium px-2 py-0.5 rounded-md w-fit",
-                    t.id === '1' && "bg-[var(--mf-warning-soft)] text-[var(--mf-warning)]",
-                    t.id === '2' && "bg-[var(--mf-success-soft)] text-[var(--mf-success)]",
-                    t.id === '3' && "bg-[var(--mf-info-soft)] text-[var(--mf-info)]"
+                    "flex items-center gap-1.5 text-[11px] font-medium w-fit",
+                    t.id === '1' && "text-[var(--mf-warning)]",
+                    t.id === '2' && "text-[var(--mf-success)]",
+                    t.id === '3' && "text-[var(--mf-info)]"
                   )}>
                     {t.id === '1' && <TrendUp size={14} weight="bold" />}
                     {t.id === '2' && <TrendDown size={14} weight="bold" />}
@@ -41,8 +42,13 @@ export function InsightsView() {
         <h2 id="charts-title" className="insights-section-title">
           Patterns over time
         </h2>
-        <div className="mt-4 border rounded-xl overflow-hidden bg-card">
-          <InteractiveAreaChart />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+          <div className="border rounded-xl overflow-hidden bg-card">
+            <SymptomTrendsChart />
+          </div>
+          <div className="border rounded-xl overflow-hidden bg-card">
+            <InteractiveAreaChart />
+          </div>
         </div>
       </section>
 

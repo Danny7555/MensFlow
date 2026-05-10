@@ -166,15 +166,17 @@ export function ChatView() {
             ))}
           </div>
 
-          <div className="chat-composer-dock">
-            <ChatComposer
-              value={draft}
-              onChange={setDraft}
-              onSubmit={send}
-              placeholder="Ask MensFlow"
-              minimal
-              showKeyboardHint
-            />
+          <div className="chat-composer-dock p-3 bg-background/80 backdrop-blur-md border-t border-border">
+            <div className="max-w-[800px] mx-auto w-full">
+              <ChatComposer
+                value={draft}
+                onChange={setDraft}
+                onSubmit={send}
+                placeholder="Ask MensFlow"
+                minimal
+                showKeyboardHint
+              />
+            </div>
           </div>
         </>
       )}

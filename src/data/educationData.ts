@@ -10,6 +10,7 @@ export type ArticleDef = {
   category: EduCategory
   readTime: string
   icon: React.ElementType
+  url: string
 }
 
 export const EDUCATION_CATEGORIES: EduCategory[] = ['All', 'Hormones', 'Phases', 'Care']
@@ -22,6 +23,7 @@ export const EDUCATION_ARTICLES: ArticleDef[] = [
     category: 'Hormones',
     readTime: '4 min read',
     icon: Sparkle,
+    url: 'https://www.healthline.com/health/high-estrogen'
   },
   {
     id: 'art-2',
@@ -30,6 +32,7 @@ export const EDUCATION_ARTICLES: ArticleDef[] = [
     category: 'Phases',
     readTime: '6 min read',
     icon: Moon,
+    url: 'https://helloclue.com/articles/cycle-a-z/the-luteal-phase-pms-progesterone-and-the-corpus-luteum'
   },
   {
     id: 'art-3',
@@ -38,6 +41,7 @@ export const EDUCATION_ARTICLES: ArticleDef[] = [
     category: 'Care',
     readTime: '5 min read',
     icon: ShieldPlus,
+    url: 'https://www.mayoclinic.org/diseases-conditions/menstrual-cramps/symptoms-causes/syc-20374919'
   },
   {
     id: 'art-4',
@@ -46,6 +50,7 @@ export const EDUCATION_ARTICLES: ArticleDef[] = [
     category: 'Hormones',
     readTime: '3 min read',
     icon: Brain,
+    url: 'https://www.sleepfoundation.org/how-sleep-works/hormones-and-sleep'
   },
   {
     id: 'art-5',
@@ -54,6 +59,7 @@ export const EDUCATION_ARTICLES: ArticleDef[] = [
     category: 'Phases',
     readTime: '7 min read',
     icon: Drop,
+    url: 'https://helloclue.com/articles/cycle-a-z/the-follicular-phase-prolonged-short-and-average'
   },
   {
     id: 'art-6',
@@ -62,5 +68,6 @@ export const EDUCATION_ARTICLES: ArticleDef[] = [
     category: 'Care',
     readTime: '4 min read',
     icon: Heartbeat,
+    url: 'https://www.mayoclinic.org/tests-procedures/basal-body-temperature/about/pac-20393026'
   },
 ]

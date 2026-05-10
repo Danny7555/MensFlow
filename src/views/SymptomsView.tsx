@@ -91,7 +91,7 @@ function SymptomCategoryList({
                   'phys-tender': '/images/tender.jpg',
                 }
                 if (imgMap[symptom.id]) {
-                  return <img src={imgMap[symptom.id]} alt="" className="w-6 h-6 rounded-full object-cover" />
+                  return <img src={imgMap[symptom.id]} alt="" className="size-6 rounded-full object-cover" />
                 }
                 if (SYMPTOM_ICONS[symptom.id]) {
                   const Icon = SYMPTOM_ICONS[symptom.id]
@@ -173,7 +173,7 @@ export function SymptomsView() {
         <h2 id="trends-title" className="text-lg font-medium tracking-tight text-foreground">
           Historical Trends
         </h2>
-        <div className="dash-panel p-2 sm:p-8 bg-card/30">
+        <div className="dash-panel p-0 overflow-hidden">
           <SymptomsChart />
         </div>
       </section>
