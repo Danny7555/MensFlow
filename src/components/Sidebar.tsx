@@ -5,8 +5,6 @@ import {
   BookOpen,
   CalendarBlank,
   CalendarHeart,
-  CaretDoubleLeft,
-  CaretDoubleRight,
   ChartLineUp,
   ChatCircle,
   ChatCenteredDots,
@@ -18,6 +16,7 @@ import {
   Pulse,
   Sparkle,
   X,
+  SidebarSimple,
 } from '@phosphor-icons/react'
 import type { SectionId } from '../types/nav'
 import { cn } from '../lib/utils'
@@ -55,6 +54,7 @@ type SidebarProps = {
   isMobile: boolean
   desktopCollapsed: boolean
   onToggleDesktopCollapse: () => void
+  onToggleSidebar?: () => void
 }
 
 export function Sidebar({
@@ -65,6 +65,7 @@ export function Sidebar({
   isMobile,
   desktopCollapsed,
   onToggleDesktopCollapse,
+  onToggleSidebar,
 }: SidebarProps) {
   const location = useLocation()
   const isDashboard = location.pathname === '/' || location.pathname.startsWith('/dashboard')
@@ -107,17 +108,16 @@ export function Sidebar({
             weight="duotone"
             aria-hidden
           />
-          <span className="sidebar-brand-text">MensFlow</span>
-          {isMobile && mobileOpen && (
-            <button
-              type="button"
-              className="ml-auto icon-btn"
-              onClick={onCloseMobile}
-              aria-label="Close sidebar"
-            >
-              <X size={20} />
-            </button>
-          )}
+          {!collapsed && <span className="sidebar-brand-text">MensFlow</span>}
+          
+          <button
+            type="button"
+            className={cn("icon-btn sidebar-toggle-btn-top", !collapsed && "ml-auto")}
+            onClick={onToggleDesktopCollapse || onToggleSidebar}
+            aria-label="Toggle sidebar"
+          >
+            {isMobile && mobileOpen ? <X size={20} /> : <SidebarSimple size={22} />}
+          </button>
         </div>
 
         <nav className="sidebar-nav">
@@ -161,22 +161,6 @@ export function Sidebar({
           </div>
         )}
 
-        {!isMobile && (
-          <div className="sidebar-rail-toggle">
-            <button
-              type="button"
-              className="icon-btn sidebar-rail-toggle-btn hover:bg-[var(--mf-hover)] transition-colors"
-              onClick={onToggleDesktopCollapse}
-              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            >
-              {collapsed ? (
-                <CaretDoubleRight size={20} aria-hidden />
-              ) : (
-                <CaretDoubleLeft size={20} aria-hidden />
-              )}
-            </button>
-          </div>
-        )}
       </aside>
     </>
   )

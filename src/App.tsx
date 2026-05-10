@@ -115,6 +115,7 @@ function MainShell() {
                 : undefined
             }
             onLogout={handleLogout}
+            isMobile={isMobile}
           />
 
           <main className="app-canvas">

@@ -3,7 +3,7 @@ import {
   CaretDown,
   GearSix,
   Ghost,
-  List,
+  SidebarSimple,
   SignOut,
   UserCircle,
 } from '@phosphor-icons/react'
@@ -18,6 +18,7 @@ type HeaderProps = {
   temporaryChat?: boolean
   onToggleTemporaryChat?: () => void
   onLogout?: () => void
+  isMobile?: boolean
 }
 
 export function Header({
@@ -29,6 +30,7 @@ export function Header({
   temporaryChat,
   onToggleTemporaryChat,
   onLogout,
+  isMobile,
 }: HeaderProps) {
   const [profileOpen, setProfileOpen] = useState(false)
   const profileWrapRef = useRef<HTMLDivElement>(null)
@@ -46,15 +48,17 @@ export function Header({
   return (
     <header className="top-header">
       <div className="top-header-left">
-        <button
-          type="button"
-          className="icon-btn top-header-menu"
-          aria-label={sidebarToggleLabel}
-          aria-expanded={sidebarExpanded}
-          onClick={onToggleSidebar}
-        >
-          <List size={22} aria-hidden />
-        </button>
+        {(isMobile && !sidebarExpanded) && (
+          <button
+            type="button"
+            className="icon-btn top-header-menu"
+            aria-label={sidebarToggleLabel}
+            aria-expanded={sidebarExpanded}
+            onClick={onToggleSidebar}
+          >
+            <SidebarSimple size={22} aria-hidden />
+          </button>
+        )}
         <Link to={isAuthenticated ? "/dashboard" : "/ask"} className="top-header-logo">
           MensFlow
         </Link>
