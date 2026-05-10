@@ -2758,6 +2758,17 @@
   border: 1px solid var(--mf-border);
 }
 
+@media (max-width: 640px) {
+  .stats-banner {
+    height: 180px;
+    border-radius: 16px;
+  }
+  
+  .stats-title {
+    font-size: 1.4rem;
+  }
+}
+
 .stats-banner-img {
   width: 100%;
   height: 100%;

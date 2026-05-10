@@ -87,6 +87,9 @@ function SymptomCategoryList({
                   'phys-cramps': '/images/cramps.jpg',
                   'phys-fatigue': '/images/fatique.jpg',
                   'phys-bloating': '/images/bloat.jpg',
+                  'phys-headache': '/images/headache.jpg',
+                  'phys-acne': '/images/acne.jpg',
+                  'phys-tender': '/images/tender.jpg',
                 }
                 if (imgMap[symptom.id]) {
                   return <img src={imgMap[symptom.id]} alt="" className="w-6 h-6 rounded-full object-cover" />
