@@ -6,7 +6,6 @@ import { format, addDays, startOfDay } from 'date-fns'
 export function CycleTrackerHero() {
   const [selectedDay, setSelectedDay] = useState<number>(12);
   const [hoveredDay, setHoveredDay] = useState<number | null>(null);
-  const [isLoggerOpen, setIsLoggerOpen] = useState(false);
 
   const cycleLength = 27;
   const currentDay = 12;
@@ -180,7 +179,7 @@ export function CycleTrackerHero() {
       </div>
 
       <div className="cycle-tracker-mood-cta">
-        <div className="mood-cta-card" onClick={() => setIsLoggerOpen(true)}>
+        <div className="mood-cta-card">
            <img src="/images/exp.jpg" alt="" className="mood-cta-bg" />
            <div className="mood-cta-overlay" />
            <div className="mood-icon">
