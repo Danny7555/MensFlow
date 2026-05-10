@@ -3,7 +3,6 @@ import {
   Pill, Pulse, Drop, DropHalf, DropSimple, 
   Smiley, SmileyWink, SmileyXEyes, SmileySad, Fire, 
   Brain, Waves, Moon, HandHeart, Sparkle,
-  CalendarBlank 
 } from '@phosphor-icons/react'
 import { cn } from '../lib/utils'
 import { SYMPTOM_DEFS } from '../data/symptomsData'
