@@ -206,7 +206,11 @@ export function ChatComposer({
       )}
 
       <form
-        className={cn("composer glass-morphism shadow-md transition-all duration-300 focus-within:ring-2 focus-within:ring-[var(--mf-accent)]", minimal && "composer--minimal")}
+        className={cn(
+          "composer glass-morphism transition-all duration-300 focus-within:ring-2 focus-within:ring-[var(--mf-accent)]",
+          "border-2 border-dotted border-[#d1d5db] dark:border-muted-foreground/30 bg-muted/20",
+          minimal && "composer--minimal"
+        )}
         onSubmit={handleSubmit}
       >
         <div className="composer-attach-wrap">
