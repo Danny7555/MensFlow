@@ -219,6 +219,7 @@
 
   .sidebar--open {
     transform: translateX(0);
+    box-shadow: 20px 0 50px -10px rgba(0, 0, 0, 0.2);
   }
 }
 
@@ -545,6 +546,12 @@
   background: transparent;
   color: var(--mf-text-strong);
   caret-color: var(--mf-accent);
+}
+
+@media (max-width: 640px) {
+  .composer-input {
+    font-size: 16px; /* Prevent iOS zoom */
+  }
 }
 
 .composer-input:focus {
@@ -2650,23 +2657,25 @@
 }
 
 @media (max-width: 480px) {
+  .viz-title {
+    font-size: 1.4rem;
+    margin-bottom: 0.8rem;
+  }
   .viz-content {
-    padding: 2.5rem;
+    padding: 2rem;
   }
   .viz-today {
     font-size: 0.85rem;
     margin-bottom: 0.5rem;
   }
-  .viz-title {
-    font-size: 1.55rem;
-    margin-bottom: 0.8rem;
-  }
   .viz-fertile-status {
     font-size: 0.85rem;
   }
   .viz-day-badge {
-    width: 56px;
-    height: 56px;
+    width: 54px;
+    height: 54px;
+    bottom: 12%;
+    right: 12%;
   }
   .badge-value {
     font-size: 1.25rem;
