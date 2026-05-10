@@ -114,7 +114,7 @@ export function ChatView() {
   const isInitialState = messages.length === 0
 
   return (
-    <div className={cn("chat-view", isInitialState && "landing")}>
+    <div className={isInitialState ? "landing" : "chat-view"}>
       {isInitialState ? (
         <div className="landing-center animate-in fade-in zoom-in duration-700">
           <div className="landing-hero-image-wrap">
