@@ -76,7 +76,7 @@
 }
 
 .sidebar-brand-text {
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.02em;
   font-size: 1rem;
   color: var(--mf-text-strong);
@@ -251,7 +251,7 @@
   border: none;
   background: none;
   font: inherit;
-  font-weight: 600;
+  font-weight: 500;
   font-size: 1.05rem;
   letter-spacing: -0.03em;
   color: var(--mf-text-strong);
@@ -473,7 +473,7 @@
 
 .composer-dropdown-item strong {
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .composer-dropdown-item small {
@@ -595,7 +595,7 @@
 .landing-title {
   margin: 0;
   font-size: clamp(1.35rem, 3vw, 1.75rem);
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.035em;
   text-align: center;
   color: var(--mf-text-strong);
@@ -748,7 +748,7 @@
 
 .chat-temp-hero-title {
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--mf-text-strong);
   margin-bottom: 0.75rem;
 }
@@ -807,7 +807,7 @@
   gap: 0.45rem;
   flex-wrap: wrap;
   font-size: 0.7rem;
-  font-weight: 600;
+  font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--mf-muted);
@@ -873,7 +873,7 @@
 .card-title {
   margin: 0 0 0.85rem;
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--mf-text-strong);
 }
 
@@ -940,7 +940,7 @@
 .placeholder-title {
   margin: 0;
   font-size: 1.35rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--mf-text-strong);
 }
 
@@ -961,7 +961,7 @@
   padding: 0.38rem 0.85rem;
   font: inherit;
   font-size: 0.72rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.02em;
   cursor: pointer;
   background: var(--mf-elevated);
@@ -1122,7 +1122,7 @@
 .auth-modal-title--gpt {
   margin: 0 0 0.65rem;
   font-size: 1.35rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.03em;
   text-align: center;
   color: var(--foreground);
@@ -1191,7 +1191,7 @@
 
 .auth-modal-or-text {
   font-size: 0.68rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.12em;
   color: var(--muted-foreground);
 }
@@ -1227,7 +1227,7 @@
   color: var(--primary-foreground);
   font: inherit;
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
 }
 
@@ -1328,7 +1328,7 @@
   margin: 0;
   padding: 1.25rem 1.35rem 0.65rem;
   font-size: 1.35rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.03em;
   color: var(--mf-text-strong);
 }
@@ -1425,7 +1425,7 @@
 .settings-mfa-title {
   margin: 0 0 0.35rem;
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--mf-text-strong);
 }
 
@@ -1443,7 +1443,7 @@
   background: var(--mf-main-bg);
   font: inherit;
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   color: var(--mf-text-strong);
 }
@@ -1478,7 +1478,7 @@
 .settings-placeholder-title {
   margin: 0;
   font-size: 1.05rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--mf-text-strong);
 }
 
@@ -1501,7 +1501,7 @@
 
 .settings-account-name {
   margin: 0;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--mf-text-strong);
 }
 
@@ -1521,7 +1521,7 @@
 .settings-logout-title {
   margin: 0 0 0.35rem;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--mf-text-strong);
 }
 
@@ -1540,7 +1540,7 @@
   color: #fff;
   font: inherit;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
 }
 
@@ -1667,7 +1667,7 @@
 
 .settings-slider-val {
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--mf-accent);
 }
 
@@ -1731,7 +1731,7 @@
 .dash-kicker {
   margin: 0 0 0.25rem;
   font-size: 0.68rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--mf-muted);
@@ -1740,7 +1740,7 @@
 .dash-title {
   margin: 0;
   font-size: 1.65rem;
-  font-weight: 650;
+  font-weight: 500;
   letter-spacing: -0.03em;
   color: var(--mf-text-strong);
 }
@@ -1769,7 +1769,7 @@
   border: 1px solid var(--mf-border);
   background: var(--mf-elevated);
   font-size: 0.78rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--mf-text-strong);
 }
 
@@ -1801,7 +1801,7 @@
 .dash-stat-label {
   display: block;
   font-size: 0.7rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--mf-muted);
@@ -1811,7 +1811,7 @@
 .dash-stat-value {
   display: block;
   font-size: 1.35rem;
-  font-weight: 650;
+  font-weight: 500;
   letter-spacing: -0.02em;
   color: var(--mf-text-strong);
 }
@@ -1956,7 +1956,7 @@
   gap: 0.45rem;
   margin: 0;
   font-size: 0.95rem;
-  font-weight: 650;
+  font-weight: 500;
   color: var(--mf-text-strong);
 }
 
@@ -2046,7 +2046,7 @@
   display: block;
   margin: 0.65rem 0 0.35rem;
   font-size: 0.78rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--mf-muted);
 }
 
@@ -2090,7 +2090,7 @@
 .page-hero-title {
   margin: 0 0 0.35rem;
   font-size: 1.5rem;
-  font-weight: 650;
+  font-weight: 500;
   letter-spacing: -0.03em;
   color: var(--mf-text-strong);
 }
@@ -2164,7 +2164,7 @@
 
 .tip-tag {
   font-size: 0.68rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--mf-muted);
@@ -2186,7 +2186,7 @@
 .tip-title {
   margin: 0;
   font-size: 1rem;
-  font-weight: 650;
+  font-weight: 500;
   color: var(--mf-text-strong);
 }
 
@@ -2213,7 +2213,7 @@
 .insights-section-title {
   margin: 0 0 1rem;
   font-size: 0.72rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--mf-muted);
@@ -2241,7 +2241,7 @@
 .insight-trend-label {
   display: block;
   font-size: 0.72rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--mf-muted);
   margin-bottom: 0.35rem;
 }
@@ -2249,7 +2249,7 @@
 .insight-trend-value {
   display: block;
   font-size: 1.2rem;
-  font-weight: 650;
+  font-weight: 500;
   color: var(--mf-text-strong);
 }
 
@@ -2307,7 +2307,7 @@
 .insight-metric-title {
   margin: 0 0 0.85rem;
   font-size: 0.9rem;
-  font-weight: 650;
+  font-weight: 500;
   color: var(--mf-text-strong);
 }
 

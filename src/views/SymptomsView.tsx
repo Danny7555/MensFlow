@@ -29,7 +29,7 @@ function SymptomCategoryList({
 
   return (
     <div className="dash-panel p-6 flex flex-col gap-4">
-      <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-2">
+      <h3 className="text-sm font-medium text-foreground flex items-center gap-2 mb-2">
         <IconComponent size={18} weight="bold" className="text-muted-foreground" />
         {category}
       </h3>
@@ -81,7 +81,7 @@ export function SymptomsView() {
 
 
       <section aria-labelledby="today-log-title" className="space-y-4">
-        <h2 id="today-log-title" className="text-xl font-semibold tracking-tight text-foreground">
+        <h2 id="today-log-title" className="text-xl font-medium tracking-tight text-foreground">
           Log for Today
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -92,7 +92,7 @@ export function SymptomsView() {
       </section>
 
       <section aria-labelledby="trends-title" className="mt-8 pt-4">
-        <h2 id="trends-title" className="text-xl font-semibold tracking-tight text-foreground mb-4">
+        <h2 id="trends-title" className="text-xl font-medium tracking-tight text-foreground mb-4">
           Trends
         </h2>
         <div className="dash-panel p-2 sm:p-6">

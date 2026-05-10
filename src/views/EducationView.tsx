@@ -66,14 +66,14 @@ export function EducationView() {
                   )}>
                     <Icon size={isFeatured ? 36 : 24} weight="duotone" />
                   </div>
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full border border-border/50">
+                  <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full border border-border/50">
                     {article.category}
                   </span>
                 </div>
                 
                 <div className="flex-1 space-y-4 mt-2">
                   <h3 className={cn(
-                    "text-lg font-semibold text-foreground leading-tight",
+                    "text-lg font-medium text-foreground leading-tight",
                     isFeatured && "text-3xl md:text-4xl tracking-tight max-w-[80%]"
                   )}>
                     {article.title}
@@ -86,7 +86,7 @@ export function EducationView() {
                   </p>
                 </div>
 
-                <div className="mt-6 pt-6 border-t border-border/50 flex justify-between items-center text-[11px] text-muted-foreground font-semibold uppercase tracking-widest">
+                <div className="mt-6 pt-6 border-t border-border/50 flex justify-between items-center text-[11px] text-muted-foreground font-medium uppercase tracking-widest">
                   <span className="flex items-center gap-2">
                     {article.readTime}
                   </span>
