@@ -14,6 +14,7 @@ import {
   UsersThree,
   UserCircle,
 } from '@phosphor-icons/react'
+import { useQueryState, parseAsStringLiteral } from 'nuqs'
 import { useSettings } from '../context/useSettings'
 import type {
   AccentPreset,
@@ -26,15 +27,18 @@ import {
   SETTINGS_STORAGE_KEY,
 } from '../lib/constants'
 
-type SettingsCategoryId =
-  | 'general'
-  | 'notifications'
-  | 'personalization'
-  | 'apps'
-  | 'data_controls'
-  | 'security'
-  | 'parental'
-  | 'account'
+const SETTINGS_CATS = [
+  'general',
+  'notifications',
+  'personalization',
+  'apps',
+  'data_controls',
+  'security',
+  'parental',
+  'account',
+] as const
+
+type SettingsCategoryId = (typeof SETTINGS_CATS)[number]
 
 const NAV: {
   id: SettingsCategoryId
@@ -168,7 +172,12 @@ export function SettingsView({
   onLogin,
   onLogout,
 }: SettingsViewProps) {
-  const [cat, setCat] = useState<SettingsCategoryId>('general')
+  const [cat, setCat] = useQueryState(
+    'section',
+    parseAsStringLiteral(SETTINGS_CATS)
+      .withDefault('general')
+      .withOptions({ shallow: false })
+  )
   const { settings, updateSettings, resetSettings } = useSettings()
 
   const setTheme = (themeMode: ThemeMode) => updateSettings({ themeMode })

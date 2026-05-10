@@ -1,10 +1,15 @@
-import { useState } from 'react'
+import { useQueryState, parseAsStringEnum } from 'nuqs'
 import { cn } from '../lib/utils'
 import { EDUCATION_ARTICLES, EDUCATION_CATEGORIES } from '../data/educationData'
 import type { EduCategory } from '../data/educationData'
 
 export function EducationView() {
-  const [activeCategory, setActiveCategory] = useState<EduCategory>('All')
+  const [activeCategory, setActiveCategory] = useQueryState(
+    'topic',
+    parseAsStringEnum<EduCategory>(EDUCATION_CATEGORIES as unknown as EduCategory[])
+      .withDefault('All')
+      .withOptions({ shallow: false })
+  )
 
   const filteredArticles = EDUCATION_ARTICLES.filter(
     (art) => activeCategory === 'All' || art.category === activeCategory

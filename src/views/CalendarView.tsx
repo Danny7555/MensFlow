@@ -12,12 +12,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { useQueryState, parseAsStringLiteral } from 'nuqs'
 import { cn } from "@/lib/utils"
 
 const DAYS_OF_WEEK = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
 
 type CalendarState = {
-  view: "month" | "year"
   viewDate: Date
   selectedDate: Date
   isEditingPeriods: boolean
@@ -25,7 +25,6 @@ type CalendarState = {
 }
 
 type CalendarAction =
-  | { type: "SET_VIEW"; payload: "month" | "year" }
   | { type: "SET_VIEW_DATE"; payload: Date }
   | { type: "SET_SELECTED_DATE"; payload: Date }
   | { type: "SET_EDITING_PERIODS"; payload: boolean }
@@ -33,8 +32,6 @@ type CalendarAction =
 
 function calendarReducer(state: CalendarState, action: CalendarAction): CalendarState {
   switch (action.type) {
-    case "SET_VIEW":
-      return { ...state, view: action.payload }
     case "SET_VIEW_DATE":
       return { ...state, viewDate: action.payload }
     case "SET_SELECTED_DATE":
@@ -52,14 +49,19 @@ function calendarReducer(state: CalendarState, action: CalendarAction): Calendar
   }
 }
 
-
 export function CalendarView() {
   const today = new Date()
   const currentYear = today.getFullYear()
   const currentMonth = today.getMonth()
+
+  const [view, setView] = useQueryState(
+    'view',
+    parseAsStringLiteral(['month', 'year'] as const)
+      .withDefault('month')
+      .withOptions({ shallow: false })
+  )
   
   const [state, dispatch] = React.useReducer(calendarReducer, {
-    view: "month",
     viewDate: new Date(currentYear, currentMonth, 1),
     selectedDate: today,
     isEditingPeriods: false,
@@ -73,7 +75,7 @@ export function CalendarView() {
     ])
   })
 
-  const { view, viewDate, selectedDate, isEditingPeriods, periodDates } = state
+  const { viewDate, selectedDate, isEditingPeriods, periodDates } = state
 
   const year = viewDate.getFullYear()
   const month = viewDate.getMonth()
@@ -92,7 +94,7 @@ export function CalendarView() {
           <div className="flex justify-center sm:justify-start order-2 sm:order-1">
             <div className="flex bg-[#ebebeb] dark:bg-muted p-1 rounded-lg">
               <button
-                onClick={() => dispatch({ type: "SET_VIEW", payload: "month" })}
+                onClick={() => setView("month")}
                 className={cn(
                   "px-6 sm:px-8 py-1.5 rounded-md text-[11px] font-medium transition-all",
                   view === "month" 
@@ -103,7 +105,7 @@ export function CalendarView() {
                 MONTH
               </button>
               <button
-                onClick={() => dispatch({ type: "SET_VIEW", payload: "year" })}
+                onClick={() => setView("year")}
                 className={cn(
                   "px-6 sm:px-8 py-1.5 rounded-md text-[11px] font-medium transition-all",
                   view === "year" 
@@ -156,7 +158,7 @@ export function CalendarView() {
             periodDates={periodDates}
             onMonthClick={(d) => {
               dispatch({ type: "SET_VIEW_DATE", payload: d })
-              dispatch({ type: "SET_VIEW", payload: "month" })
+              setView("month")
             }}
           />
         )}
