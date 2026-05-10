@@ -67,7 +67,7 @@ export function Header({
               Login
             </button>
             <button type="button" className="btn btn-primary" onClick={onOpenAuth}>
-              Sign up — free
+              Sign up - free
             </button>
           </>
         ) : (
@@ -80,8 +80,8 @@ export function Header({
                 aria-pressed={temporaryChat}
                 title={
                   temporaryChat
-                    ? 'Temporary chat: not saved — click for saved chat'
-                    : 'Saved chat — click for temporary chat (like ChatGPT)'
+                    ? 'Temporary chat: not saved - click for saved chat'
+                    : 'Saved chat - click for temporary chat (like ChatGPT)'
                 }
               >
                 {temporaryChat ? (

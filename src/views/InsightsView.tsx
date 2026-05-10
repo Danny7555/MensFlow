@@ -53,7 +53,7 @@ export function InsightsView() {
         </h2>
         <ul className="insight-bullets">
           <li>
-            Energy dips clustered in the last week of your cycle — consider lighter training loads there.
+            Energy dips clustered in the last week of your cycle - consider lighter training loads there.
           </li>
           <li>
             Bloating aligned with late-luteal weeks; salt and sleep hygiene are reasonable experiments (not medical advice).

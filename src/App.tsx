@@ -11,6 +11,8 @@ import { LandingView } from './views/LandingView'
 import { PlaceholderView } from './views/PlaceholderView'
 import { SettingsView } from './views/SettingsView'
 import { CalendarView } from './views/CalendarView'
+import { SymptomsView } from './views/SymptomsView'
+import { EducationView } from './views/EducationView'
 import { AuthProvider } from './context/AuthProvider'
 import { SettingsProvider } from './context/SettingsProvider'
 import { ChatSessionContext } from './context/chat-session-context'
@@ -129,8 +131,8 @@ function MainShell() {
                   <Route path="/insights" element={<InsightsView />} />
                   <Route path="/tips" element={<TipsView />} />
                   <Route path="/tracker" element={<CalendarView />} />
-                  <Route path="/symptoms" element={<PlaceholderView title="Symptoms" description="Daily symptom logging with gentle charts — implementation next." />} />
-                  <Route path="/education" element={<PlaceholderView title="Education" description="Structured guides on hormones, phases, and when to seek care." />} />
+                  <Route path="/symptoms" element={<SymptomsView />} />
+                  <Route path="/education" element={<EducationView />} />
                   <Route path="*" element={<Navigate to="/dashboard" />} />
                 </>
               )}
