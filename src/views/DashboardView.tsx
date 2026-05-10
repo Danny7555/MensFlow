@@ -1,5 +1,10 @@
-import { useMemo } from 'react'
-import { CalendarBlank, ClipboardText } from '@phosphor-icons/react'
+import { useMemo, useState } from 'react'
+import {
+  CalendarBlank,
+  ClipboardText,
+  PencilSimple,
+  Check,
+} from '@phosphor-icons/react'
 import { useDashboardData } from '../context/useDashboardData'
 
 function computeCycleDay(startIso: string, cycleLen: number) {
@@ -12,6 +17,7 @@ function computeCycleDay(startIso: string, cycleLen: number) {
 
 export function DashboardView() {
   const { data, update, lastSaved } = useDashboardData()
+  const [isEditingGuidance, setIsEditingGuidance] = useState(false)
 
   const cycleDay = useMemo(
     () => computeCycleDay(data.lastPeriodStart, data.typicalCycleDays),
@@ -80,63 +86,66 @@ export function DashboardView() {
             <dl className="dash-dl">
               <div className="dash-dl-row">
                 <dt>Phase</dt>
-                <dd>
-                  <input
-                    type="text"
-                    className="dash-input dash-input--inline"
-                    value={data.phaseLabel}
-                    onChange={(e) => update({ phaseLabel: e.target.value })}
-                    aria-label="Phase label"
-                  />
-                </dd>
+                <dd>{data.phaseLabel}</dd>
               </div>
               <div className="dash-dl-row">
                 <dt>Hormone trend</dt>
-                <dd>
-                  <input
-                    type="text"
-                    className="dash-input dash-input--inline"
-                    value={data.hormoneTrend}
-                    onChange={(e) => update({ hormoneTrend: e.target.value })}
-                  />
-                </dd>
+                <dd>{data.hormoneTrend}</dd>
               </div>
               <div className="dash-dl-row">
                 <dt>Body signals</dt>
-                <dd>
-                  <input
-                    type="text"
-                    className="dash-input dash-input--inline"
-                    value={data.bodySignals}
-                    onChange={(e) => update({ bodySignals: e.target.value })}
-                  />
-                </dd>
+                <dd>{data.bodySignals}</dd>
               </div>
             </dl>
           </section>
 
           <section className="dash-panel" aria-labelledby="guide-heading">
-            <div className="dash-panel-head">
+            <div className="dash-panel-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 id="guide-heading" className="dash-panel-title">
                 Today&apos;s health guidance
               </h2>
+              <button
+                type="button"
+                onClick={() => setIsEditingGuidance(!isEditingGuidance)}
+                aria-label={isEditingGuidance ? "Save guidance" : "Edit guidance"}
+                className="icon-btn"
+                style={{ padding: '0.25rem' }}
+              >
+                {isEditingGuidance ? (
+                  <Check size={18} className="text-primary" aria-hidden />
+                ) : (
+                  <PencilSimple size={18} className="text-muted-foreground opacity-50 hover:opacity-100 transition-opacity" aria-hidden />
+                )}
+              </button>
             </div>
-            <textarea
-              className="dash-textarea dash-textarea--guidance"
-              aria-label="Guidance list — one line per tip"
-              rows={5}
-              value={guidanceText}
-              onChange={(e) => {
-                const lines = e.target.value
-                  .split('\n')
-                  .map((s) => s.trim())
-                  .filter(Boolean)
-                update({ guidanceLines: lines })
-              }}
-            />
-            <p className="dash-hint">
-              One short tip per line — your dashboard and Tips view both read from here in this demo.
-            </p>
+            {isEditingGuidance ? (
+              <>
+                <textarea
+                  className="dash-textarea dash-textarea--guidance"
+                  aria-label="Guidance list — one line per tip"
+                  rows={5}
+                  value={guidanceText}
+                  onChange={(e) => {
+                    const lines = e.target.value
+                      .split('\n')
+                      .map((s) => s.trim())
+                      .filter(Boolean)
+                    update({ guidanceLines: lines })
+                  }}
+                />
+                <p className="dash-hint">
+                  One short tip per line — your dashboard and Tips view both read from here in this demo.
+                </p>
+              </>
+            ) : (
+              <div style={{ flex: 1, padding: '0.5rem 1.25rem 1.25rem' }}>
+                <ul className="guidance-list">
+                  {data.guidanceLines.map((line, i) => (
+                    <li key={i}>{line}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </section>
         </div>
 

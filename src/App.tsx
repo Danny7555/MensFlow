@@ -1,4 +1,5 @@
 import { useCallback, useState, type ReactNode } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { ThemeSync } from './components/ThemeSync'
 import { AuthModal, type AuthMethod } from './components/AuthModal'
 import { ChatView } from './views/ChatView'
@@ -9,6 +10,7 @@ import { TipsView } from './views/TipsView'
 import { LandingView } from './views/LandingView'
 import { PlaceholderView } from './views/PlaceholderView'
 import { SettingsView } from './views/SettingsView'
+import { CalendarView } from './views/CalendarView'
 import { AuthProvider } from './context/AuthProvider'
 import { SettingsProvider } from './context/SettingsProvider'
 import { ChatSessionContext } from './context/chat-session-context'
@@ -24,7 +26,6 @@ function MainShell() {
   const { isAuthenticated, login, logout } = useAuth()
   const { settings, updateSettings } = useSettings()
   const isMobile = useMediaQuery('(max-width: 768px)')
-  const [section, setSection] = useState<SectionId>('ask')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [temporaryChat, setTemporaryChat] = useState(false)
@@ -36,7 +37,6 @@ function MainShell() {
       void method
       login()
       setTemporaryChat(settings.privacyDefaultTemporaryChat)
-      setSection('dashboard')
       setAuthModalOpen(false)
     },
     [login, settings.privacyDefaultTemporaryChat],
@@ -45,13 +45,9 @@ function MainShell() {
   const handleLogout = useCallback(() => {
     logout()
     setTemporaryChat(false)
-    setSection('ask')
   }, [logout])
 
-  const goHome = useCallback(() => {
-    if (isAuthenticated) setSection('dashboard')
-    else setSection('ask')
-  }, [isAuthenticated])
+  // goHome removed since NavLink manages it
 
   const toggleSidebar = useCallback(() => {
     if (isMobile) setSidebarOpen((o) => !o)
@@ -77,73 +73,6 @@ function MainShell() {
     />
   )
 
-  let main: ReactNode
-
-  if (!isAuthenticated) {
-    if (section === 'ask' || section === 'new-chat') {
-      main = <LandingView />
-    } else if (section === 'settings') {
-      main = <SettingsView isGuest onLogin={openAuth} />
-    } else if (section === 'calendar') {
-      main = guestPlaceholder(
-        'Calendar',
-        'Log in to use your cycle calendar and predictions.',
-      )
-    } else if (section === 'health-insights') {
-      main = <InsightsView />
-    } else if (section === 'wellness-tips') {
-      main = <TipsView />
-    } else if (section === 'history') {
-      main = guestPlaceholder(
-        'History / logs',
-        'Chat and symptom history stays private to your account.',
-      )
-    } else {
-      main = <LandingView />
-    }
-  } else if (section === 'dashboard') {
-    main = <DashboardView />
-  } else if (section === 'ask') {
-    main = <ChatView />
-  } else if (section === 'settings') {
-    main = <SettingsView onLogout={handleLogout} />
-  } else if (section === 'insights') {
-    main = <InsightsView />
-  } else if (section === 'tips') {
-    main = <TipsView />
-  } else if (
-    section === 'symptoms' ||
-    section === 'education' ||
-    section === 'tracker'
-  ) {
-    const copy: Record<string, { title: string; description: string }> = {
-      symptoms: {
-        title: 'Symptoms',
-        description:
-          'Daily symptom logging with gentle charts — implementation next.',
-      },
-      education: {
-        title: 'Education',
-        description:
-          'Structured guides on hormones, phases, and when to seek care.',
-      },
-      tracker: {
-        title: 'Tracker',
-        description:
-          'Period dates, flow, notes, and optional fertile-window hints.',
-      },
-    }
-    const s = copy[section]
-    main = (
-      <PlaceholderView title={s.title} description={s.description} />
-    )
-  } else {
-    main = <DashboardView />
-  }
-
-  const sidebarActive: SectionId | null =
-    isAuthenticated && section === 'dashboard' ? null : section
-
   return (
     <ChatSessionContext.Provider
       value={{ temporaryChat, setTemporaryChat }}
@@ -151,8 +80,6 @@ function MainShell() {
       <div className="app-shell">
         <Sidebar
           isAuthenticated={isAuthenticated}
-          active={sidebarActive}
-          onNavigate={setSection}
           mobileOpen={sidebarOpen}
           onCloseMobile={() => setSidebarOpen(false)}
           onLogin={openAuth}
@@ -170,7 +97,6 @@ function MainShell() {
             sidebarExpanded={sidebarExpanded}
             sidebarToggleLabel={sidebarToggleLabel}
             onOpenAuth={openAuth}
-            onGoHome={goHome}
             temporaryChat={isAuthenticated ? temporaryChat : undefined}
             onToggleTemporaryChat={
               isAuthenticated
@@ -178,13 +104,38 @@ function MainShell() {
                 : undefined
             }
             onLogout={handleLogout}
-            onOpenSettings={() => {
-              setSection('settings')
-              setSidebarOpen(false)
-            }}
           />
 
-          <main className="app-canvas">{main}</main>
+          <main className="app-canvas">
+            <Routes>
+              {!isAuthenticated ? (
+                <>
+                  <Route path="/" element={<LandingView />} />
+                  <Route path="/ask" element={<LandingView />} />
+                  <Route path="/new-chat" element={<LandingView />} />
+                  <Route path="/settings" element={<SettingsView isGuest onLogin={openAuth} />} />
+                  <Route path="/calendar" element={<CalendarView />} />
+                  <Route path="/health-insights" element={<InsightsView />} />
+                  <Route path="/wellness-tips" element={<TipsView />} />
+                  <Route path="/history" element={guestPlaceholder('History / logs', 'Chat and symptom history stays private to your account.')} />
+                  <Route path="*" element={<Navigate to="/" />} />
+                </>
+              ) : (
+                <>
+                  <Route path="/" element={<Navigate to="/dashboard" />} />
+                  <Route path="/dashboard" element={<DashboardView />} />
+                  <Route path="/ask" element={<ChatView />} />
+                  <Route path="/settings" element={<SettingsView onLogout={handleLogout} />} />
+                  <Route path="/insights" element={<InsightsView />} />
+                  <Route path="/tips" element={<TipsView />} />
+                  <Route path="/tracker" element={<CalendarView />} />
+                  <Route path="/symptoms" element={<PlaceholderView title="Symptoms" description="Daily symptom logging with gentle charts — implementation next." />} />
+                  <Route path="/education" element={<PlaceholderView title="Education" description="Structured guides on hormones, phases, and when to seek care." />} />
+                  <Route path="*" element={<Navigate to="/dashboard" />} />
+                </>
+              )}
+            </Routes>
+          </main>
         </div>
       </div>
 

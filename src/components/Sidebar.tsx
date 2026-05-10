@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react'
+import { NavLink } from 'react-router-dom'
 import type { IconProps } from '@phosphor-icons/react'
 import {
   BookOpen,
@@ -43,8 +44,6 @@ const authItems: { id: SectionId; label: string; Icon: NavIcon }[] = [
 
 type SidebarProps = {
   isAuthenticated: boolean
-  active: SectionId | null
-  onNavigate: (id: SectionId) => void
   /** Mobile drawer open */
   mobileOpen: boolean
   onCloseMobile: () => void
@@ -56,8 +55,6 @@ type SidebarProps = {
 
 export function Sidebar({
   isAuthenticated,
-  active,
-  onNavigate,
   mobileOpen,
   onCloseMobile,
   onLogin,
@@ -67,11 +64,6 @@ export function Sidebar({
 }: SidebarProps) {
   const items = isAuthenticated ? authItems : guestItems
   const collapsed = !isMobile && desktopCollapsed
-
-  const handleNav = (id: SectionId) => {
-    onNavigate(id)
-    onCloseMobile()
-  }
 
   const navIconSize = collapsed ? 22 : 20
 
@@ -98,16 +90,16 @@ export function Sidebar({
 
         <nav className="sidebar-nav">
           {items.map(({ id, label, Icon }) => (
-            <button
+            <NavLink
               key={id}
-              type="button"
+              to={id === 'dashboard' || (id === 'ask' && !isAuthenticated) ? '/' : `/${id}`}
               title={collapsed ? label : undefined}
-              className={`sidebar-link ${active === id ? 'sidebar-link--active' : ''}`}
-              onClick={() => handleNav(id)}
+              className={({ isActive }) => `sidebar-link ${isActive ? 'sidebar-link--active' : ''}`}
+              onClick={onCloseMobile}
             >
               <Icon size={navIconSize} className="sidebar-link-icon" aria-hidden />
               <span className="sidebar-link-label">{label}</span>
-            </button>
+            </NavLink>
           ))}
         </nav>
 
