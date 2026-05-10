@@ -3,9 +3,19 @@ import { CaretDown, CaretRight, Smiley, Info } from '@phosphor-icons/react'
 import { format, addDays, startOfDay } from 'date-fns'
 
 
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu'
+
 export function CycleTrackerHero() {
   const [selectedDay, setSelectedDay] = useState<number>(12);
   const [hoveredDay, setHoveredDay] = useState<number | null>(null);
+  const [trackingMode, setTrackingMode] = useState<string>('Period');
+
+  const modes = ['Period', 'Conception', 'Pregnancy', 'Perimenopause'];
 
   const cycleLength = 27;
   const currentDay = 12;
@@ -112,10 +122,25 @@ export function CycleTrackerHero() {
   return (
     <div className="cycle-tracker-hero">
       <div className="cycle-tracker-mode">
-        <button className="mode-chip">
-          Mode: Clue Period Tracking
-          <CaretDown size={14} weight="bold" />
-        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="mode-chip">
+              Mode: MensFlow {trackingMode}
+              <CaretDown size={14} weight="bold" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-56 bg-card border-border">
+            {modes.map((m) => (
+              <DropdownMenuItem 
+                key={m} 
+                onClick={() => setTrackingMode(m)}
+                className="text-sm font-regular focus:bg-[var(--mf-accent-soft)] focus:text-[var(--mf-accent)] cursor-pointer"
+              >
+                {m}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <div className="cycle-tracker-viz">

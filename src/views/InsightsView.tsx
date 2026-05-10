@@ -20,10 +20,10 @@ export function InsightsView() {
                 <span className="insight-trend-value">{t.value}</span>
                 <div className="mt-auto pt-3">
                   <div className={cn(
-                    "flex items-center gap-1.5 text-[11px] font-medium px-2 py-0.5 rounded-md w-fit",
-                    t.id === '1' && "bg-[var(--mf-warning-soft)] text-[var(--mf-warning)]",
-                    t.id === '2' && "bg-[var(--mf-success-soft)] text-[var(--mf-success)]",
-                    t.id === '3' && "bg-[var(--mf-info-soft)] text-[var(--mf-info)]"
+                    "flex items-center gap-1.5 text-[11px] font-medium w-fit",
+                    t.id === '1' && "text-[var(--mf-warning)]",
+                    t.id === '2' && "text-[var(--mf-success)]",
+                    t.id === '3' && "text-[var(--mf-info)]"
                   )}>
                     {t.id === '1' && <TrendUp size={14} weight="bold" />}
                     {t.id === '2' && <TrendDown size={14} weight="bold" />}

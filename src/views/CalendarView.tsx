@@ -86,20 +86,20 @@ export function CalendarView() {
   const nextYear = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year + 1, month, 1) })
 
   return (
-    <div className="flex flex-col h-full bg-[#fafafa] dark:bg-background overflow-auto">
+    <div className="flex flex-col h-full bg-[#f5f5f7] dark:bg-background overflow-auto">
       <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-8 animate-in fade-in duration-500">
         
         {/* Top Control Bar */}
         <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-6 px-6 mb-8 text-center">
           <div className="flex justify-center sm:justify-start order-2 sm:order-1">
-            <div className="flex bg-[#ebebeb] dark:bg-muted p-1 rounded-lg">
+            <div className="flex bg-[#f3f4f6] dark:bg-muted p-1 rounded-lg border border-[#d1d5db]">
               <button
                 onClick={() => setView("month")}
                 className={cn(
-                  "px-6 sm:px-8 py-1.5 rounded-md text-[11px] font-medium transition-all",
+                  "px-6 sm:px-8 py-1.5 rounded-md text-[11px] font-medium transition-all border",
                   view === "month" 
-                    ? "bg-white dark:bg-muted-foreground/20 text-[var(--mf-accent)] shadow-sm" 
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-white dark:bg-muted-foreground/20 text-[var(--mf-accent)] border-border/40" 
+                    : "text-muted-foreground hover:text-foreground border-transparent hover:border-border/20"
                 )}
               >
                 MONTH
@@ -107,10 +107,10 @@ export function CalendarView() {
               <button
                 onClick={() => setView("year")}
                 className={cn(
-                  "px-6 sm:px-8 py-1.5 rounded-md text-[11px] font-medium transition-all",
+                  "px-6 sm:px-8 py-1.5 rounded-md text-[11px] font-medium transition-all border",
                   view === "year" 
-                    ? "bg-white dark:bg-muted-foreground/20 text-[var(--mf-accent)] shadow-sm" 
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-white dark:bg-muted-foreground/20 text-[var(--mf-accent)] border-border/40" 
+                    : "text-muted-foreground hover:text-foreground border-transparent hover:border-border/20"
                 )}
               >
                 YEAR
@@ -279,12 +279,14 @@ function YearView({ viewDate, periodDates, onMonthClick }: {
         return (
           <div 
             key={idx} 
-            className="p-4 bg-white dark:bg-card rounded-2xl border border-border/50 hover:border-border transition-colors cursor-pointer group"
+            className="p-4 bg-white dark:bg-card rounded-2xl border border-border/50 hover:border-[var(--mf-accent)] transition-all cursor-pointer group flex flex-col"
             onClick={() => onMonthClick(m)}
           >
-            <h4 className="text-sm font-medium mb-3 group-hover:text-[var(--mf-accent)] transition-colors">
-              {mName}
-            </h4>
+            <div className="px-4 py-2 -mx-4 -mt-4 mb-4 border-b border-border/60">
+              <h4 className="text-sm font-medium text-foreground group-hover:text-[var(--mf-accent)] transition-colors">
+                {mName}
+              </h4>
+            </div>
             <div className="grid grid-cols-7 gap-1">
               {Array.from({ length: offset }).map((_, i) => (
                 <div key={`empty-${i}`} className="size-2" />
