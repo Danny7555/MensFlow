@@ -95,9 +95,14 @@ export function EducationView() {
                   <span className="flex items-center gap-2">
                     {article.readTime}
                   </span>
-                  <span className="text-[var(--mf-accent)] flex items-center gap-1 group cursor-pointer hover:underline">
+                  <a 
+                    href={article.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[var(--mf-accent)] flex items-center gap-1 group cursor-pointer hover:underline"
+                  >
                     Read guide <span className="text-xl transition-transform group-hover:translate-x-1">→</span>
-                  </span>
+                  </a>
                 </div>
               </div>
             </article>
