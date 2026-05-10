@@ -80,35 +80,37 @@ export function CalendarView() {
       <div className="flex-1 w-full max-w-[1200px] mx-auto flex flex-col pt-4 pb-12 transition-all">
         
         {/* Top Control Bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between px-6 mb-8 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-6 px-6 mb-8 text-center">
            {/* View Switcher */}
-          <div className="flex bg-[#ebebeb] dark:bg-muted p-1 rounded-lg order-2 sm:order-1">
-            <button
-              onClick={() => setView("month")}
-              className={cn(
-                "px-6 sm:px-8 py-1.5 rounded-md text-[11px] font-bold transition-all",
-                view === "month" 
-                  ? "bg-[#2ebcc5] text-white shadow-sm" 
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              MONTH
-            </button>
-            <button
-              onClick={() => setView("year")}
-              className={cn(
-                "px-6 sm:px-8 py-1.5 rounded-md text-[11px] font-bold transition-all",
-                view === "year" 
-                  ? "bg-[#2ebcc5] text-white shadow-sm" 
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              YEAR
-            </button>
+          <div className="flex justify-center sm:justify-start order-2 sm:order-1">
+            <div className="flex bg-[#ebebeb] dark:bg-muted p-1 rounded-lg">
+              <button
+                onClick={() => setView("month")}
+                className={cn(
+                  "px-6 sm:px-8 py-1.5 rounded-md text-[11px] font-bold transition-all",
+                  view === "month" 
+                    ? "bg-[#2ebcc5] text-white shadow-sm" 
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                MONTH
+              </button>
+              <button
+                onClick={() => setView("year")}
+                className={cn(
+                  "px-6 sm:px-8 py-1.5 rounded-md text-[11px] font-bold transition-all",
+                  view === "year" 
+                    ? "bg-[#2ebcc5] text-white shadow-sm" 
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                YEAR
+              </button>
+            </div>
           </div>
 
           {/* Month Navigation */}
-          <div className="flex items-center gap-6 order-1 sm:order-2">
+          <div className="flex items-center justify-center gap-6 order-1 sm:order-2">
             <Button variant="ghost" size="icon" onClick={prevMonth} className="rounded-full">
               <CaretLeft className="w-5 h-5" />
             </Button>
@@ -121,16 +123,18 @@ export function CalendarView() {
           </div>
 
           {/* Edit Toggle */}
-          <Button 
-            variant={isEditingPeriods ? "default" : "outline"}
-            onClick={() => setIsEditingPeriods(!isEditingPeriods)}
-            className={cn(
-              "rounded-full text-xs font-bold order-3",
-              isEditingPeriods ? "bg-[#ff5a5f] hover:bg-[#ff4b50] border-none text-white" : ""
-            )}
-          >
-            {isEditingPeriods ? "Finish Editing" : "Edit Periods"}
-          </Button>
+          <div className="flex justify-center sm:justify-end order-3">
+            <Button 
+              variant={isEditingPeriods ? "default" : "outline"}
+              onClick={() => setIsEditingPeriods(!isEditingPeriods)}
+              className={cn(
+                "rounded-full text-xs font-bold",
+                isEditingPeriods ? "bg-[#ff5a5f] hover:bg-[#ff4b50] border-none text-white" : ""
+              )}
+            >
+              {isEditingPeriods ? "Finish Editing" : "Edit Periods"}
+            </Button>
+          </div>
         </div>
 
         {/* Weekdays */}
