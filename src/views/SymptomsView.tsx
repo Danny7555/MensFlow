@@ -91,7 +91,7 @@ function SymptomCategoryList({
                   'phys-tender': '/images/tender.jpg',
                 }
                 if (imgMap[symptom.id]) {
-                  return <img src={imgMap[symptom.id]} alt="" className="w-6 h-6 rounded-full object-cover" />
+                  return <img src={imgMap[symptom.id]} alt="" className="size-6 rounded-full object-cover" />
                 }
                 if (SYMPTOM_ICONS[symptom.id]) {
                   const Icon = SYMPTOM_ICONS[symptom.id]

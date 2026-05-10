@@ -278,7 +278,7 @@ function YearView({ viewDate, periodDates, onMonthClick }: {
 
         return (
           <div 
-            key={idx} 
+            key={m.getTime()} 
             className="p-4 bg-white dark:bg-card rounded-2xl border border-border/50 hover:border-[var(--mf-accent)] transition-all cursor-pointer group flex flex-col"
             onClick={() => onMonthClick(m)}
           >
