@@ -1,16 +1,30 @@
 import { useEffect, useState } from 'react'
-import { Pill, Pulse, Drop, Smiley, SmileyWink, SmileyXEyes, SmileySad, Fire, CalendarBlank } from '@phosphor-icons/react'
+import { 
+  Pill, Pulse, Drop, DropHalf, DropSimple, 
+  Smiley, SmileyWink, SmileyXEyes, SmileySad, Fire, 
+  Brain, Waves, Moon, HandHeart, Sparkle,
+  CalendarBlank 
+} from '@phosphor-icons/react'
 import { cn } from '../lib/utils'
 import { SYMPTOM_DEFS } from '../data/symptomsData'
 import type { SymptomCategory } from '../data/symptomsData'
 import { SymptomsChart } from '../components/SymptomsChart'
 
 const SYMPTOM_ICONS: Record<string, React.ElementType> = {
+  'flow-light': DropSimple,
+  'flow-medium': DropHalf,
+  'flow-heavy': Drop,
   'mood-calm': Smiley,
   'mood-happy': SmileyWink,
   'mood-anxious': SmileyXEyes,
   'mood-sad': SmileySad,
   'mood-irritable': Fire,
+  'phys-cramps': Pulse,
+  'phys-headache': Brain,
+  'phys-bloating': Waves,
+  'phys-fatigue': Moon,
+  'phys-tender': HandHeart,
+  'phys-acne': Sparkle,
 }
 
 function SymptomCategoryList({ 
