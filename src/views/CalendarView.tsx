@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Plus, X, CaretLeft, CaretRight } from "@phosphor-icons/react"
+import { Plus, X, CaretLeft, CaretRight,Drop } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import {
@@ -16,19 +16,53 @@ import { cn } from "@/lib/utils"
 
 const DAYS_OF_WEEK = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
 
+type CalendarState = {
+  view: "month" | "year"
+  viewDate: Date
+  selectedDate: Date
+  isEditingPeriods: boolean
+  periodDates: Set<string>
+}
+
+type CalendarAction =
+  | { type: "SET_VIEW"; payload: "month" | "year" }
+  | { type: "SET_VIEW_DATE"; payload: Date }
+  | { type: "SET_SELECTED_DATE"; payload: Date }
+  | { type: "SET_EDITING_PERIODS"; payload: boolean }
+  | { type: "TOGGLE_PERIOD_DATE"; payload: string }
+
+function calendarReducer(state: CalendarState, action: CalendarAction): CalendarState {
+  switch (action.type) {
+    case "SET_VIEW":
+      return { ...state, view: action.payload }
+    case "SET_VIEW_DATE":
+      return { ...state, viewDate: action.payload }
+    case "SET_SELECTED_DATE":
+      return { ...state, selectedDate: action.payload }
+    case "SET_EDITING_PERIODS":
+      return { ...state, isEditingPeriods: action.payload }
+    case "TOGGLE_PERIOD_DATE": {
+      const next = new Set(state.periodDates)
+      if (next.has(action.payload)) next.delete(action.payload)
+      else next.add(action.payload)
+      return { ...state, periodDates: next }
+    }
+    default:
+      return state
+  }
+}
+
 export function CalendarView() {
   const today = new Date()
   const currentYear = today.getFullYear()
   const currentMonth = today.getMonth()
   
-  const [view, setView] = React.useState<"month" | "year">("month")
-  const [viewDate, setViewDate] = React.useState(new Date(currentYear, currentMonth, 1))
-  const [selectedDate, setSelectedDate] = React.useState(today)
-  const [isEditingPeriods, setIsEditingPeriods] = React.useState(false)
-  
-  // Generate a few mock period dates around the current month
-  const [periodDates, setPeriodDates] = React.useState<Set<string>>(
-    new Set([
+  const [state, dispatch] = React.useReducer(calendarReducer, {
+    view: "month",
+    viewDate: new Date(currentYear, currentMonth, 1),
+    selectedDate: today,
+    isEditingPeriods: false,
+    periodDates: new Set([
       `${currentYear}-${String(currentMonth).padStart(2, '0')}-20`,
       `${currentYear}-${String(currentMonth).padStart(2, '0')}-21`,
       `${currentYear}-${String(currentMonth).padStart(2, '0')}-22`,
@@ -36,7 +70,9 @@ export function CalendarView() {
       `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-20`,
       `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-21`,
     ])
-  )
+  })
+
+  const { view, viewDate, selectedDate, isEditingPeriods, periodDates } = state
 
   // Calendar logic
   const daysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate()
@@ -49,24 +85,20 @@ export function CalendarView() {
 
   const monthName = viewDate.toLocaleString("default", { month: "long" })
 
-  const prevMonth = () => setViewDate(new Date(year, month - 1, 1))
-  const nextMonth = () => setViewDate(new Date(year, month + 1, 1))
+  const prevMonth = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year, month - 1, 1) })
+  const nextMonth = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year, month + 1, 1) })
 
   const dateToKey = (d: number) => `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`
 
   const togglePeriodDate = (d: number) => {
-    const key = dateToKey(d)
-    const next = new Set(periodDates)
-    if (next.has(key)) next.delete(key)
-    else next.add(key)
-    setPeriodDates(next)
+    dispatch({ type: "TOGGLE_PERIOD_DATE", payload: dateToKey(d) })
   }
 
   const handleDayClick = (d: number) => {
     if (isEditingPeriods) {
       togglePeriodDate(d)
     } else {
-      setSelectedDate(new Date(year, month, d))
+      dispatch({ type: "SET_SELECTED_DATE", payload: new Date(year, month, d) })
     }
   }
 
@@ -85,7 +117,7 @@ export function CalendarView() {
           <div className="flex justify-center sm:justify-start order-2 sm:order-1">
             <div className="flex bg-[#ebebeb] dark:bg-muted p-1 rounded-lg">
               <button
-                onClick={() => setView("month")}
+                onClick={() => dispatch({ type: "SET_VIEW", payload: "month" })}
                 className={cn(
                   "px-6 sm:px-8 py-1.5 rounded-md text-[11px] font-bold transition-all",
                   view === "month" 
@@ -96,7 +128,7 @@ export function CalendarView() {
                 MONTH
               </button>
               <button
-                onClick={() => setView("year")}
+                onClick={() => dispatch({ type: "SET_VIEW", payload: "year" })}
                 className={cn(
                   "px-6 sm:px-8 py-1.5 rounded-md text-[11px] font-bold transition-all",
                   view === "year" 
@@ -112,13 +144,13 @@ export function CalendarView() {
           {/* Month Navigation */}
           <div className="flex items-center justify-center gap-6 order-1 sm:order-2">
             <Button variant="ghost" size="icon" onClick={prevMonth} className="rounded-full">
-              <CaretLeft className="w-5 h-5" />
+              <CaretLeft className="size-5" />
             </Button>
-            <h2 className="text-xl sm:text-2xl font-bold text-foreground min-w-[140px] text-center">
+            <h2 className="text-xl sm:text-2xl font-semibold text-foreground min-w-[140px] text-center">
               {monthName} {year}
             </h2>
             <Button variant="ghost" size="icon" onClick={nextMonth} className="rounded-full">
-              <CaretRight className="w-5 h-5" />
+              <CaretRight className="size-5" />
             </Button>
           </div>
 
@@ -126,7 +158,7 @@ export function CalendarView() {
           <div className="flex justify-center sm:justify-end order-3">
             <Button 
               variant={isEditingPeriods ? "default" : "outline"}
-              onClick={() => setIsEditingPeriods(!isEditingPeriods)}
+              onClick={() => dispatch({ type: "SET_EDITING_PERIODS", payload: !isEditingPeriods })}
               className={cn(
                 "rounded-full text-xs font-bold",
                 isEditingPeriods ? "bg-[#ff5a5f] hover:bg-[#ff4b50] border-none text-white" : ""
@@ -173,7 +205,10 @@ export function CalendarView() {
               return (
                 <div 
                   key={d} 
+                  role="button"
+                  tabIndex={0}
                   onClick={() => handleDayClick(d)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleDayClick(d) }}
                   className="relative flex flex-col items-center justify-center cursor-pointer group py-2 sm:py-0"
                 >
                   {/* Cycle Day Number */}
@@ -196,15 +231,15 @@ export function CalendarView() {
 
                     {/* Period Marker (Red Dot Badge) */}
                     {isPeriod && (
-                      <div className="absolute -top-1 -left-1 bg-[#ff5a5f] text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold z-10 shadow-sm">
-                        {periodDayNum}
+                      <div className="absolute top-1 right-1 bg-[#ff5a5f] text-white rounded-full size-4 flex items-center justify-center shadow-sm">
+                        <Drop weight="fill" className="size-2.5" />
                       </div>
                     )}
 
                     <span className={cn(
                       "relative z-0 text-lg font-medium transition-colors",
                       isPeriod ? "text-[#ff5a5f]" : "text-foreground",
-                      isSelected && "font-bold"
+                      isSelected && "font-semibold"
                     )}>
                       {d}
                     </span>
@@ -228,10 +263,10 @@ export function CalendarView() {
         <Card className="rounded-t-[32px] rounded-b-none border-t border-x-0 border-b-0 p-6 pb-8 relative bg-white dark:bg-card max-w-[1200px] mx-auto overflow-hidden">
           <div className="flex items-start justify-between mb-8">
             <div>
-              <h3 className="text-xl font-bold text-foreground">
-                {selectedDate.toLocaleDateString("default", { month: "long", day: "numeric" })}
+              <h3 className="text-lg font-semibold text-foreground">
+                Edit Period for {selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
               </h3>
-              <p className="text-[#2ebcc5] font-bold text-sm">
+              <p className="text-[#2ebcc5] font-semibold text-sm">
                 Cycle Day {displayCycleDay}
               </p>
             </div>
@@ -257,7 +292,7 @@ export function CalendarView() {
               
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button className="w-14 h-14 rounded-full bg-[#2ebcc5] hover:bg-[#27a8b0] text-white p-0 flex items-center justify-center border-none transition-transform hover:scale-105 active:scale-95">
+                  <Button className="size-14 rounded-full bg-[#2ebcc5] hover:bg-[#27a8b0] text-white p-0 flex items-center justify-center border-none transition-transform hover:scale-105 active:scale-95">
                     <Plus size={32} strokeWidth={2.5} />
                   </Button>
                 </DialogTrigger>

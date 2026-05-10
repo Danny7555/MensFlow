@@ -61,7 +61,7 @@ export function EducationView() {
               </div>
               
               <div className="flex-1 space-y-2 mt-2">
-                <h3 className="text-lg font-bold text-foreground leading-tight">
+                <h3 className="text-lg font-semibold text-foreground leading-tight">
                   {article.title}
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">

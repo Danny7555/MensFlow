@@ -28,7 +28,7 @@ const chartConfig = {
 export function SymptomsChart() {
   return (
     <Card className="border-none shadow-none ring-0 bg-transparent">
-      <CardHeader className="flex flex-col items-start gap-4 space-y-0 border-b pb-4 mb-4 sm:flex-row sm:items-center">
+      <CardHeader className="flex flex-col items-start gap-4 gap-y-0 border-b pb-4 mb-4 sm:flex-row sm:items-center">
         <div className="grid flex-1 gap-1 text-left">
           <CardTitle>Symptom Trends</CardTitle>
           <CardDescription>

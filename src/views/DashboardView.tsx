@@ -28,7 +28,7 @@ export function DashboardView() {
     lastSaved?.toLocaleTimeString(undefined, {
       hour: 'numeric',
       minute: '2-digit',
-    }) ?? '—'
+    }) ?? '-'
 
   const guidanceText = data.guidanceLines.join('\n')
 
@@ -39,7 +39,7 @@ export function DashboardView() {
           <p className="dash-kicker">Home</p>
           <h1 className="dash-title">Your overview</h1>
           <p className="dash-sub">
-            Edit anything below — it saves to this browser for a realistic workflow demo.
+            Edit anything below - it saves to this browser for a realistic workflow demo.
           </p>
         </div>
         <div className="dash-header-meta">
@@ -122,26 +122,25 @@ export function DashboardView() {
               <>
                 <textarea
                   className="dash-textarea dash-textarea--guidance"
-                  aria-label="Guidance list — one line per tip"
+                  aria-label="Guidance list - one line per tip"
                   rows={5}
                   value={guidanceText}
                   onChange={(e) => {
                     const lines = e.target.value
                       .split('\n')
-                      .map((s) => s.trim())
-                      .filter(Boolean)
+                      .flatMap((s) => s.trim() ? [s.trim()] : [])
                     update({ guidanceLines: lines })
                   }}
                 />
                 <p className="dash-hint">
-                  One short tip per line — your dashboard and Tips view both read from here in this demo.
+                  One short tip per line - your dashboard and Tips view both read from here in this demo.
                 </p>
               </>
             ) : (
               <div style={{ flex: 1, padding: '0.5rem 1.25rem 1.25rem' }}>
                 <ul className="guidance-list">
-                  {data.guidanceLines.map((line, i) => (
-                    <li key={i}>{line}</li>
+                  {data.guidanceLines.map((line) => (
+                    <li key={line}>{line}</li>
                   ))}
                 </ul>
               </div>

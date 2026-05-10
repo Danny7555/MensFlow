@@ -147,8 +147,8 @@ export function InteractiveAreaChart() {
   })
 
   return (
-    <Card className="border-none shadow-none ring-0 bg-transparent">
-      <CardHeader className="flex flex-col items-start gap-4 space-y-0 border-b py-5 sm:flex-row sm:items-center">
+    <Card className="border-none shadow-none ring-0 bg-transparent" suppressHydrationWarning>
+      <CardHeader className="flex flex-col items-start gap-4 gap-y-0 border-b py-5 sm:flex-row sm:items-center">
         <div className="grid flex-1 gap-1 text-left">
           <CardTitle>Health Metrics Over Time</CardTitle>
           <CardDescription>

@@ -4,6 +4,7 @@ import { ChatComposer } from '../components/ChatComposer'
 import { useChatSession } from '../context/useChatSession'
 import { useSettings } from '../context/useSettings'
 import { CHAT_STORAGE_KEY, CLEAR_LOCAL_CHATS_EVENT } from '../lib/constants'
+import { cn } from '../lib/utils'
 
 type Msg = {
   id: string
@@ -13,7 +14,7 @@ type Msg = {
 }
 
 const welcomeText =
-  "Hi — I'm MensFlow. Ask about cycle basics, symptoms, or tracking. I share education, not diagnoses."
+  "Hi - I'm MensFlow. Ask about cycle basics, symptoms, or tracking. I share education, not diagnoses."
 
 function welcomeMessage(): Msg {
   return {
@@ -110,18 +111,34 @@ export function ChatView() {
     setDraft('')
   }
 
+  const isInitialState = messages.length === 1 && messages[0].id === 'welcome'
+
   return (
     <div className="chat-view">
       {temporaryChat && (
         <div className="chat-temporary-banner chat-thread-spacing" role="status">
           <Ghost size={18} weight="duotone" aria-hidden />
           <span>
-            Temporary chat — this conversation won&apos;t be saved to history or used to
+            Temporary chat - this conversation won&apos;t be saved to history or used to
             improve models (ChatGPT-style ephemeral session).
           </span>
         </div>
       )}
-      <div className="chat-thread" role="log" aria-live="polite">
+
+      {temporaryChat && isInitialState && (
+        <div className="chat-temp-hero">
+          <div className="chat-temp-hero-icon">
+            <Ghost size={48} weight="duotone" className="text-[#2ebcc5]" />
+          </div>
+          <h2 className="chat-temp-hero-title">Temporary Chat</h2>
+          <p className="chat-temp-hero-desc">
+            Messages in this chat won&apos;t appear in your history and won&apos;t be used
+            to improve our models. Any files you upload or data you log won&apos;t be saved.
+          </p>
+        </div>
+      )}
+
+      <div className={cn("chat-thread", isInitialState && temporaryChat && "opacity-0 h-0 pointer-events-none")} role="log" aria-live="polite">
         {messages.map((m) => (
           <div
             key={m.id}

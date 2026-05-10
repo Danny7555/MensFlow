@@ -72,7 +72,10 @@ export function Sidebar({
       <div
         className={`sidebar-backdrop ${mobileOpen ? 'sidebar-backdrop--visible' : ''}`}
         aria-hidden={!mobileOpen}
+        role="button"
+        tabIndex={0}
         onClick={onCloseMobile}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onCloseMobile() }}
       />
       <aside
         className={`sidebar ${mobileOpen ? 'sidebar--open' : ''} ${collapsed ? 'sidebar--collapsed' : ''}`}

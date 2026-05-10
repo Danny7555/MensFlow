@@ -722,6 +722,43 @@
   margin-top: 0.65rem;
 }
 
+.chat-temp-hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+  max-width: 600px;
+  margin: 0 auto;
+  animation: in 0.4s ease-out;
+}
+
+.chat-temp-hero-icon {
+  width: 80px;
+  height: 80px;
+  background: var(--mf-accent-soft);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.chat-temp-hero-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--mf-text-strong);
+  margin-bottom: 0.75rem;
+}
+
+.chat-temp-hero-desc {
+  font-size: 0.9rem;
+  color: var(--mf-muted);
+  line-height: 1.6;
+}
+
 .chat-thread {
   flex: 1;
   overflow-y: auto;
