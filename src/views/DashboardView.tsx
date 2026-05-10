@@ -1,10 +1,16 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   CalendarBlank,
   ClipboardText,
   PencilSimple,
   Check,
+  Calendar as CalendarIcon,
 } from '@phosphor-icons/react'
+import { format, parseISO } from 'date-fns'
+import { Calendar } from '../components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover'
+import { Button } from '../components/ui/button'
+import { cn } from '../lib/utils'
 import { useDashboardData } from '../context/useDashboardData'
 
 function computeCycleDay(startIso: string, cycleLen: number) {
@@ -15,9 +21,19 @@ function computeCycleDay(startIso: string, cycleLen: number) {
   return m + 1
 }
 
+function getGreeting() {
+  const hour = new Date().getHours()
+  if (hour < 12) return 'Good morning'
+  if (hour < 17) return 'Good afternoon'
+  return 'Good evening'
+}
+
 export function DashboardView() {
   const { data, update, lastSaved } = useDashboardData()
   const [isEditingGuidance, setIsEditingGuidance] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => setMounted(true), [])
 
   const cycleDay = useMemo(
     () => computeCycleDay(data.lastPeriodStart, data.typicalCycleDays),
@@ -32,15 +48,25 @@ export function DashboardView() {
 
   const guidanceText = data.guidanceLines.join('\n')
 
+  const selectedDate = useMemo(() => {
+    try {
+      return data.lastPeriodStart ? parseISO(data.lastPeriodStart) : undefined
+    } catch {
+      return undefined
+    }
+  }, [data.lastPeriodStart])
+
   return (
     <div className="dashboard-live">
       <header className="dash-header">
-        <div>
-          <p className="dash-kicker">Home</p>
-          <h1 className="dash-title">Your overview</h1>
-          <p className="dash-sub">
-            Edit anything below - it saves to this browser for a realistic workflow demo.
-          </p>
+        <div className="dash-header-left">
+          <img src="/images/girl.png" alt="" className="dash-avatar" />
+          <div>
+            <p className="dash-kicker">Home</p>
+            <h1 className="dash-title">
+              {mounted ? getGreeting() : 'Welcome back'}, Daniella
+            </h1>
+          </div>
         </div>
         <div className="dash-header-meta">
           <span className="dash-pill">
@@ -51,6 +77,9 @@ export function DashboardView() {
             Saved {fmtSaved}
           </span>
         </div>
+        <p className="dash-sub">
+          Here&apos;s your cycle overview and health insights for today.
+        </p>
       </header>
 
       <div className="dash-stats-row">
@@ -168,13 +197,32 @@ export function DashboardView() {
                 <label className="dash-field-label" htmlFor="dash-last-period">
                   Last period start
                 </label>
-                <input
-                  id="dash-last-period"
-                  type="date"
-                  className="dash-input dash-input--fill"
-                  value={data.lastPeriodStart}
-                  onChange={(e) => update({ lastPeriodStart: e.target.value })}
-                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      id="dash-last-period"
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal bg-card h-10 border-border",
+                        !data.lastPeriodStart && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon size={16} className="mr-2 opacity-60" />
+                      {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(day) => {
+                        if (day) {
+                          update({ lastPeriodStart: format(day, "yyyy-MM-dd") })
+                        }
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
 
               <div className="dash-snapshot-field">

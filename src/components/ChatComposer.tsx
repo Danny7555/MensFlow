@@ -11,8 +11,8 @@ import {
   FileArrowUp,
   ImageSquare,
   Microphone,
-  PaperclipHorizontal,
   PaperPlaneRight,
+  Plus,
   X,
 } from '@phosphor-icons/react'
 import { useSettings } from '../context/useSettings'
@@ -106,20 +106,19 @@ export function ChatComposer({
     setMenuOpen(false)
     try {
       const items = await navigator.clipboard.read()
-      const files: File[] = []
-      for (const item of items) {
+      const results = await Promise.all(items.map(async (item) => {
         for (const type of item.types) {
           if (type.startsWith('image/')) {
             const blob = await item.getType(type)
             const rawExt = type.split('/')[1] ?? 'png'
             const ext = rawExt.replace(/\W+/g, '').slice(0, 8) || 'png'
-            files.push(
-              new File([blob], `clipboard-${Date.now()}.${ext}`, { type }),
-            )
-            break
+            return new File([blob], `clipboard-${Date.now()}.${ext}`, { type })
           }
         }
-      }
+        return null
+      }))
+      
+      const files = results.filter((f): f is File => f !== null)
       if (files.length) addFiles(files)
       else window.alert('No image on the clipboard.')
     } catch {
@@ -210,7 +209,7 @@ export function ChatComposer({
             aria-controls={menuOpen ? menuId : undefined}
             onClick={() => setMenuOpen((o) => !o)}
           >
-            <PaperclipHorizontal size={21} aria-hidden />
+            <Plus size={21} aria-hidden />
           </button>
           {menuOpen && (
             <div className="composer-dropdown" id={menuId} role="menu">

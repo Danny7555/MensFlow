@@ -51,8 +51,8 @@ export function ChatView() {
   const persistToDisk = chatPersistLocal && !temporaryChat
 
   const [messages, setMessages] = useState<Msg[]>(() => {
-    if (temporaryChat) return [welcomeMessage()]
-    return loadStoredMessages() ?? [welcomeMessage()]
+    if (temporaryChat) return []
+    return loadStoredMessages() ?? []
   })
 
   const [draft, setDraft] = useState('')
@@ -111,10 +111,25 @@ export function ChatView() {
     setDraft('')
   }
 
-  const isInitialState = messages.length === 1 && messages[0].id === 'welcome'
+  const isInitialState = messages.length === 0
 
   return (
     <div className="chat-view">
+      {isInitialState && (
+        <header className="dash-header animate-in fade-in slide-in-from-top-4 duration-700">
+          <div className="dash-header-left">
+            <img src="/images/girl.png" alt="" className="dash-avatar" />
+            <div>
+              <p className="dash-kicker">Ask MensFlow</p>
+              <h1 className="dash-title">AI Assistant</h1>
+            </div>
+          </div>
+          <p className="dash-sub">
+            Education, tracking context, and supportive guidance; not a substitute for medical care.
+          </p>
+        </header>
+      )}
+
       {temporaryChat && (
         <div className="chat-temporary-banner chat-thread-spacing" role="status">
           <Ghost size={18} weight="duotone" aria-hidden />

@@ -25,9 +25,12 @@ export function LandingView() {
   return (
     <div className="landing">
       <div className="landing-center">
+        <div className="landing-hero-image-wrap">
+          <img src="/images/lady.png" alt="" className="landing-hero-image" />
+        </div>
         <h1 className="landing-title">Ask MensFlow about your cycle?</h1>
         <p className="landing-sub">
-          Education, tracking context, and supportive guidance — not a substitute
+          Education, tracking context, and supportive guidance; not a substitute
           for medical care.
         </p>
         {lastPrompt && (
@@ -53,15 +56,7 @@ export function LandingView() {
             placeholder="Ask MensFlow"
           />
         </div>
-        <div className="landing-bot" aria-hidden>
-          <div className="landing-bot-figure">
-            <span className="landing-bot-head" />
-            <span className="landing-bot-body" />
-            <span className="landing-bot-eye landing-bot-eye--l" />
-            <span className="landing-bot-eye landing-bot-eye--r" />
-          </div>
-          <span className="landing-bot-caption">Assistant</span>
-        </div>
+
       </div>
     </div>
   )

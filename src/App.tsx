@@ -114,7 +114,6 @@ function MainShell() {
                 <>
                   <Route path="/" element={<LandingView />} />
                   <Route path="/ask" element={<LandingView />} />
-                  <Route path="/new-chat" element={<LandingView />} />
                   <Route path="/settings" element={<SettingsView isGuest onLogin={openAuth} />} />
                   <Route path="/calendar" element={<CalendarView />} />
                   <Route path="/health-insights" element={<InsightsView />} />
