@@ -7,6 +7,7 @@ import {
   SignOut,
   UserCircle,
 } from '@phosphor-icons/react'
+import { Link } from 'react-router-dom'
 
 type HeaderProps = {
   isAuthenticated: boolean
@@ -14,11 +15,9 @@ type HeaderProps = {
   sidebarExpanded: boolean
   sidebarToggleLabel: string
   onOpenAuth: () => void
-  onGoHome: () => void
   temporaryChat?: boolean
   onToggleTemporaryChat?: () => void
   onLogout?: () => void
-  onOpenSettings?: () => void
 }
 
 export function Header({
@@ -27,11 +26,9 @@ export function Header({
   sidebarExpanded,
   sidebarToggleLabel,
   onOpenAuth,
-  onGoHome,
   temporaryChat,
   onToggleTemporaryChat,
   onLogout,
-  onOpenSettings,
 }: HeaderProps) {
   const [profileOpen, setProfileOpen] = useState(false)
   const profileWrapRef = useRef<HTMLDivElement>(null)
@@ -58,9 +55,9 @@ export function Header({
         >
           <List size={22} aria-hidden />
         </button>
-        <button type="button" className="top-header-logo" onClick={onGoHome}>
+        <Link to={isAuthenticated ? "/dashboard" : "/ask"} className="top-header-logo">
           MensFlow
-        </button>
+        </Link>
       </div>
 
       <div className="top-header-actions">
@@ -114,18 +111,15 @@ export function Header({
               </button>
               {profileOpen && (
                 <div className="profile-dropdown" role="menu">
-                  <button
-                    type="button"
+                  <Link
+                    to="/settings"
                     className="profile-dropdown-item"
                     role="menuitem"
-                    onClick={() => {
-                      onOpenSettings?.()
-                      setProfileOpen(false)
-                    }}
+                    onClick={() => setProfileOpen(false)}
                   >
                     <GearSix size={18} aria-hidden />
                     Settings
-                  </button>
+                  </Link>
                   <button
                     type="button"
                     className="profile-dropdown-item profile-dropdown-item--danger"

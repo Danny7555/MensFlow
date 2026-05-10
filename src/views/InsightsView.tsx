@@ -8,9 +8,6 @@ export function InsightsView() {
   return (
     <div className="insights-page">
       <header className="page-hero">
-        <div className="page-hero-icon">
-          <ChartLineUp size={26} weight="duotone" aria-hidden />
-        </div>
         <h1 className="page-hero-title">Health insights</h1>
         <p className="page-hero-desc">
           Interactive trends and patterns based on your logged history.
