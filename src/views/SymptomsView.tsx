@@ -42,16 +42,26 @@ function SymptomCategoryList({
   if (items.length === 0) return null
 
   return (
-    <div className="dash-panel p-6 flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium tracking-tight text-foreground flex items-center gap-2">
-          <IconComponent size={20} className="text-[var(--mf-accent)]" />
-          {category}
-        </h3>
-        <span className="text-[0.65rem] uppercase tracking-widest text-muted-foreground font-medium">
-          {items.length} options
-        </span>
-      </div>
+    <div className="dash-panel flex flex-col overflow-hidden">
+      {category === 'Physical' && (
+        <img src="/images/ovary.jpg" alt="" className="w-full h-32 object-cover object-[center_30%]" />
+      )}
+      {category === 'Mood' && (
+        <img src="/images/happy.jpg" alt="" className="w-full h-32 object-cover object-[center_30%]" />
+      )}
+      {category === 'Flow' && (
+        <img src="/images/flow.jpg" alt="" className="w-full h-32 object-cover object-[center_30%]" />
+      )}
+      <div className="p-6 flex flex-col gap-6">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-medium tracking-tight text-foreground flex items-center gap-2">
+            <IconComponent size={20} className="text-[var(--mf-accent)]" />
+            {category}
+          </h3>
+          <span className="text-[0.65rem] uppercase tracking-widest text-muted-foreground font-medium">
+            {items.length} options
+          </span>
+        </div>
       <div className="flex flex-wrap gap-2.5">
         {items.map((symptom) => {
           const isActive = activeSymptoms.has(symptom.id)
@@ -67,18 +77,35 @@ function SymptomCategoryList({
                   : "bg-card text-muted-foreground border-border hover:border-[var(--mf-accent-border)] hover:text-foreground"
               )}
             >
-              {SYMPTOM_ICONS[symptom.id] && (() => {
-                const Icon = SYMPTOM_ICONS[symptom.id]
-                return (
-                  <span className={cn(isActive ? "text-[var(--mf-accent)]" : "text-muted-foreground/60")}>
-                    <Icon size={16} />
-                  </span>
-                )
+              {(() => {
+                const imgMap: Record<string, string> = {
+                  'mood-happy': '/images/happy.jpg',
+                  'mood-sad': '/images/sad.jpg',
+                  'mood-irritable': '/images/angry.jpg',
+                  'mood-anxious': '/images/anxious.jpg',
+                  'mood-calm': '/images/calm.jpg',
+                  'phys-cramps': '/images/cramps.jpg',
+                  'phys-fatigue': '/images/fatique.jpg',
+                  'phys-bloating': '/images/bloat.jpg',
+                }
+                if (imgMap[symptom.id]) {
+                  return <img src={imgMap[symptom.id]} alt="" className="w-6 h-6 rounded-full object-cover" />
+                }
+                if (SYMPTOM_ICONS[symptom.id]) {
+                  const Icon = SYMPTOM_ICONS[symptom.id]
+                  return (
+                    <span className={cn(isActive ? "text-[var(--mf-accent)]" : "text-muted-foreground/60")}>
+                      <Icon size={16} />
+                    </span>
+                  )
+                }
+                return null
               })()}
               {symptom.label}
             </button>
           )
         })}
+        </div>
       </div>
     </div>
   )
@@ -115,7 +142,7 @@ export function SymptomsView() {
         </div>
         <div className="dash-header-meta">
           <span className="dash-pill">
-            <CalendarBlank size={16} aria-hidden />
+            <img src="/images/cal.png" alt="" width={16} height={16} className="object-contain mr-1.5" aria-hidden />
             Today, {todayStr}
           </span>
         </div>

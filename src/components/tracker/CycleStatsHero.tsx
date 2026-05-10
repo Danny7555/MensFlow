@@ -3,8 +3,13 @@ import { Info, Warning, CaretRight } from '@phosphor-icons/react'
 export function CycleStatsHero() {
   return (
     <div className="cycle-stats-hero">
-      <h2 className="stats-title">Cycle statistics</h2>
-      <p className="stats-subtitle">Averages are based on your last 6 cycles.</p>
+      <div className="stats-banner">
+        <img src="/images/mens.jpg" alt="" className="stats-banner-img" />
+        <div className="stats-banner-overlay">
+          <h2 className="stats-title">Cycle statistics</h2>
+          <p className="stats-subtitle">Averages based on your last 6 cycles</p>
+        </div>
+      </div>
 
       <div className="stats-grid">
         <div className="stats-card">
@@ -56,22 +61,6 @@ export function CycleStatsHero() {
           </div>
         </div>
 
-        <div className="stats-section-title">Period flow</div>
-
-        <div className="stats-card">
-          <div className="stats-card-main">
-            <div className="stats-ring-box">
-               <svg viewBox="0 0 36 36" className="stats-ring stats-ring--red">
-                 <path d="M18 3 a 15 15 0 0 1 0 30 a 15 15 0 0 1 0 -30" fill="none" stroke="currentColor" className="opacity-10" strokeWidth="4" />
-                 <path d="M18 3 a 15 15 0 0 1 0 30 a 15 15 0 0 1 0 -30" fill="none" stroke="#d62f33" strokeWidth="4" strokeLinecap="round" strokeDasharray="15, 100" />
-               </svg>
-            </div>
-            <div className="stats-card-info">
-              <span className="stats-label">Average period length</span>
-              <span className="stats-value">4 days</span>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   )
