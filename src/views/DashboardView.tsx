@@ -15,6 +15,13 @@ function computeCycleDay(startIso: string, cycleLen: number) {
   return m + 1
 }
 
+function getGreeting() {
+  const hour = new Date().getHours()
+  if (hour < 12) return 'Good morning'
+  if (hour < 17) return 'Good afternoon'
+  return 'Good evening'
+}
+
 export function DashboardView() {
   const { data, update, lastSaved } = useDashboardData()
   const [isEditingGuidance, setIsEditingGuidance] = useState(false)
@@ -37,9 +44,9 @@ export function DashboardView() {
       <header className="dash-header">
         <div>
           <p className="dash-kicker">Home</p>
-          <h1 className="dash-title">Your overview</h1>
+          <h1 className="dash-title">{getGreeting()}, Daniella</h1>
           <p className="dash-sub">
-            Edit anything below - it saves to this browser for a realistic workflow demo.
+            Here&apos;s your cycle overview and health insights for today.
           </p>
         </div>
         <div className="dash-header-meta">

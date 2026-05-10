@@ -77,7 +77,7 @@ export function SymptomsView() {
   }
 
   return (
-    <div className="flex-1 w-full max-w-[1200px] mx-auto p-4 sm:p-6 lg:p-8 space-y-8 animate-in fade-in duration-500">
+    <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-8 animate-in fade-in duration-500">
 
 
       <section aria-labelledby="today-log-title" className="space-y-4">

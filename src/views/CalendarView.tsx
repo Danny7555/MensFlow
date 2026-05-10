@@ -109,7 +109,7 @@ export function CalendarView() {
   return (
     <div className="flex flex-col h-full bg-[#fafafa] dark:bg-background overflow-auto">
       {/* Container to handle desktop widening */}
-      <div className="flex-1 w-full max-w-[1200px] mx-auto flex flex-col pt-4 pb-12 transition-all">
+      <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-8 animate-in fade-in duration-500">
         
         {/* Top Control Bar */}
         <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-6 px-6 mb-8 text-center">

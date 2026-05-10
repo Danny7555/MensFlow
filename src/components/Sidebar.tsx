@@ -14,6 +14,7 @@ import {
   FlowerLotus,
   GearSix,
   Heart,
+  House,
   Lightbulb,
   Pulse,
   Sparkle,
@@ -23,6 +24,7 @@ import type { SectionId } from '../types/nav'
 type NavIcon = ComponentType<IconProps>
 
 const guestItems: { id: SectionId; label: string; Icon: NavIcon }[] = [
+  { id: 'dashboard', label: 'Home', Icon: House },
   { id: 'new-chat', label: 'New chat', Icon: ChatCircle },
   { id: 'calendar', label: 'Calendar', Icon: CalendarBlank },
   { id: 'ask', label: 'Ask MensFlow', Icon: ChatCenteredDots },
@@ -33,6 +35,7 @@ const guestItems: { id: SectionId; label: string; Icon: NavIcon }[] = [
 ]
 
 const authItems: { id: SectionId; label: string; Icon: NavIcon }[] = [
+  { id: 'dashboard', label: 'Home', Icon: House },
   { id: 'ask', label: 'Ask MensFlow', Icon: ChatCircle },
   { id: 'symptoms', label: 'Symptoms', Icon: Pulse },
   { id: 'insights', label: 'Insights', Icon: Sparkle },
