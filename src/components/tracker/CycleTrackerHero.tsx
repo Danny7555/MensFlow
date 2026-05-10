@@ -75,7 +75,7 @@ export function CycleTrackerHero() {
         <div className="viz-ring-container">
           <svg viewBox="0 0 100 100" className="viz-ring" style={{ overflow: 'visible' }}>
             {/* Background track (dashed) */}
-            <circle cx="50" cy="50" r="44" fill="none" stroke="#f0f0f0" strokeWidth="12" strokeDasharray="0.1 2.5" strokeLinecap="round" />
+            <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" strokeWidth="12" className="opacity-10" strokeDasharray="0.1 2.5" strokeLinecap="round" />
             
             {/* Inner Dots */}
             {dots}
@@ -91,7 +91,7 @@ export function CycleTrackerHero() {
             <path d={fertilePath} fill="none" stroke="#26899e" strokeWidth="12" strokeLinecap="round" />
 
             {/* Upcoming Segment (Grey) */}
-            <path d={upcomingPath} fill="none" stroke="#e0e0e0" strokeWidth="12" strokeLinecap="round" />
+            <path d={upcomingPath} fill="none" stroke="currentColor" strokeWidth="12" className="opacity-20" strokeLinecap="round" />
             
             {/* Droplet icon at the top (Day 1 marker) */}
             <g transform="translate(45, 1) scale(0.4)">

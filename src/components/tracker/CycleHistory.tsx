@@ -4,19 +4,19 @@ export function CycleHistory() {
   return (
     <div className="cycle-history-container mt-12 w-full max-w-[1050px] mx-auto">
       <div className="flex items-center justify-between mb-4 px-2">
-        <h2 className="text-2xl font-medium text-[#1a1a1a] tracking-tight">Cycle history</h2>
-        <button className="flex items-center gap-1 text-[1.05rem] text-[#666] font-medium hover:text-[#1a1a1a] transition-colors">
+        <h2 className="text-2xl font-medium text-foreground tracking-tight">Cycle history</h2>
+        <button className="flex items-center gap-1 text-[1.05rem] text-muted-foreground font-medium hover:text-foreground transition-colors">
           See all <CaretRight size={16} weight="bold" />
         </button>
       </div>
 
-      <div className="bg-white border border-[#eaeaec] rounded-3xl overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.015)]">
+      <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.015)]">
         {/* Row 1 */}
         <div className="p-5 sm:p-6 relative">
           <div className="flex items-start justify-between mb-3">
             <div>
-              <h3 className="text-lg font-medium text-[#1a1a1a] mb-0.5">Current cycle: 34 days</h3>
-              <p className="text-[#666] text-sm">Started Jun 4</p>
+              <h3 className="text-lg font-medium text-foreground mb-0.5">Current cycle: 34 days</h3>
+              <p className="text-muted-foreground text-sm">Started Jun 4</p>
             </div>
             <CaretRight size={20} className="text-[#999] mt-2" />
           </div>
@@ -56,8 +56,8 @@ export function CycleHistory() {
         <div className="p-5 sm:p-6 relative">
           <div className="flex items-start justify-between mb-3">
             <div>
-              <h3 className="text-lg font-medium text-[#1a1a1a] mb-0.5">27 days</h3>
-              <p className="text-[#666] text-sm">May 8 – Jun 3</p>
+              <h3 className="text-lg font-medium text-foreground mb-0.5">27 days</h3>
+              <p className="text-muted-foreground text-sm">May 8 – Jun 3</p>
             </div>
             <CaretRight size={20} className="text-[#999] mt-2" />
           </div>
@@ -84,8 +84,8 @@ export function CycleHistory() {
         <div className="p-5 sm:p-6 relative">
           <div className="flex items-start justify-between mb-3">
             <div>
-              <h3 className="text-lg font-medium text-[#1a1a1a] mb-0.5">29 days</h3>
-              <p className="text-[#666] text-sm">Apr 9 – May 7</p>
+              <h3 className="text-lg font-medium text-foreground mb-0.5">29 days</h3>
+              <p className="text-muted-foreground text-sm">Apr 9 – May 7</p>
             </div>
             <CaretRight size={20} className="text-[#999] mt-2" />
           </div>

@@ -2530,14 +2530,14 @@
 .viz-today {
   font-size: 0.95rem;
   font-weight: 500;
-  color: #1a1a1a;
+  color: var(--foreground);
   margin-bottom: 0.65rem;
 }
 
 .viz-title {
   font-size: 1.85rem;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--foreground);
   line-height: 1.2;
   margin-bottom: 1.25rem;
   max-width: 14ch;
@@ -2557,7 +2557,7 @@
   position: absolute;
   bottom: 18%;
   right: 14%;
-  background: white;
+  background: var(--card);
   border: 4px solid #1a4d57;
   border-radius: 50%;
   width: 64px;
@@ -2587,7 +2587,7 @@
 .badge-value {
   font-size: 1.45rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--foreground);
 }
 
 @media (max-width: 480px) {
@@ -2621,7 +2621,8 @@
 }
 
 .mood-cta-card {
-  background: #fff5f0;
+  background: var(--mf-accent-soft);
+  border: 1px solid var(--mf-accent-border);
   border-radius: 999px;
   padding: 1rem 1.5rem;
   display: flex;
@@ -2660,7 +2661,7 @@
 .stats-title {
   font-size: 1.85rem;
   font-weight: 500;
-  color: #1a1a1a;
+  color: var(--foreground);
   margin-bottom: 0.5rem;
   letter-spacing: -0.02em;
 }
@@ -2678,8 +2679,8 @@
 }
 
 .stats-card {
-  background: white;
-  border: 1px solid #eaeaec;
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 16px;
   display: flex;
   align-items: stretch;
@@ -2714,14 +2715,14 @@
 
 .stats-label {
   font-size: 0.92rem;
-  color: #555;
+  color: var(--muted-foreground);
   font-weight: 400;
 }
 
 .stats-value {
   font-size: 1.5rem;
   font-weight: 500;
-  color: #1a1a1a;
+  color: var(--foreground);
   letter-spacing: -0.02em;
 }
 
@@ -2733,7 +2734,7 @@
 .stats-divider {
   width: 1px;
   height: 50%;
-  background: #eaeaea;
+  background: var(--border);
   margin: 0 1.5rem;
 }
 
@@ -2743,7 +2744,7 @@
   gap: 0.5rem;
   border: none;
   background: none;
-  color: #555;
+  color: var(--muted-foreground);
   font-weight: 500;
   cursor: pointer;
   padding: 0.5rem;
@@ -2751,20 +2752,15 @@
   transition: all 0.2s;
 }
 
-.stats-more-btn:hover {
-  background: #f8f8f8;
-  color: #1a1a1a;
-}
-
 .stats-section-title {
   font-size: 1.65rem;
   font-weight: 500;
-  color: #1a1a1a;
+  color: var(--foreground);
   margin-top: 1rem;
   margin-bottom: 0.5rem;
   letter-spacing: -0.03em;
 }
 
 .stats-more-btn--atypical {
-  color: #1a1a1a;
+  color: var(--foreground);
 }

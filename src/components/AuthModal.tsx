@@ -82,7 +82,7 @@ export function AuthModal({ open, onClose, onContinue }: AuthModalProps) {
           >
             <img
               src="/images/apple.png"
-              className="auth-brand-icon"
+              className="auth-brand-icon dark:invert"
               width={22}
               height={22}
               alt=""

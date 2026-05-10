@@ -11,7 +11,7 @@ export function CycleStatsHero() {
           <div className="stats-card-main">
             <div className="stats-ring-box">
                <svg viewBox="0 0 36 36" className="stats-ring stats-ring--teal">
-                 <path d="M18 3 a 15 15 0 0 1 0 30 a 15 15 0 0 1 0 -30" fill="none" stroke="#f0f0f0" strokeWidth="4" />
+                 <path d="M18 3 a 15 15 0 0 1 0 30 a 15 15 0 0 1 0 -30" fill="none" stroke="currentColor" className="opacity-10" strokeWidth="4" />
                  <path d="M18 3 a 15 15 0 0 1 0 30 a 15 15 0 0 1 0 -30" fill="none" stroke="#007e94" strokeWidth="4" strokeLinecap="round" strokeDasharray="75, 100" />
                </svg>
             </div>
@@ -34,7 +34,7 @@ export function CycleStatsHero() {
           <div className="stats-card-main">
             <div className="stats-ring-box">
                <svg viewBox="0 0 36 36" className="stats-ring stats-ring--grey">
-                 <path d="M18 3 a 15 15 0 0 1 0 30 a 15 15 0 0 1 0 -30" fill="none" stroke="#f0f0f0" strokeWidth="4" />
+                 <path d="M18 3 a 15 15 0 0 1 0 30 a 15 15 0 0 1 0 -30" fill="none" stroke="currentColor" className="opacity-10" strokeWidth="4" />
                  {/* Trailing dots */}
                  <circle cx="12" cy="5.5" r="1.2" fill="#007e94" />
                  <circle cx="7.5" cy="9.5" r="1.8" fill="#007e94" />
@@ -62,7 +62,7 @@ export function CycleStatsHero() {
           <div className="stats-card-main">
             <div className="stats-ring-box">
                <svg viewBox="0 0 36 36" className="stats-ring stats-ring--red">
-                 <path d="M18 3 a 15 15 0 0 1 0 30 a 15 15 0 0 1 0 -30" fill="none" stroke="#f0f0f0" strokeWidth="4" />
+                 <path d="M18 3 a 15 15 0 0 1 0 30 a 15 15 0 0 1 0 -30" fill="none" stroke="currentColor" className="opacity-10" strokeWidth="4" />
                  <path d="M18 3 a 15 15 0 0 1 0 30 a 15 15 0 0 1 0 -30" fill="none" stroke="#d62f33" strokeWidth="4" strokeLinecap="round" strokeDasharray="15, 100" />
                </svg>
             </div>

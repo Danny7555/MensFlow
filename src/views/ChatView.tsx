@@ -114,76 +114,71 @@ export function ChatView() {
   const isInitialState = messages.length === 0
 
   return (
-    <div className="chat-view">
-      {isInitialState && (
-        <header className="dash-header animate-in fade-in slide-in-from-top-4 duration-700">
-          <div className="dash-header-left">
-            <img src="/images/girl.png" alt="" className="dash-avatar" />
-            <div>
-              <p className="dash-kicker">Ask MensFlow</p>
-              <h1 className="dash-title">AI Assistant</h1>
-            </div>
+    <div className={cn("chat-view", isInitialState && "landing")}>
+      {isInitialState ? (
+        <div className="landing-center animate-in fade-in zoom-in duration-700">
+          <div className="landing-hero-image-wrap">
+            <img src="/images/lady.png" alt="" className="landing-hero-image" />
           </div>
-          <p className="dash-sub">
+          <h1 className="landing-title">Ask MensFlow about your cycle?</h1>
+          <p className="landing-sub">
             Education, tracking context, and supportive guidance; not a substitute for medical care.
           </p>
-        </header>
-      )}
-
-      {temporaryChat && (
-        <div className="chat-temporary-banner chat-thread-spacing" role="status">
-          <Ghost size={18} weight="duotone" aria-hidden />
-          <span>
-            Temporary chat - this conversation won&apos;t be saved to history or used to
-            improve models (ChatGPT-style ephemeral session).
-          </span>
-        </div>
-      )}
-
-      {temporaryChat && isInitialState && (
-        <div className="chat-temp-hero">
-          <div className="chat-temp-hero-icon">
-            <Ghost size={48} weight="duotone" className="text-[var(--mf-accent)]" />
+          <div className="landing-composer-wrap">
+            <ChatComposer
+              value={draft}
+              onChange={setDraft}
+              onSubmit={send}
+              placeholder="Ask MensFlow"
+            />
           </div>
-          <h2 className="chat-temp-hero-title">Temporary Chat</h2>
-          <p className="chat-temp-hero-desc">
-            Messages in this chat won&apos;t appear in your history and won&apos;t be used
-            to improve our models. Any files you upload or data you log won&apos;t be saved.
-          </p>
         </div>
-      )}
+      ) : (
+        <>
+          {temporaryChat && (
+            <div className="chat-temporary-banner chat-thread-spacing" role="status">
+              <Ghost size={18} weight="duotone" aria-hidden />
+              <span>
+                Temporary chat - this conversation won&apos;t be saved to history or used to
+                improve models (ChatGPT-style ephemeral session).
+              </span>
+            </div>
+          )}
 
-      <div className={cn("chat-thread", isInitialState && temporaryChat && "opacity-0 h-0 pointer-events-none")} role="log" aria-live="polite">
-        {messages.map((m) => (
-          <div
-            key={m.id}
-            className={`chat-bubble chat-bubble--${m.role}`}
-          >
-            <span className="chat-role">
-              {m.role === 'user' ? 'You' : 'MensFlow'}
-              {chatShowTimestamps && (
-                <time
-                  className="chat-time"
-                  dateTime={new Date(m.createdAt).toISOString()}
-                >
-                  {fmtTime(m.createdAt)}
-                </time>
-              )}
-            </span>
-            <p className="chat-text">{m.text}</p>
+          <div className="chat-thread" role="log" aria-live="polite">
+            {messages.map((m) => (
+              <div
+                key={m.id}
+                className={`chat-bubble chat-bubble--${m.role}`}
+              >
+                <span className="chat-role">
+                  {m.role === 'user' ? 'You' : 'MensFlow'}
+                  {chatShowTimestamps && (
+                    <time
+                      className="chat-time"
+                      dateTime={new Date(m.createdAt).toISOString()}
+                    >
+                      {fmtTime(m.createdAt)}
+                    </time>
+                  )}
+                </span>
+                <p className="chat-text">{m.text}</p>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-      <div className="chat-composer-dock">
-        <ChatComposer
-          value={draft}
-          onChange={setDraft}
-          onSubmit={send}
-          placeholder="Ask MensFlow"
-          minimal
-          showKeyboardHint
-        />
-      </div>
+
+          <div className="chat-composer-dock">
+            <ChatComposer
+              value={draft}
+              onChange={setDraft}
+              onSubmit={send}
+              placeholder="Ask MensFlow"
+              minimal
+              showKeyboardHint
+            />
+          </div>
+        </>
+      )}
     </div>
   )
 }
