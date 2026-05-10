@@ -1,8 +1,7 @@
 import { ChartLineUp, TrendDown, TrendUp } from '@phosphor-icons/react'
-import {
-  INSIGHT_TRENDS_DUMMY,
-} from '../data/insightsData'
+import { INSIGHT_TRENDS_DUMMY } from '../data/insightsData'
 import { InteractiveAreaChart } from '../components/InteractiveAreaChart'
+import { cn } from '../lib/utils'
 
 export function InsightsView() {
   return (
@@ -16,18 +15,23 @@ export function InsightsView() {
         <div className="insight-trends">
           {INSIGHT_TRENDS_DUMMY.map((t) => (
             <div key={t.id} className="insight-trend-card">
-              <span className="insight-trend-label">{t.label}</span>
-              <span className="insight-trend-value">{t.value}</span>
-              <span
-                className={`insight-trend-change ${t.positive ? 'insight-trend-change--up' : 'insight-trend-change--flat'}`}
-              >
-                {t.positive ? (
-                  <TrendUp size={16} aria-hidden />
-                ) : (
-                  <TrendDown size={16} aria-hidden />
-                )}
-                {t.change}
-              </span>
+              <div className="flex flex-col h-full">
+                <span className="insight-trend-label">{t.label}</span>
+                <span className="insight-trend-value">{t.value}</span>
+                <div className="mt-auto pt-3">
+                  <div className={cn(
+                    "flex items-center gap-1.5 text-[11px] font-medium px-2 py-0.5 rounded-md w-fit",
+                    t.id === '1' && "bg-orange-500/10 text-orange-500",
+                    t.id === '2' && "bg-green-500/10 text-green-500",
+                    t.id === '3' && "bg-blue-500/10 text-blue-500"
+                  )}>
+                    {t.id === '1' && <TrendUp size={14} weight="bold" />}
+                    {t.id === '2' && <TrendDown size={14} weight="bold" />}
+                    {t.id === '3' && <ChartLineUp size={14} weight="bold" />}
+                    {t.change}
+                  </div>
+                </div>
+              </div>
             </div>
           ))}
         </div>

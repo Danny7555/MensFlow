@@ -2338,24 +2338,26 @@
   display: block;
   font-size: 0.72rem;
   font-weight: 500;
-  color: var(--mf-muted);
-  margin-bottom: 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  margin-bottom: 0.5rem;
 }
 
 .insight-trend-value {
   display: block;
-  font-size: 1.2rem;
-  font-weight: 500;
-  color: var(--mf-text-strong);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--foreground);
+  letter-spacing: -0.02em;
 }
 
 .insight-trend-change {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  margin-top: 0.45rem;
-  font-size: 0.78rem;
-  color: var(--mf-muted);
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 .insight-trend-change--up {
