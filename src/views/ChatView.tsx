@@ -4,7 +4,6 @@ import { ChatComposer } from '../components/ChatComposer'
 import { useChatSession } from '../context/useChatSession'
 import { useSettings } from '../context/useSettings'
 import { CHAT_STORAGE_KEY, CLEAR_LOCAL_CHATS_EVENT } from '../lib/constants'
-import { cn } from '../lib/utils'
 
 type Msg = {
   id: string
