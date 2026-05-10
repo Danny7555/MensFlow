@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { ThemeSync } from './components/ThemeSync'
 import { AuthModal, type AuthMethod } from './components/AuthModal'
 import { ChatView } from './views/ChatView'
@@ -11,6 +11,7 @@ import { LandingView } from './views/LandingView'
 import { PlaceholderView } from './views/PlaceholderView'
 import { SettingsView } from './views/SettingsView'
 import { CalendarView } from './views/CalendarView'
+import { TrackerView } from './views/TrackerView'
 import { SymptomsView } from './views/SymptomsView'
 import { EducationView } from './views/EducationView'
 import { AuthProvider } from './context/AuthProvider'
@@ -27,6 +28,7 @@ import './App.css'
 function MainShell() {
   const { isAuthenticated, login, logout } = useAuth()
   const { settings, updateSettings } = useSettings()
+  const navigate = useNavigate()
   const isMobile = useMediaQuery('(max-width: 768px)')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(false)
@@ -102,7 +104,13 @@ function MainShell() {
             temporaryChat={isAuthenticated ? temporaryChat : undefined}
             onToggleTemporaryChat={
               isAuthenticated
-                ? () => setTemporaryChat((t) => !t)
+                ? () => {
+                    const next = !temporaryChat
+                    setTemporaryChat(next)
+                    if (next) {
+                      navigate('/ask')
+                    }
+                  }
                 : undefined
             }
             onLogout={handleLogout}
@@ -116,6 +124,7 @@ function MainShell() {
                   <Route path="/ask" element={<LandingView />} />
                   <Route path="/settings" element={<SettingsView isGuest onLogin={openAuth} />} />
                   <Route path="/calendar" element={<CalendarView />} />
+                  <Route path="/tracker" element={<TrackerView />} />
                   <Route path="/health-insights" element={<InsightsView />} />
                   <Route path="/wellness-tips" element={<TipsView />} />
                   <Route path="/history" element={guestPlaceholder('History / logs', 'Chat and symptom history stays private to your account.')} />
@@ -129,7 +138,8 @@ function MainShell() {
                   <Route path="/settings" element={<SettingsView onLogout={handleLogout} />} />
                   <Route path="/insights" element={<InsightsView />} />
                   <Route path="/tips" element={<TipsView />} />
-                  <Route path="/tracker" element={<CalendarView />} />
+                  <Route path="/calendar" element={<CalendarView />} />
+                  <Route path="/tracker" element={<TrackerView />} />
                   <Route path="/symptoms" element={<SymptomsView />} />
                   <Route path="/education" element={<EducationView />} />
                   <Route path="*" element={<Navigate to="/dashboard" />} />

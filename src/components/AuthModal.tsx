@@ -1,7 +1,5 @@
 import { useState } from 'react'
 import {
-  AppleLogo,
-  GoogleLogo,
   Phone,
   X,
 } from '@phosphor-icons/react'
@@ -67,7 +65,14 @@ export function AuthModal({ open, onClose, onContinue }: AuthModalProps) {
             className="auth-method-btn auth-method-btn--gpt"
             onClick={() => onContinue('google')}
           >
-            <GoogleLogo className="auth-brand-icon auth-brand-icon--google" size={22} weight="bold" aria-hidden />
+            <img
+              src="/images/google.png"
+              className="auth-brand-icon auth-brand-icon--google"
+              width={22}
+              height={22}
+              alt=""
+              aria-hidden
+            />
             Continue with Google
           </button>
           <button
@@ -75,7 +80,14 @@ export function AuthModal({ open, onClose, onContinue }: AuthModalProps) {
             className="auth-method-btn auth-method-btn--gpt"
             onClick={() => onContinue('apple')}
           >
-            <AppleLogo className="auth-brand-icon" size={22} weight="fill" aria-hidden />
+            <img
+              src="/images/apple.png"
+              className="auth-brand-icon dark:invert"
+              width={22}
+              height={22}
+              alt=""
+              aria-hidden
+            />
             Continue with Apple
           </button>
           <button
@@ -115,7 +127,7 @@ export function AuthModal({ open, onClose, onContinue }: AuthModalProps) {
           onClick={submitEmail}
           disabled={!email.trim().includes('@')}
         >
-          Continue
+          Sign in
         </button>
 
         <button

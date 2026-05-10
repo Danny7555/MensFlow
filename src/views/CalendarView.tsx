@@ -12,12 +12,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { useQueryState, parseAsStringLiteral } from 'nuqs'
 import { cn } from "@/lib/utils"
 
 const DAYS_OF_WEEK = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
 
 type CalendarState = {
-  view: "month" | "year"
   viewDate: Date
   selectedDate: Date
   isEditingPeriods: boolean
@@ -25,7 +25,6 @@ type CalendarState = {
 }
 
 type CalendarAction =
-  | { type: "SET_VIEW"; payload: "month" | "year" }
   | { type: "SET_VIEW_DATE"; payload: Date }
   | { type: "SET_SELECTED_DATE"; payload: Date }
   | { type: "SET_EDITING_PERIODS"; payload: boolean }
@@ -33,8 +32,6 @@ type CalendarAction =
 
 function calendarReducer(state: CalendarState, action: CalendarAction): CalendarState {
   switch (action.type) {
-    case "SET_VIEW":
-      return { ...state, view: action.payload }
     case "SET_VIEW_DATE":
       return { ...state, viewDate: action.payload }
     case "SET_SELECTED_DATE":
@@ -56,9 +53,15 @@ export function CalendarView() {
   const today = new Date()
   const currentYear = today.getFullYear()
   const currentMonth = today.getMonth()
+
+  const [view, setView] = useQueryState(
+    'view',
+    parseAsStringLiteral(['month', 'year'] as const)
+      .withDefault('month')
+      .withOptions({ shallow: false })
+  )
   
   const [state, dispatch] = React.useReducer(calendarReducer, {
-    view: "month",
     viewDate: new Date(currentYear, currentMonth, 1),
     selectedDate: today,
     isEditingPeriods: false,
@@ -72,52 +75,26 @@ export function CalendarView() {
     ])
   })
 
-  const { view, viewDate, selectedDate, isEditingPeriods, periodDates } = state
-
-  // Calendar logic
-  const daysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate()
-  const firstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay()
+  const { viewDate, selectedDate, isEditingPeriods, periodDates } = state
 
   const year = viewDate.getFullYear()
   const month = viewDate.getMonth()
-  const totalDays = daysInMonth(year, month)
-  const offset = firstDayOfMonth(year, month)
-
-  const monthName = viewDate.toLocaleString("default", { month: "long" })
 
   const prevMonth = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year, month - 1, 1) })
   const nextMonth = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year, month + 1, 1) })
-
-  const dateToKey = (d: number) => `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`
-
-  const togglePeriodDate = (d: number) => {
-    dispatch({ type: "TOGGLE_PERIOD_DATE", payload: dateToKey(d) })
-  }
-
-  const handleDayClick = (d: number) => {
-    if (isEditingPeriods) {
-      togglePeriodDate(d)
-    } else {
-      dispatch({ type: "SET_SELECTED_DATE", payload: new Date(year, month, d) })
-    }
-  }
-
-  // Mock cycle info
-  const cycleDay = Math.floor((selectedDate.getTime() - new Date(year, month, 20).getTime()) / 86400000) % 28 + 1
-  const displayCycleDay = cycleDay > 0 ? cycleDay : 28 + cycleDay
+  const prevYear = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year - 1, month, 1) })
+  const nextYear = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year + 1, month, 1) })
 
   return (
     <div className="flex flex-col h-full bg-[#fafafa] dark:bg-background overflow-auto">
-      {/* Container to handle desktop widening */}
       <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-8 animate-in fade-in duration-500">
         
         {/* Top Control Bar */}
         <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-6 px-6 mb-8 text-center">
-           {/* View Switcher */}
           <div className="flex justify-center sm:justify-start order-2 sm:order-1">
             <div className="flex bg-[#ebebeb] dark:bg-muted p-1 rounded-lg">
               <button
-                onClick={() => dispatch({ type: "SET_VIEW", payload: "month" })}
+                onClick={() => setView("month")}
                 className={cn(
                   "px-6 sm:px-8 py-1.5 rounded-md text-[11px] font-medium transition-all",
                   view === "month" 
@@ -128,7 +105,7 @@ export function CalendarView() {
                 MONTH
               </button>
               <button
-                onClick={() => dispatch({ type: "SET_VIEW", payload: "year" })}
+                onClick={() => setView("year")}
                 className={cn(
                   "px-6 sm:px-8 py-1.5 rounded-md text-[11px] font-medium transition-all",
                   view === "year" 
@@ -141,20 +118,18 @@ export function CalendarView() {
             </div>
           </div>
 
-          {/* Month Navigation */}
           <div className="flex items-center justify-center gap-6 order-1 sm:order-2">
-            <Button variant="ghost" size="icon" onClick={prevMonth} className="rounded-full">
+            <Button variant="ghost" size="icon" onClick={view === "month" ? prevMonth : prevYear} className="rounded-full">
               <CaretLeft className="size-5" />
             </Button>
             <h2 className="text-xl sm:text-2xl font-medium text-foreground min-w-[140px] text-center">
-              {monthName} {year}
+              {view === "month" ? `${viewDate.toLocaleString("default", { month: "long" })} ${year}` : year}
             </h2>
-            <Button variant="ghost" size="icon" onClick={nextMonth} className="rounded-full">
+            <Button variant="ghost" size="icon" onClick={view === "month" ? nextMonth : nextYear} className="rounded-full">
               <CaretRight className="size-5" />
             </Button>
           </div>
 
-          {/* Edit Toggle */}
           <div className="flex justify-center sm:justify-end order-3">
             <Button 
               variant={isEditingPeriods ? "default" : "outline"}
@@ -169,140 +144,233 @@ export function CalendarView() {
           </div>
         </div>
 
-        {/* Weekdays */}
-        <div className="grid grid-cols-7 px-4 mb-4">
-          {DAYS_OF_WEEK.map((day) => (
-            <div key={day} className="text-center text-[10px] font-medium text-muted-foreground tracking-wider">
-              {day}
-            </div>
+        {view === "month" ? (
+          <MonthView 
+            viewDate={viewDate} 
+            selectedDate={selectedDate}
+            isEditingPeriods={isEditingPeriods}
+            periodDates={periodDates}
+            dispatch={dispatch}
+          />
+        ) : (
+          <YearView 
+            viewDate={viewDate} 
+            periodDates={periodDates}
+            onMonthClick={(d) => {
+              dispatch({ type: "SET_VIEW_DATE", payload: d })
+              setView("month")
+            }}
+          />
+        )}
+      </div>
+
+      <DetailSheet selectedDate={selectedDate} />
+    </div>
+  )
+}
+
+function MonthView({ viewDate, selectedDate, isEditingPeriods, periodDates, dispatch }: { 
+  viewDate: Date, 
+  selectedDate: Date, 
+  isEditingPeriods: boolean, 
+  periodDates: Set<string>,
+  dispatch: React.Dispatch<CalendarAction>
+}) {
+  const year = viewDate.getFullYear()
+  const month = viewDate.getMonth()
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  const offset = new Date(year, month, 1).getDay()
+
+  const dateToKey = (d: number) => `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+
+  const handleDayClick = (d: number) => {
+    if (isEditingPeriods) {
+      dispatch({ type: "TOGGLE_PERIOD_DATE", payload: dateToKey(d) })
+    } else {
+      dispatch({ type: "SET_SELECTED_DATE", payload: new Date(year, month, d) })
+    }
+  }
+
+  return (
+    <>
+      <div className="grid grid-cols-7 px-4 mb-4">
+        {DAYS_OF_WEEK.map((day) => (
+          <div key={day} className="text-center text-[10px] font-medium text-muted-foreground tracking-wider">
+            {day}
+          </div>
+        ))}
+      </div>
+
+      <div className="px-4 flex-1">
+        <div className="grid grid-cols-7 gap-y-4 sm:gap-y-12 h-full">
+          {Array.from({ length: offset }).map((_, i) => (
+            <div key={`empty-${i}`} />
           ))}
-        </div>
-
-        {/* Calendar Grid */}
-        <div className="px-4 flex-1">
-          <div className="grid grid-cols-7 gap-y-4 sm:gap-y-12 h-full">
-            {Array.from({ length: offset }).map((_, i) => (
-              <div key={`empty-${i}`} />
-            ))}
+          
+          {Array.from({ length: daysInMonth }).map((_, i) => {
+            const d = i + 1
+            const key = dateToKey(d)
+            const isPeriod = periodDates.has(key)
+            const isSelected = selectedDate.getDate() === d && selectedDate.getMonth() === month && selectedDate.getFullYear() === year
+            const isOvulation = d === 5 && month === 8 
             
-            {Array.from({ length: totalDays }).map((_, i) => {
-              const d = i + 1
-              const key = dateToKey(d)
-              const isPeriod = periodDates.has(key)
-              const isSelected = selectedDate.getDate() === d && selectedDate.getMonth() === month && selectedDate.getFullYear() === year
-              const isOvulation = d === 5 && month === 8 // Mock ovulation on Sep 5
-              
-              return (
-                <div 
-                  key={d} 
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => handleDayClick(d)}
-                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleDayClick(d) }}
-                  className="relative flex flex-col items-center justify-center cursor-pointer group py-2 sm:py-0"
-                >
-                  {/* Cycle Day Number */}
-                  <span className="text-[10px] text-muted-foreground mb-1 font-medium group-hover:text-foreground transition-colors">
-                    {/* Mock cycle day - just offset for demo */}
-                    {(d + 6) % 28 + 1}
-                  </span>
+            return (
+              <div 
+                key={d} 
+                role="button"
+                tabIndex={0}
+                onClick={() => handleDayClick(d)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleDayClick(d) }}
+                className="relative flex flex-col items-center justify-center cursor-pointer group py-2 sm:py-0"
+              >
+                <span className="text-[10px] text-muted-foreground mb-1 font-medium group-hover:text-foreground transition-colors">
+                  {(d + 6) % 28 + 1}
+                </span>
 
-                  {/* Date with Markers */}
-                  <div className="relative flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 transition-transform group-active:scale-90">
-                    {/* Selected Marker */}
-                    {isSelected && (
-                      <div className="absolute inset-0 bg-[#e0e0e0] dark:bg-muted rounded-full animate-in zoom-in-75 duration-200" />
-                    )}
-                    
-                    {/* Ovulation Marker */}
-                    {isOvulation && (
-                      <div className="absolute inset-0 border-2 border-dotted border-muted-foreground rounded-full opacity-60" />
-                    )}
-
-                    {/* Period Marker (Red Dot Badge) */}
-                    {isPeriod && (
-                      <div className="absolute top-1 right-1 bg-[#ff5a5f] text-white rounded-full size-4 flex items-center justify-center shadow-sm">
-                        <Drop weight="fill" className="size-2.5" />
-                      </div>
-                    )}
-
-                    <span className={cn(
-                      "relative z-0 text-lg font-medium transition-colors",
-                      isPeriod ? "text-[#ff5a5f]" : "text-foreground",
-                      isSelected && "font-medium"
-                    )}>
-                      {d}
-                    </span>
-                  </div>
-
-                  {/* Period Underline */}
+                <div className="relative flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 transition-transform group-active:scale-90">
+                  {isSelected && (
+                    <div className="absolute inset-0 bg-[#e0e0e0] dark:bg-muted rounded-full animate-in zoom-in-75 duration-200" />
+                  )}
+                  {isOvulation && (
+                    <div className="absolute inset-0 border-2 border-dotted border-muted-foreground rounded-full opacity-60" />
+                  )}
                   {isPeriod && (
-                    <div className="absolute -bottom-1 sm:-bottom-2 w-full flex justify-center px-1">
-                      <div className="w-full border-b-2 border-dotted border-[#ff5a5f]" />
+                    <div className="absolute top-1 right-1 bg-[#ff5a5f] text-white rounded-full size-4 flex items-center justify-center shadow-sm">
+                      <Drop weight="fill" className="size-2.5" />
                     </div>
                   )}
+                  <span className={cn(
+                    "relative z-0 text-lg font-medium transition-colors",
+                    isPeriod ? "text-[#ff5a5f]" : "text-foreground"
+                  )}>
+                    {d}
+                  </span>
                 </div>
-              )
-            })}
-          </div>
+
+                {isPeriod && (
+                  <div className="absolute -bottom-1 sm:-bottom-2 w-full flex justify-center px-1">
+                    <div className="w-full border-b-2 border-dotted border-[#ff5a5f]" />
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       </div>
+    </>
+  )
+}
 
-      {/* Bottom Sheet Detail - Stays fixed at bottom */}
-      <div className="sticky bottom-0 z-20 w-full">
-        <Card className="rounded-t-[32px] rounded-b-none border-t border-x-0 border-b-0 p-6 pb-8 relative bg-white dark:bg-card max-w-[1200px] mx-auto overflow-hidden">
-          <div className="flex items-start justify-between mb-8">
-            <div>
-              <h3 className="text-lg font-medium text-foreground">
-                Edit Period for {selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-              </h3>
-              <p className="text-[var(--mf-accent)] font-medium text-sm">
-                Cycle Day {displayCycleDay}
-              </p>
+function YearView({ viewDate, periodDates, onMonthClick }: { 
+  viewDate: Date, 
+  periodDates: Set<string>,
+  onMonthClick: (d: Date) => void
+}) {
+  const year = viewDate.getFullYear()
+  const months = Array.from({ length: 12 }, (_, i) => new Date(year, i, 1))
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 px-4">
+      {months.map((m, idx) => {
+        const mName = m.toLocaleString("default", { month: "short" })
+        const dInM = new Date(year, idx + 1, 0).getDate()
+        const offset = m.getDay()
+
+        return (
+          <div 
+            key={idx} 
+            className="p-4 bg-white dark:bg-card rounded-2xl border border-border/50 hover:border-border transition-colors cursor-pointer group"
+            onClick={() => onMonthClick(m)}
+          >
+            <h4 className="text-sm font-medium mb-3 group-hover:text-[var(--mf-accent)] transition-colors">
+              {mName}
+            </h4>
+            <div className="grid grid-cols-7 gap-1">
+              {Array.from({ length: offset }).map((_, i) => (
+                <div key={`empty-${i}`} className="size-2" />
+              ))}
+              {Array.from({ length: dInM }).map((_, i) => {
+                const d = i + 1
+                const key = `${year}-${String(idx).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+                const isPeriod = periodDates.has(key)
+                const isToday = d === new Date().getDate() && idx === new Date().getMonth() && year === new Date().getFullYear()
+                
+                return (
+                  <div 
+                    key={d} 
+                    className={cn(
+                      "size-2 rounded-full",
+                      isPeriod ? "bg-[#ff5a5f]" : isToday ? "bg-[var(--mf-accent)]" : "bg-muted/40"
+                    )} 
+                  />
+                )
+              })}
             </div>
-            <button className="text-muted-foreground hover:text-foreground transition-colors p-2">
-              <X size={20} />
-            </button>
           </div>
+        )
+      })}
+    </div>
+  )
+}
 
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex-1 bg-muted/30 dark:bg-muted/10 rounded-2xl p-4 border border-dashed border-muted">
-              <p className="text-muted-foreground text-sm text-center italic">
-                Add weight, mood & symptoms for this day
-              </p>
+function DetailSheet({ selectedDate }: { selectedDate: Date }) {
+  // Mock cycle info
+  const displayCycleDay = 12 // Simplified for component extraction
+
+  return (
+    <div className="sticky bottom-0 z-20 w-full">
+      <Card className="rounded-t-[32px] rounded-b-none border-t border-x-0 border-b-0 p-6 pb-8 relative bg-white dark:bg-card max-w-[1200px] mx-auto overflow-hidden">
+        <div className="flex items-start justify-between mb-8">
+          <div>
+            <h3 className="text-lg font-medium text-foreground">
+              Edit Period for {selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            </h3>
+            <p className="text-[var(--mf-accent)] font-medium text-sm">
+              Cycle Day {displayCycleDay}
+            </p>
+          </div>
+          <button className="text-muted-foreground hover:text-foreground transition-colors p-2">
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1 bg-muted/30 dark:bg-muted/10 rounded-2xl p-4 border border-dashed border-muted">
+            <p className="text-muted-foreground text-sm text-center italic">
+              Add weight, mood & symptoms for this day
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-4 sm:gap-8">
+            <div className="hidden sm:flex items-center gap-2">
+              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">LOG DATA</span>
+              <svg width="40" height="20" viewBox="0 0 40 20" fill="none" className="text-muted-foreground opacity-30">
+                <path d="M2 18C10 18 30 18 38 2M38 2L32 2M38 2L38 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </div>
             
-            <div className="flex items-center gap-4 sm:gap-8">
-              <div className="hidden sm:flex items-center gap-2">
-                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">LOG DATA</span>
-                <svg width="40" height="20" viewBox="0 0 40 20" fill="none" className="text-muted-foreground opacity-30">
-                  <path d="M2 18C10 18 30 18 38 2M38 2L32 2M38 2L38 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-              
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button className="size-14 rounded-full bg-[var(--mf-accent)] hover:bg-[var(--mf-accent-hover)] text-white p-0 flex items-center justify-center border-none transition-transform hover:scale-105 active:scale-95">
-                    <Plus size={32} strokeWidth={2.5} />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>Log Daily Data</DialogTitle>
-                    <DialogDescription>
-                      This interface will allow you to track your daily weight, mood, and symptoms.
-                      (Backend integration pending)
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="py-6 flex flex-col gap-4 items-center justify-center text-center text-muted-foreground border-2 border-dashed border-muted rounded-xl bg-muted/20">
-                    <p className="italic text-sm">Form fields will appear here</p>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className="size-14 rounded-full bg-[var(--mf-accent)] hover:bg-[var(--mf-accent-hover)] text-white p-0 flex items-center justify-center border-none transition-transform hover:scale-105 active:scale-95">
+                  <Plus size={32} strokeWidth={2.5} />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Log Daily Data</DialogTitle>
+                  <DialogDescription>
+                    This interface will allow you to track your daily weight, mood, and symptoms.
+                    (Backend integration pending)
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="py-6 flex flex-col gap-4 items-center justify-center text-center text-muted-foreground border-2 border-dashed border-muted rounded-xl bg-muted/20">
+                  <p className="italic text-sm">Form fields will appear here</p>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
-        </Card>
-      </div>
+        </div>
+      </Card>
     </div>
   )
 }

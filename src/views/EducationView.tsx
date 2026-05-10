@@ -1,10 +1,15 @@
-import { useState } from 'react'
+import { useQueryState, parseAsStringEnum } from 'nuqs'
 import { cn } from '../lib/utils'
 import { EDUCATION_ARTICLES, EDUCATION_CATEGORIES } from '../data/educationData'
 import type { EduCategory } from '../data/educationData'
 
 export function EducationView() {
-  const [activeCategory, setActiveCategory] = useState<EduCategory>('All')
+  const [activeCategory, setActiveCategory] = useQueryState(
+    'topic',
+    parseAsStringEnum<EduCategory>(EDUCATION_CATEGORIES as unknown as EduCategory[])
+      .withDefault('All')
+      .withOptions({ shallow: false })
+  )
 
   const filteredArticles = EDUCATION_ARTICLES.filter(
     (art) => activeCategory === 'All' || art.category === activeCategory
@@ -61,10 +66,10 @@ export function EducationView() {
               <div className={cn("flex flex-col gap-4 relative z-10 w-full", isFeatured && "md:flex-1 md:py-4")}>
                 <div className="flex items-center justify-between">
                   <div className={cn(
-                    "p-3 bg-muted rounded-xl text-foreground",
-                    isFeatured && "p-4 bg-[var(--mf-accent-soft)] text-[var(--mf-accent)]"
+                    "text-foreground",
+                    isFeatured && "text-[var(--mf-accent)]"
                   )}>
-                    <Icon size={isFeatured ? 36 : 24} weight="duotone" />
+                    <Icon size={isFeatured ? 44 : 32} weight="duotone" />
                   </div>
                   <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full border border-border/50">
                     {article.category}

@@ -1,8 +1,7 @@
 import { ChartLineUp, TrendDown, TrendUp } from '@phosphor-icons/react'
-import {
-  INSIGHT_TRENDS_DUMMY,
-} from '../data/insightsData'
+import { INSIGHT_TRENDS_DUMMY } from '../data/insightsData'
 import { InteractiveAreaChart } from '../components/InteractiveAreaChart'
+import { cn } from '../lib/utils'
 
 export function InsightsView() {
   return (
@@ -16,18 +15,23 @@ export function InsightsView() {
         <div className="insight-trends">
           {INSIGHT_TRENDS_DUMMY.map((t) => (
             <div key={t.id} className="insight-trend-card">
-              <span className="insight-trend-label">{t.label}</span>
-              <span className="insight-trend-value">{t.value}</span>
-              <span
-                className={`insight-trend-change ${t.positive ? 'insight-trend-change--up' : 'insight-trend-change--flat'}`}
-              >
-                {t.positive ? (
-                  <TrendUp size={16} aria-hidden />
-                ) : (
-                  <TrendDown size={16} aria-hidden />
-                )}
-                {t.change}
-              </span>
+              <div className="flex flex-col h-full">
+                <span className="insight-trend-label">{t.label}</span>
+                <span className="insight-trend-value">{t.value}</span>
+                <div className="mt-auto pt-3">
+                  <div className={cn(
+                    "flex items-center gap-1.5 text-[11px] font-medium px-2 py-0.5 rounded-md w-fit",
+                    t.id === '1' && "bg-[var(--mf-warning-soft)] text-[var(--mf-warning)]",
+                    t.id === '2' && "bg-[var(--mf-success-soft)] text-[var(--mf-success)]",
+                    t.id === '3' && "bg-[var(--mf-info-soft)] text-[var(--mf-info)]"
+                  )}>
+                    {t.id === '1' && <TrendUp size={14} weight="bold" />}
+                    {t.id === '2' && <TrendDown size={14} weight="bold" />}
+                    {t.id === '3' && <ChartLineUp size={14} weight="bold" />}
+                    {t.change}
+                  </div>
+                </div>
+              </div>
             </div>
           ))}
         </div>
@@ -54,7 +58,7 @@ export function InsightsView() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="dash-panel p-5 bg-gradient-to-br from-card to-[var(--mf-accent-soft)]/30 border-l-2 border-l-[var(--mf-accent)]">
+          <div className="dash-panel p-5 bg-gradient-to-br from-card to-[var(--mf-accent-soft)]/30 border border-border/50">
             <div className="flex gap-4">
               <div className="p-2.5 bg-[var(--mf-accent-soft)] rounded-lg text-[var(--mf-accent)] shrink-0 h-fit">
                 <TrendDown size={20} weight="duotone" />
@@ -68,7 +72,7 @@ export function InsightsView() {
             </div>
           </div>
 
-          <div className="dash-panel p-5 bg-gradient-to-br from-card to-[var(--mf-accent-soft)]/30 border-l-4 border-l-[var(--mf-accent)]">
+          <div className="dash-panel p-5 bg-gradient-to-br from-card to-[var(--mf-accent-soft)]/30 border border-border/50">
             <div className="flex gap-4">
               <div className="p-2.5 bg-[var(--mf-accent-soft)] rounded-lg text-[var(--mf-accent)] shrink-0 h-fit">
                 <ChartLineUp size={20} weight="duotone" />
