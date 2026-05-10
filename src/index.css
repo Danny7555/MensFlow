@@ -143,7 +143,13 @@
   --mf-accent-soft: rgba(219, 39, 119, 0.14);
   --mf-accent-border: rgba(219, 39, 119, 0.38);
   --mf-danger: #b42318;
+  --mf-danger-soft: rgba(180, 35, 24, 0.12);
   --mf-success: #067647;
+  --mf-success-soft: rgba(6, 118, 71, 0.12);
+  --mf-warning: #b54708;
+  --mf-warning-soft: rgba(181, 71, 8, 0.12);
+  --mf-info: #175cd3;
+  --mf-info-soft: rgba(23, 92, 211, 0.12);
   --mf-shadow: none;
   --mf-shadow-pop: none;
   --mf-dropdown-bg: #ffffff;
@@ -171,7 +177,13 @@
   --mf-accent-soft: rgba(244, 114, 182, 0.2);
   --mf-accent-border: rgba(244, 114, 182, 0.48);
   --mf-danger: #f97066;
+  --mf-danger-soft: rgba(249, 112, 102, 0.15);
   --mf-success: #75dda8;
+  --mf-success-soft: rgba(117, 221, 168, 0.15);
+  --mf-warning: #fec84b;
+  --mf-warning-soft: rgba(254, 200, 75, 0.15);
+  --mf-info: #84adff;
+  --mf-info-soft: rgba(132, 173, 255, 0.15);
   --mf-shadow: none;
   --mf-shadow-pop: none;
   --mf-dropdown-bg: #1c1c1f;

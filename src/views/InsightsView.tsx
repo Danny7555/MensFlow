@@ -21,9 +21,9 @@ export function InsightsView() {
                 <div className="mt-auto pt-3">
                   <div className={cn(
                     "flex items-center gap-1.5 text-[11px] font-medium px-2 py-0.5 rounded-md w-fit",
-                    t.id === '1' && "bg-orange-500/10 text-orange-500",
-                    t.id === '2' && "bg-green-500/10 text-green-500",
-                    t.id === '3' && "bg-blue-500/10 text-blue-500"
+                    t.id === '1' && "bg-[var(--mf-warning-soft)] text-[var(--mf-warning)]",
+                    t.id === '2' && "bg-[var(--mf-success-soft)] text-[var(--mf-success)]",
+                    t.id === '3' && "bg-[var(--mf-info-soft)] text-[var(--mf-info)]"
                   )}>
                     {t.id === '1' && <TrendUp size={14} weight="bold" />}
                     {t.id === '2' && <TrendDown size={14} weight="bold" />}
