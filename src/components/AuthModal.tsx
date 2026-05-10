@@ -127,7 +127,7 @@ export function AuthModal({ open, onClose, onContinue }: AuthModalProps) {
           onClick={submitEmail}
           disabled={!email.trim().includes('@')}
         >
-          Continue
+          Sign in
         </button>
 
         <button

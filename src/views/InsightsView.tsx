@@ -54,7 +54,7 @@ export function InsightsView() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="dash-panel p-5 bg-gradient-to-br from-card to-[var(--mf-accent-soft)]/30 border-l-2 border-l-[var(--mf-accent)]">
+          <div className="dash-panel p-5 bg-gradient-to-br from-card to-[var(--mf-accent-soft)]/30 border border-border/50">
             <div className="flex gap-4">
               <div className="p-2.5 bg-[var(--mf-accent-soft)] rounded-lg text-[var(--mf-accent)] shrink-0 h-fit">
                 <TrendDown size={20} weight="duotone" />
@@ -68,7 +68,7 @@ export function InsightsView() {
             </div>
           </div>
 
-          <div className="dash-panel p-5 bg-gradient-to-br from-card to-[var(--mf-accent-soft)]/30 border-l-4 border-l-[var(--mf-accent)]">
+          <div className="dash-panel p-5 bg-gradient-to-br from-card to-[var(--mf-accent-soft)]/30 border border-border/50">
             <div className="flex gap-4">
               <div className="p-2.5 bg-[var(--mf-accent-soft)] rounded-lg text-[var(--mf-accent)] shrink-0 h-fit">
                 <ChartLineUp size={20} weight="duotone" />
