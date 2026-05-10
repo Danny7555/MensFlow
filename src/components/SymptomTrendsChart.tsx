@@ -6,6 +6,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -15,18 +16,27 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import { SYMPTOM_HISTORY_DUMMY } from "../data/symptomsData"
+
+const chartData = [
+  { day: "Monday", intensity: 4 },
+  { day: "Tuesday", intensity: 3 },
+  { day: "Wednesday", intensity: 5 },
+  { day: "Thursday", intensity: 2 },
+  { day: "Friday", intensity: 6 },
+  { day: "Saturday", intensity: 7 },
+  { day: "Sunday", intensity: 5 },
+]
 
 const chartConfig = {
-  severity: {
+  intensity: {
     label: "Intensity",
     color: "var(--mf-accent)",
   },
 } satisfies ChartConfig
 
-export function SymptomsChart() {
+export function SymptomTrendsChart() {
   return (
-    <Card className="border-none shadow-none ring-0 bg-transparent">
+    <Card className="border-none shadow-none bg-transparent">
       <CardHeader className="p-4 pb-2">
         <CardTitle>Symptom Trends</CardTitle>
         <CardDescription>
@@ -34,13 +44,10 @@ export function SymptomsChart() {
         </CardDescription>
       </CardHeader>
       <CardContent className="p-0 pb-0">
-        <ChartContainer
-          config={chartConfig}
-          className="h-[320px] w-full"
-        >
+        <ChartContainer config={chartConfig} className="h-[320px] w-full">
           <AreaChart
             accessibilityLayer
-            data={SYMPTOM_HISTORY_DUMMY}
+            data={chartData}
             margin={{
               top: 10,
               left: -20,
@@ -48,20 +55,6 @@ export function SymptomsChart() {
               bottom: 0,
             }}
           >
-            <defs>
-              <linearGradient id="fillSeverity" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--mf-accent)"
-                  stopOpacity={0.3}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--mf-accent)"
-                  stopOpacity={0.01}
-                />
-              </linearGradient>
-            </defs>
             <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--mf-border)" />
             <XAxis
               dataKey="day"
@@ -82,10 +75,24 @@ export function SymptomsChart() {
               cursor={false}
               content={<ChartTooltipContent indicator="line" />}
             />
+            <defs>
+              <linearGradient id="fillIntensity" x1="0" y1="0" x2="0" y2="1">
+                <stop
+                  offset="5%"
+                  stopColor="var(--mf-accent)"
+                  stopOpacity={0.3}
+                />
+                <stop
+                  offset="95%"
+                  stopColor="var(--mf-accent)"
+                  stopOpacity={0.01}
+                />
+              </linearGradient>
+            </defs>
             <Area
-              dataKey="severity"
+              dataKey="intensity"
               type="natural"
-              fill="url(#fillSeverity)"
+              fill="url(#fillIntensity)"
               fillOpacity={1}
               stroke="var(--mf-accent)"
               strokeWidth={2}

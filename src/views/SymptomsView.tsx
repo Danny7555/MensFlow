@@ -173,7 +173,7 @@ export function SymptomsView() {
         <h2 id="trends-title" className="text-lg font-medium tracking-tight text-foreground">
           Historical Trends
         </h2>
-        <div className="dash-panel p-2 sm:p-8 bg-card/30">
+        <div className="dash-panel p-0 overflow-hidden">
           <SymptomsChart />
         </div>
       </section>
