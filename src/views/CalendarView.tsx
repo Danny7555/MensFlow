@@ -119,9 +119,9 @@ export function CalendarView() {
               <button
                 onClick={() => dispatch({ type: "SET_VIEW", payload: "month" })}
                 className={cn(
-                  "px-6 sm:px-8 py-1.5 rounded-md text-[11px] font-bold transition-all",
+                  "px-6 sm:px-8 py-1.5 rounded-md text-[11px] font-medium transition-all",
                   view === "month" 
-                    ? "bg-[#2ebcc5] text-white shadow-sm" 
+                    ? "bg-white dark:bg-muted-foreground/20 text-[var(--mf-accent)] shadow-sm" 
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
@@ -130,9 +130,9 @@ export function CalendarView() {
               <button
                 onClick={() => dispatch({ type: "SET_VIEW", payload: "year" })}
                 className={cn(
-                  "px-6 sm:px-8 py-1.5 rounded-md text-[11px] font-bold transition-all",
+                  "px-6 sm:px-8 py-1.5 rounded-md text-[11px] font-medium transition-all",
                   view === "year" 
-                    ? "bg-[#2ebcc5] text-white shadow-sm" 
+                    ? "bg-white dark:bg-muted-foreground/20 text-[var(--mf-accent)] shadow-sm" 
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
@@ -146,7 +146,7 @@ export function CalendarView() {
             <Button variant="ghost" size="icon" onClick={prevMonth} className="rounded-full">
               <CaretLeft className="size-5" />
             </Button>
-            <h2 className="text-xl sm:text-2xl font-semibold text-foreground min-w-[140px] text-center">
+            <h2 className="text-xl sm:text-2xl font-medium text-foreground min-w-[140px] text-center">
               {monthName} {year}
             </h2>
             <Button variant="ghost" size="icon" onClick={nextMonth} className="rounded-full">
@@ -160,8 +160,8 @@ export function CalendarView() {
               variant={isEditingPeriods ? "default" : "outline"}
               onClick={() => dispatch({ type: "SET_EDITING_PERIODS", payload: !isEditingPeriods })}
               className={cn(
-                "rounded-full text-xs font-bold",
-                isEditingPeriods ? "bg-[#ff5a5f] hover:bg-[#ff4b50] border-none text-white" : ""
+                "rounded-full text-xs font-medium",
+                isEditingPeriods ? "bg-[var(--mf-danger)]/10 text-[var(--mf-danger)] border-[var(--mf-danger)]/30 hover:bg-[var(--mf-danger)]/20" : ""
               )}
             >
               {isEditingPeriods ? "Finish Editing" : "Edit Periods"}
@@ -172,7 +172,7 @@ export function CalendarView() {
         {/* Weekdays */}
         <div className="grid grid-cols-7 px-4 mb-4">
           {DAYS_OF_WEEK.map((day) => (
-            <div key={day} className="text-center text-[10px] font-bold text-muted-foreground tracking-wider">
+            <div key={day} className="text-center text-[10px] font-medium text-muted-foreground tracking-wider">
               {day}
             </div>
           ))}
@@ -239,7 +239,7 @@ export function CalendarView() {
                     <span className={cn(
                       "relative z-0 text-lg font-medium transition-colors",
                       isPeriod ? "text-[#ff5a5f]" : "text-foreground",
-                      isSelected && "font-semibold"
+                      isSelected && "font-medium"
                     )}>
                       {d}
                     </span>
@@ -263,10 +263,10 @@ export function CalendarView() {
         <Card className="rounded-t-[32px] rounded-b-none border-t border-x-0 border-b-0 p-6 pb-8 relative bg-white dark:bg-card max-w-[1200px] mx-auto overflow-hidden">
           <div className="flex items-start justify-between mb-8">
             <div>
-              <h3 className="text-lg font-semibold text-foreground">
+              <h3 className="text-lg font-medium text-foreground">
                 Edit Period for {selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
               </h3>
-              <p className="text-[#2ebcc5] font-semibold text-sm">
+              <p className="text-[var(--mf-accent)] font-medium text-sm">
                 Cycle Day {displayCycleDay}
               </p>
             </div>
@@ -284,7 +284,7 @@ export function CalendarView() {
             
             <div className="flex items-center gap-4 sm:gap-8">
               <div className="hidden sm:flex items-center gap-2">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">LOG DATA</span>
+                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">LOG DATA</span>
                 <svg width="40" height="20" viewBox="0 0 40 20" fill="none" className="text-muted-foreground opacity-30">
                   <path d="M2 18C10 18 30 18 38 2M38 2L32 2M38 2L38 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
@@ -292,7 +292,7 @@ export function CalendarView() {
               
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button className="size-14 rounded-full bg-[#2ebcc5] hover:bg-[#27a8b0] text-white p-0 flex items-center justify-center border-none transition-transform hover:scale-105 active:scale-95">
+                  <Button className="size-14 rounded-full bg-[var(--mf-accent)] hover:bg-[var(--mf-accent-hover)] text-white p-0 flex items-center justify-center border-none transition-transform hover:scale-105 active:scale-95">
                     <Plus size={32} strokeWidth={2.5} />
                   </Button>
                 </DialogTrigger>

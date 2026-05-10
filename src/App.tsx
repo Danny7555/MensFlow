@@ -1,4 +1,4 @@
-import { useCallback, useState, type ReactNode } from 'react'
+import { useCallback, useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { ThemeSync } from './components/ThemeSync'
 import { AuthModal, type AuthMethod } from './components/AuthModal'
@@ -20,7 +20,7 @@ import { useAuth } from './context/useAuth'
 import { useSettings } from './context/useSettings'
 import { Header } from './components/Header'
 import { Sidebar } from './components/Sidebar'
-import type { SectionId } from './types/nav'
+
 import { useMediaQuery } from './hooks/useMediaQuery'
 import './App.css'
 

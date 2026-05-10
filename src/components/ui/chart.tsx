@@ -1,6 +1,9 @@
 import * as React from "react"
 import * as RechartsPrimitive from "recharts"
-import type { TooltipValueType } from "recharts"
+import type {
+  ValueType as TooltipValueType,
+  NameType as TooltipNameType,
+} from "recharts/types/component/DefaultTooltipContent"
 
 import { cn } from "@/lib/utils"
 
@@ -8,7 +11,6 @@ import { cn } from "@/lib/utils"
 const THEMES = { light: "", dark: "[data-theme='dark']" } as const
 
 const INITIAL_DIMENSION = { width: 320, height: 200 } as const
-type TooltipNameType = number | string
 
 export type ChartConfig = Record<
   string,
@@ -149,7 +151,7 @@ function ChartTooltipContent({
       return null
     }
 
-    const [item] = payload
+    const item = payload?.[0]
     const key = `${labelKey ?? item?.dataKey ?? item?.name ?? "value"}`
     const itemConfig = getPayloadConfigFromPayload(config, item, key)
     const value =
@@ -160,7 +162,7 @@ function ChartTooltipContent({
     if (labelFormatter) {
       return (
         <div className={cn("font-medium", labelClassName)}>
-          {labelFormatter(value, payload)}
+          {labelFormatter(value, payload ?? [])}
         </div>
       )
     }
@@ -294,7 +296,7 @@ function ChartLegendContent({
         className
       )}
     >
-      {payload.reduce<React.ReactNode[]>((acc, item, index) => {
+      {payload.reduce<React.ReactNode[]>((acc, item) => {
         if (item.type === "none") return acc
         const key = `${nameKey ?? item.dataKey ?? "value"}`
         const itemConfig = getPayloadConfigFromPayload(config, item, key)

@@ -29,7 +29,7 @@ function SymptomCategoryList({
 
   return (
     <div className="dash-panel p-6 flex flex-col gap-4">
-      <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-2">
+      <h3 className="text-sm font-medium text-foreground flex items-center gap-2 mb-2">
         <IconComponent size={18} weight="bold" className="text-muted-foreground" />
         {category}
       </h3>
@@ -44,7 +44,7 @@ function SymptomCategoryList({
               className={cn(
                 "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200 cursor-pointer",
                 isActive
-                  ? "bg-[#2ebcc5] text-white border-[#2ebcc5] shadow-sm"
+                  ? "bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] border-[var(--mf-accent-border)] shadow-sm"
                   : "bg-card text-muted-foreground border-border hover:border-foreground hover:text-foreground"
               )}
             >
@@ -78,18 +78,10 @@ export function SymptomsView() {
 
   return (
     <div className="flex-1 w-full max-w-[1200px] mx-auto p-4 sm:p-6 lg:p-8 space-y-8 animate-in fade-in duration-500">
-      <header className="page-hero mt-2">
-        <div className="page-hero-icon">
-          <Pulse size={26} weight="duotone" aria-hidden />
-        </div>
-        <h1 className="page-hero-title">Symptoms</h1>
-        <p className="page-hero-desc">
-          Daily symptom logging with gentle charts to visualize your well-being.
-        </p>
-      </header>
+
 
       <section aria-labelledby="today-log-title" className="space-y-4">
-        <h2 id="today-log-title" className="text-xl font-semibold tracking-tight text-foreground">
+        <h2 id="today-log-title" className="text-xl font-medium tracking-tight text-foreground">
           Log for Today
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -100,7 +92,7 @@ export function SymptomsView() {
       </section>
 
       <section aria-labelledby="trends-title" className="mt-8 pt-4">
-        <h2 id="trends-title" className="text-xl font-semibold tracking-tight text-foreground mb-4">
+        <h2 id="trends-title" className="text-xl font-medium tracking-tight text-foreground mb-4">
           Trends
         </h2>
         <div className="dash-panel p-2 sm:p-6">
