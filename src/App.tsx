@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { ThemeSync } from './components/ThemeSync'
 import { AuthModal, type AuthMethod } from './components/AuthModal'
 import { ChatView } from './views/ChatView'
@@ -28,6 +28,7 @@ import './App.css'
 function MainShell() {
   const { isAuthenticated, login, logout } = useAuth()
   const { settings, updateSettings } = useSettings()
+  const navigate = useNavigate()
   const isMobile = useMediaQuery('(max-width: 768px)')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(false)
@@ -103,7 +104,13 @@ function MainShell() {
             temporaryChat={isAuthenticated ? temporaryChat : undefined}
             onToggleTemporaryChat={
               isAuthenticated
-                ? () => setTemporaryChat((t) => !t)
+                ? () => {
+                    const next = !temporaryChat
+                    setTemporaryChat(next)
+                    if (next) {
+                      navigate('/ask')
+                    }
+                  }
                 : undefined
             }
             onLogout={handleLogout}
