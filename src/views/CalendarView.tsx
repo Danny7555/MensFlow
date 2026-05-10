@@ -17,12 +17,25 @@ import { cn } from "@/lib/utils"
 const DAYS_OF_WEEK = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
 
 export function CalendarView() {
+  const today = new Date()
+  const currentYear = today.getFullYear()
+  const currentMonth = today.getMonth()
+  
   const [view, setView] = React.useState<"month" | "year">("month")
-  const [viewDate, setViewDate] = React.useState(new Date(2024, 8, 1)) // September 2024
-  const [selectedDate, setSelectedDate] = React.useState(new Date(2024, 8, 14))
+  const [viewDate, setViewDate] = React.useState(new Date(currentYear, currentMonth, 1))
+  const [selectedDate, setSelectedDate] = React.useState(today)
   const [isEditingPeriods, setIsEditingPeriods] = React.useState(false)
+  
+  // Generate a few mock period dates around the current month
   const [periodDates, setPeriodDates] = React.useState<Set<string>>(
-    new Set(["2024-08-20", "2024-08-21", "2024-08-22", "2024-08-23", "2024-09-20", "2024-09-21", "2024-09-22", "2024-09-23"])
+    new Set([
+      `${currentYear}-${String(currentMonth).padStart(2, '0')}-20`,
+      `${currentYear}-${String(currentMonth).padStart(2, '0')}-21`,
+      `${currentYear}-${String(currentMonth).padStart(2, '0')}-22`,
+      `${currentYear}-${String(currentMonth).padStart(2, '0')}-23`,
+      `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-20`,
+      `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-21`,
+    ])
   )
 
   // Calendar logic
