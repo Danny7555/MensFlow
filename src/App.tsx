@@ -50,7 +50,8 @@ function MainShell() {
   const handleLogout = useCallback(() => {
     logout()
     setTemporaryChat(false)
-  }, [logout])
+    navigate('/')
+  }, [logout, navigate])
 
   // goHome removed since NavLink manages it
 
@@ -129,6 +130,11 @@ function MainShell() {
                   <Route path="/tracker" element={<TrackerView />} />
                   <Route path="/health-insights" element={<InsightsView />} />
                   <Route path="/wellness-tips" element={<TipsView />} />
+                  <Route path="/dashboard" element={<Navigate to="/" replace />} />
+                  <Route path="/insights" element={<Navigate to="/health-insights" replace />} />
+                  <Route path="/tips" element={<Navigate to="/wellness-tips" replace />} />
+                  <Route path="/symptoms" element={<Navigate to="/tracker" replace />} />
+                  <Route path="/education" element={<Navigate to="/" replace />} />
                   <Route path="/history" element={guestPlaceholder('History / logs', 'Chat and symptom history stays private to your account.')} />
                   <Route path="*" element={<NotFoundView />} />
                 </>

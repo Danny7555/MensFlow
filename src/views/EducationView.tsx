@@ -52,14 +52,22 @@ export function EducationView() {
                 isFeatured && "md:col-span-2 lg:col-span-2 md:flex-row gap-8 items-center bg-gradient-to-br from-card via-card to-[var(--mf-accent-soft)]/30 min-h-[280px]"
               )}
             >
-              {/* Large Background Icon for Featured */}
+              {/* Large Background Image for Featured */}
               {isFeatured ? (
-                <div className="absolute -right-12 -bottom-12 opacity-[0.08] pointer-events-none rotate-12">
-                  <Icon size={340} weight="duotone" className="text-[var(--mf-accent)]" />
+                <div className="absolute -right-8 -bottom-8 opacity-[0.15] pointer-events-none rotate-6">
+                  {article.image ? (
+                    <img src={article.image} alt="" className="w-[300px] h-[300px] object-cover rounded-full" />
+                  ) : (
+                    <Icon size={340} weight="duotone" className="text-[var(--mf-accent)]" />
+                  )}
                 </div>
               ) : (
-                <div className="absolute -right-6 -bottom-6 opacity-[0.03] pointer-events-none">
-                  <Icon size={180} weight="duotone" />
+                <div className="absolute -right-4 -bottom-4 opacity-[0.1] pointer-events-none">
+                  {article.image ? (
+                    <img src={article.image} alt="" className="w-[120px] h-[120px] object-cover rounded-full" />
+                  ) : (
+                    <Icon size={180} weight="duotone" />
+                  )}
                 </div>
               )}
 
@@ -69,7 +77,13 @@ export function EducationView() {
                     "text-foreground",
                     isFeatured && "text-[var(--mf-accent)]"
                   )}>
-                    <Icon size={isFeatured ? 44 : 32} weight="duotone" />
+                    {article.image ? (
+                      <div className="size-12 rounded-xl overflow-hidden">
+                        <img src={article.image} alt="" className="size-full object-cover" />
+                      </div>
+                    ) : (
+                      <Icon size={isFeatured ? 44 : 32} weight="duotone" />
+                    )}
                   </div>
                   <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full border border-border/50">
                     {article.category}

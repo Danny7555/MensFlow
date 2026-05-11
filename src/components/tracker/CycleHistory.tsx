@@ -27,7 +27,7 @@ export function CycleHistory() {
         </button>
       </div>
 
-      <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.015)]">
+      <div className="bg-card border border-border rounded-3xl overflow-hidden">
         {/* Row 1 */}
         <div className="p-5 sm:p-6 relative">
           <div className="flex items-start justify-between mb-3">

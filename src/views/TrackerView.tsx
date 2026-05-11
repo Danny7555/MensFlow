@@ -17,9 +17,9 @@ export function TrackerView() {
         <CycleHistory />
         <CycleTips />
 
-        {/* Partner Sharing Banner - A premium feature inspired by Flo */}
+
         <div className="mt-12 mb-16 w-full max-w-[1050px] mx-auto px-2">
-          <div className="bg-gradient-to-r from-[var(--mf-accent)] to-[#be185d] rounded-3xl p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative group cursor-pointer shadow-lg">
+          <div className="bg-gradient-to-r from-[var(--mf-accent)] to-[#be185d] rounded-3xl p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative group cursor-pointer border border-white/10">
             <div className="z-10 text-center md:text-left">
               <h3 className="text-2xl font-medium mb-2">Share your cycle with a partner</h3>
               <p className="text-white/80 max-w-[400px]">
