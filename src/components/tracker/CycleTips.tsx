@@ -7,11 +7,11 @@ import {
 
 export function CycleTips() {
   return (
-    <div className="mt-12 w-full max-w-[1050px] mx-auto mb-16">
-      <h2 className="text-2xl font-medium text-foreground tracking-tight mb-6 px-2">Cycle Insights</h2>
+    <div className="cycle-tips-container">
+      <h2 className="text-xl font-medium text-foreground tracking-tight mb-6 px-2">Cycle Insights</h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-gradient-to-br from-card to-card/50 border border-border rounded-3xl p-6 sm:p-8 flex flex-col justify-between">
+      <div className="grid grid-cols-1 gap-6">
+        <div className="bg-gradient-to-br from-card to-card/50 border border-border rounded-3xl p-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-2 text-[#e25c00] font-medium mb-3 uppercase tracking-wider text-xs">
               <Lightbulb size={20} weight="fill" />
@@ -24,7 +24,7 @@ export function CycleTips() {
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-card to-card/50 border border-border rounded-3xl p-6 sm:p-8 flex flex-col justify-between">
+        <div className="bg-gradient-to-br from-card to-card/50 border border-border rounded-3xl p-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-2 text-[#007e94] font-medium mb-3 uppercase tracking-wider text-xs">
               <Tooltip>

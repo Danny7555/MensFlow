@@ -7,7 +7,7 @@ import {
 
 export function CycleHistory() {
   return (
-    <div className="cycle-history-container mt-12 w-full max-w-[1050px] mx-auto">
+    <div className="cycle-history-container">
       <div className="flex items-center justify-between mb-4 px-2">
         <div className="flex items-center gap-2">
           <h2 className="text-2xl font-medium text-foreground tracking-tight">Cycle history</h2>

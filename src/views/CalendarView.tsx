@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Plus, X, CaretLeft, CaretRight,Drop } from "@phosphor-icons/react"
+import { Plus, X, CaretLeft, CaretRight, Drop, PencilSimple, Check } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import {
@@ -89,8 +89,13 @@ export function CalendarView() {
   const nextYear = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year + 1, month, 1) })
 
   return (
-    <div className="flex flex-col h-full bg-[#f5f5f7] dark:bg-background overflow-auto relative">
-      <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-8 animate-in fade-in duration-500">
+    <div className="flex flex-col h-full bg-background overflow-auto relative">
+      {/* Decorative background image - matching Symptoms (Tracker) view style */}
+      <div className="absolute right-0 top-20 opacity-10 pointer-events-none z-0">
+        <img src="/images/girl.png" alt="" className="w-[800px] h-[800px] object-contain" />
+      </div>
+
+      <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-8 animate-in fade-in duration-500 relative z-10">
         
         {/* Top Control Bar */}
         <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-6 px-6 mb-8 text-center">
@@ -138,11 +143,21 @@ export function CalendarView() {
               variant={isEditingPeriods ? "default" : "outline"}
               onClick={() => isAuthenticated ? dispatch({ type: "SET_EDITING_PERIODS", payload: !isEditingPeriods }) : openAuthModal()}
               className={cn(
-                "rounded-full text-xs font-medium",
+                "rounded-full text-xs font-medium gap-2",
                 isEditingPeriods ? "bg-[var(--mf-danger)]/10 text-[var(--mf-danger)] border-[var(--mf-danger)]/30 hover:bg-[var(--mf-danger)]/20" : ""
               )}
             >
-              {isEditingPeriods ? "Finish Editing" : "Edit Periods"}
+              {isEditingPeriods ? (
+                <>
+                  <Check size={14} weight="bold" />
+                  <span>Finish Editing</span>
+                </>
+              ) : (
+                <>
+                  <PencilSimple size={14} weight="bold" />
+                  <span>Edit Periods</span>
+                </>
+              )}
             </Button>
           </div>
         </div>
@@ -168,7 +183,7 @@ export function CalendarView() {
           )}
 
           {!isAuthenticated && (
-            <div className="absolute inset-x-[-24px] bottom-[-24px] top-[200px] bg-gradient-to-t from-[#f5f5f7] dark:from-background via-[#f5f5f7]/90 dark:via-background/90 to-transparent pointer-events-none z-20 flex flex-col items-center justify-center pt-24">
+            <div className="absolute inset-x-[-24px] bottom-[-24px] top-[200px] bg-gradient-to-t from-background via-background/90 to-transparent pointer-events-none z-20 flex flex-col items-center justify-center pt-24">
               <div className="w-full h-full backdrop-blur-[6px] opacity-100" />
               <div className="absolute inset-0 flex flex-col items-center justify-center p-8 pointer-events-auto">
                  <div className="bg-card border border-border p-8 rounded-3xl text-center max-w-[400px] mx-auto">
@@ -258,7 +273,7 @@ function MonthView({ viewDate, selectedDate, isEditingPeriods, periodDates, disp
                     <div className="absolute inset-0 border-2 border-dotted border-muted-foreground rounded-full opacity-60" />
                   )}
                   {isPeriod && (
-                    <div className="absolute top-1 right-1 bg-[#ff5a5f] text-white rounded-full size-4 flex items-center justify-center shadow-sm">
+                    <div className="absolute top-1 right-1 bg-[#ff5a5f] text-white rounded-full size-4 flex items-center justify-center">
                       <Drop weight="fill" className="size-2.5" />
                     </div>
                   )}

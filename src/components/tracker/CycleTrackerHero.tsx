@@ -1,7 +1,8 @@
+"use client"
+
 import { useState, useMemo } from 'react'
 import { CaretDown, CaretRight, Smiley, Info } from '@phosphor-icons/react'
 import { format, addDays, startOfDay } from 'date-fns'
-
 
 import { 
   DropdownMenu, 
@@ -16,10 +17,13 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 
+import { LogSymptomsModal } from './LogSymptomsModal'
+
 export function CycleTrackerHero() {
   const [selectedDay, setSelectedDay] = useState<number>(12);
   const [hoveredDay, setHoveredDay] = useState<number | null>(null);
   const [trackingMode, setTrackingMode] = useState<string>('Period');
+  const [isLogModalOpen, setIsLogModalOpen] = useState(false)
 
   const modes = ['Period', 'Conception', 'Pregnancy', 'Perimenopause'];
 
@@ -88,14 +92,12 @@ export function CycleTrackerHero() {
     const angle = getAngle(day - 0.5); 
     const r = 37;
     const pos = polarToCartesian(angle, r);
-    
     const isSelected = selectedDay === day;
-
     const isToday = currentDay === day;
     
     let color = 'transparent';
     if (day <= currentDay) {
-      if (day <= periodLength) color = '#dc2626'; // Improved contrast red
+      if (day <= periodLength) color = '#dc2626';
       else if (day === 7) color = '#2563eb'; 
       else if (day === 11) color = '#059669'; 
       else if (day === currentDay) color = '#1a4d57'; 
@@ -113,7 +115,7 @@ export function CycleTrackerHero() {
           cx={pos.x} 
           cy={pos.y} 
           r={isSelected ? 3 : 2} 
-          fill={isSelected ? '#1a4d57' : (color !== 'transparent' ? color : 'var(--mf-muted)')} 
+          fill={isSelected ? '#1a4d57' : (color !== 'transparent' ? color : 'currentColor')} 
           opacity={isSelected ? 1 : (day <= periodLength ? 0.8 : 0.4)}
         />
         {isToday && !isSelected && (
@@ -126,7 +128,7 @@ export function CycleTrackerHero() {
   const currentPos = polarToCartesian(getAngle(selectedDay - 0.5), 44);
 
   return (
-    <div className="cycle-tracker-hero">
+    <div className="cycle-tracker-hero relative">
       <div className="cycle-tracker-mode">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -175,24 +177,17 @@ export function CycleTrackerHero() {
               stroke="#1a4d57" 
               strokeWidth="2" 
             />
-            
-            {/* Day 1 marker */}
-            <g transform="translate(45, 1) scale(0.4)">
-               <path d="M12 2.15C12 2.15 4 10.15 4 15.65C4 20.07 7.58 23.65 12 23.65C16.42 23.65 20 20.07 20 15.65C20 10.15 12 2.15 12 2.15Z" fill="#d62f33" />
-            </g>
           </svg>
 
           <div className="viz-content">
             {/* Chance of pregnancy indicator - moved to top to avoid overlap */}
             <div className="mb-6 animate-in fade-in zoom-in duration-700">
-               <span 
-                 className="px-5 py-1.5 rounded-full text-[9px] font-medium uppercase tracking-widest border transition-colors duration-300"
-                 style={{ 
-                   backgroundColor: `${activeInfo.color}15`, 
-                   color: activeInfo.color,
-                   borderColor: `${activeInfo.color}40`
-                 }}
-               >
+                <span 
+                  className="px-5 py-1.5 rounded-full text-[9px] font-medium uppercase tracking-widest transition-colors duration-300"
+                  style={{ 
+                    color: activeInfo.color,
+                  }}
+                >
                  {activeDay >= fertileStart && activeDay <= fertileEnd ? 'High' : 'Low'} pregnancy chance
                </span>
             </div>
@@ -235,18 +230,25 @@ export function CycleTrackerHero() {
       </div>
 
       <div className="cycle-tracker-mood-cta">
-        <div className="mood-cta-card">
+        <div 
+          onClick={() => setIsLogModalOpen(true)}
+          className="mood-cta-card cursor-pointer group"
+        >
            <img src="/images/exp.jpg" alt="" className="mood-cta-bg" />
            <div className="mood-cta-overlay" />
-           <div className="mood-icon">
+           <div className="mood-icon group-hover:scale-110 transition-transform">
              <Smiley size={24} weight="fill" />
            </div>
            <span className="mood-text">Log symptoms for Day {activeDay}</span>
-           <CaretRight size={20} className="caret-right" />
+           <CaretRight size={20} className="caret-right group-hover:translate-x-1 transition-transform" />
         </div>
       </div>
 
+      <LogSymptomsModal 
+        isOpen={isLogModalOpen} 
+        onOpenChange={setIsLogModalOpen} 
+        activeDay={activeDay} 
+      />
     </div>
   )
 }
-
