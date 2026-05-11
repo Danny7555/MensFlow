@@ -89,8 +89,13 @@ export function CalendarView() {
   const nextYear = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year + 1, month, 1) })
 
   return (
-    <div className="flex flex-col h-full bg-[#f5f5f7] dark:bg-background overflow-auto relative">
-      <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-8 animate-in fade-in duration-500">
+    <div className="flex flex-col h-full bg-background overflow-auto relative">
+      {/* Decorative background image - matching Symptoms (Tracker) view style */}
+      <div className="absolute right-[-20px] top-[-20px] opacity-10 pointer-events-none z-0">
+        <img src="/images/exp.jpg" alt="" className="size-96 object-contain rotate-[-15deg]" />
+      </div>
+
+      <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-8 animate-in fade-in duration-500 relative z-10">
         
         {/* Top Control Bar */}
         <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-6 px-6 mb-8 text-center">
