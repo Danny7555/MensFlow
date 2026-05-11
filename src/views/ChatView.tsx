@@ -57,7 +57,7 @@ export function ChatView() {
   const [draft, setDraft] = useState('')
   const prevTemporary = useRef<boolean | null>(null)
 
-  /** ChatGPT-like: switching into ephemeral mode starts a fresh thread */
+
   useEffect(() => {
     if (prevTemporary.current === null) {
       prevTemporary.current = temporaryChat
@@ -139,7 +139,7 @@ export function ChatView() {
               <Ghost size={18} weight="duotone" aria-hidden />
               <span>
                 Temporary chat - this conversation won&apos;t be saved to history or used to
-                improve models (ChatGPT-style ephemeral session).
+                improve Ai models.
               </span>
             </div>
           )}
