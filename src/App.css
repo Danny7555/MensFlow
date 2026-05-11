@@ -2366,7 +2366,7 @@
 .insight-trend-label {
   display: block;
   font-size: 0.72rem;
-  font-weight: 500;
+  font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--muted-foreground);
@@ -2376,7 +2376,7 @@
 .insight-trend-value {
   display: block;
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--foreground);
   letter-spacing: -0.02em;
 }
@@ -2386,7 +2386,7 @@
   align-items: center;
   gap: 0.35rem;
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .insight-trend-change--up {

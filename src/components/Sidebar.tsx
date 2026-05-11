@@ -139,7 +139,7 @@ export function Sidebar({
         </nav>
 
         {!isAuthenticated && (
-          <div className={cn("sidebar-footer", collapsed && "sidebar-footer--compact")}>
+          <div className={cn("sidebar-footer", collapsed && "sidebar-footer--compact mt-auto")}>
             {!collapsed && (
               <p className="sidebar-footer-text">
                 Get real-time responses from our model tailored to menstrual

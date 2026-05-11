@@ -49,7 +49,10 @@ function calendarReducer(state: CalendarState, action: CalendarAction): Calendar
   }
 }
 
+import { useAuth } from "@/context/useAuth"
+
 export function CalendarView() {
+  const { isAuthenticated, openAuthModal } = useAuth()
   const today = new Date()
   const currentYear = today.getFullYear()
   const currentMonth = today.getMonth()
@@ -86,7 +89,7 @@ export function CalendarView() {
   const nextYear = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year + 1, month, 1) })
 
   return (
-    <div className="flex flex-col h-full bg-[#f5f5f7] dark:bg-background overflow-auto">
+    <div className="flex flex-col h-full bg-[#f5f5f7] dark:bg-background overflow-auto relative">
       <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-8 animate-in fade-in duration-500">
         
         {/* Top Control Bar */}
@@ -133,7 +136,7 @@ export function CalendarView() {
           <div className="flex justify-center sm:justify-end order-3">
             <Button 
               variant={isEditingPeriods ? "default" : "outline"}
-              onClick={() => dispatch({ type: "SET_EDITING_PERIODS", payload: !isEditingPeriods })}
+              onClick={() => isAuthenticated ? dispatch({ type: "SET_EDITING_PERIODS", payload: !isEditingPeriods }) : openAuthModal()}
               className={cn(
                 "rounded-full text-xs font-medium",
                 isEditingPeriods ? "bg-[var(--mf-danger)]/10 text-[var(--mf-danger)] border-[var(--mf-danger)]/30 hover:bg-[var(--mf-danger)]/20" : ""
@@ -144,27 +147,47 @@ export function CalendarView() {
           </div>
         </div>
 
-        {view === "month" ? (
-          <MonthView 
-            viewDate={viewDate} 
-            selectedDate={selectedDate}
-            isEditingPeriods={isEditingPeriods}
-            periodDates={periodDates}
-            dispatch={dispatch}
-          />
-        ) : (
-          <YearView 
-            viewDate={viewDate} 
-            periodDates={periodDates}
-            onMonthClick={(d) => {
-              dispatch({ type: "SET_VIEW_DATE", payload: d })
-              setView("month")
-            }}
-          />
-        )}
+        <div className="relative">
+          {view === "month" ? (
+            <MonthView 
+              viewDate={viewDate} 
+              selectedDate={selectedDate}
+              isEditingPeriods={isEditingPeriods}
+              periodDates={periodDates}
+              dispatch={dispatch}
+            />
+          ) : (
+            <YearView 
+              viewDate={viewDate} 
+              periodDates={periodDates}
+              onMonthClick={(d) => {
+                dispatch({ type: "SET_VIEW_DATE", payload: d })
+                setView("month")
+              }}
+            />
+          )}
+
+          {!isAuthenticated && (
+            <div className="absolute inset-x-[-24px] bottom-[-24px] top-[200px] bg-gradient-to-t from-[#f5f5f7] dark:from-background via-[#f5f5f7]/90 dark:via-background/90 to-transparent pointer-events-none z-20 flex flex-col items-center justify-center pt-24">
+              <div className="w-full h-full backdrop-blur-[6px] opacity-100" />
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-8 pointer-events-auto">
+                 <div className="bg-card border border-border p-8 rounded-3xl text-center max-w-[400px] mx-auto">
+                  <h3 className="text-xl font-medium mb-2">Track your patterns</h3>
+                  <p className="text-muted-foreground text-sm mb-6">Unlock period editing, symptom logging, and historical calendar views by signing in.</p>
+                  <button 
+                    onClick={openAuthModal}
+                    className="btn btn-primary px-8 py-3 rounded-full"
+                  >
+                    Log in to access
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      <DetailSheet selectedDate={selectedDate} />
+      <DetailSheet selectedDate={selectedDate} isAuthenticated={isAuthenticated} onOpenAuth={openAuthModal} />
     </div>
   )
 }
@@ -315,13 +338,24 @@ function YearView({ viewDate, periodDates, onMonthClick }: {
   )
 }
 
-function DetailSheet({ selectedDate }: { selectedDate: Date }) {
+function DetailSheet({ selectedDate, isAuthenticated, onOpenAuth }: { selectedDate: Date, isAuthenticated: boolean, onOpenAuth: () => void }) {
   // Mock cycle info
   const displayCycleDay = 12 // Simplified for component extraction
 
   return (
     <div className="sticky bottom-0 z-20 w-full">
       <Card className="rounded-t-[32px] rounded-b-none border-t border-x-0 border-b-0 p-6 pb-8 relative bg-white dark:bg-card max-w-[1200px] mx-auto overflow-hidden">
+        {!isAuthenticated && (
+          <div className="absolute inset-0 bg-white/60 dark:bg-card/60 backdrop-blur-[2px] z-30 flex items-center justify-center">
+            <button 
+              onClick={onOpenAuth}
+              className="text-sm font-medium text-[var(--mf-accent)] hover:underline"
+            >
+              Login to log data
+            </button>
+          </div>
+        )}
+        
         <div className="flex items-start justify-between mb-8">
           <div>
             <h3 className="text-lg font-medium text-foreground">

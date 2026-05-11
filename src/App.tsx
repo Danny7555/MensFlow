@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react'
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { ThemeSync } from './components/ThemeSync'
-import { AuthModal, type AuthMethod } from './components/AuthModal'
 import { ChatView } from './views/ChatView'
 import { DashboardDataProvider } from './context/DashboardDataProvider'
 import { DashboardView } from './views/DashboardView'
@@ -27,25 +26,12 @@ import { useMediaQuery } from './hooks/useMediaQuery'
 import './App.css'
 
 function MainShell() {
-  const { isAuthenticated, login, logout } = useAuth()
+  const { isAuthenticated, logout, openAuthModal } = useAuth()
   const { settings, updateSettings } = useSettings()
   const navigate = useNavigate()
   const isMobile = useMediaQuery('(max-width: 768px)')
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [authModalOpen, setAuthModalOpen] = useState(false)
   const [temporaryChat, setTemporaryChat] = useState(false)
-
-  const openAuth = useCallback(() => setAuthModalOpen(true), [])
-
-  const completeDemoSignIn = useCallback(
-    (method: AuthMethod) => {
-      void method
-      login()
-      setTemporaryChat(settings.privacyDefaultTemporaryChat)
-      setAuthModalOpen(false)
-    },
-    [login, settings.privacyDefaultTemporaryChat],
-  )
 
   const handleLogout = useCallback(() => {
     logout()
@@ -75,7 +61,7 @@ function MainShell() {
       title={title}
       description={body}
       actionLabel="Log in"
-      onAction={openAuth}
+      onAction={openAuthModal}
     />
   )
 
@@ -88,7 +74,7 @@ function MainShell() {
           isAuthenticated={isAuthenticated}
           mobileOpen={sidebarOpen}
           onCloseMobile={() => setSidebarOpen(false)}
-          onLogin={openAuth}
+          onLogin={openAuthModal}
           isMobile={isMobile}
           desktopCollapsed={settings.sidebarCollapsed}
           onToggleDesktopCollapse={() =>
@@ -102,7 +88,7 @@ function MainShell() {
             onToggleSidebar={toggleSidebar}
             sidebarExpanded={sidebarExpanded}
             sidebarToggleLabel={sidebarToggleLabel}
-            onOpenAuth={openAuth}
+            onOpenAuth={openAuthModal}
             temporaryChat={isAuthenticated ? temporaryChat : undefined}
             onToggleTemporaryChat={
               isAuthenticated
@@ -125,7 +111,7 @@ function MainShell() {
                 <>
                   <Route path="/" element={<LandingView />} />
                   <Route path="/ask" element={<LandingView />} />
-                  <Route path="/settings" element={<SettingsView isGuest onLogin={openAuth} />} />
+                  <Route path="/settings" element={<SettingsView isGuest onLogin={openAuthModal} />} />
                   <Route path="/calendar" element={<CalendarView />} />
                   <Route path="/tracker" element={<TrackerView />} />
                   <Route path="/health-insights" element={<InsightsView />} />
@@ -145,7 +131,9 @@ function MainShell() {
                   <Route path="/ask" element={<ChatView />} />
                   <Route path="/settings" element={<SettingsView onLogout={handleLogout} />} />
                   <Route path="/insights" element={<InsightsView />} />
+                  <Route path="/health-insights" element={<Navigate to="/insights" replace />} />
                   <Route path="/tips" element={<TipsView />} />
+                  <Route path="/wellness-tips" element={<Navigate to="/tips" replace />} />
                   <Route path="/calendar" element={<CalendarView />} />
                   <Route path="/tracker" element={<TrackerView />} />
                   <Route path="/symptoms" element={<SymptomsView />} />
@@ -157,12 +145,6 @@ function MainShell() {
           </main>
         </div>
       </div>
-
-      <AuthModal
-        open={authModalOpen}
-        onClose={() => setAuthModalOpen(false)}
-        onContinue={completeDemoSignIn}
-      />
     </ChatSessionContext.Provider>
   )
 }
