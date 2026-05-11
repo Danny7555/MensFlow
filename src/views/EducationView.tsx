@@ -59,7 +59,7 @@ export function EducationView() {
                 {isFeatured ? (
                   <div className="absolute -right-8 -bottom-8 opacity-[0.15] pointer-events-none rotate-6">
                     {article.image ? (
-                      <img src={article.image} alt="" className="w-[300px] h-[300px] object-cover rounded-full" />
+                      <img src={article.image} alt="" className="size-[300px] object-cover rounded-full" />
                     ) : (
                       <Icon size={340} weight="duotone" className="text-[var(--mf-accent)]" />
                     )}
@@ -67,7 +67,7 @@ export function EducationView() {
                 ) : (
                   <div className="absolute -right-4 -bottom-4 opacity-[0.1] pointer-events-none">
                     {article.image ? (
-                      <img src={article.image} alt="" className="w-[120px] h-[120px] object-cover rounded-full" />
+                      <img src={article.image} alt="" className="size-[120px] object-cover rounded-full" />
                     ) : (
                       <Icon size={180} weight="duotone" />
                     )}

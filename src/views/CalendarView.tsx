@@ -293,7 +293,7 @@ function YearView({ viewDate, periodDates, onMonthClick }: {
   const months = Array.from({ length: 12 }, (_, i) => new Date(year, i, 1))
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 px-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 px-4" suppressHydrationWarning>
       {months.map((m, idx) => {
         const mName = m.toLocaleString("default", { month: "short" })
         const dInM = new Date(year, idx + 1, 0).getDate()
@@ -302,8 +302,11 @@ function YearView({ viewDate, periodDates, onMonthClick }: {
         return (
           <div 
             key={m.getTime()} 
+            role="button"
+            tabIndex={0}
             className="p-4 bg-white dark:bg-card rounded-2xl border border-border/50 hover:border-[var(--mf-accent)] transition-all cursor-pointer group flex flex-col"
             onClick={() => onMonthClick(m)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onMonthClick(m) }}
           >
             <div className="px-4 py-2 -mx-4 -mt-4 mb-4 border-b border-border/60">
               <h4 className="text-sm font-medium text-foreground group-hover:text-[var(--mf-accent)] transition-colors">
@@ -327,6 +330,7 @@ function YearView({ viewDate, periodDates, onMonthClick }: {
                       "size-2 rounded-full",
                       isPeriod ? "bg-[#ff5a5f]" : isToday ? "bg-[var(--mf-accent)]" : "bg-muted/40"
                     )} 
+                    suppressHydrationWarning
                   />
                 )
               })}

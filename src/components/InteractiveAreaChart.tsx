@@ -1,8 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
-
 import {
   Card,
   CardContent,
@@ -23,6 +21,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+
+const Area = React.lazy(() => import("recharts").then(m => ({ default: m.Area })))
+const AreaChart = React.lazy(() => import("recharts").then(m => ({ default: m.AreaChart })))
+const CartesianGrid = React.lazy(() => import("recharts").then(m => ({ default: m.CartesianGrid })))
+const XAxis = React.lazy(() => import("recharts").then(m => ({ default: m.XAxis })))
 
 const chartData = [
   { date: "2024-04-01", energy: 222, bloating: 150 },
@@ -132,26 +135,28 @@ const chartConfig = {
 export function InteractiveAreaChart() {
   const [timeRange, setTimeRange] = React.useState("90d")
 
-  const filteredData = chartData.filter((item) => {
-    const date = new Date(item.date)
-    const now = new Date("2024-06-30")
-    let daysToSubtract = 90
-    if (timeRange === "30d") {
-      daysToSubtract = 30
-    } else if (timeRange === "7d") {
-      daysToSubtract = 7
-    }
-    const startDate = new Date(now)
-    startDate.setDate(startDate.getDate() - daysToSubtract)
-    return date >= startDate
-  })
+  const filteredData = React.useMemo(() => {
+    return chartData.filter((item) => {
+      const date = new Date(item.date)
+      const now = new Date("2024-06-30")
+      let daysToSubtract = 90
+      if (timeRange === "30d") {
+        daysToSubtract = 30
+      } else if (timeRange === "7d") {
+        daysToSubtract = 7
+      }
+      const startDate = new Date(now)
+      startDate.setDate(startDate.getDate() - daysToSubtract)
+      return date >= startDate
+    })
+  }, [timeRange])
 
   return (
-    <Card className="border-none shadow-none ring-0 bg-transparent" suppressHydrationWarning>
+    <Card className="border-none shadow-none ring-0 bg-transparent">
       <CardHeader className="flex flex-col items-start gap-4 gap-y-0 border-b py-5 sm:flex-row sm:items-center">
         <div className="grid flex-1 gap-1 text-left">
           <CardTitle>Health Metrics Over Time</CardTitle>
-          <CardDescription>
+          <CardDescription suppressHydrationWarning>
             Showing data for the last {timeRange === "90d" ? "3 months" : timeRange === "30d" ? "30 days" : "7 days"}
           </CardDescription>
         </div>
@@ -179,78 +184,82 @@ export function InteractiveAreaChart() {
         <ChartContainer
           config={chartConfig}
           className="aspect-auto h-[250px] w-full"
+          suppressHydrationWarning
         >
-          <AreaChart data={filteredData}>
-            <defs>
-              <linearGradient id="fillEnergy" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-energy)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-energy)"
-                  stopOpacity={0.1}
-                />
-              </linearGradient>
-              <linearGradient id="fillBloating" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-bloating)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-bloating)"
-                  stopOpacity={0.1}
-                />
-              </linearGradient>
-            </defs>
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="date"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              minTickGap={32}
-              tickFormatter={(value) => {
-                const date = new Date(value)
-                return date.toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                })
-              }}
-            />
-            <ChartTooltip
-              cursor={false}
-              content={
-                <ChartTooltipContent
-                  labelFormatter={(value) => {
-                    return new Date(value).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                    })
-                  }}
-                  indicator="dot"
-                />
-              }
-            />
-            <Area
-              dataKey="bloating"
-              type="natural"
-              fill="url(#fillBloating)"
-              stroke="var(--color-bloating)"
-              stackId="a"
-            />
-            <Area
-              dataKey="energy"
-              type="natural"
-              fill="url(#fillEnergy)"
-              stroke="var(--color-energy)"
-              stackId="a"
-            />
-          </AreaChart>
+          <React.Suspense fallback={<div className="h-full w-full bg-muted/5 animate-pulse" />}>
+            <AreaChart data={filteredData}>
+              <defs>
+                <linearGradient id="fillEnergy" x1="0" y1="0" x2="0" y2="1">
+                  <stop
+                    offset="5%"
+                    stopColor="var(--color-energy)"
+                    stopOpacity={0.8}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="var(--color-energy)"
+                    stopOpacity={0.1}
+                  />
+                </linearGradient>
+                <linearGradient id="fillBloating" x1="0" y1="0" x2="0" y2="1">
+                  <stop
+                    offset="5%"
+                    stopColor="var(--color-bloating)"
+                    stopOpacity={0.8}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="var(--color-bloating)"
+                    stopOpacity={0.1}
+                  />
+                </linearGradient>
+              </defs>
+              <CartesianGrid vertical={false} />
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                minTickGap={32}
+                tickFormatter={(value) => {
+                  const date = new Date(value)
+                  return date.toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  })
+                }}
+                suppressHydrationWarning
+              />
+              <ChartTooltip
+                cursor={false}
+                content={
+                  <ChartTooltipContent
+                    labelFormatter={(value) => {
+                      return new Date(value).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })
+                    }}
+                    indicator="dot"
+                  />
+                }
+              />
+              <Area
+                dataKey="bloating"
+                type="natural"
+                fill="url(#fillBloating)"
+                stroke="var(--color-bloating)"
+                stackId="a"
+              />
+              <Area
+                dataKey="energy"
+                type="natural"
+                fill="url(#fillEnergy)"
+                stroke="var(--color-energy)"
+                stackId="a"
+              />
+            </AreaChart>
+          </React.Suspense>
         </ChartContainer>
       </CardContent>
     </Card>

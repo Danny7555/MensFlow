@@ -216,8 +216,9 @@ function MfaSetupModal({ trigger }: { trigger: ReactNode }) {
               ) : (
                 <div className="w-full space-y-4">
                   <div className="space-y-2">
-                    <label className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Phone number</label>
+                    <label htmlFor="mfa-phone" className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Phone number</label>
                     <input 
+                      id="mfa-phone"
                       type="tel" 
                       placeholder="+1 (555) 000-0000"
                       className="w-full bg-muted border-border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[var(--mf-accent)] outline-none"
@@ -242,7 +243,6 @@ function MfaSetupModal({ trigger }: { trigger: ReactNode }) {
               </div>
               <div className="w-full space-y-2">
                 <input 
-                  autoFocus
                   maxLength={6}
                   value={code}
                   onChange={(e) => setCode(e.target.value)}

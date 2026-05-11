@@ -58,7 +58,6 @@ export function ChatView() {
   const [draft, setDraft] = useState('')
   const prevTemporary = useRef<boolean | null>(null)
 
-
   useEffect(() => {
     if (prevTemporary.current === null) {
       prevTemporary.current = temporaryChat
@@ -114,7 +113,7 @@ export function ChatView() {
   const isInitialState = messages.length === 0
 
   return (
-    <div className={isInitialState ? "landing" : "chat-view"}>
+    <div className={isInitialState ? "landing" : "chat-view"} suppressHydrationWarning>
       {isInitialState ? (
         <div className="landing-center animate-in fade-in zoom-in duration-700">
           <div className="landing-hero-image-wrap">
@@ -181,6 +180,7 @@ export function ChatView() {
                     <time
                       className="chat-time"
                       dateTime={new Date(m.createdAt).toISOString()}
+                      suppressHydrationWarning
                     >
                       {fmtTime(m.createdAt)}
                     </time>
