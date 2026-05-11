@@ -132,11 +132,11 @@ const ChartTooltipLabel = React.memo(({
 }: {
   config: ChartConfig
   hideLabel: boolean
-  payload: TooltipValueType[]
-  label: string | number
+  payload: readonly any[]
+  label: React.ReactNode
   labelKey?: string
   labelClassName?: string
-  labelFormatter?: (value: unknown, payload: unknown[]) => React.ReactNode
+  labelFormatter?: (value: any, payload: readonly any[]) => React.ReactNode
 }) => {
   if (hideLabel) {
     return null
