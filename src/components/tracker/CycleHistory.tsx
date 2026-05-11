@@ -1,10 +1,27 @@
-import { CaretRight } from '@phosphor-icons/react'
+import { CaretRight, Info } from '@phosphor-icons/react'
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 export function CycleHistory() {
   return (
     <div className="cycle-history-container mt-12 w-full max-w-[1050px] mx-auto">
       <div className="flex items-center justify-between mb-4 px-2">
-        <h2 className="text-2xl font-medium text-foreground tracking-tight">Cycle history</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-2xl font-medium text-foreground tracking-tight">Cycle history</h2>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button className="text-muted-foreground hover:text-foreground transition-colors">
+                <Info size={18} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-xs">
+              A historical look at your menstrual cycles and their phases.
+            </TooltipContent>
+          </Tooltip>
+        </div>
         <button className="flex items-center gap-1 text-[1.05rem] text-muted-foreground font-medium hover:text-foreground transition-colors">
           See all <CaretRight size={16} weight="bold" />
         </button>

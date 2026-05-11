@@ -1,6 +1,12 @@
 "use client"
 
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
+import { Question } from "@phosphor-icons/react"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 import {
   Card,
@@ -38,7 +44,21 @@ export function SymptomTrendsChart() {
   return (
     <Card className="border-none shadow-none bg-transparent">
       <CardHeader className="p-4 pb-2">
-        <CardTitle>Symptom Trends</CardTitle>
+        <div className="flex items-center gap-2">
+          <CardTitle>Symptom Trends</CardTitle>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button className="p-1 hover:bg-black/5 rounded-full transition-colors inline-flex items-center justify-center cursor-help" aria-label="About symptom trends">
+                <Question size={14} weight="bold" className="opacity-60" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p className="max-w-[200px]">
+                Trends show the intensity of your symptoms over the last 7 days based on your daily logs.
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
         <CardDescription>
           Intensity over the last 7 days
         </CardDescription>

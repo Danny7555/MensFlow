@@ -1,4 +1,9 @@
 import { Lightbulb, Info } from '@phosphor-icons/react'
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 export function CycleTips() {
   return (
@@ -22,8 +27,17 @@ export function CycleTips() {
         <div className="bg-gradient-to-br from-card to-card/50 border border-border rounded-3xl p-6 sm:p-8 shadow-[0_4px_12px_rgba(0,0,0,0.015)] flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-2 text-[#007e94] font-medium mb-3 uppercase tracking-wider text-xs">
-              <Info size={20} weight="fill" />
-              <span>Did you know?</span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button className="flex items-center gap-1">
+                    <Info size={20} weight="fill" />
+                    <span>Did you know?</span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-xs">
+                  General health facts and tips about menstrual cycles.
+                </TooltipContent>
+              </Tooltip>
             </div>
             <h3 className="text-xl font-medium text-foreground mb-2 tracking-tight">Cycle variations are completely normal</h3>
             <p className="text-muted-foreground text-[0.95rem] leading-relaxed">
