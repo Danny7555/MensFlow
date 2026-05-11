@@ -1,4 +1,9 @@
 import { Info, Warning, CaretRight } from '@phosphor-icons/react'
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 export function CycleStatsHero() {
   return (
@@ -27,11 +32,20 @@ export function CycleStatsHero() {
           </div>
           <div className="stats-card-action">
              <div className="stats-divider" />
-             <button className="stats-more-btn">
-                <Info size={18} weight="regular" />
-                <span>More info</span>
-                <CaretRight size={16} />
-             </button>
+             <Tooltip>
+               <TooltipTrigger asChild>
+                 <button className="stats-more-btn">
+                    <div className="flex items-center gap-2">
+                      <Info size={18} weight="regular" />
+                      <span>More info</span>
+                    </div>
+                    <CaretRight size={16} />
+                 </button>
+               </TooltipTrigger>
+               <TooltipContent side="top" className="text-xs">
+                 Average length of your cycle over the last 6 months.
+               </TooltipContent>
+             </Tooltip>
           </div>
         </div>
 
@@ -53,11 +67,20 @@ export function CycleStatsHero() {
           </div>
           <div className="stats-card-action">
              <div className="stats-divider" />
-             <button className="stats-more-btn stats-more-btn--atypical">
-                <Warning size={18} weight="fill" className="text-[#e25c00]" />
-                <span>Atypical</span>
-                <CaretRight size={16} />
-             </button>
+             <Tooltip>
+               <TooltipTrigger asChild>
+                 <button className="stats-more-btn stats-more-btn--atypical">
+                    <div className="flex items-center gap-2">
+                      <Warning size={18} weight="fill" className="text-[#e25c00]" />
+                      <span>Atypical</span>
+                    </div>
+                    <CaretRight size={16} />
+                 </button>
+               </TooltipTrigger>
+               <TooltipContent side="top" className="text-xs">
+                 Your cycle length varies more than usual. This can be normal but worth monitoring.
+               </TooltipContent>
+             </Tooltip>
           </div>
         </div>
 

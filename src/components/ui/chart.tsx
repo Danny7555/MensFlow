@@ -82,20 +82,17 @@ function ChartContainer({
 }
 
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
-  const colorConfig = Object.entries(config).filter(
-    ([, config]) => config.theme ?? config.color
+  const colorConfig = React.useMemo(() => 
+    Object.entries(config).filter(([, config]) => config.theme ?? config.color),
+    [config]
   )
 
-  if (!colorConfig.length) {
-    return null
-  }
+  React.useLayoutEffect(() => {
+    if (!colorConfig.length) return
 
-  return (
-    <style
-      dangerouslySetInnerHTML={{
-        __html: Object.entries(THEMES)
-          .map(
-            ([theme, prefix]) => `
+    const css = Object.entries(THEMES)
+      .map(
+        ([theme, prefix]) => `
 ${prefix} [data-chart=${id}] {
 ${colorConfig
   .map(([key, itemConfig]) => {
@@ -107,14 +104,68 @@ ${colorConfig
   .join("\n")}
 }
 `
-          )
-          .join("\n"),
-      }}
-    />
-  )
+      )
+      .join("\n")
+
+    const style = document.createElement("style")
+    style.id = `style-${id}`
+    style.textContent = css
+    document.head.appendChild(style)
+    return () => {
+      style.remove()
+    }
+  }, [id, colorConfig])
+
+  return null
 }
 
 const ChartTooltip = RechartsPrimitive.Tooltip
+
+const ChartTooltipLabel = React.memo(({
+  config,
+  hideLabel,
+  payload,
+  label,
+  labelKey,
+  labelClassName,
+  labelFormatter,
+}: {
+  config: ChartConfig
+  hideLabel: boolean
+  payload: TooltipValueType[]
+  label: string | number
+  labelKey?: string
+  labelClassName?: string
+  labelFormatter?: (value: unknown, payload: unknown[]) => React.ReactNode
+}) => {
+  if (hideLabel) {
+    return null
+  }
+
+  const item = payload?.[0]
+  const key = `${labelKey ?? item?.dataKey ?? item?.name ?? "value"}`
+  const itemConfig = getPayloadConfigFromPayload(config, item, key)
+  const value =
+    !labelKey && typeof label === "string"
+      ? (config[label]?.label ?? label)
+      : itemConfig?.label
+
+  if (labelFormatter) {
+    return (
+      <div className={cn("font-medium", labelClassName)}>
+        {labelFormatter(value, payload ?? [])}
+      </div>
+    )
+  }
+
+  if (!value) {
+    return null
+  }
+
+  return (
+    <div className={cn("font-medium", labelClassName)}>{value}</div>
+  )
+})
 
 function ChartTooltipContent({
   active,
@@ -146,42 +197,6 @@ function ChartTooltipContent({
   >) {
   const { config } = useChart()
 
-  const tooltipLabel = React.useMemo(() => {
-    if (hideLabel) {
-      return null
-    }
-
-    const item = payload?.[0]
-    const key = `${labelKey ?? item?.dataKey ?? item?.name ?? "value"}`
-    const itemConfig = getPayloadConfigFromPayload(config, item, key)
-    const value =
-      !labelKey && typeof label === "string"
-        ? (config[label]?.label ?? label)
-        : itemConfig?.label
-
-    if (labelFormatter) {
-      return (
-        <div className={cn("font-medium", labelClassName)}>
-          {labelFormatter(value, payload ?? [])}
-        </div>
-      )
-    }
-
-    if (!value) {
-      return null
-    }
-
-    return <div className={cn("font-medium", labelClassName)}>{value}</div>
-  }, [
-    label,
-    labelFormatter,
-    payload,
-    hideLabel,
-    labelClassName,
-    config,
-    labelKey,
-  ])
-
   if (!active || !payload?.length) {
     return null
   }
@@ -194,8 +209,19 @@ function ChartTooltipContent({
         "grid min-w-32 items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs",
         className
       )}
+      suppressHydrationWarning
     >
-      {!nestLabel ? tooltipLabel : null}
+      {!nestLabel ? (
+        <ChartTooltipLabel
+          config={config}
+          hideLabel={hideLabel}
+          payload={payload}
+          label={label}
+          labelKey={labelKey}
+          labelClassName={labelClassName}
+          labelFormatter={labelFormatter}
+        />
+      ) : null}
       <div className="grid gap-1.5">
         {payload.reduce<React.ReactNode[]>((acc, item, index) => {
           if (item.type === "none") return acc
@@ -246,7 +272,17 @@ function ChartTooltipContent({
                     )}
                   >
                     <div className="grid gap-1.5">
-                      {nestLabel ? tooltipLabel : null}
+                      {nestLabel ? (
+                        <ChartTooltipLabel
+                          config={config}
+                          hideLabel={hideLabel}
+                          payload={payload}
+                          label={label}
+                          labelKey={labelKey}
+                          labelClassName={labelClassName}
+                          labelFormatter={labelFormatter}
+                        />
+                      ) : null}
                       <span className="text-muted-foreground">
                         {itemConfig?.label ?? item.name}
                       </span>

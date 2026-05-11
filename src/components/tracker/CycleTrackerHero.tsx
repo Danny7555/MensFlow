@@ -10,6 +10,12 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu'
 
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+
 export function CycleTrackerHero() {
   const [selectedDay, setSelectedDay] = useState<number>(12);
   const [hoveredDay, setHoveredDay] = useState<number | null>(null);
@@ -80,7 +86,7 @@ export function CycleTrackerHero() {
   const dots = Array.from({ length: cycleLength }).map((_, i) => {
     const day = i + 1;
     const angle = getAngle(day - 0.5); 
-    const r = 35;
+    const r = 37;
     const pos = polarToCartesian(angle, r);
     
     const isSelected = selectedDay === day;
@@ -147,17 +153,17 @@ export function CycleTrackerHero() {
         <div className="viz-ring-container">
           <svg viewBox="0 0 100 100" className="viz-ring" style={{ overflow: 'visible' }}>
             {/* Background track (dashed) */}
-            <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" strokeWidth="8" className="opacity-10" strokeDasharray="0.1 2.5" strokeLinecap="round" />
+            <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" strokeWidth="9" className="opacity-10" strokeDasharray="0.1 2.5" strokeLinecap="round" />
             
             {/* Inner Dots */}
             {dots}
             
             {/* Segments */}
             <g className="viz-segments" style={{ pointerEvents: 'none' }}>
-              <path d={periodPath} fill="none" stroke="#dc2626" strokeWidth="8" strokeLinecap="round" opacity="1" />
-              <path d={predictedPath} fill="none" stroke="#ffc7c8" strokeWidth="8" strokeLinecap="round" opacity={activeDay > periodLength && activeDay <= periodLength + predictedPeriodLength ? 1 : 0.8} />
-              <path d={fertilePath} fill="none" stroke="#26899e" strokeWidth="8" strokeLinecap="round" opacity={activeDay >= fertileStart && activeDay <= fertileEnd ? 1 : 0.8} />
-              <path d={upcomingPath} fill="none" stroke="currentColor" strokeWidth="8" className="opacity-20" strokeLinecap="round" />
+              <path d={periodPath} fill="none" stroke="#dc2626" strokeWidth="9" strokeLinecap="round" opacity="1" />
+              <path d={predictedPath} fill="none" stroke="#ffc7c8" strokeWidth="9" strokeLinecap="round" opacity={activeDay > periodLength && activeDay <= periodLength + predictedPeriodLength ? 1 : 0.8} />
+              <path d={fertilePath} fill="none" stroke="#26899e" strokeWidth="9" strokeLinecap="round" opacity={activeDay >= fertileStart && activeDay <= fertileEnd ? 1 : 0.8} />
+              <path d={upcomingPath} fill="none" stroke="currentColor" strokeWidth="9" className="opacity-20" strokeLinecap="round" />
             </g>
 
             {/* Selection Marker */}
@@ -177,6 +183,20 @@ export function CycleTrackerHero() {
           </svg>
 
           <div className="viz-content">
+            {/* Chance of pregnancy indicator - moved to top to avoid overlap */}
+            <div className="mb-6 animate-in fade-in zoom-in duration-700">
+               <span 
+                 className="px-5 py-1.5 rounded-full text-[9px] font-medium uppercase tracking-widest border transition-colors duration-300"
+                 style={{ 
+                   backgroundColor: `${activeInfo.color}15`, 
+                   color: activeInfo.color,
+                   borderColor: `${activeInfo.color}40`
+                 }}
+               >
+                 {activeDay >= fertileStart && activeDay <= fertileEnd ? 'High' : 'Low'} pregnancy chance
+               </span>
+            </div>
+
             <p className="viz-today">{format(activeDate, 'EEEE, d MMM')}</p>
             <h2 className="viz-title" style={{ color: activeInfo.color }}>
               {activeDay === currentDay 
@@ -186,7 +206,19 @@ export function CycleTrackerHero() {
             </h2>
             <div className="viz-fertile-status" style={{ color: activeInfo.color }}>
               <span className="flex items-center gap-1">
-                {activeInfo.label} {activeDay === currentDay && <Info size={14} />}
+                {activeInfo.label} 
+                {activeDay === currentDay && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button className="hover:opacity-70 transition-opacity">
+                        <Info size={14} />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-[200px] text-xs">
+                      This represents your current phase in the menstrual cycle based on your logs.
+                    </TooltipContent>
+                  </Tooltip>
+                )}
               </span>
               <CaretDown size={14} className="mt-0.5 opacity-50" />
             </div>
@@ -196,10 +228,9 @@ export function CycleTrackerHero() {
              <div className="badge-inner">
                 <span className="badge-label">{activeDay === currentDay ? 'Today' : 'Day'}</span>
                 <span className="badge-value">{activeDay}</span>
-                <span className="text-[10px] font-bold opacity-40 mt-0.5">{format(activeDate, 'd MMM').toUpperCase()}</span>
+                <span className="text-[10px] font-medium opacity-40 mt-0.5">{format(activeDate, 'd MMM').toUpperCase()}</span>
              </div>
           </div>
-
         </div>
       </div>
 

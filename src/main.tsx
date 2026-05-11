@@ -4,12 +4,15 @@ import { BrowserRouter } from 'react-router-dom'
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v7'
 import './index.css'
 import App from './App.tsx'
+import { TooltipProvider } from './components/ui/tooltip'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <NuqsAdapter>
-        <App />
+        <TooltipProvider delayDuration={0}>
+          <App />
+        </TooltipProvider>
       </NuqsAdapter>
     </BrowserRouter>
   </StrictMode>,

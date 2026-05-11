@@ -80,12 +80,12 @@ export function ChatComposer({
     return () => document.removeEventListener('mousedown', close)
   }, [menuOpen])
 
-  // Auto-resize textarea
   useEffect(() => {
     const el = textareaRef.current
     if (!el) return
     el.style.height = 'auto'
-    el.style.height = `${el.scrollHeight}px`
+    const newHeight = el.scrollHeight
+    el.style.height = `${newHeight}px`
   }, [value])
 
   const addFiles = (list: FileList | File[]) => {
@@ -117,13 +117,12 @@ export function ChatComposer({
     try {
       const items = await navigator.clipboard.read()
       const results = await Promise.all(items.map(async (item) => {
-        for (const type of item.types) {
-          if (type.startsWith('image/')) {
-            const blob = await item.getType(type)
-            const rawExt = type.split('/')[1] ?? 'png'
-            const ext = rawExt.replace(/\W+/g, '').slice(0, 8) || 'png'
-            return new File([blob], `clipboard-${Date.now()}.${ext}`, { type })
-          }
+        const imageType = item.types.find((t) => t.startsWith('image/'))
+        if (imageType) {
+          const blob = await item.getType(imageType)
+          const rawExt = imageType.split('/')[1] ?? 'png'
+          const ext = rawExt.replace(/\W+/g, '').slice(0, 8) || 'png'
+          return new File([blob], `clipboard-${Date.now()}.${ext}`, { type: imageType })
         }
         return null
       }))

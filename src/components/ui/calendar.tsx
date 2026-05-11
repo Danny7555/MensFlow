@@ -27,11 +27,11 @@ function Calendar({
         nav: "absolute left-0 right-0 top-0 bottom-0 flex items-center justify-between px-1 pointer-events-none",
         button_previous: cn(
           buttonVariants({ variant: "outline" }),
-          "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 z-10 pointer-events-auto"
+          "size-7 bg-transparent p-0 opacity-50 hover:opacity-100 z-10 pointer-events-auto"
         ),
         button_next: cn(
           buttonVariants({ variant: "outline" }),
-          "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 z-10 pointer-events-auto"
+          "size-7 bg-transparent p-0 opacity-50 hover:opacity-100 z-10 pointer-events-auto"
         ),
         month_grid: "w-full border-collapse space-y-1",
         weekdays: "flex justify-between",
@@ -39,7 +39,7 @@ function Calendar({
         week: "flex w-full mt-2 justify-between",
         day: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-9 w-9 p-0 font-normal aria-selected:opacity-100 text-center"
+          "size-9 p-0 font-normal aria-selected:opacity-100 text-center"
         ),
         selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
         today: "bg-accent text-accent-foreground",
@@ -57,25 +57,25 @@ function Calendar({
                 type="button"
                 className={cn(
                   buttonVariants({ variant: "outline" }),
-                  "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 pointer-events-auto"
+                  "size-7 bg-transparent p-0 opacity-50 hover:opacity-100 pointer-events-auto"
                 )}
                 disabled={!onPreviousClick}
                 onClick={onPreviousClick}
                 aria-label="Go to previous month"
               >
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className="size-4" />
               </button>
               <button
                 type="button"
                 className={cn(
                   buttonVariants({ variant: "outline" }),
-                  "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 pointer-events-auto"
+                  "size-7 bg-transparent p-0 opacity-50 hover:opacity-100 pointer-events-auto"
                 )}
                 disabled={!onNextClick}
                 onClick={onNextClick}
                 aria-label="Go to next month"
               >
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="size-4" />
               </button>
             </div>
           );

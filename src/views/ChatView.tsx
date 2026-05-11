@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { Ghost } from '@phosphor-icons/react'
+import { Ghost, Question } from '@phosphor-icons/react'
 import { ChatComposer } from '../components/ChatComposer'
 import { useChatSession } from '../context/useChatSession'
 import { useSettings } from '../context/useSettings'
 import { CHAT_STORAGE_KEY, CLEAR_LOCAL_CHATS_EVENT } from '../lib/constants'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../components/ui/tooltip'
 
 type Msg = {
   id: string
@@ -57,7 +58,6 @@ export function ChatView() {
   const [draft, setDraft] = useState('')
   const prevTemporary = useRef<boolean | null>(null)
 
-  /** ChatGPT-like: switching into ephemeral mode starts a fresh thread */
   useEffect(() => {
     if (prevTemporary.current === null) {
       prevTemporary.current = temporaryChat
@@ -113,15 +113,27 @@ export function ChatView() {
   const isInitialState = messages.length === 0
 
   return (
-    <div className={isInitialState ? "landing" : "chat-view"}>
+    <div className={isInitialState ? "landing" : "chat-view"} suppressHydrationWarning>
       {isInitialState ? (
         <div className="landing-center animate-in fade-in zoom-in duration-700">
           <div className="landing-hero-image-wrap">
             <img src="/images/lady.png" alt="" className="landing-hero-image" />
           </div>
           <h1 className="landing-title">Ask MensFlow about your cycle?</h1>
-          <p className="landing-sub">
+          <p className="landing-sub flex items-center gap-1 justify-center">
             Education, tracking context, and supportive guidance; not a substitute for medical care.
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button className="p-1 hover:bg-black/5 rounded-full transition-colors inline-flex items-center justify-center cursor-help" aria-label="Medical disclaimer information">
+                  <Question size={14} weight="bold" className="opacity-40" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-center">
+                <p className="max-w-[240px]">
+                  MensFlow is an educational tool. Always consult a healthcare professional for medical advice, diagnosis, or treatment.
+                </p>
+              </TooltipContent>
+            </Tooltip>
           </p>
           <div className="landing-composer-wrap">
             <ChatComposer
@@ -139,8 +151,20 @@ export function ChatView() {
               <Ghost size={18} weight="duotone" aria-hidden />
               <span>
                 Temporary chat - this conversation won&apos;t be saved to history or used to
-                improve models (ChatGPT-style ephemeral session).
+                improve Ai models.
               </span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button className="ml-1 p-0.5 hover:bg-black/10 rounded-full transition-colors flex items-center justify-center" aria-label="More information">
+                    <Question size={14} weight="bold" className="opacity-60" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p className="max-w-[200px]">
+                    Temporary chats are private sessions that aren&apos;t saved to your history or used for training.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           )}
 
@@ -156,6 +180,7 @@ export function ChatView() {
                     <time
                       className="chat-time"
                       dateTime={new Date(m.createdAt).toISOString()}
+                      suppressHydrationWarning
                     >
                       {fmtTime(m.createdAt)}
                     </time>
