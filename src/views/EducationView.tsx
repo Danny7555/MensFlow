@@ -31,7 +31,7 @@ export function EducationView() {
             className={cn(
               "px-5 py-2 rounded-full text-sm font-medium border transition-all duration-200 cursor-pointer",
               activeCategory === cat
-                ? "bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] border-[var(--mf-accent-border)] shadow-sm"
+                ? "bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] border-[var(--mf-accent-border)]"
                 : "bg-card text-muted-foreground border-border hover:border-foreground hover:text-foreground"
             )}
           >

@@ -1,54 +1,80 @@
+import { useState } from "react"
 import { CycleTrackerHero } from "@/components/tracker/CycleTrackerHero"
 import { CycleStatsHero } from "@/components/tracker/CycleStatsHero"
 import { CycleHistory } from "@/components/tracker/CycleHistory"
 import { CycleTips } from "@/components/tracker/CycleTips"
 import { HealthMetrics } from "@/components/tracker/HealthMetrics"
 import { useAuth } from "@/context/useAuth"
+import { Copy, Users, ShareNetwork, Check } from "@phosphor-icons/react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 export function TrackerView() {
   const { isAuthenticated, openAuthModal } = useAuth()
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  const copyLink = () => {
+    navigator.clipboard.writeText("https://mensflow.app/join/u123abc")
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   return (
-    <div className="flex flex-col h-full bg-[#fafafa] dark:bg-background overflow-auto relative">
+    <div className="flex flex-col h-full bg-background overflow-auto relative">
       <div className="flex-1 w-full max-w-[1200px] mx-auto p-4 md:p-6 lg:p-8 animate-in fade-in duration-500">
-        <div className="tracker-hero-container pt-2">
-           <CycleTrackerHero />
-           <CycleStatsHero />
-        </div>
         
-        <HealthMetrics />
-        
-        <div className="relative">
-          <CycleHistory />
-          <CycleTips />
-          
-          {!isAuthenticated && (
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#fafafa]/80 dark:via-background/80 to-[#fafafa] dark:to-background pointer-events-none z-20 flex flex-col items-center justify-center">
-              <div className="absolute inset-0 backdrop-blur-[6px]" style={{ maskImage: 'linear-gradient(to bottom, transparent, black 150px)' }} />
-              <div className="relative z-30 pointer-events-auto bg-card border border-border p-8 rounded-3xl text-center max-w-[400px] mx-auto mt-24">
-                <h3 className="text-xl font-medium mb-2">Unlock your full history</h3>
-                <p className="text-muted-foreground text-sm mb-6">Log in to see your past cycles, personalized tips, and partner sharing features.</p>
-                <button 
-                  onClick={openAuthModal}
-                  className="btn btn-primary px-8 py-3 rounded-full"
-                >
-                  Log in to access
-                </button>
-              </div>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-10 items-start mt-4">
+          {/* Main Column */}
+          <div className="space-y-12">
+            <CycleTrackerHero />
+            <HealthMetrics />
+            
+            <div className="relative">
+              <CycleHistory />
+              {!isAuthenticated && (
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/80 to-background pointer-events-none z-20 flex flex-col items-center justify-center">
+                  <div className="absolute inset-0 backdrop-blur-[6px]" style={{ maskImage: 'linear-gradient(to bottom, transparent, black 150px)' }} />
+                  <div className="relative z-30 pointer-events-auto bg-card border border-border p-8 rounded-3xl text-center max-w-[400px] mx-auto mt-24">
+                    <h3 className="text-xl font-medium mb-2">Unlock your full history</h3>
+                    <p className="text-muted-foreground text-sm mb-6">Log in to see your past cycles, personalized tips, and partner sharing features.</p>
+                    <button 
+                      onClick={openAuthModal}
+                      className="btn btn-primary px-8 py-3 rounded-full"
+                    >
+                      Log in to access
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
+
+          {/* Sidebar */}
+          <aside className="space-y-10 lg:sticky lg:top-8">
+            <CycleStatsHero />
+            <CycleTips />
+          </aside>
         </div>
 
         {isAuthenticated && (
-          <div className="mt-12 mb-16 w-full max-w-[1050px] mx-auto px-2">
-            <div className="bg-gradient-to-r from-[var(--mf-accent)] to-[#be185d] rounded-3xl p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative group cursor-pointer border border-white/10">
+          <div className="mt-16 mb-16 w-full max-w-[1100px] mx-auto">
+            <div 
+              onClick={() => setIsInviteModalOpen(true)}
+              className="bg-gradient-to-r from-[var(--mf-accent)] to-[#be185d] rounded-3xl p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative group cursor-pointer border border-white/10"
+            >
               <div className="z-10 text-center md:text-left">
-                <h3 className="text-2xl font-medium mb-2">Share your cycle with a partner</h3>
+                <h3 className="text-2xl font-normal mb-2">Share your cycle with a partner</h3>
                 <p className="text-white/80 max-w-[400px]">
                   Invite your partner to view your cycle phases and symptoms to improve communication and support.
                 </p>
               </div>
-              <button className="z-10 px-8 py-3 bg-white text-[var(--mf-accent)] rounded-full font-medium hover:scale-105 transition-transform">
+              <button className="z-10 px-8 py-3 bg-white text-[var(--mf-accent)] rounded-full font-normal hover:scale-105 transition-transform">
                 Invite Partner
               </button>
               <div className="absolute right-[-20px] top-[-20px] opacity-10 group-hover:scale-110 transition-transform duration-700">
@@ -57,6 +83,85 @@ export function TrackerView() {
             </div>
           </div>
         )}
+
+        <Dialog open={isInviteModalOpen} onOpenChange={setIsInviteModalOpen}>
+          <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden border-none rounded-[32px] bg-background">
+            <div className="p-6 sm:p-8">
+              <DialogHeader className="mb-4">
+                <div className="size-12 rounded-2xl bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-4">
+                  <ShareNetwork size={24} weight="duotone" />
+                </div>
+                <DialogTitle className="text-2xl font-medium tracking-tight">Invite your partner</DialogTitle>
+                <DialogDescription className="text-sm text-muted-foreground pt-1">
+                  Shared access allows your partner to see your cycle phases, symptoms, and daily insights.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <label className="text-xs font-medium uppercase tracking-widest text-muted-foreground ml-1">
+                    Partner's Email
+                  </label>
+                  <div className="relative">
+                    <input 
+                      type="email" 
+                      placeholder="email@example.com"
+                      className="w-full h-14 px-5 rounded-2xl bg-muted/50 border border-border focus:border-[var(--mf-accent-border)] focus:bg-background transition-all outline-none text-base"
+                    />
+                    <button className="absolute right-2 top-2 h-10 px-6 bg-[var(--mf-accent)] text-white rounded-xl text-sm font-medium hover:brightness-110 transition-all">
+                      Invite
+                    </button>
+                  </div>
+                </div>
+
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-border" />
+                  </div>
+                  <div className="relative flex justify-center text-[10px] uppercase">
+                    <span className="bg-background px-4 text-muted-foreground tracking-widest font-medium">Or use a link</span>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 p-4 rounded-2xl bg-muted/30 border border-border/50 group hover:border-border transition-colors">
+                    <div className="flex-1 truncate text-sm text-muted-foreground font-mono">
+                      mensflow.app/join/u123abc
+                    </div>
+                    <button 
+                      onClick={copyLink}
+                      className="flex items-center gap-2 px-4 py-2 bg-background border border-border rounded-xl text-xs font-medium hover:bg-muted transition-colors"
+                    >
+                      {copied ? (
+                        <>
+                          <Check size={14} className="text-green-500" weight="bold" />
+                          <span>Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={14} />
+                          <span>Copy link</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground text-center px-4">
+                    This link will expire in 24 hours. Your partner will need their own account to join.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-muted/30 p-6 flex items-center gap-4 border-t border-border/50">
+              <div className="size-10 rounded-full bg-background flex items-center justify-center border border-border">
+                <Users size={18} className="text-muted-foreground" />
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                You can manage or revoke access at any time from your <span className="text-foreground font-medium">Account Settings</span>.
+              </p>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )
