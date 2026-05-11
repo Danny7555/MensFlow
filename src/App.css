@@ -2666,10 +2666,10 @@
     font-size: 0.85rem;
   }
   .viz-day-badge {
-    width: 54px;
-    height: 54px;
+    width: 48px;
+    height: 48px;
     bottom: 12%;
-    right: 12%;
+    right: 8%;
   }
   .badge-value {
     font-size: 1.25rem;
