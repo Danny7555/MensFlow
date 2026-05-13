@@ -2629,8 +2629,8 @@
   position: absolute;
   bottom: 8%;
   right: 4%;
-  background: linear-gradient(135deg, #ffffff 0%, #f0f9fa 100%);
-  border: 1px solid #ffffff;
+  background: var(--mf-card);
+  border: 1px solid var(--mf-border);
   border-radius: 50%;
   width: 78px;
   height: 78px;
@@ -2638,7 +2638,14 @@
   align-items: center;
   justify-content: center;
   z-index: 10;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+[data-theme='dark'] .viz-day-badge {
+  background: var(--mf-accent-soft);
+  border-color: var(--mf-accent-border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
 .badge-inner {
