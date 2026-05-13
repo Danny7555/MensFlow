@@ -23,6 +23,7 @@ import { useDashboardData } from '../context/useDashboardData'
 import { useAuth } from '../context/useAuth'
 import { ChatSessionContext } from '../context/chat-session-context'
 import { CycleTrackerHero } from '../components/tracker/CycleTrackerHero'
+import { LogSymptomsModal } from '../components/tracker/LogSymptomsModal'
 import { 
   Dialog, 
   DialogContent, 
@@ -58,6 +59,15 @@ export function DashboardView() {
   
   const [isSnapshotModalOpen, setIsSnapshotModalOpen] = useState(false)
   const [isEditingGuidance, setIsEditingGuidance] = useState(false)
+  const [isLogModalOpen, setIsLogModalOpen] = useState(false)
+  const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false)
+  const [planSettings, setPlanSettings] = useState([
+    { label: 'Hormone Trends', active: true },
+    { label: 'Body Signals', active: true },
+    { label: 'Wellness Score', active: true },
+    { label: 'Supplement Guide', active: false },
+    { label: 'Partner Insights', active: true },
+  ])
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => setMounted(true), [])
@@ -177,7 +187,12 @@ export function DashboardView() {
                   <div className="flo-progress-fill" style={{ width: `${(computeCycleDay(data.lastPeriodStart, data.typicalCycleDays) / data.typicalCycleDays) * 100}%` }} />
                 </div>
               </div>
-              <button className="flo-text-link">Customize <CaretRight size={12} /></button>
+              <button 
+                className="flo-text-link"
+                onClick={() => setIsCustomizeModalOpen(true)}
+              >
+                Customize <CaretRight size={12} />
+              </button>
             </div>
 
             <div className="flo-masonry-grid">
@@ -325,7 +340,37 @@ export function DashboardView() {
                   Read medical research <CaretRight size={12} />
                 </button>
               </div>
-            </div>
+            </div>            {/* Log Period Flow Section - Floating Icons */}
+            <section className="mt-8 px-2">
+              <div className="flo-section-header mb-3">
+                <h2 className="flo-section-title !text-[0.85rem] opacity-60">Log period flow</h2>
+              </div>
+              <div className="flex flex-wrap gap-6">
+                {[
+                  { label: 'None', id: 'none', icon: <Plus size={16} weight="light" /> },
+                  { label: 'Light', id: 'light', img: '/images/flow_light.png' },
+                  { label: 'Medium', id: 'medium', img: '/images/flow_medium.png' },
+                  { label: 'Heavy', id: 'heavy', img: '/images/flow_heavy.png' },
+                ].map(item => (
+                  <button 
+                    key={item.id} 
+                    className="flex flex-col items-center gap-1.5 transition-all group"
+                    onClick={() => setIsLogModalOpen(true)}
+                  >
+                    <div className="w-8 h-8 flex items-center justify-center !rounded-full overflow-hidden transition-transform group-hover:scale-125">
+                      {item.img ? (
+                        <img src={item.img} alt={item.label} className="w-full h-full object-contain !rounded-full" />
+                      ) : (
+                        <div className="text-[var(--mf-muted)] opacity-40 group-hover:opacity-100">
+                          {item.icon}
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-[0.55rem] font-bold uppercase tracking-wider opacity-40 group-hover:opacity-100">{item.label}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
 
             {/* Quick Actions Row */}
             <div className="mt-12 mb-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -335,22 +380,26 @@ export function DashboardView() {
                 { label: 'Cravings', img: '/images/cravings.png' },
                 { label: 'More', img: '/images/exp.jpg' },
               ].map(action => (
-                <button key={action.label} className="flo-action-btn group p-4 rounded-3xl bg-[var(--mf-card)] border border-[var(--mf-border)] hover:bg-[var(--mf-hover)] transition-all flex flex-col items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl overflow-hidden transition-transform group-hover:scale-110">
-                    <img src={action.img} alt={action.label} className="w-full h-full object-cover" />
+                <button 
+                  key={action.label} 
+                  className="group flex flex-col items-center gap-2.5 transition-all"
+                  onClick={() => setIsLogModalOpen(true)}
+                >
+                  <div className="w-11 h-11 !rounded-full overflow-hidden transition-transform group-hover:scale-110">
+                    <img src={action.img} alt={action.label} className="w-full h-full object-cover !rounded-full" />
                   </div>
-                  <span className="text-[0.7rem] font-bold uppercase tracking-widest text-[var(--mf-muted)] group-hover:text-[var(--mf-text-strong)] transition-colors">{action.label}</span>
+                  <span className="text-[0.6rem] font-bold uppercase tracking-widest text-[var(--mf-muted)] group-hover:text-[var(--mf-text-strong)] opacity-60 group-hover:opacity-100 transition-all">{action.label}</span>
                 </button>
               ))}
             </div>
 
-            {/* Snapshot Action Button */}
-            <div className="flo-action-row mt-8">
+            {/* Snapshot Action Button - Minimal Pill */}
+            <div className="mt-12 flex justify-center">
               <button 
                 className="flo-snap-btn"
                 onClick={() => setIsSnapshotModalOpen(true)}
               >
-                <CalendarBlank size={20} />
+                <CalendarBlank size={18} weight="light" />
                 Update Your Snapshot
               </button>
             </div>
@@ -444,6 +493,57 @@ export function DashboardView() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Customize Plan Modal */}
+      <Dialog open={isCustomizeModalOpen} onOpenChange={setIsCustomizeModalOpen}>
+        <DialogContent className="sm:max-w-[425px] rounded-[32px] p-6 border-none">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-medium">Customize Plan</DialogTitle>
+            <DialogDescription>
+              Choose which insights you want to see in your daily feed.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            {planSettings.map(item => (
+              <div 
+                key={item.label} 
+                className="flex items-center justify-between p-4 rounded-2xl bg-muted/30 cursor-pointer hover:bg-muted/50 transition-all"
+                onClick={() => {
+                  setPlanSettings(prev => prev.map(p => 
+                    p.label === item.label ? { ...p, active: !p.active } : p
+                  ))
+                }}
+              >
+                <span className="font-medium">{item.label}</span>
+                <div className={cn(
+                  "w-10 h-6 rounded-full transition-all flex items-center px-1",
+                  item.active ? "bg-[var(--mf-accent)]" : "bg-muted"
+                )}>
+                  <div className={cn(
+                    "w-4 h-4 bg-white rounded-full shadow-sm transition-transform",
+                    item.active && "translate-x-4"
+                  )} />
+                </div>
+              </div>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button 
+              className="w-full h-12 rounded-full bg-[var(--mf-accent)] text-white"
+              onClick={() => setIsCustomizeModalOpen(false)}
+            >
+              Update Feed
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Symptoms Logging Modal */}
+      <LogSymptomsModal 
+        isOpen={isLogModalOpen} 
+        onOpenChange={setIsLogModalOpen}
+        activeDay={computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)}
+      />
     </div>
   )
 }

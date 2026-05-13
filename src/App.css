@@ -1,5 +1,3 @@
-
-
 .app-shell {
   display: flex;
   height: 100svh;
@@ -378,6 +376,10 @@
 .profile-btn {
   background: var(--mf-active);
   color: var(--mf-text-strong);
+}
+
+.flo-action-btn {
+  border-radius: 9999px;
 }
 
 /* Composer */
@@ -3105,6 +3107,27 @@
   gap: 0.75rem;
 }
 
+.flo-snap-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: transparent;
+  border: 1px solid rgba(var(--mf-border-rgb, 229, 231, 235), 0.6);
+  color: var(--mf-text);
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  margin: 0 auto;
+}
+
+.flo-snap-btn:hover {
+  background: var(--mf-hover);
+  border-color: var(--mf-accent);
+  transform: translateY(-2px);
+}
+
 .logger-chip {
   display: flex;
   align-items: center;
@@ -3486,7 +3509,7 @@
 .flo-action-btn {
   background: var(--mf-card);
   border: 1px solid rgba(var(--mf-border-rgb, 229, 231, 235), 0.6);
-  border-radius: 24px;
+  border-radius: 9999px;
   padding: 1.5rem 1rem;
   display: flex;
   flex-direction: column;
