@@ -33,6 +33,9 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay }: LogSymptom
   ]
 
   const symptomImages: Record<string, string> = {
+    'flow-light': '/images/flow_light.png',
+    'flow-medium': '/images/flow_medium.png',
+    'flow-heavy': '/images/flow_heavy.png',
     'mood-happy': '/images/happy.jpg',
     'mood-sad': '/images/sad.jpg',
     'mood-irritable': '/images/angry.jpg',

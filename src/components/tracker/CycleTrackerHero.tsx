@@ -166,17 +166,17 @@ export function CycleTrackerHero() {
         <div className="viz-ring-container">
           <svg viewBox="0 0 100 100" className="viz-ring" style={{ overflow: 'visible' }}>
             {/* Background track (dashed) */}
-            <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" strokeWidth="9" className="opacity-10" strokeDasharray="0.1 2.5" strokeLinecap="round" />
+            <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" strokeWidth="6" className="opacity-10" strokeDasharray="0.1 2.5" strokeLinecap="round" />
             
             {/* Inner Dots */}
             {dots}
             
             {/* Segments */}
             <g className="viz-segments" style={{ pointerEvents: 'none' }}>
-              <path d={periodPath} fill="none" stroke="#dc2626" strokeWidth="9" strokeLinecap="round" opacity="1" />
-              <path d={predictedPath} fill="none" stroke="#ffc7c8" strokeWidth="9" strokeLinecap="round" opacity={activeDay > periodLength && activeDay <= periodLength + predictedPeriodLength ? 1 : 0.8} />
-              <path d={fertilePath} fill="none" stroke="#26899e" strokeWidth="9" strokeLinecap="round" opacity={activeDay >= fertileStart && activeDay <= fertileEnd ? 1 : 0.8} />
-              <path d={upcomingPath} fill="none" stroke="currentColor" strokeWidth="9" className="opacity-20" strokeLinecap="round" />
+              <path d={periodPath} fill="none" stroke="#dc2626" strokeWidth="6" strokeLinecap="round" opacity="1" />
+              <path d={predictedPath} fill="none" stroke="#ffc7c8" strokeWidth="6" strokeLinecap="round" opacity={activeDay > periodLength && activeDay <= periodLength + predictedPeriodLength ? 1 : 0.8} />
+              <path d={fertilePath} fill="none" stroke="#26899e" strokeWidth="6" strokeLinecap="round" opacity={activeDay >= fertileStart && activeDay <= fertileEnd ? 1 : 0.8} />
+              <path d={upcomingPath} fill="none" stroke="currentColor" strokeWidth="6" className="opacity-20" strokeLinecap="round" />
             </g>
 
             {/* Selection Marker */}

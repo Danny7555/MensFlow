@@ -87,9 +87,21 @@ export function DashboardView() {
   }
 
   return (
-    <div className="dashboard-flo-theme">
-      {/* Flo-style Header */}
-      <header className="flo-header">
+    <div className="dashboard-flo-theme relative overflow-hidden">
+      {/* Immersive Edge Illustrations - Visible but behind content */}
+      <div className="flo-edge-wrap fixed left-[200px] top-[25%] w-[22%] opacity-[0.4] hidden lg:block z-1">
+        <img src="/images/edge-left.png" alt="" className="flo-edge-img" />
+      </div>
+      <div className="flo-edge-wrap fixed -right-[5%] bottom-[10%] w-[22%] opacity-[0.4] hidden lg:block z-1">
+        <img src="/images/edge-right.png" alt="" className="flo-edge-img" />
+      </div>
+
+      {/* Atmospheric Edge Blobs - Intensified */}
+      <div className="fixed top-[-10%] -left-[10%] w-[50vw] h-[50vw] bg-[var(--mf-accent)] rounded-full blur-[140px] opacity-[0.08] pointer-events-none" />
+      <div className="fixed bottom-[-10%] -right-[10%] w-[50vw] h-[50vw] bg-purple-500 rounded-full blur-[140px] opacity-[0.08] pointer-events-none" />
+
+      {/* Flo-style Header - WIDENED */}
+      <header className="flo-header !max-w-[1440px] !px-12 relative z-10">
         <div className="flo-header-left">
           <div className="flo-avatar-wrap">
             <img src="/images/girl.png" alt="Profile" className="flo-avatar" />
@@ -125,9 +137,9 @@ export function DashboardView() {
         </div>
       </header>
 
-      {/* Main Content Area */}
-      <div className="flo-content-scroll">
-        <div className="flo-content-inner">
+      {/* Main Content Area - WIDENED */}
+      <div className="flo-content-scroll relative z-10">
+        <div className="flo-content-inner !max-w-[1440px] !px-12">
           {/* Stories Bubbles */}
           <section className="flo-stories-section">
             <div className="flo-stories-container">
