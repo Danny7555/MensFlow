@@ -6,10 +6,13 @@ import {
   Plus,
   Bell,
   Calendar as CalendarIcon,
+
   CaretRight,
   Sparkle,
   Target,
   Heartbeat,
+  Pill,
+  CheckCircle,
   Ghost,
   SignOut,
 } from '@phosphor-icons/react'
@@ -31,6 +34,14 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover'
 import { Calendar } from '../components/ui/calendar'
 import { cn } from '../lib/utils'
+
+function computeCycleDay(startIso: string, cycleLen: number) {
+  const start = new Date(`${startIso}T12:00:00`)
+  if (Number.isNaN(+start)) return 1
+  const days = Math.floor((Date.now() - +start) / 86400000)
+  const m = ((days % cycleLen) + cycleLen) % cycleLen
+  return m + 1
+}
 
 function getGreeting() {
   const hour = new Date().getHours()
@@ -118,83 +129,113 @@ export function DashboardView() {
       <div className="flo-content-scroll">
         <div className="flo-content-inner">
           {/* Stories Bubbles */}
-          <div className="flo-stories-container">
-            {[
-              { label: 'Daily Plan', image: '/images/star.png' },
-              { label: 'Insights', image: '/images/brain.png' },
-              { label: 'Secret Chats', image: '/images/moon.png' },
-              { label: 'Wellness', image: '/images/heart.png' },
-              { label: 'Partner', image: '/images/girl.png' },
-            ].map((story, i) => (
-              <div key={i} className="flo-story-circle">
-                <div className="flo-story-ring">
-                  <div className="flo-story-inner">
-                    <img src={story.image} alt={story.label} className="flo-story-img" />
+          <section className="flo-stories-section">
+            <div className="flo-stories-container">
+              {[
+                { label: 'Daily Plan', image: '/images/star.png', active: true },
+                { label: 'Insights', image: '/images/brain.png' },
+                { label: 'Secret Chats', image: '/images/moon.png' },
+                { label: 'Wellness', image: '/images/heart.png' },
+                { label: 'Partner', image: '/images/girl.png' },
+              ].map((story, i) => (
+                <div key={i} className="flo-story-circle">
+                  <div className={cn("flo-story-ring", story.active && "flo-story-ring--active")}>
+                    <div className="flo-story-inner">
+                      <img src={story.image} alt={story.label} className="flo-story-img" />
+                    </div>
+                    {story.active && <div className="flo-story-dot" />}
                   </div>
+                  <span className="flo-story-label">{story.label}</span>
                 </div>
-                <span className="flo-story-label">{story.label}</span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </section>
 
           {/* Hero Section with Cycle Tracker */}
           <section className="flo-hero-section">
             <CycleTrackerHero />
           </section>
 
-          {/* Daily Insights Feed */}
+          {/* Today's Insights & Plan */}
           <section className="flo-feed-section">
             <div className="flo-section-header">
-              <h2 className="flo-section-title">Today's health story</h2>
-              <button className="flo-text-link">See all <CaretRight size={12} /></button>
+              <div className="flex flex-col gap-1">
+                <h2 className="flo-section-title">Today's plan</h2>
+                <div className="flo-progress-track">
+                  <div className="flo-progress-fill" style={{ width: `${(computeCycleDay(data.lastPeriodStart, data.typicalCycleDays) / data.typicalCycleDays) * 100}%` }} />
+                </div>
+              </div>
+              <button className="flo-text-link">Customize <CaretRight size={12} /></button>
             </div>
 
-            <div className="flo-grid">
-              {/* Phase Card */}
-              <div className="flo-card flo-card--highlight">
+            <div className="flo-masonry-grid">
+              {/* Primary Insight - Full Width/Prominent */}
+              <div className="flo-card flo-card--prominent animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flo-card-top">
-                  <div className="flo-card-icon flo-card-icon--accent">
-                    <Sparkle size={20} weight="fill" />
+                  <div className="flex items-center gap-2">
+                    <div className="flo-card-icon flo-card-icon--accent">
+                      <Sparkle size={20} weight="fill" />
+                    </div>
+                    <p className="flo-card-title !mb-0">{data.phaseLabel} Phase</p>
                   </div>
+                  <span className="text-[10px] bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] px-2.5 py-1 rounded-full font-semibold active-badge-glow">DAY {computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)}</span>
                 </div>
-                <div className="flo-card-content flex flex-col gap-1">
-                  <p className="flo-card-title">{data.phaseLabel} Phase</p>
-                  <h3 className="flo-card-desc">{data.hormoneTrend}</h3>
+                <div className="flo-card-content mt-4">
+                  <h3 className="flo-card-desc text-2xl tracking-tight">{data.hormoneTrend}</h3>
+                  <p className="text-[0.95rem] text-[var(--mf-muted)] mt-3 leading-relaxed">
+                    You're entering the peak of your luteal phase. Progesterone is dominant, which naturally increases your metabolic rate. You might feel a bit more hungry—this is your body asking for fuel.
+                  </p>
+                </div>
+                <div className="mt-6 pt-4 border-t border-[var(--mf-border)] flex items-center justify-between">
+                  <span className="text-xs font-medium opacity-60">PROGESTERONE PEAK</span>
+                  <div className="flex -space-x-2">
+                    {[1,2,3].map(i => <div key={i} className="w-6 h-6 rounded-full border-2 border-[var(--mf-card)] bg-[var(--mf-accent-soft)]" />)}
+                  </div>
                 </div>
               </div>
 
-              {/* Signals Card */}
-              <div className="flo-card">
-                <div className="flo-card-top">
-                  <div className="flo-card-icon flo-card-icon--teal">
-                    <Target size={20} weight="bold" />
+              {/* Secondary Stats Group */}
+              <div className="flo-sub-grid">
+                {/* Signals Card */}
+                <div className="flo-card animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
+                  <div className="flo-card-top">
+                    <div className="flo-card-icon flo-card-icon--pink">
+                      <Target size={20} weight="fill" />
+                    </div>
+                  </div>
+                  <div className="flo-card-content mt-2">
+                    <p className="flo-card-title">Body Signals</p>
+                    <h3 className="flo-card-desc text-lg">{data.bodySignals}</h3>
+                    <p className="text-xs opacity-50 mt-2">Common for Day {computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)}</p>
                   </div>
                 </div>
-                <div className="flo-card-content flex flex-col gap-1">
-                  <p className="flo-card-title">Body Signals</p>
-                  <h3 className="flo-card-desc">{data.bodySignals}</h3>
+
+                {/* Wellness Score Card */}
+                <div className="flo-card animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150">
+                  <div className="flo-card-top">
+                    <div className="flo-card-icon flo-card-icon--pink">
+                      <Heartbeat size={20} weight="fill" />
+                    </div>
+                  </div>
+                  <div className="flo-card-content mt-2">
+                    <p className="flo-card-title">Wellness Score</p>
+                    <div className="flex items-end gap-1">
+                      <h3 className="flo-card-desc text-2xl font-medium text-[var(--mf-accent)]">84</h3>
+                      <span className="text-xs mb-1.5 font-medium text-[var(--mf-accent)] opacity-60">/100</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-[var(--mf-border)] rounded-full mt-3">
+                      <div className="h-full bg-[var(--mf-accent)] rounded-full" style={{ width: '84%' }} />
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* My Cycles Card */}
-              <div className="flo-card">
-                <div className="flo-card-top">
-                  <div className="flo-card-icon flo-card-icon--purple">
-                    <CalendarBlank size={20} weight="bold" />
-                  </div>
-                </div>
-                <div className="flo-card-content flex flex-col gap-1">
-                  <p className="flo-card-title">My Cycles</p>
-                  <h3 className="flo-card-desc">Regular · {data.typicalCycleDays} days</h3>
-                </div>
-              </div>
-
-              {/* Guidance Card */}
-              <div className="flo-card flo-card--span-2">
+              {/* Guidance Card - Large Column */}
+              <div className="flo-card flo-card--featured animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200">
                 <div className="flo-card-top">
                   <div className="flex items-center gap-2">
                     <div className="flo-card-icon flo-card-icon--pink">
-                      <Heartbeat size={20} weight="bold" />
+                      <Plus size={20} weight="fill" />
                     </div>
                     <p className="flo-card-title !mb-0">Daily Guidance</p>
                   </div>
@@ -206,33 +247,93 @@ export function DashboardView() {
                   </button>
                 </div>
                 
-                {isEditingGuidance ? (
-                  <textarea
-                    className="flo-textarea"
-                    rows={4}
-                    value={guidanceText}
-                    onChange={(e) => {
-                      const lines = e.target.value
-                        .split('\n')
-                        .flatMap((s) => s.trim() ? [s.trim()] : [])
-                      update({ guidanceLines: lines })
-                    }}
-                  />
-                ) : (
-                  <ul className="flo-guidance-list">
-                    {data.guidanceLines.map((line, idx) => (
-                      <li key={idx} className="flo-guidance-item">
-                        <div className="flo-guidance-dot" />
-                        {line}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                <div className="mt-6">
+                  {isEditingGuidance ? (
+                    <textarea
+                      className="flo-textarea"
+                      rows={6}
+                      value={guidanceText}
+                      onChange={(e) => {
+                        const lines = e.target.value
+                          .split('\n')
+                          .flatMap((s) => s.trim() ? [s.trim()] : [])
+                        update({ guidanceLines: lines })
+                      }}
+                    />
+                  ) : (
+                    <div className="flex flex-col gap-6">
+                      <div className="p-4 bg-[var(--mf-accent-soft)] rounded-2xl">
+                        <p className="text-sm font-medium text-[var(--mf-accent)] leading-relaxed">
+                          "Your body is prioritizing recovery today. Consider shifting high-intensity workouts to light yoga or a walk."
+                        </p>
+                      </div>
+                      <ul className="flo-guidance-list">
+                        {data.guidanceLines.map((line, idx) => (
+                          <li key={idx} className="flo-guidance-item">
+                            <div className="flo-guidance-dot" />
+                            <span className="text-[0.98rem] font-medium opacity-90">{line}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      
+                      {/* Added content to fill the bottom */}
+                      <div className="mt-8 pt-6 border-t border-[var(--mf-border)]">
+                        <p className="flo-card-title !mb-3">Supplement Suggestion</p>
+                        <div className="flex items-center gap-3 p-3 rounded-xl">
+                          <div className="text-[var(--mf-accent)] flex items-center justify-center">
+                            <Pill size={26} weight="fill" />
+                          </div>
+                          <div>
+                            <p className="text-[0.9rem] font-semibold text-[var(--mf-text-strong)]">Magnesium (200mg)</p>
+                            <p className="text-[0.75rem] text-[var(--mf-muted)]">Supports muscle recovery and sleep quality</p>
+                          </div>
+                        </div>
+                        <div className="mt-4 flex items-center gap-2 opacity-40">
+                          <CheckCircle size={14} className="text-[var(--mf-success)]" />
+                          <span className="text-[10px] font-medium uppercase tracking-widest">92% users find this helpful</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Hormone Insight Card */}
+              <div className="flo-card flo-card--dark animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
+                <div className="flo-card-top">
+                  <p className="flo-card-title">Scientific Insight</p>
+                  <Sparkle size={16} className="text-[var(--mf-accent)]" weight="fill" />
+                </div>
+                <div className="mt-3">
+                  <p className="text-[0.95rem] text-[var(--mf-text)] opacity-90 leading-relaxed">
+                    Did you know? Progesterone can raise your resting heart rate by <span className="text-[var(--mf-accent)] font-semibold">2-5 beats per minute</span> during this phase. Don't be alarmed if your tracker shows slightly higher exertion today.
+                  </p>
+                </div>
+                <button className="text-[var(--mf-accent)] text-xs font-semibold mt-6 flex items-center gap-1.5 hover:gap-2 transition-all">
+                  Read medical research <CaretRight size={12} />
+                </button>
               </div>
             </div>
 
+            {/* Quick Actions Row */}
+            <div className="mt-12 mb-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {[
+                { label: 'Log Mood', img: '/images/happy.jpg' },
+                { label: 'Weight', img: '/images/weight.png' },
+                { label: 'Cravings', img: '/images/cravings.png' },
+                { label: 'More', img: '/images/exp.jpg' },
+              ].map(action => (
+                <button key={action.label} className="flo-action-btn group p-4 rounded-3xl bg-[var(--mf-card)] border border-[var(--mf-border)] hover:bg-[var(--mf-hover)] transition-all flex flex-col items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl overflow-hidden transition-transform group-hover:scale-110">
+                    <img src={action.img} alt={action.label} className="w-full h-full object-cover" />
+                  </div>
+                  <span className="text-[0.7rem] font-bold uppercase tracking-widest text-[var(--mf-muted)] group-hover:text-[var(--mf-text-strong)] transition-colors">{action.label}</span>
+                </button>
+              ))}
+            </div>
+
             {/* Snapshot Action Button */}
-            <div className="flo-action-row">
+            <div className="flo-action-row mt-8">
               <button 
                 className="flo-snap-btn"
                 onClick={() => setIsSnapshotModalOpen(true)}
