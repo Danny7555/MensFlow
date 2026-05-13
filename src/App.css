@@ -2605,13 +2605,14 @@
 }
 
 .viz-title {
-  font-size: 1.65rem;
-  font-weight: 700;
+  font-size: 1.35rem;
+  font-weight: 600;
   color: var(--mf-text-strong);
   letter-spacing: -0.04em;
-  margin-bottom: 0.75rem;
-  line-height: 1.1;
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
   max-width: 15ch;
+  text-align: center;
 }
 
 .viz-fertile-status {
@@ -3394,9 +3395,49 @@
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 768px) {
+  .flo-main-container {
+    padding: 0 1.25rem;
+  }
+  
+  .flo-content-inner {
+    padding: 0;
+  }
+
+  .flo-dashboard-grid {
+    gap: 2.5rem;
+  }
+
   .flo-hero-panel {
-    padding: 2rem 1.5rem 2.25rem;
+    padding: 1.5rem 0.5rem;
+    gap: 1rem;
+  }
+
+  .flo-header {
+    padding: 1.25rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+
+  .flo-header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .flo-user-name {
+    font-size: 1.5rem;
+  }
+
+  .flo-feed-row {
+    margin-left: -1.25rem;
+    margin-right: -1.25rem;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+  
+  .flo-section-header {
+    padding: 0 0.25rem;
   }
 }
 

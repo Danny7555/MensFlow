@@ -109,7 +109,7 @@ export function DashboardView() {
         handleLogout={handleLogout}
       />
 
-      <main className="flo-main-container pb-32">
+      <main className="flo-main-container pb-32 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
         <div className="flo-content-inner">
           <div className="flo-dashboard-top">
             <StoriesSection />
