@@ -73,7 +73,7 @@ export function LandingView() {
               className="landing-primary-cta"
             >
               <span className="landing-primary-cta-text">Personalize my experience</span>
-              <CaretRight className="h-5 w-5" />
+              <CaretRight className="size-5" />
             </button>
           </>
         )}

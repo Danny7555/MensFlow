@@ -15,6 +15,7 @@ import { TrackerView } from './views/TrackerView'
 import { SymptomsView } from './views/SymptomsView'
 import { EducationView } from './views/EducationView'
 import { OnboardingView } from './views/OnboardingView'
+import { NotificationsView } from './views/NotificationsView'
 import { NotFoundView } from './views/NotFoundView'
 import { AuthProvider } from './context/AuthProvider'
 import { SettingsProvider } from './context/SettingsProvider'
@@ -23,7 +24,7 @@ import { useAuth } from './context/useAuth'
 import { useSettings } from './context/useSettings'
 import { Header } from './components/Header'
 import { Sidebar } from './components/Sidebar'
-import { House, Target, Heartbeat, Bell } from '@phosphor-icons/react'
+import { House, Target, Heartbeat, Bell, UserCircle } from '@phosphor-icons/react'
 import { useMediaQuery } from './hooks/useMediaQuery'
 import './App.css'
 
@@ -150,6 +151,7 @@ function MainShell() {
                   <Route path="/tips" element={<TipsView />} />
                   <Route path="/wellness-tips" element={<Navigate to="/tips" replace />} />
                   <Route path="/calendar" element={<CalendarView />} />
+                  <Route path="/notifications" element={<NotificationsView />} />
                   <Route path="/tracker" element={<TrackerView />} />
                   <Route path="/symptoms" element={<SymptomsView />} />
                   <Route path="/education" element={<EducationView />} />
@@ -180,10 +182,17 @@ function MainShell() {
               <span className="flo-nav-label">Wellness</span>
             </button>
             <button 
+              className={cn("flo-nav-item", location.pathname === '/notifications' && "flo-nav-item--active")}
+              onClick={() => navigate('/notifications')}
+            >
+              <Bell size={24} weight={location.pathname === '/notifications' ? "fill" : "light"} />
+              <span className="flo-nav-label">Alerts</span>
+            </button>
+            <button 
               className={cn("flo-nav-item", location.pathname === '/settings' && "flo-nav-item--active")}
               onClick={() => navigate('/settings')}
             >
-              <Bell size={24} weight={location.pathname === '/settings' ? "fill" : "light"} />
+              <UserCircle size={24} weight={location.pathname === '/settings' ? "fill" : "light"} />
               <span className="flo-nav-label">Profile</span>
             </button>
           </nav>

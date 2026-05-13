@@ -1,6 +1,7 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client"
 
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { CaretDown, CaretRight, Smiley, Info } from '@phosphor-icons/react'
 import { format, addDays, startOfDay } from 'date-fns'
 
@@ -17,24 +18,28 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 
-import { useDashboardData } from '@/context/useDashboardData'
+import { useStore } from '@/store/useStore'
 import { LogSymptomsModal } from './LogSymptomsModal'
 
 export function CycleTrackerHero() {
-  const { data } = useDashboardData()
+  const { dashboard: data } = useStore()
   
-  const currentDay = useMemo(() => {
-    const start = new Date(`${data.lastPeriodStart}T12:00:00`)
-    if (Number.isNaN(+start)) return 1
-    const days = Math.floor((Date.now() - +start) / 86400000)
-    const m = ((days % data.typicalCycleDays) + data.typicalCycleDays) % data.typicalCycleDays
-    return m + 1
-  }, [data.lastPeriodStart, data.typicalCycleDays])
-
-  const [selectedDay, setSelectedDay] = useState<number>(currentDay);
+  const [currentDay, setCurrentDay] = useState(1)
+  const [selectedDay, setSelectedDay] = useState<number>(1);
   const [hoveredDay, setHoveredDay] = useState<number | null>(null);
   const [trackingMode, setTrackingMode] = useState<string>('Period');
   const [isLogModalOpen, setIsLogModalOpen] = useState(false)
+
+  useEffect(() => {
+    const start = new Date(`${data.lastPeriodStart}T12:00:00`)
+    if (!Number.isNaN(+start)) {
+      const days = Math.floor((Date.now() - +start) / 86400000)
+      const m = ((days % data.typicalCycleDays) + data.typicalCycleDays) % data.typicalCycleDays
+      const day = m + 1
+      setCurrentDay(day)
+      setSelectedDay(day)
+    }
+  }, [data.lastPeriodStart, data.typicalCycleDays])
 
   const modes = ['Period', 'Conception', 'Pregnancy', 'Perimenopause'];
 
@@ -242,8 +247,11 @@ export function CycleTrackerHero() {
 
       <div className="cycle-tracker-mood-cta">
         <div 
+          role="button"
+          tabIndex={0}
           onClick={() => setIsLogModalOpen(true)}
-          className="mood-cta-card cursor-pointer group"
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsLogModalOpen(true) }}
+          className="mood-cta-card cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mf-accent)] rounded-2xl"
         >
            <img src="/images/exp.jpg" alt="" className="mood-cta-bg" />
            <div className="mood-cta-overlay" />
@@ -259,6 +267,7 @@ export function CycleTrackerHero() {
         isOpen={isLogModalOpen} 
         onOpenChange={setIsLogModalOpen} 
         activeDay={activeDay} 
+        activeDate={activeDate}
       />
     </div>
   )

@@ -1,5 +1,6 @@
 import type { ComponentType, ReactNode } from 'react'
 import { useState } from 'react'
+import { useStore } from '../store/useStore'
 import {
   ArrowCounterClockwise,
   Bell,
@@ -342,6 +343,18 @@ export function SettingsView({
       .withOptions({ shallow: false })
   )
   const { settings, updateSettings, resetSettings } = useSettings()
+  const { resetStore } = useStore()
+
+  const confirmResetApp = () => {
+    if (window.confirm('Delete all symptom logs, cycle data, and health settings? This cannot be undone.')) {
+      resetStore()
+      resetSettings()
+      localStorage.removeItem(CHAT_STORAGE_KEY)
+      window.dispatchEvent(new Event(CLEAR_LOCAL_CHATS_EVENT))
+      if (onLogout) onLogout()
+      window.location.reload()
+    }
+  }
 
   const setTheme = (themeMode: ThemeMode) => updateSettings({ themeMode })
 
@@ -614,6 +627,13 @@ export function SettingsView({
             >
               <ArrowCounterClockwise size={18} aria-hidden />
               Reset preferences
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost danger"
+              onClick={confirmResetApp}
+            >
+              Erase all MensFlow health data
             </button>
             <button
               type="button"

@@ -2,6 +2,7 @@ import {
   useCallback,
   useMemo,
   useState,
+  useTransition,
   type ReactNode,
 } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -17,17 +18,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return localStorage.getItem('mf_onboarding') === 'true'
   })
   const [authModalOpen, setAuthModalOpen] = useState(false)
+  const [isPending, startTransition] = useTransition()
 
-  const login = useCallback(() => {
-    setAuthenticated(true)
-    localStorage.setItem('mf_auth', 'true')
-    setAuthModalOpen(false)
+  const login = useCallback(async () => {
+    startTransition(async () => {
+
+      await new Promise(resolve => setTimeout(resolve, 1200))
+      setAuthenticated(true)
+      localStorage.setItem('mf_auth', 'true')
+      setAuthModalOpen(false)
+    })
   }, [])
 
   const logout = useCallback(() => {
-    setAuthenticated(false)
-    localStorage.removeItem('mf_auth')
-  }, [])
+    startTransition(async () => {
+      await new Promise(resolve => setTimeout(resolve, 800))
+      setAuthenticated(false)
+      localStorage.removeItem('mf_auth')
+    })
+  }, [startTransition])
 
   const completeOnboarding = useCallback(() => {
     setOnboardingCompleted(true)
@@ -48,12 +57,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       isAuthenticated,
       onboardingCompleted,
+      isLoading: isPending,
       login,
       logout,
       openAuthModal,
       completeOnboarding,
     }),
-    [isAuthenticated, onboardingCompleted, login, logout, openAuthModal, completeOnboarding],
+    [isAuthenticated, onboardingCompleted, isPending, login, logout, openAuthModal, completeOnboarding],
   )
 
   return (
@@ -61,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
       <AuthModal
         open={authModalOpen}
+        isLoading={isPending}
         onClose={() => setAuthModalOpen(false)}
         onContinue={completeDemoSignIn}
       />
