@@ -17,18 +17,29 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 
+import { useDashboardData } from '@/context/useDashboardData'
 import { LogSymptomsModal } from './LogSymptomsModal'
 
 export function CycleTrackerHero() {
-  const [selectedDay, setSelectedDay] = useState<number>(12);
+  const { data } = useDashboardData()
+  
+  const currentDay = useMemo(() => {
+    const start = new Date(`${data.lastPeriodStart}T12:00:00`)
+    if (Number.isNaN(+start)) return 1
+    const days = Math.floor((Date.now() - +start) / 86400000)
+    const m = ((days % data.typicalCycleDays) + data.typicalCycleDays) % data.typicalCycleDays
+    return m + 1
+  }, [data.lastPeriodStart, data.typicalCycleDays])
+
+  const [selectedDay, setSelectedDay] = useState<number>(currentDay);
   const [hoveredDay, setHoveredDay] = useState<number | null>(null);
   const [trackingMode, setTrackingMode] = useState<string>('Period');
   const [isLogModalOpen, setIsLogModalOpen] = useState(false)
 
   const modes = ['Period', 'Conception', 'Pregnancy', 'Perimenopause'];
 
-  const cycleLength = 27;
-  const currentDay = 12;
+  const cycleLength = data.typicalCycleDays;
+  // currentDay already defined above
 
   const periodLength = 5;
   const predictedPeriodLength = 2; 
