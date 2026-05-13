@@ -83,16 +83,23 @@ export function CalendarView() {
   const year = viewDate.getFullYear()
   const month = viewDate.getMonth()
 
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useLayoutEffect(() => { 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true)
+  }, [])
+
   const prevMonth = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year, month - 1, 1) })
   const nextMonth = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year, month + 1, 1) })
   const prevYear = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year - 1, month, 1) })
   const nextYear = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year + 1, month, 1) })
 
   return (
-    <div className="flex flex-col h-full bg-background overflow-auto relative">
+    <div className="flex flex-col h-full bg-background overflow-auto relative" suppressHydrationWarning>
       {/* Decorative background image - matching Symptoms (Tracker) view style */}
       <div className="absolute right-0 top-20 opacity-10 pointer-events-none z-0">
-        <img src="/images/girl.png" alt="" className="w-[800px] h-[800px] object-contain" />
+        <img src="/images/girl.png" alt="" className="size-[800px] object-contain" />
       </div>
 
       <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-8 animate-in fade-in duration-500 relative z-10">
@@ -175,6 +182,7 @@ export function CalendarView() {
             <YearView 
               viewDate={viewDate} 
               periodDates={periodDates}
+              mounted={mounted}
               onMonthClick={(d) => {
                 dispatch({ type: "SET_VIEW_DATE", payload: d })
                 setView("month")
@@ -265,7 +273,7 @@ function MonthView({ viewDate, selectedDate, isEditingPeriods, periodDates, disp
                   {(d + 6) % 28 + 1}
                 </span>
 
-                <div className="relative flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 transition-transform group-active:scale-90">
+                <div className="relative flex items-center justify-center size-10 sm:size-12 transition-transform group-active:scale-90">
                   {isSelected && (
                     <div className="absolute inset-0 bg-[#e0e0e0] dark:bg-muted rounded-full animate-in zoom-in-75 duration-200" />
                   )}
@@ -299,11 +307,7 @@ function MonthView({ viewDate, selectedDate, isEditingPeriods, periodDates, disp
   )
 }
 
-function YearView({ viewDate, periodDates, onMonthClick }: { 
-  viewDate: Date, 
-  periodDates: Set<string>,
-  onMonthClick: (d: Date) => void
-}) {
+  const YearView = ({ viewDate, periodDates, onMonthClick, mounted }: { viewDate: Date, periodDates: Set<string>, onMonthClick: (d: Date) => void, mounted: boolean }) => {
   const year = viewDate.getFullYear()
   const months = Array.from({ length: 12 }, (_, i) => new Date(year, i, 1))
 
@@ -336,7 +340,7 @@ function YearView({ viewDate, periodDates, onMonthClick }: {
                 const d = i + 1
                 const key = `${year}-${String(idx).padStart(2, '0')}-${String(d).padStart(2, '0')}`
                 const isPeriod = periodDates.has(key)
-                const isToday = d === new Date().getDate() && idx === new Date().getMonth() && year === new Date().getFullYear()
+                const isToday = mounted && d === new Date().getDate() && idx === new Date().getMonth() && year === new Date().getFullYear()
                 
                 return (
                   <div 

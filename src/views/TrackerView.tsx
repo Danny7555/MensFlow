@@ -4,6 +4,7 @@ import { CycleStatsHero } from "@/components/tracker/CycleStatsHero"
 import { CycleHistory } from "@/components/tracker/CycleHistory"
 import { CycleTips } from "@/components/tracker/CycleTips"
 import { HealthMetrics } from "@/components/tracker/HealthMetrics"
+import { CycleLogs } from "@/components/tracker/CycleLogs"
 import { useAuth } from "@/context/useAuth"
 import { Copy, Users, ShareNetwork, Check } from "@phosphor-icons/react"
 import {
@@ -14,7 +15,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 
+import { useStore } from "@/store/useStore"
+import { cn } from "@/lib/utils"
+
 export function TrackerView() {
+  const { isSaving } = useStore()
   const { isAuthenticated, openAuthModal } = useAuth()
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -28,11 +33,21 @@ export function TrackerView() {
   return (
     <div className="flex flex-col h-full bg-background overflow-auto relative">
       <div className="flex-1 w-full max-w-[1200px] mx-auto p-4 md:p-6 lg:p-8 animate-in fade-in duration-500">
+        <div className="flex items-center justify-end mb-4">
+           <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-card border border-border shadow-sm sync-pill">
+            <div className={cn("size-2 rounded-full", isSaving ? "bg-orange-400 sync-dot-active" : "bg-green-500")} />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              {isSaving ? 'Syncing with cloud' : 'All data synced'}
+            </span>
+          </div>
+        </div>
+
         
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-10 items-start mt-4">
           {/* Main Column */}
           <div className="space-y-12">
             <CycleTrackerHero />
+            <CycleLogs />
             <HealthMetrics />
             
             <div className="relative">
@@ -65,7 +80,10 @@ export function TrackerView() {
         {isAuthenticated && (
           <div className="mt-16 mb-16 w-full max-w-[1100px] mx-auto">
             <div 
+              role="button"
+              tabIndex={0}
               onClick={() => setIsInviteModalOpen(true)}
+              onKeyDown={(e) => e.key === 'Enter' && setIsInviteModalOpen(true)}
               className="bg-gradient-to-r from-[var(--mf-accent)] to-[#be185d] rounded-3xl p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative group cursor-pointer border border-white/10"
             >
               <div className="z-10 text-center md:text-left">
@@ -99,11 +117,15 @@ export function TrackerView() {
 
               <div className="space-y-6">
                 <div className="space-y-3">
-                  <label className="text-xs font-medium uppercase tracking-widest text-muted-foreground ml-1">
+                  <label 
+                    htmlFor="partner-email"
+                    className="text-xs font-medium uppercase tracking-widest text-muted-foreground ml-1"
+                  >
                     Partner's Email
                   </label>
                   <div className="relative">
                     <input 
+                      id="partner-email"
                       type="email" 
                       placeholder="email@example.com"
                       className="w-full h-14 px-5 rounded-2xl bg-muted/50 border border-border focus:border-[var(--mf-accent-border)] focus:bg-background transition-all outline-none text-base"
