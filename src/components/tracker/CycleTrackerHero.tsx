@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from 'react'
-import { CaretDown, CaretRight, Smiley, Info } from '@phosphor-icons/react'
+import { CaretDown, CaretRight, Info, Lightning, Heart } from '@phosphor-icons/react'
 import { format, addDays, startOfDay } from 'date-fns'
 
 import { 
@@ -255,11 +255,39 @@ export function CycleTrackerHero() {
         >
            <img src="/images/exp.jpg" alt="" className="mood-cta-bg" />
            <div className="mood-cta-overlay" />
-           <div className="mood-icon group-hover:scale-110 transition-transform">
-             <Smiley size={24} weight="fill" />
-           </div>
-           <span className="mood-text">Log symptoms for Day {activeDay}</span>
+           <span className="mood-text pl-4">Log symptoms for Day {activeDay}</span>
            <CaretRight size={20} className="caret-right group-hover:translate-x-1 transition-transform" />
+        </div>
+
+        <div className="mt-8 px-1">
+          <div className="p-6 rounded-[24px] bg-gradient-to-br from-[var(--mf-accent-soft)] to-white dark:to-card border border-[var(--mf-accent-border)] relative overflow-hidden group shadow-sm hover:shadow-md transition-all duration-500">
+            {/* Background Bloom */}
+            <div className="absolute -top-12 -right-12 size-32 bg-[var(--mf-accent)] opacity-5 blur-3xl rounded-full group-hover:opacity-10 transition-opacity" />
+            
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex flex-col gap-1.5">
+                <span className="w-fit text-[9px] font-bold uppercase tracking-[0.15em] bg-[var(--mf-accent)] text-white px-2.5 py-1 rounded-full">DAILY TIP</span>
+                <span className="text-[10px] font-semibold text-[var(--mf-accent)] opacity-60">PHASE: LUTEAL</span>
+              </div>
+              <div className="size-10 rounded-full bg-white/50 dark:bg-black/20 flex items-center justify-center text-[var(--mf-accent)] shadow-inner">
+                <Lightning size={20} weight="fill" />
+              </div>
+            </div>
+
+            <div className="relative z-10">
+              <h3 className="text-[15px] font-bold text-[var(--mf-text-strong)] mb-2 tracking-tight">Nurture your energy</h3>
+              <p className="text-[13px] text-muted-foreground leading-relaxed opacity-90">
+                Your body is working harder today. Prioritize magnesium-rich foods like dark chocolate or spinach to ease any pre-period tension.
+              </p>
+            </div>
+
+            <div className="mt-5 pt-4 border-t border-[var(--mf-accent-border)] flex items-center justify-between">
+              <button className="text-[11px] font-bold text-[var(--mf-accent)] hover:underline">LEARN MORE</button>
+              <button className="flex items-center gap-1.5 text-[11px] font-bold opacity-40 hover:opacity-100 transition-opacity">
+                <Heart size={14} /> SAVE
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
