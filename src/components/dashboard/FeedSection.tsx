@@ -208,9 +208,9 @@ export function FeedSection({
                   className="flex flex-col items-center gap-2 transition-all group outline-none"
                   onClick={() => dispatch({ type: 'TOGGLE_LOG', payload: true })}
                 >
-                  <div className="size-12 flex items-center justify-center rounded-full bg-[var(--mf-card)] border border-[var(--mf-border)] overflow-hidden transition-transform group-hover:scale-110 group-hover:border-[var(--mf-accent)]">
+                  <div className="size-12 flex items-center justify-center rounded-full bg-[var(--mf-accent)]/10 border border-[var(--mf-border)] overflow-hidden transition-transform group-hover:scale-110 group-hover:border-[var(--mf-accent)]">
                     {item.img ? (
-                      <img src={item.img} alt="" className="w-full h-full object-cover mix-blend-multiply" />
+                      <img src={item.img} alt="" className="w-full h-full object-cover p-1" />
                     ) : (
                       <div className="text-[var(--mf-muted)] group-hover:text-[var(--mf-accent)] transition-colors">
                         {item.icon}
