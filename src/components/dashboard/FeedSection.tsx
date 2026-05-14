@@ -86,7 +86,7 @@ export function FeedSection({
       <div className="flo-feed-row flex items-stretch">
         {/* Primary Insight */}
         <div className="flo-card flo-card--prominent animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden">
-          <div className="-mx-6 -mt-6 mb-4 h-[140px] relative shrink-0">
+          <div className="-mx-6 -mt-6 mb-4 h-[110px] relative shrink-0">
             <img src="/images/track.png" alt="Phase" className="w-full h-full object-cover object-center" />
           </div>
           <div className="flo-card-top relative z-10">
@@ -115,7 +115,7 @@ export function FeedSection({
         </div>
 
         <div className="flo-card flo-card--prominent overflow-hidden">
-          <div className="-mx-6 -mt-6 mb-4 h-[120px] relative shrink-0">
+          <div className="-mx-6 -mt-6 mb-4 h-[90px] relative shrink-0">
             <img src="/images/calm.jpg" alt="Body Signals" className="w-full h-full object-cover" />
           </div>
           <div className="flo-card-top relative z-10">
@@ -131,7 +131,7 @@ export function FeedSection({
         </div>
 
         <div className="flo-card flo-card--prominent overflow-hidden">
-          <div className="-mx-6 -mt-6 mb-4 h-[120px] relative shrink-0">
+          <div className="-mx-6 -mt-6 mb-4 h-[90px] relative shrink-0">
             <img src="/images/heart.png" alt="Wellness" className="w-full h-full object-cover object-center" style={{ transform: 'scale(1.5) translateY(10px)' }} />
           </div>
           <div className="flo-card-top relative z-10">
@@ -153,7 +153,7 @@ export function FeedSection({
 
         {/* Guidance Card */}
         <div className="flo-card flo-card--featured animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200 overflow-hidden">
-          <div className="-mx-6 -mt-6 mb-4 h-[120px] relative shrink-0">
+          <div className="-mx-6 -mt-6 mb-4 h-[90px] relative shrink-0">
             <img src="/images/star.png" alt="Daily Tip" className="w-full h-full object-cover object-center" style={{ transform: 'scale(1.2)' }} />
           </div>
           <div className="flo-card-top relative z-10">
@@ -179,7 +179,7 @@ export function FeedSection({
         
         {/* Hormone Insight Card */}
         <div className="flo-card flo-card--dark animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300 overflow-hidden">
-          <div className="-mx-6 -mt-6 mb-4 h-[120px] relative shrink-0">
+          <div className="-mx-6 -mt-6 mb-4 h-[90px] relative shrink-0">
             <img src="/images/brain.png" alt="Insight" className="w-full h-full object-cover object-center" style={{ transform: 'scale(1.2)' }} />
           </div>
           <div className="flo-card-top relative z-10">
