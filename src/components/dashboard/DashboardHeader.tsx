@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Bell, Calendar as CalendarIcon, SignOut, Ghost } from "@phosphor-icons/react"
+import { Bell, Calendar as CalendarIcon, SignOut, Ghost, Question } from "@phosphor-icons/react"
 import { Link } from "react-router-dom"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
@@ -23,6 +23,7 @@ interface DashboardHeaderProps {
   toggleTempChat: () => void
   handleLogout: () => void
   getGreeting: () => string
+  onStartTour?: () => void
 }
 
 export function DashboardHeader({
@@ -33,6 +34,7 @@ export function DashboardHeader({
   toggleTempChat,
   handleLogout,
   getGreeting,
+  onStartTour,
 }: DashboardHeaderProps) {
   const [now, setNow] = useState(new Date())
 
@@ -87,6 +89,13 @@ export function DashboardHeader({
         <Link to="/calendar" className="flo-icon-btn hover:bg-muted/50 transition-colors" aria-label="Calendar">
           <CalendarIcon size={24} weight="light" />
         </Link>
+        <button 
+          className="flo-icon-btn hover:bg-muted/50 transition-colors"
+          onClick={onStartTour}
+          title="Start Tour"
+        >
+          <Question size={24} weight="light" />
+        </button>
         <div className="w-px h-6 bg-border mx-2 opacity-50 hidden md:block" />
         
         <Dialog>
