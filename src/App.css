@@ -3729,10 +3729,10 @@
 
 [data-theme='dark'] .flo-card,
 [data-theme='dark'] .flo-action-btn {
-  border: 1px solid rgba(var(--mf-accent-rgb), 0.15);
+  border: 1px solid rgba(var(--mf-accent-rgb), 0.4);
   background: rgba(var(--mf-card-rgb, 31, 22, 29), 0.5);
   backdrop-filter: blur(24px);
-  box-shadow: 0 10px 40px -10px rgba(var(--mf-accent-rgb), 0.06);
+  box-shadow: 0 10px 40px -10px rgba(var(--mf-accent-rgb), 0.12);
 }
 
 .flo-card--prominent {
