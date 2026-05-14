@@ -191,11 +191,16 @@ export function OnboardingView() {
             )}
             
             {currentStep > 0 && (
-              <div className="onboarding-progress-wrap">
-                <div 
-                  className="onboarding-progress-bar" 
-                  style={{ width: `${progress}%` }} 
-                />
+              <div className="flex flex-col gap-2 w-full mt-4">
+                <div className="flex justify-center text-sm font-medium text-muted-foreground tracking-wide">
+                  {currentStep} / {ONBOARDING_QUESTIONS.length - 1}
+                </div>
+                <div className="onboarding-progress-wrap !mt-0">
+                  <div 
+                    className="onboarding-progress-bar" 
+                    style={{ width: `${progress}%` }} 
+                  />
+                </div>
               </div>
             )}
           </div>
@@ -230,7 +235,7 @@ export function OnboardingView() {
               
               <h1 className="onboarding-title">{question.question}</h1>
               {question.description && (
-                <p className="onboarding-description">{question.description}</p>
+                <p className="onboarding-description text-sm text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis px-2 max-w-full">{question.description}</p>
               )}
 
                 <div className="onboarding-options-grid onboarding-options-grid--mobile-responsive">

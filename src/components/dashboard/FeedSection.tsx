@@ -177,53 +177,73 @@ export function FeedSection({
         </div>
       </div>
 
-      <section className="mt-12">
-        <h2 className="flo-section-title mb-8 px-1">How's your flow?</h2>
-        <div className="flex items-center justify-around px-2">
-          {[
-            { label: 'None', id: 'none', icon: <Plus size={16} weight="light" /> },
-            { label: 'Light', id: 'light', img: '/images/flow_light.png' },
-            { label: 'Medium', id: 'medium', img: '/images/flow_medium.png' },
-            { label: 'Heavy', id: 'heavy', img: '/images/flow_heavy.png' },
-          ].map(item => (
-            <button 
-              key={item.id} 
-              className="flex flex-col items-center gap-1.5 transition-all group"
-              onClick={() => dispatch({ type: 'TOGGLE_LOG', payload: true })}
-            >
-              <div className="size-10 flex items-center justify-center !rounded-full overflow-hidden transition-transform group-hover:scale-125">
-                {item.img ? (
-                  <img src={item.img} alt={item.label} className="w-full h-full object-contain !rounded-full" />
-                ) : (
-                  <div className="text-[var(--mf-muted)] opacity-40 group-hover:opacity-100">
-                    {item.icon}
-                  </div>
-                )}
-              </div>
-              <span className="text-[0.6rem] font-medium opacity-50 group-hover:opacity-100">{item.label}</span>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <div className="mt-12 mb-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[
-          { label: 'Log Mood', img: '/images/happy.jpg' },
-          { label: 'Weight', img: '/images/weight.png' },
-          { label: 'Cravings', img: '/images/cravings.png' },
-          { label: 'More', img: '/images/exp.jpg' },
-        ].map(action => (
+      <div className="flo-card flo-card--prominent mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-400">
+        <div className="flo-card-top mb-6">
+          <p className="flo-card-title">Quick Log</p>
           <button 
-            key={action.label} 
-            className="group flex flex-col items-center gap-2.5 transition-all"
+            className="text-[var(--mf-accent)] text-xs font-semibold flex items-center gap-1 hover:opacity-80 transition-opacity" 
             onClick={() => dispatch({ type: 'TOGGLE_LOG', payload: true })}
           >
-            <div className="size-11 !rounded-full overflow-hidden transition-transform group-hover:scale-110">
-              <img src={action.img} alt={action.label} className="w-full h-full object-cover !rounded-full" />
-            </div>
-            <span className="text-[0.7rem] font-medium text-[var(--mf-muted)] group-hover:text-[var(--mf-text-strong)] opacity-60 group-hover:opacity-100 transition-all">{action.label}…</span>
+            View all <CaretRight size={12} />
           </button>
-        ))}
+        </div>
+
+        <div className="flex flex-col gap-6">
+          <div className="bg-[var(--mf-main-bg)] rounded-2xl p-4 border border-[var(--mf-border)]">
+            <h3 className="text-xs font-semibold text-[var(--mf-muted)] uppercase tracking-wider mb-4 text-center">How's your flow?</h3>
+            <div className="flex items-center justify-around">
+              {[
+                { label: 'None', id: 'none', icon: <Plus size={16} weight="bold" /> },
+                { label: 'Light', id: 'light', img: '/images/flow_light.png' },
+                { label: 'Medium', id: 'medium', img: '/images/flow_medium.png' },
+                { label: 'Heavy', id: 'heavy', img: '/images/flow_heavy.png' },
+              ].map(item => (
+                <button 
+                  key={item.id} 
+                  className="flex flex-col items-center gap-2 transition-all group outline-none"
+                  onClick={() => dispatch({ type: 'TOGGLE_LOG', payload: true })}
+                >
+                  <div className="size-12 flex items-center justify-center rounded-full bg-[var(--mf-card)] border border-[var(--mf-border)] overflow-hidden shadow-sm transition-transform group-hover:scale-110 group-hover:border-[var(--mf-accent)]">
+                    {item.img ? (
+                      <img src={item.img} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="text-[var(--mf-muted)] group-hover:text-[var(--mf-accent)] transition-colors">
+                        {item.icon}
+                      </div>
+                    )}
+                  </div>
+                  <span className="text-[0.65rem] font-medium text-[var(--mf-muted)] group-hover:text-[var(--mf-text-strong)] transition-colors">{item.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-4 gap-2">
+            {[
+              { label: 'Mood', img: '/images/happy.jpg' },
+              { label: 'Weight', img: '/images/weight.png' },
+              { label: 'Cravings', img: '/images/cravings.png' },
+              { label: 'More', icon: <Plus size={20} weight="bold" /> },
+            ].map(action => (
+              <button 
+                key={action.label} 
+                className="flex flex-col items-center gap-2 transition-all group outline-none"
+                onClick={() => dispatch({ type: 'TOGGLE_LOG', payload: true })}
+              >
+                <div className="size-12 flex items-center justify-center rounded-full bg-[var(--mf-card)] border border-[var(--mf-border)] overflow-hidden shadow-sm transition-transform group-hover:scale-110 group-hover:border-[var(--mf-accent)]">
+                  {action.img ? (
+                    <img src={action.img} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="text-[var(--mf-muted)] group-hover:text-[var(--mf-accent)] transition-colors">
+                      {action.icon}
+                    </div>
+                  )}
+                </div>
+                <span className="text-[0.65rem] font-medium text-[var(--mf-muted)] group-hover:text-[var(--mf-text-strong)] transition-colors">{action.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
 
