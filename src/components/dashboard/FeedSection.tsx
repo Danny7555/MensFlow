@@ -69,7 +69,7 @@ export function FeedSection({
         </div>
         <div className="flex items-center gap-4">
           <button 
-            className="text-[10px] uppercase tracking-widest font-bold bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] px-3 py-1.5 rounded-full hover:shadow-[0_2px_8px_rgba(var(--mf-accent-rgb),0.2)] transition-all active:scale-95"
+            className="text-[10px] uppercase tracking-widest font-medium bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] px-3 py-1.5 rounded-full hover:shadow-[0_2px_8px_rgba(var(--mf-accent-rgb),0.2)] transition-all active:scale-95"
             onClick={() => dispatch({ type: 'TOGGLE_SNAPSHOT', payload: true })}
           >
             Update Snapshot
