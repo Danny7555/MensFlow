@@ -3,6 +3,17 @@ import { Bell, Calendar as CalendarIcon, SignOut, Ghost } from "@phosphor-icons/
 import { Link } from "react-router-dom"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
 
 interface DashboardHeaderProps {
   mounted: boolean
@@ -77,13 +88,42 @@ export function DashboardHeader({
           <CalendarIcon size={24} weight="light" />
         </Link>
         <div className="w-px h-6 bg-border mx-2 opacity-50 hidden md:block" />
-        <button 
-          className="flo-icon-btn hidden md:flex text-destructive/50 hover:text-destructive hover:bg-destructive/5 transition-colors"
-          onClick={handleLogout}
-          title="Log out"
-        >
-          <SignOut size={24} weight="light" />
-        </button>
+        
+        <Dialog>
+          <DialogTrigger asChild>
+            <button 
+              className="flo-icon-btn hidden md:flex text-destructive/50 hover:text-destructive hover:bg-destructive/5 transition-colors"
+              title="Log out"
+            >
+              <SignOut size={24} weight="light" />
+            </button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Sign Out</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to sign out of MensFlow? Your local data will be safely synced.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="sm:justify-start gap-2 mt-4">
+              <DialogClose asChild>
+                <Button type="button" variant="ghost">
+                  Cancel
+                </Button>
+              </DialogClose>
+              <DialogClose asChild>
+                <Button 
+                  type="button" 
+                  variant="destructive"
+                  onClick={handleLogout}
+                >
+                  Sign Out
+                </Button>
+              </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
       </div>
     </header>
   )

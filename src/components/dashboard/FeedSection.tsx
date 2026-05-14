@@ -85,8 +85,11 @@ export function FeedSection({
 
       <div className="flo-feed-row flex items-stretch">
         {/* Primary Insight */}
-        <div className="flo-card flo-card--prominent animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="flo-card-top">
+        <div className="flo-card flo-card--prominent animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden">
+          <div className="-mx-6 -mt-6 mb-4 h-[140px] relative shrink-0">
+            <img src="/images/track.png" alt="Phase" className="w-full h-full object-cover object-center" />
+          </div>
+          <div className="flo-card-top relative z-10">
             <div className="flex items-center gap-2">
               <div className="flo-card-icon flo-card-icon--accent">
                 <Sparkle size={20} weight="fill" />
@@ -95,56 +98,65 @@ export function FeedSection({
             </div>
             <span className="text-[10px] bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] px-2.5 py-1 rounded-full font-semibold active-badge-glow">DAY {currentDay}</span>
           </div>
-          <div className="flo-card-content mt-2">
-            <h3 className="flo-card-desc text-xl tracking-tight">{data.hormoneTrend}</h3>
-            <p className="text-[0.85rem] text-[var(--mf-muted)] mt-2 leading-relaxed">
-              Progesterone is dominant, naturally increasing your metabolic rate. You might feel more hungry today.
-            </p>
-          </div>
-          <div className="mt-4 pt-3 border-t border-[var(--mf-border)] flex items-center justify-between">
-            <span className="text-xs font-medium opacity-60">PROGESTERONE PEAK</span>
-            <div className="flex gap-2">
-              {['m1', 'm2', 'm3'].map(id => <div key={id} className="size-6 rounded-full border-2 border-[var(--mf-card)] bg-[var(--mf-accent-soft)]" />)}
+          <div className="flo-card-content mt-2 relative z-10 flex flex-col justify-between h-full">
+            <div>
+              <h3 className="flo-card-desc text-xl tracking-tight">{data.hormoneTrend}</h3>
+              <p className="text-[0.85rem] text-[var(--mf-muted)] mt-2 leading-relaxed">
+                Progesterone is dominant, naturally increasing your metabolic rate. You might feel more hungry today.
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-[var(--mf-border)] flex items-center justify-between">
+              <span className="text-xs font-medium opacity-60">PROGESTERONE PEAK</span>
+              <div className="flex gap-2">
+                {['m1', 'm2', 'm3'].map(id => <div key={id} className="size-6 rounded-full border-2 border-[var(--mf-card)] bg-[var(--mf-accent-soft)]" />)}
+              </div>
             </div>
           </div>
         </div>
 
-
-          <div className="flo-card flo-card--prominent">
-            <div className="flo-card-top">
-              <div className="flo-card-icon flo-card-icon--pink">
-                <Target size={20} weight="fill" />
-              </div>
-            </div>
-            <div className="flo-card-content mt-2">
-              <p className="flo-card-title">Body Signals</p>
-              <h3 className="flo-card-desc text-lg">{data.bodySignals}</h3>
-              <p className="text-xs opacity-50 mt-2">Common for Day {currentDay}</p>
+        <div className="flo-card flo-card--prominent overflow-hidden">
+          <div className="-mx-6 -mt-6 mb-4 h-[120px] relative shrink-0">
+            <img src="/images/calm.jpg" alt="Body Signals" className="w-full h-full object-cover" />
+          </div>
+          <div className="flo-card-top relative z-10">
+            <div className="flo-card-icon flo-card-icon--pink">
+              <Target size={20} weight="fill" />
             </div>
           </div>
+          <div className="flo-card-content mt-2 relative z-10">
+            <p className="flo-card-title">Body Signals</p>
+            <h3 className="flo-card-desc text-lg">{data.bodySignals}</h3>
+            <p className="text-xs opacity-50 mt-2">Common for Day {currentDay}</p>
+          </div>
+        </div>
 
-          <div className="flo-card flo-card--prominent">
-            <div className="flo-card-top">
-              <div className="flo-card-icon flo-card-icon--pink">
-                <Heartbeat size={20} weight="fill" />
-              </div>
-            </div>
-            <div className="flo-card-content mt-2">
-              <p className="flo-card-title">Wellness Score</p>
-              <div className="flex items-end gap-1">
-                <h3 className="flo-card-desc text-2xl font-medium text-[var(--mf-accent)]">84</h3>
-                <span className="text-xs mb-1.5 font-medium text-[var(--mf-accent)] opacity-60">/100</span>
-              </div>
-              <div className="w-full h-1.5 bg-[var(--mf-border)] rounded-full mt-3">
-                <div className="h-full bg-[var(--mf-accent)] rounded-full" style={{ width: '84%' }} />
-              </div>
+        <div className="flo-card flo-card--prominent overflow-hidden">
+          <div className="-mx-6 -mt-6 mb-4 h-[120px] relative shrink-0">
+            <img src="/images/heart.png" alt="Wellness" className="w-full h-full object-cover object-center" style={{ transform: 'scale(1.5) translateY(10px)' }} />
+          </div>
+          <div className="flo-card-top relative z-10">
+            <div className="flo-card-icon flo-card-icon--pink">
+              <Heartbeat size={20} weight="fill" />
             </div>
           </div>
-
+          <div className="flo-card-content mt-2 relative z-10">
+            <p className="flo-card-title">Wellness Score</p>
+            <div className="flex items-end gap-1">
+              <h3 className="flo-card-desc text-2xl font-medium text-[var(--mf-accent)]">84</h3>
+              <span className="text-xs mb-1.5 font-medium text-[var(--mf-accent)] opacity-60">/100</span>
+            </div>
+            <div className="w-full h-1.5 bg-[var(--mf-border)] rounded-full mt-3">
+              <div className="h-full bg-[var(--mf-accent)] rounded-full" style={{ width: '84%' }} />
+            </div>
+          </div>
+        </div>
 
         {/* Guidance Card */}
-        <div className="flo-card flo-card--featured animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200">
-          <div className="flo-card-top">
+        <div className="flo-card flo-card--featured animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200 overflow-hidden">
+          <div className="-mx-6 -mt-6 mb-4 h-[120px] relative shrink-0">
+            <img src="/images/star.png" alt="Daily Tip" className="w-full h-full object-cover object-center" style={{ transform: 'scale(1.2)' }} />
+          </div>
+          <div className="flo-card-top relative z-10">
             <div className="flex items-center gap-2">
               <div className="flo-card-icon flo-card-icon--pink">
                 <Plus size={20} weight="fill" />
@@ -153,7 +165,7 @@ export function FeedSection({
             </div>
           </div>
           
-          <div className="mt-6">
+          <div className="mt-2 relative z-10">
             <div className="flex flex-col gap-3">
               <ul className="flo-guidance-list">
                 <li className="flo-guidance-item">
@@ -163,15 +175,18 @@ export function FeedSection({
               </ul>
             </div>
           </div>
-          </div>
+        </div>
         
         {/* Hormone Insight Card */}
-        <div className="flo-card flo-card--dark animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
-          <div className="flo-card-top">
+        <div className="flo-card flo-card--dark animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300 overflow-hidden">
+          <div className="-mx-6 -mt-6 mb-4 h-[120px] relative shrink-0">
+            <img src="/images/brain.png" alt="Insight" className="w-full h-full object-cover object-center" style={{ transform: 'scale(1.2)' }} />
+          </div>
+          <div className="flo-card-top relative z-10">
             <p className="flo-card-title">Scientific Insight</p>
             <Sparkle size={16} className="text-[var(--mf-accent)]" weight="fill" />
           </div>
-          <div className="mt-3">
+          <div className="mt-2 relative z-10 flex flex-col justify-between h-full">
             <p className="text-[0.95rem] text-[var(--mf-text)] opacity-90 leading-relaxed">
               Did you know? Progesterone can raise your resting heart rate by <span className="text-[var(--mf-accent)] font-semibold">2-5 beats per minute</span> during this phase. Don't be alarmed if your tracker shows slightly higher exertion today.
             </p>
