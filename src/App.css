@@ -8,17 +8,17 @@
 }
 
 .glass-morphism {
-  background: rgba(var(--mf-card-rgb, 255, 255, 255), 0.8) !important;
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border: 1px solid rgba(var(--mf-border-rgb, 229, 231, 235), 0.4) !important;
-  box-shadow: none;
+  background: rgba(var(--mf-card-rgb, 255, 255, 255), 0.75) !important;
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid rgba(var(--mf-accent-rgb), 0.15) !important;
+  box-shadow: 0 8px 32px rgba(var(--mf-accent-rgb), 0.05);
 }
 
 [data-theme='dark'] .glass-morphism {
-  background: rgba(var(--mf-card-rgb, 20, 20, 22), 0.6) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  box-shadow: none;
+  background: rgba(var(--mf-card-rgb, 31, 22, 29), 0.6) !important;
+  border: 1px solid rgba(var(--mf-accent-rgb), 0.15) !important;
+  box-shadow: 0 8px 32px rgba(var(--mf-accent-rgb), 0.08);
 }
 
 .app-main {
@@ -3692,7 +3692,7 @@
   flex-direction: column;
   height: 100%;
   width: 100%;
-  background: radial-gradient(circle at 50% 35%, rgba(var(--mf-accent-rgb, 219, 39, 119), 0.04) 0%, var(--mf-main-bg) 80%);
+  background: radial-gradient(circle at 50% 20%, rgba(var(--mf-accent-rgb), 0.08) 0%, rgba(var(--mf-accent-rgb), 0.02) 40%, var(--mf-main-bg) 80%);
   position: relative;
   overflow: hidden;
 }
@@ -3716,22 +3716,24 @@
 
 .flo-card {
   background: var(--mf-card);
-  border: 1px solid rgba(var(--mf-border-rgb, 229, 231, 235), 0.45);
-  border-radius: 24px;
-  padding: 1.25rem;
+  border: 1px solid rgba(var(--mf-border-rgb, 240, 230, 234), 0.6);
+  border-radius: 32px;
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
   min-height: 100px;
   height: auto;
+  box-shadow: 0 10px 40px -10px rgba(var(--mf-accent-rgb), 0.06);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 [data-theme='dark'] .flo-card,
 [data-theme='dark'] .flo-action-btn {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(var(--mf-card-rgb, 20, 20, 22), 0.45); /* Increased opacity for legibility */
-  backdrop-filter: blur(20px);
+  border: 1px solid rgba(var(--mf-accent-rgb), 0.15);
+  background: rgba(var(--mf-card-rgb, 31, 22, 29), 0.5);
+  backdrop-filter: blur(24px);
+  box-shadow: 0 10px 40px -10px rgba(var(--mf-accent-rgb), 0.06);
 }
 
 .flo-card--prominent {
