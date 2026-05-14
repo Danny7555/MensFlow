@@ -30,7 +30,15 @@ export function DashboardHeader({
         </div>
         <div className="flo-greeting">
           <div className="flex items-center gap-2">
-            <p className="flo-date">{mounted ? format(new Date(), 'EEEE, d MMMM') : ''}</p>
+            <p className="flo-date">
+              {mounted ? (
+                <>
+                  <span className="font-semibold text-[var(--mf-accent)]">{format(new Date(), 'h:mm a')}</span>
+                  <span className="mx-1.5 opacity-50">•</span>
+                  {format(new Date(), 'EEEE, d MMMM')}
+                </>
+              ) : ''}
+            </p>
             <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-muted/30 border border-border/50 sync-pill">
               <div className={cn("size-1.5 rounded-full", isSaving ? "bg-orange-400 sync-dot-active" : "bg-green-500")} />
               <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
