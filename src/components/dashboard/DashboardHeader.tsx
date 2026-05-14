@@ -51,15 +51,15 @@ export function DashboardHeader({
         >
           <Ghost size={20} weight={temporaryChat ? "fill" : "regular"} />
         </button>
-        <Link to="/notifications" className="flo-icon-btn hover:bg-muted/50 transition-colors" aria-label="Notifications">
+        <Link to="/notifications" className="flo-icon-btn hidden md:flex hover:bg-muted/50 transition-colors" aria-label="Notifications">
           <Bell size={24} weight="light" />
         </Link>
         <Link to="/calendar" className="flo-icon-btn hover:bg-muted/50 transition-colors" aria-label="Calendar">
           <CalendarIcon size={24} weight="light" />
         </Link>
-        <div className="w-px h-6 bg-border mx-2 opacity-50" />
+        <div className="w-px h-6 bg-border mx-2 opacity-50 hidden md:block" />
         <button 
-          className="flo-icon-btn text-destructive/50 hover:text-destructive hover:bg-destructive/5 transition-colors"
+          className="flo-icon-btn hidden md:flex text-destructive/50 hover:text-destructive hover:bg-destructive/5 transition-colors"
           onClick={handleLogout}
           title="Log out"
         >
