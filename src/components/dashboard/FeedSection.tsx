@@ -1,5 +1,5 @@
 
-import { Sparkle, Target, Heartbeat, Plus, PencilSimple, Check, CaretRight } from "@phosphor-icons/react"
+import { Sparkle, Target, Heartbeat, Plus, Check, CaretRight } from "@phosphor-icons/react"
 
 interface FeedSectionData {
   lastPeriodStart: string
@@ -19,15 +19,44 @@ interface FeedSectionProps {
   update: (data: Partial<FeedSectionData>) => Promise<void>
 }
 
+const CYCLE_DAILY_TIPS = [
+  "Rest and hydrate. Your body is resetting today.",
+  "Keep workouts light. Walking or stretching is ideal.",
+  "Energy is still low. Focus on nutrient-dense warm meals.",
+  "You might start feeling a slight energy lift. Ease into activity.",
+  "Your focus is improving. Great day for planning ahead.",
+  "Energy is rising! Add a bit more intensity to your workout.",
+  "Confidence is building. Tackle tasks you've been putting off.",
+  "Social energy is high. Connect with friends or colleagues.",
+  "Peak brain power today. Focus on complex problem solving.",
+  "Your stamina is strong. Try a high-intensity (HIIT) session.",
+  "Testosterone and estrogen are peaking. You're feeling your best.",
+  "Great day for strength training and pushing your limits.",
+  "Communication skills are at their peak. Have important conversations.",
+  "Metabolism naturally increases. Listen to your hunger cues.",
+  "Energy might start to plateau. Maintain steady habits.",
+  "You might feel a slight dip. Prioritize complex carbohydrates.",
+  "Focus on steady-state cardio rather than max-effort lifting.",
+  "Emotions might feel closer to the surface. Practice mindfulness.",
+  "Your body needs more recovery time after workouts.",
+  "Cravings might spike. Opt for magnesium-rich dark chocolate.",
+  "Energy is turning inward. Great day for solo, focused work.",
+  "Water retention might occur. Drink plenty of fluids.",
+  "Keep your evening schedule light to prioritize sleep.",
+  "Your core temperature is higher. Keep your sleeping room cool.",
+  "Avoid excessive caffeine as it might heighten stress.",
+  "Focus on active recovery like yoga or light mobility work.",
+  "Listen to your body. If you're tired, it's okay to rest.",
+  "Prepare for tomorrow. Keep your routine simple and grounding."
+]
+
 export function FeedSection({
   data,
   computeCycleDay,
   dispatch,
-  state,
-  guidanceText,
-  update,
 }: FeedSectionProps) {
   const currentDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
+  const tipOfTheDay = CYCLE_DAILY_TIPS[(currentDay - 1) % CYCLE_DAILY_TIPS.length]
 
   return (
     <section className="flo-feed-section">
@@ -120,45 +149,21 @@ export function FeedSection({
               <div className="flo-card-icon flo-card-icon--pink">
                 <Plus size={20} weight="fill" />
               </div>
-              <p className="flo-card-title !mb-0">Daily Guidance</p>
+              <p className="flo-card-title !mb-0">Daily Tip</p>
             </div>
-            <button 
-              onClick={() => dispatch({ type: 'TOGGLE_GUIDANCE' })}
-              className="flo-edit-btn"
-            >
-              {state.isEditingGuidance ? <Check size={16} /> : <PencilSimple size={16} />}
-            </button>
           </div>
           
           <div className="mt-6">
-            {state.isEditingGuidance ? (
-              <textarea
-                className="flo-textarea"
-                rows={6}
-                value={guidanceText}
-                onChange={(e) => {
-                  const lines = e.target.value
-                    .split('\n')
-                    .flatMap((s) => s.trim() ? [s.trim()] : [])
-                  update({ guidanceLines: lines })
-                }}
-              />
-            ) : (
-              <div className="flex flex-col gap-3">
-
-                <ul className="flo-guidance-list">
-                  {data.guidanceLines.map((line: string) => (
-                    <li key={line} className="flo-guidance-item">
-                      <div className="flo-guidance-dot" />
-                      <span className="text-[0.98rem] font-medium opacity-90">{line}</span>
-                    </li>
-                  ))}
-                </ul>
-
-              </div>
-            )}
+            <div className="flex flex-col gap-3">
+              <ul className="flo-guidance-list">
+                <li className="flo-guidance-item">
+                  <Check size={16} className="text-[var(--mf-accent)] shrink-0" weight="bold" />
+                  <span className="text-[0.9rem] leading-snug">{tipOfTheDay}</span>
+                </li>
+              </ul>
+            </div>
           </div>
-        </div>
+          </div>
         
         {/* Hormone Insight Card */}
         <div className="flo-card flo-card--dark animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
