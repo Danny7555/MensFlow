@@ -12,6 +12,7 @@ import { PlaceholderView } from './views/PlaceholderView'
 import { SettingsView } from './views/SettingsView'
 import { CalendarView } from './views/CalendarView'
 import { TrackerView } from './views/TrackerView'
+import { Toaster } from 'sonner'
 import { SymptomsView } from './views/SymptomsView'
 import { EducationView } from './views/EducationView'
 import { OnboardingView } from './views/OnboardingView'
@@ -209,6 +210,7 @@ export default function App() {
         <DashboardDataProvider>
           <ThemeSync />
           <MainShell />
+          <Toaster position="top-right" richColors theme="light" className="mt-14" />
         </DashboardDataProvider>
       </SettingsProvider>
     </AuthProvider>
