@@ -1,5 +1,8 @@
 import { useState } from "react"
+<<<<<<< HEAD
 import { format } from "date-fns"
+=======
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
 import { 
   Dialog,
   DialogContent,
@@ -10,13 +13,17 @@ import {
 import { cn } from "@/lib/utils"
 import { SYMPTOM_DEFS } from "@/data/symptomsData"
 import { Drop, Smiley, Pulse } from "@phosphor-icons/react"
+<<<<<<< HEAD
 import { useStore } from "@/store/useStore"
 import { toast } from "sonner"
+=======
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
 
 interface LogSymptomsModalProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
   activeDay: number
+<<<<<<< HEAD
   activeDate: Date
 }
 
@@ -31,12 +38,21 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
 
   const toggleSymptom = (id: string) => {
     if (isSaving) return
+=======
+}
+
+export function LogSymptomsModal({ isOpen, onOpenChange, activeDay }: LogSymptomsModalProps) {
+  const [selectedSymptoms, setSelectedSymptoms] = useState<Set<string>>(new Set())
+
+  const toggleSymptom = (id: string) => {
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
     const next = new Set(selectedSymptoms)
     if (next.has(id)) next.delete(id)
     else next.add(id)
     setSelectedSymptoms(next)
   }
 
+<<<<<<< HEAD
   const handleSave = async () => {
     await addLog(dateKey, Array.from(selectedSymptoms))
     
@@ -58,6 +74,8 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
     onOpenChange(false)
   }
 
+=======
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
   const categories = [
     { name: "Flow", icon: Drop, color: "text-[#ff5a5f]", bgColor: "bg-[#ff5a5f]/10" },
     { name: "Mood", icon: Smiley, color: "text-[#007e94]", bgColor: "bg-[#007e94]/10" },
@@ -65,9 +83,12 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
   ]
 
   const symptomImages: Record<string, string> = {
+<<<<<<< HEAD
     'flow-light': '/images/flow_light.png',
     'flow-medium': '/images/flow_medium.png',
     'flow-heavy': '/images/flow_heavy.png',
+=======
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
     'mood-happy': '/images/happy.jpg',
     'mood-sad': '/images/sad.jpg',
     'mood-irritable': '/images/angry.jpg',
@@ -86,13 +107,21 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
       <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden border-none rounded-[32px] bg-background">
         <div className="p-8">
           <DialogHeader className="mb-6">
+<<<<<<< HEAD
             <DialogTitle className="text-2xl font-medium tracking-tight">Log Symptoms: Day {activeDay}</DialogTitle>
+=======
+            <DialogTitle className="text-2xl font-medium tracking-tight">Log Symptoms — Day {activeDay}</DialogTitle>
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
             <DialogDescription className="text-sm text-muted-foreground pt-1">
               Select any symptoms or moods you're experiencing today.
             </DialogDescription>
           </DialogHeader>
 
+<<<<<<< HEAD
           <div className={cn("space-y-6 max-h-[440px] overflow-y-auto pr-2 scrollbar-hide transition-opacity", isSaving && "opacity-50 pointer-events-none")}>
+=======
+          <div className="space-y-6 max-h-[440px] overflow-y-auto pr-2 scrollbar-hide">
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
             {categories.map((cat) => {
               const items = SYMPTOM_DEFS.filter(s => s.category === cat.name)
               if (items.length === 0) return null
@@ -112,7 +141,10 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
                         <button
                           key={s.id}
                           onClick={() => toggleSymptom(s.id)}
+<<<<<<< HEAD
                           disabled={isSaving}
+=======
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
                           className={cn(
                             "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 border",
                             isActive 
@@ -139,6 +171,7 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
 
           <div className="mt-8 flex gap-3">
             <button 
+<<<<<<< HEAD
               onClick={handleSave}
               disabled={isSaving}
               className={cn(
@@ -154,6 +187,12 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
               ) : (
                 "Save Log"
               )}
+=======
+              onClick={() => onOpenChange(false)}
+              className="flex-1 h-12 rounded-2xl bg-[var(--mf-accent)] text-white font-medium hover:brightness-110 transition-all shadow-none"
+            >
+              Save Log
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
             </button>
           </div>
         </div>

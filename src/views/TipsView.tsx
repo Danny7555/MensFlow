@@ -1,7 +1,11 @@
 import { useMemo, useState } from 'react'
 
 import { TIPS_DUMMY, type WellnessTip } from '../data/tipsData'
+<<<<<<< HEAD
 import { useStore } from '../store/useStore'
+=======
+import { useDashboardData } from '../context/useDashboardData'
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
 import { cn } from '@/lib/utils';
 
 const CATS: { id: WellnessTip['category'] | 'all'; label: string }[] = [

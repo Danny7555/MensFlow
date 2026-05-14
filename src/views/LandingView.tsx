@@ -62,6 +62,7 @@ export function LandingView() {
           />
         </div>
 
+<<<<<<< HEAD
         {!onboardingCompleted && (
           <>
             <div className="landing-cta-divider">
@@ -77,6 +78,8 @@ export function LandingView() {
             </button>
           </>
         )}
+=======
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
       </div>
     </div>
   )

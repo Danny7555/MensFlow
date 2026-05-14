@@ -133,9 +133,12 @@ export function AuthModal({ open, onClose, onContinue, isLoading }: AuthModalPro
           onClick={submitEmail}
           disabled={isLoading || !email.trim().includes('@')}
         >
+<<<<<<< HEAD
           {isLoading ? (
              <div className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           ) : null}
+=======
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
           Sign in
         </button>
 

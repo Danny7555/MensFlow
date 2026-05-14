@@ -28,8 +28,20 @@ const CartesianGrid = React.lazy(() => import("recharts").then(m => ({ default: 
 const XAxis = React.lazy(() => import("recharts").then(m => ({ default: m.XAxis })))
 const YAxis = React.lazy(() => import("recharts").then(m => ({ default: m.YAxis })))
 
+<<<<<<< HEAD
 import { useStore } from "@/store/useStore"
 import { subDays, format } from "date-fns"
+=======
+const chartData = [
+  { day: "Monday", intensity: 4 },
+  { day: "Tuesday", intensity: 3 },
+  { day: "Wednesday", intensity: 5 },
+  { day: "Thursday", intensity: 2 },
+  { day: "Friday", intensity: 6 },
+  { day: "Saturday", intensity: 7 },
+  { day: "Sunday", intensity: 5 },
+]
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
 
 const chartConfig = {
   intensity: {
@@ -39,6 +51,7 @@ const chartConfig = {
 } satisfies ChartConfig
 
 export function SymptomTrendsChart() {
+<<<<<<< HEAD
   const { logs } = useStore()
 
   const chartData = React.useMemo(() => {
@@ -52,6 +65,8 @@ export function SymptomTrendsChart() {
       }
     }).reverse()
   }, [logs])
+=======
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
   return (
     <Card className="border-none shadow-none bg-transparent">
       <CardHeader className="p-4 pb-2">

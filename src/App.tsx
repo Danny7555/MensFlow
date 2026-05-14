@@ -1,6 +1,10 @@
 import { useCallback, useState } from 'react'
+<<<<<<< HEAD
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { cn } from './lib/utils'
+=======
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
 import { ThemeSync } from './components/ThemeSync'
 import { ChatView } from './views/ChatView'
 import { DashboardDataProvider } from './context/DashboardDataProvider'
@@ -12,11 +16,16 @@ import { PlaceholderView } from './views/PlaceholderView'
 import { SettingsView } from './views/SettingsView'
 import { CalendarView } from './views/CalendarView'
 import { TrackerView } from './views/TrackerView'
+<<<<<<< HEAD
 import { Toaster } from 'sonner'
 import { SymptomsView } from './views/SymptomsView'
 import { EducationView } from './views/EducationView'
 import { OnboardingView } from './views/OnboardingView'
 import { NotificationsView } from './views/NotificationsView'
+=======
+import { SymptomsView } from './views/SymptomsView'
+import { EducationView } from './views/EducationView'
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
 import { NotFoundView } from './views/NotFoundView'
 import { AuthProvider } from './context/AuthProvider'
 import { SettingsProvider } from './context/SettingsProvider'
@@ -25,15 +34,25 @@ import { useAuth } from './context/useAuth'
 import { useSettings } from './context/useSettings'
 import { Header } from './components/Header'
 import { Sidebar } from './components/Sidebar'
+<<<<<<< HEAD
 import { House, Target, Heartbeat, Bell, UserCircle } from '@phosphor-icons/react'
+=======
+
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
 import { useMediaQuery } from './hooks/useMediaQuery'
 import './App.css'
 
 function MainShell() {
+<<<<<<< HEAD
   const { isAuthenticated, onboardingCompleted, logout, openAuthModal } = useAuth()
   const { settings, updateSettings } = useSettings()
   const navigate = useNavigate()
   const location = useLocation()
+=======
+  const { isAuthenticated, logout, openAuthModal } = useAuth()
+  const { settings, updateSettings } = useSettings()
+  const navigate = useNavigate()
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
   const isMobile = useMediaQuery('(max-width: 768px)')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [temporaryChat, setTemporaryChat] = useState(false)
@@ -75,6 +94,7 @@ function MainShell() {
       value={{ temporaryChat, setTemporaryChat }}
     >
       <div className="app-shell">
+<<<<<<< HEAD
         {!location.pathname.startsWith('/onboarding') && (!isMobile || location.pathname !== '/dashboard') && (
           <Sidebar
             isAuthenticated={isAuthenticated}
@@ -86,6 +106,41 @@ function MainShell() {
             onToggleDesktopCollapse={() =>
               updateSettings({ sidebarCollapsed: !settings.sidebarCollapsed })
             }
+=======
+        <Sidebar
+          isAuthenticated={isAuthenticated}
+          mobileOpen={sidebarOpen}
+          onCloseMobile={() => setSidebarOpen(false)}
+          onLogin={openAuthModal}
+          isMobile={isMobile}
+          desktopCollapsed={settings.sidebarCollapsed}
+          onToggleDesktopCollapse={() =>
+            updateSettings({ sidebarCollapsed: !settings.sidebarCollapsed })
+          }
+        />
+
+        <div className="app-main">
+          <Header
+            isAuthenticated={isAuthenticated}
+            onToggleSidebar={toggleSidebar}
+            sidebarExpanded={sidebarExpanded}
+            sidebarToggleLabel={sidebarToggleLabel}
+            onOpenAuth={openAuthModal}
+            temporaryChat={isAuthenticated ? temporaryChat : undefined}
+            onToggleTemporaryChat={
+              isAuthenticated
+                ? () => {
+                    const next = !temporaryChat
+                    setTemporaryChat(next)
+                    if (next) {
+                      navigate('/ask')
+                    }
+                  }
+                : undefined
+            }
+            onLogout={handleLogout}
+            isMobile={isMobile}
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
           />
         )}
 
@@ -152,7 +207,10 @@ function MainShell() {
                   <Route path="/tips" element={<TipsView />} />
                   <Route path="/wellness-tips" element={<Navigate to="/tips" replace />} />
                   <Route path="/calendar" element={<CalendarView />} />
+<<<<<<< HEAD
                   <Route path="/notifications" element={<NotificationsView />} />
+=======
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
                   <Route path="/tracker" element={<TrackerView />} />
                   <Route path="/symptoms" element={<SymptomsView />} />
                   <Route path="/education" element={<EducationView />} />

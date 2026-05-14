@@ -61,11 +61,14 @@ export function ChatView() {
   const [now, setNow] = useState<Date | null>(null)
   const prevTemporary = useRef<boolean | null>(null)
 
+<<<<<<< HEAD
   useEffect(() => {
     setMounted(true)
     setNow(new Date())
   }, [])
 
+=======
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
   useEffect(() => {
     if (prevTemporary.current === null) {
       prevTemporary.current = temporaryChat
@@ -121,7 +124,11 @@ export function ChatView() {
   const isInitialState = messages.length === 0
 
   return (
+<<<<<<< HEAD
     <div className={isInitialState ? "landing" : "chat-view"}>
+=======
+    <div className={isInitialState ? "landing" : "chat-view"} suppressHydrationWarning>
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
       {isInitialState ? (
         <div className="landing-center animate-in fade-in zoom-in duration-700">
           <div className="landing-hero-image-wrap">
@@ -184,10 +191,17 @@ export function ChatView() {
               >
                 <span className="chat-role">
                   {m.role === 'user' ? 'You' : 'MensFlow'}
+<<<<<<< HEAD
                   {chatShowTimestamps && mounted && (
                     <time
                       className="chat-time"
                       dateTime={now?.toISOString() || ""}
+=======
+                  {chatShowTimestamps && (
+                    <time
+                      className="chat-time"
+                      dateTime={new Date(m.createdAt).toISOString()}
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
                       suppressHydrationWarning
                     >
                       {fmtTime(m.createdAt)}

@@ -155,6 +155,7 @@ export function InteractiveAreaChart() {
       return date >= startDate
     })
   }, [timeRange])
+<<<<<<< HEAD
 
   const formatDate = React.useCallback((value: string) => {
     if (!mounted) return ""
@@ -163,6 +164,8 @@ export function InteractiveAreaChart() {
       day: "numeric",
     })
   }, [mounted])
+=======
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
 
   return (
     <Card className="border-none shadow-none ring-0 bg-transparent">
@@ -234,6 +237,7 @@ export function InteractiveAreaChart() {
                 axisLine={false}
                 tickMargin={8}
                 minTickGap={32}
+<<<<<<< HEAD
                 tickFormatter={formatDate}
                 suppressHydrationWarning
               />
@@ -248,6 +252,31 @@ export function InteractiveAreaChart() {
                   }
                 />
               )}
+=======
+                tickFormatter={(value) => {
+                  const date = new Date(value)
+                  return date.toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  })
+                }}
+                suppressHydrationWarning
+              />
+              <ChartTooltip
+                cursor={false}
+                content={
+                  <ChartTooltipContent
+                    labelFormatter={(value) => {
+                      return new Date(value).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })
+                    }}
+                    indicator="dot"
+                  />
+                }
+              />
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
               <Area
                 dataKey="bloating"
                 type="natural"

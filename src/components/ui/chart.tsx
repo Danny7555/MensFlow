@@ -1,4 +1,5 @@
 import * as React from "react"
+<<<<<<< HEAD
 
 // Type for chart payload items
 interface ChartPayloadItem {
@@ -15,6 +16,13 @@ interface ChartPayloadItem {
 const ResponsiveContainer = React.lazy(() => import("recharts").then(m => ({ default: m.ResponsiveContainer })))
 const Tooltip = React.lazy(() => import("recharts").then(m => ({ default: m.Tooltip })))
 const Legend = React.lazy(() => import("recharts").then(m => ({ default: m.Legend })))
+=======
+import * as RechartsPrimitive from "recharts"
+import type {
+  ValueType as TooltipValueType,
+  NameType as TooltipNameType,
+} from "recharts/types/component/DefaultTooltipContent"
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
 
 import { cn } from "@/lib/utils"
 
@@ -178,6 +186,52 @@ const ChartTooltipLabel = React.memo(({
   )
 })
 
+const ChartTooltipLabel = React.memo(({
+  config,
+  hideLabel,
+  payload,
+  label,
+  labelKey,
+  labelClassName,
+  labelFormatter,
+}: {
+  config: ChartConfig
+  hideLabel: boolean
+  payload: readonly any[]
+  label: React.ReactNode
+  labelKey?: string
+  labelClassName?: string
+  labelFormatter?: (value: any, payload: readonly any[]) => React.ReactNode
+}) => {
+  if (hideLabel) {
+    return null
+  }
+
+  const item = payload?.[0]
+  const key = `${labelKey ?? item?.dataKey ?? item?.name ?? "value"}`
+  const itemConfig = getPayloadConfigFromPayload(config, item, key)
+  const value =
+    !labelKey && typeof label === "string"
+      ? (config[label]?.label ?? label)
+      : itemConfig?.label
+
+  if (labelFormatter) {
+    return (
+      <div className={cn("font-medium", labelClassName)}>
+        {labelFormatter(value, payload ?? [])}
+      </div>
+    )
+  }
+
+  if (!value) {
+    return null
+  }
+
+  return (
+    <div className={cn("font-medium", labelClassName)}>{value}</div>
+  )
+})
+
 function ChartTooltipContent({
   active,
   payload,
@@ -209,7 +263,11 @@ function ChartTooltipContent({
 } & React.ComponentProps<"div">) {
   const { config } = useChart()
 
+<<<<<<< HEAD
   if (!active || !Array.isArray(payload) || !payload.length) {
+=======
+  if (!active || !payload?.length) {
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
     return null
   }
 
@@ -235,7 +293,11 @@ function ChartTooltipContent({
         />
       ) : null}
       <div className="grid gap-1.5">
+<<<<<<< HEAD
         {(payload as ChartPayloadItem[]).reduce<React.ReactNode[]>((acc, item: ChartPayloadItem, index) => {
+=======
+        {payload.reduce<React.ReactNode[]>((acc, item, index) => {
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
           if (item.type === "none") return acc
           const key = `${nameKey ?? item.name ?? item.dataKey ?? "value"}`
           const itemConfig = getPayloadConfigFromPayload(config, item, key)
@@ -344,7 +406,11 @@ function ChartLegendContent({
         className
       )}
     >
+<<<<<<< HEAD
       {(payload as ChartPayloadItem[]).reduce<React.ReactNode[]>((acc, item: ChartPayloadItem) => {
+=======
+      {payload.reduce<React.ReactNode[]>((acc, item) => {
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
         if (item.type === "none") return acc
         const key = `${nameKey ?? item.dataKey ?? "value"}`
         const itemConfig = getPayloadConfigFromPayload(config, item, key)

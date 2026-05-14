@@ -132,6 +132,7 @@
   --mf-elevated: #fafafa;
   --mf-card: #ffffff;
   --mf-card-rgb: 255, 255, 255;
+<<<<<<< HEAD
   --mf-composer-bg: #fdf8fa;
   --mf-border: #f0e6ea;
   --mf-border-rgb: 240, 230, 234;
@@ -143,6 +144,18 @@
   --mf-accent-hover: #ff5277;
   --mf-accent-soft: rgba(255, 107, 139, 0.12);
   --mf-accent-border: rgba(255, 107, 139, 0.25);
+=======
+  --mf-composer-bg: #f6f6f8;
+  --mf-border: #e6e4ea;
+  --mf-border-rgb: 230, 228, 234;
+  --mf-border-strong: #c4bec9;
+  --mf-hover: rgba(12, 10, 16, 0.06);
+  --mf-active: rgba(12, 10, 16, 0.09);
+  --mf-accent: #db2777;
+  --mf-accent-hover: #be185d;
+  --mf-accent-soft: rgba(219, 39, 119, 0.14);
+  --mf-accent-border: rgba(219, 39, 119, 0.38);
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
   --mf-danger: #b42318;
   --mf-danger-soft: rgba(180, 35, 24, 0.12);
   --mf-success: #067647;
@@ -162,6 +175,7 @@
   --mf-text: #c9c4d1;
   --mf-text-strong: #f4f2f8;
   --mf-muted: #9d96a8;
+<<<<<<< HEAD
   --mf-main-bg: #1a1318;
   --mf-sidebar-bg: #1f161d;
   --mf-elevated: #251a22;
@@ -178,6 +192,23 @@
   --mf-accent-hover: #ffafbf;
   --mf-accent-soft: rgba(255, 141, 161, 0.15);
   --mf-accent-border: rgba(255, 141, 161, 0.35);
+=======
+  --mf-main-bg: #0d0d0f;
+  --mf-sidebar-bg: #121214;
+  --mf-elevated: #18181b;
+  --mf-card: #141416;
+  --mf-card-rgb: 20, 20, 22;
+  --mf-composer-bg: #18181b;
+  --mf-border: #27272c;
+  --mf-border-rgb: 39, 39, 44;
+  --mf-border-strong: #4b4658;
+  --mf-hover: rgba(255, 255, 255, 0.06);
+  --mf-active: rgba(255, 255, 255, 0.1);
+  --mf-accent: #f472b6;
+  --mf-accent-hover: #f9a8d4;
+  --mf-accent-soft: rgba(244, 114, 182, 0.2);
+  --mf-accent-border: rgba(244, 114, 182, 0.48);
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
   --mf-danger: #f97066;
   --mf-danger-soft: rgba(249, 112, 102, 0.15);
   --mf-success: #75dda8;

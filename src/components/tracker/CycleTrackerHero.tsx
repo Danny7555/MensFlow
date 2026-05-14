@@ -1,8 +1,15 @@
+<<<<<<< HEAD
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client"
 
 import { useState, useEffect, useMemo } from 'react'
 import { CaretDown, CaretRight, Info, Lightning, Heart } from '@phosphor-icons/react'
+=======
+"use client"
+
+import { useState, useMemo } from 'react'
+import { CaretDown, CaretRight, Smiley, Info } from '@phosphor-icons/react'
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
 import { format, addDays, startOfDay } from 'date-fns'
 
 import { 
@@ -18,6 +25,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 
+<<<<<<< HEAD
 import { useStore } from '@/store/useStore'
 import { LogSymptomsModal } from './LogSymptomsModal'
 
@@ -26,10 +34,17 @@ export function CycleTrackerHero() {
   
   const [currentDay, setCurrentDay] = useState(1)
   const [selectedDay, setSelectedDay] = useState<number>(1);
+=======
+import { LogSymptomsModal } from './LogSymptomsModal'
+
+export function CycleTrackerHero() {
+  const [selectedDay, setSelectedDay] = useState<number>(12);
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
   const [hoveredDay, setHoveredDay] = useState<number | null>(null);
   const [trackingMode, setTrackingMode] = useState<string>('Period');
   const [isLogModalOpen, setIsLogModalOpen] = useState(false)
 
+<<<<<<< HEAD
   useEffect(() => {
     const start = new Date(`${data.lastPeriodStart}T12:00:00`)
     if (!Number.isNaN(+start)) {
@@ -45,6 +60,12 @@ export function CycleTrackerHero() {
 
   const cycleLength = data.typicalCycleDays;
   // currentDay already defined above
+=======
+  const modes = ['Period', 'Conception', 'Pregnancy', 'Perimenopause'];
+
+  const cycleLength = 27;
+  const currentDay = 12;
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
 
   const periodLength = 5;
   const predictedPeriodLength = 2; 
@@ -171,17 +192,28 @@ export function CycleTrackerHero() {
         <div className="viz-ring-container">
           <svg viewBox="0 0 100 100" className="viz-ring" style={{ overflow: 'visible' }}>
             {/* Background track (dashed) */}
+<<<<<<< HEAD
             <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" strokeWidth="6" className="opacity-10" strokeDasharray="0.1 2.5" strokeLinecap="round" />
+=======
+            <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" strokeWidth="9" className="opacity-10" strokeDasharray="0.1 2.5" strokeLinecap="round" />
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
             
             {/* Inner Dots */}
             {dots}
             
             {/* Segments */}
             <g className="viz-segments" style={{ pointerEvents: 'none' }}>
+<<<<<<< HEAD
               <path d={periodPath} fill="none" stroke="#dc2626" strokeWidth="6" strokeLinecap="round" opacity="1" />
               <path d={predictedPath} fill="none" stroke="#ffc7c8" strokeWidth="6" strokeLinecap="round" opacity={activeDay > periodLength && activeDay <= periodLength + predictedPeriodLength ? 1 : 0.8} />
               <path d={fertilePath} fill="none" stroke="#26899e" strokeWidth="6" strokeLinecap="round" opacity={activeDay >= fertileStart && activeDay <= fertileEnd ? 1 : 0.8} />
               <path d={upcomingPath} fill="none" stroke="currentColor" strokeWidth="6" className="opacity-20" strokeLinecap="round" />
+=======
+              <path d={periodPath} fill="none" stroke="#dc2626" strokeWidth="9" strokeLinecap="round" opacity="1" />
+              <path d={predictedPath} fill="none" stroke="#ffc7c8" strokeWidth="9" strokeLinecap="round" opacity={activeDay > periodLength && activeDay <= periodLength + predictedPeriodLength ? 1 : 0.8} />
+              <path d={fertilePath} fill="none" stroke="#26899e" strokeWidth="9" strokeLinecap="round" opacity={activeDay >= fertileStart && activeDay <= fertileEnd ? 1 : 0.8} />
+              <path d={upcomingPath} fill="none" stroke="currentColor" strokeWidth="9" className="opacity-20" strokeLinecap="round" />
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
             </g>
 
             {/* Selection Marker */}
@@ -247,6 +279,7 @@ export function CycleTrackerHero() {
 
       <div className="cycle-tracker-mood-cta">
         <div 
+<<<<<<< HEAD
           role="button"
           tabIndex={0}
           onClick={() => setIsLogModalOpen(true)}
@@ -289,13 +322,29 @@ export function CycleTrackerHero() {
             </div>
           </div>
         </div>
+=======
+          onClick={() => setIsLogModalOpen(true)}
+          className="mood-cta-card cursor-pointer group"
+        >
+           <img src="/images/exp.jpg" alt="" className="mood-cta-bg" />
+           <div className="mood-cta-overlay" />
+           <div className="mood-icon group-hover:scale-110 transition-transform">
+             <Smiley size={24} weight="fill" />
+           </div>
+           <span className="mood-text">Log symptoms for Day {activeDay}</span>
+           <CaretRight size={20} className="caret-right group-hover:translate-x-1 transition-transform" />
+        </div>
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
       </div>
 
       <LogSymptomsModal 
         isOpen={isLogModalOpen} 
         onOpenChange={setIsLogModalOpen} 
         activeDay={activeDay} 
+<<<<<<< HEAD
         activeDate={activeDate}
+=======
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
       />
     </div>
   )

@@ -83,6 +83,7 @@ export function CalendarView() {
   const year = viewDate.getFullYear()
   const month = viewDate.getMonth()
 
+<<<<<<< HEAD
   const [mounted, setMounted] = React.useState(false)
 
   React.useLayoutEffect(() => { 
@@ -90,16 +91,25 @@ export function CalendarView() {
     setMounted(true)
   }, [])
 
+=======
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
   const prevMonth = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year, month - 1, 1) })
   const nextMonth = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year, month + 1, 1) })
   const prevYear = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year - 1, month, 1) })
   const nextYear = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year + 1, month, 1) })
 
   return (
+<<<<<<< HEAD
     <div className="flex flex-col h-full bg-background overflow-auto relative" suppressHydrationWarning>
       {/* Decorative background image - matching Symptoms (Tracker) view style */}
       <div className="absolute right-0 top-20 opacity-10 pointer-events-none z-0">
         <img src="/images/girl.png" alt="" className="size-[800px] object-contain" />
+=======
+    <div className="flex flex-col h-full bg-background overflow-auto relative">
+      {/* Decorative background image - matching Symptoms (Tracker) view style */}
+      <div className="absolute right-0 top-20 opacity-10 pointer-events-none z-0">
+        <img src="/images/girl.png" alt="" className="w-[800px] h-[800px] object-contain" />
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
       </div>
 
       <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-8 animate-in fade-in duration-500 relative z-10">
@@ -182,7 +192,10 @@ export function CalendarView() {
             <YearView 
               viewDate={viewDate} 
               periodDates={periodDates}
+<<<<<<< HEAD
               mounted={mounted}
+=======
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
               onMonthClick={(d) => {
                 dispatch({ type: "SET_VIEW_DATE", payload: d })
                 setView("month")
@@ -273,7 +286,11 @@ function MonthView({ viewDate, selectedDate, isEditingPeriods, periodDates, disp
                   {(d + 6) % 28 + 1}
                 </span>
 
+<<<<<<< HEAD
                 <div className="relative flex items-center justify-center size-10 sm:size-12 transition-transform group-active:scale-90">
+=======
+                <div className="relative flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 transition-transform group-active:scale-90">
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
                   {isSelected && (
                     <div className="absolute inset-0 bg-[#e0e0e0] dark:bg-muted rounded-full animate-in zoom-in-75 duration-200" />
                   )}
@@ -307,7 +324,15 @@ function MonthView({ viewDate, selectedDate, isEditingPeriods, periodDates, disp
   )
 }
 
+<<<<<<< HEAD
   const YearView = ({ viewDate, periodDates, onMonthClick, mounted }: { viewDate: Date, periodDates: Set<string>, onMonthClick: (d: Date) => void, mounted: boolean }) => {
+=======
+function YearView({ viewDate, periodDates, onMonthClick }: { 
+  viewDate: Date, 
+  periodDates: Set<string>,
+  onMonthClick: (d: Date) => void
+}) {
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
   const year = viewDate.getFullYear()
   const months = Array.from({ length: 12 }, (_, i) => new Date(year, i, 1))
 
@@ -340,7 +365,11 @@ function MonthView({ viewDate, selectedDate, isEditingPeriods, periodDates, disp
                 const d = i + 1
                 const key = `${year}-${String(idx).padStart(2, '0')}-${String(d).padStart(2, '0')}`
                 const isPeriod = periodDates.has(key)
+<<<<<<< HEAD
                 const isToday = mounted && d === new Date().getDate() && idx === new Date().getMonth() && year === new Date().getFullYear()
+=======
+                const isToday = d === new Date().getDate() && idx === new Date().getMonth() && year === new Date().getFullYear()
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
                 
                 return (
                   <div 

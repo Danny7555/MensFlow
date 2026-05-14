@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /* eslint-disable react-hooks/set-state-in-effect */
 import { use, useReducer, useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -13,6 +14,22 @@ import { CustomizePlanModal } from '../components/dashboard/CustomizePlanModal'
 import { DashboardHeader } from '../components/dashboard/DashboardHeader'
 import { StoriesSection } from '../components/dashboard/StoriesSection'
 import { FeedSection } from '../components/dashboard/FeedSection'
+=======
+import { useEffect, useMemo, useState } from 'react'
+import {
+  CalendarBlank,
+  ClipboardText,
+  PencilSimple,
+  Check,
+  Calendar as CalendarIcon,
+} from '@phosphor-icons/react'
+import { format, parseISO } from 'date-fns'
+import { Calendar } from '../components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover'
+import { Button } from '../components/ui/button'
+import { cn } from '../lib/utils'
+import { useDashboardData } from '../context/useDashboardData'
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
 
 function computeCycleDay(startIso: string, cycleLen: number) {
   const start = new Date(`${startIso}T12:00:00`)
@@ -28,6 +45,16 @@ function getGreeting() {
   if (hour < 17) return 'Good afternoon'
   return 'Good evening'
 }
+<<<<<<< HEAD
+=======
+
+export function DashboardView() {
+  const { data, update, lastSaved } = useDashboardData()
+  const [isEditingGuidance, setIsEditingGuidance] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => setMounted(true), [])
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
 
 type DashboardState = {
   isSnapshotOpen: boolean
@@ -130,10 +157,18 @@ export function DashboardView() {
     [data.guidanceLines],
   )
 
+<<<<<<< HEAD
   const handleLogout = () => {
     logout()
     navigate('/')
   }
+=======
+  const fmtSaved =
+    lastSaved?.toLocaleTimeString(undefined, {
+      hour: 'numeric',
+      minute: '2-digit',
+    }) ?? '-'
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
 
   const toggleTempChat = () => {
     const next = !temporaryChat
@@ -141,7 +176,16 @@ export function DashboardView() {
     if (next) navigate('/ask')
   }
 
+  const selectedDate = useMemo(() => {
+    try {
+      return data.lastPeriodStart ? parseISO(data.lastPeriodStart) : undefined
+    } catch {
+      return undefined
+    }
+  }, [data.lastPeriodStart])
+
   return (
+<<<<<<< HEAD
     <div className="dashboard-flo-theme relative overflow-hidden">
       {mounted && (
         <Joyride
@@ -174,12 +218,177 @@ export function DashboardView() {
         <div className="flo-content-inner">
           <div className="flo-dashboard-top">
             <StoriesSection />
+=======
+    <div className="dashboard-live">
+      <header className="dash-header">
+        <div className="dash-header-left">
+          <img src="/images/girl.png" alt="" className="dash-avatar" />
+          <div>
+            <p className="dash-kicker">Home</p>
+            <h1 className="dash-title">
+              {mounted ? getGreeting() : 'Welcome back'}, Daniella
+            </h1>
+          </div>
+        </div>
+        <div className="dash-header-meta">
+          <span className="dash-pill">
+            <CalendarBlank size={16} aria-hidden />
+            Cycle day {cycleDay} · {data.typicalCycleDays}d typical length
+          </span>
+          <span className="dash-pill dash-pill--muted">
+            Saved {fmtSaved}
+          </span>
+        </div>
+        <p className="dash-sub">
+          Here&apos;s your cycle overview and health insights for today.
+        </p>
+      </header>
+
+      <div className="dash-stats-row">
+        <div className="dash-stat">
+          <span className="dash-stat-label">Projected phase</span>
+          <span className="dash-stat-value">{data.phaseLabel}</span>
+          <span className="dash-stat-hint">From your last updated snapshot</span>
+        </div>
+        <div className="dash-stat">
+          <span className="dash-stat-label">Hormone focus</span>
+          <span className="dash-stat-value dash-stat-value--sm">
+            {data.hormoneTrend}
+          </span>
+          <span className="dash-stat-hint">Educational framing, not lab data</span>
+        </div>
+        <div className="dash-stat">
+          <span className="dash-stat-label">Last period start</span>
+          <span className="dash-stat-value dash-stat-value--sm">
+            {data.lastPeriodStart}
+          </span>
+          <span className="dash-stat-hint">Update in Your snapshot below</span>
+        </div>
+      </div>
+
+      <div className="dash-overview-body">
+        <div className="dash-row-panels">
+          <section className="dash-panel" aria-labelledby="phase-heading">
+            <div className="dash-panel-head">
+              <h2 id="phase-heading" className="dash-panel-title">
+                Today&apos;s hormonal phase
+              </h2>
+            </div>
+            <dl className="dash-dl">
+              <div className="dash-dl-row">
+                <dt>Phase</dt>
+                <dd>{data.phaseLabel}</dd>
+              </div>
+              <div className="dash-dl-row">
+                <dt>Hormone trend</dt>
+                <dd>{data.hormoneTrend}</dd>
+              </div>
+              <div className="dash-dl-row">
+                <dt>Body signals</dt>
+                <dd>{data.bodySignals}</dd>
+              </div>
+            </dl>
+          </section>
+
+          <section className="dash-panel" aria-labelledby="guide-heading">
+            <div className="dash-panel-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 id="guide-heading" className="dash-panel-title">
+                Today&apos;s health guidance
+              </h2>
+              <button
+                type="button"
+                onClick={() => setIsEditingGuidance(!isEditingGuidance)}
+                aria-label={isEditingGuidance ? "Save guidance" : "Edit guidance"}
+                className="icon-btn"
+                style={{ padding: '0.25rem' }}
+              >
+                {isEditingGuidance ? (
+                  <Check size={18} className="text-primary" aria-hidden />
+                ) : (
+                  <PencilSimple size={18} className="text-muted-foreground opacity-50 hover:opacity-100 transition-opacity" aria-hidden />
+                )}
+              </button>
+            </div>
+            {isEditingGuidance ? (
+              <>
+                <textarea
+                  className="dash-textarea dash-textarea--guidance"
+                  aria-label="Guidance list - one line per tip"
+                  rows={5}
+                  value={guidanceText}
+                  onChange={(e) => {
+                    const lines = e.target.value
+                      .split('\n')
+                      .flatMap((s) => s.trim() ? [s.trim()] : [])
+                    update({ guidanceLines: lines })
+                  }}
+                />
+                <p className="dash-hint">
+                  One short tip per line - your dashboard and Tips view both read from here in this demo.
+                </p>
+              </>
+            ) : (
+              <div style={{ flex: 1, padding: '0.5rem 1.25rem 1.25rem' }}>
+                <ul className="guidance-list">
+                  {data.guidanceLines.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </section>
+        </div>
+
+        <section
+          className="dash-panel dash-panel--snapshot"
+          aria-labelledby="snapshot-heading"
+        >
+          <div className="dash-panel-head">
+            <h2 id="snapshot-heading" className="dash-panel-title">
+              <ClipboardText size={20} aria-hidden />
+              Your snapshot
+            </h2>
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
           </div>
 
+<<<<<<< HEAD
           <div className="flo-dashboard-grid">
             <section className="flo-dashboard-left" aria-label="Cycle overview">
               <div className="flo-hero-panel">
                 <CycleTrackerHero />
+=======
+            <div className="dash-snapshot-form">
+              <div className="dash-snapshot-field">
+                <label className="dash-field-label" htmlFor="dash-last-period">
+                  Last period start
+                </label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      id="dash-last-period"
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal bg-card h-10 border-border",
+                        !data.lastPeriodStart && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon size={16} className="mr-2 opacity-60" />
+                      {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(day) => {
+                        if (day) {
+                          update({ lastPeriodStart: format(day, "yyyy-MM-dd") })
+                        }
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
+>>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
               </div>
             </section>
 
