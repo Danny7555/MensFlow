@@ -264,9 +264,13 @@ export function OnboardingView() {
                           )}
                         >
                           <div className="onboarding-option-content onboarding-option-content--mobile">
-                            {option.icon && (
+                            {option.img ? (
+                              <div className="size-6 shrink-0 rounded-full overflow-hidden mr-2">
+                                <img src={option.img} alt="" className="w-full h-full object-cover" />
+                              </div>
+                            ) : option.icon ? (
                               <span className="onboarding-option-icon onboarding-option-icon--mobile">{getIcon(option.icon as string)}</span>
-                            )}
+                            ) : null}
                             <span className="onboarding-option-label onboarding-option-label--mobile">{option.label}</span>
                           </div>
                           <div className="onboarding-check-wrap onboarding-check-wrap--mobile">

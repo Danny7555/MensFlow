@@ -4,7 +4,7 @@ export type OnboardingQuestion = {
   question: string
   description?: string
   type: 'single-choice' | 'multi-choice' | 'input' | 'intro'
-  options?: { label: string; value: string; icon?: React.ReactNode }[]
+  options?: { label: string; value: string; icon?: React.ReactNode; img?: string }[]
   placeholder?: string
 }
 
@@ -21,10 +21,10 @@ export const ONBOARDING_QUESTIONS: OnboardingQuestion[] = [
     description: 'We will personalize your experience.',
     type: 'single-choice',
     options: [
-      { label: 'Track energy', value: 'track', icon: 'calendar' },
-      { label: 'Build habits', value: 'health', icon: 'heart' },
-      { label: 'Monitor mood', value: 'symptoms', icon: 'brain' },
-      { label: 'Learn wellness', value: 'learn', icon: 'lightbulb' },
+      { label: 'Track energy', value: 'track', img: '/images/cal.png' },
+      { label: 'Build habits', value: 'health', img: '/images/heart.png' },
+      { label: 'Monitor mood', value: 'symptoms', img: '/images/brain.png' },
+      { label: 'Learn wellness', value: 'learn', img: '/images/flow.jpg' },
     ],
   },
   {

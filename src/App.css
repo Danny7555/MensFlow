@@ -3316,8 +3316,6 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  position: sticky;
-  top: 96px;
   align-self: start;
 }
 
@@ -3366,16 +3364,8 @@
 }
 
 .flo-dashboard-right .flo-feed-row {
-  display: flex;
-  flex-direction: column;
-  overflow: visible;
-  padding: 0;
-  margin: 0;
+  grid-template-columns: none;
   gap: 1.5rem;
-}
-
-.flo-dashboard-right .flo-card {
-  flex: 0 0 auto;
 }
 
 .flo-dashboard-right .flo-sub-grid {
