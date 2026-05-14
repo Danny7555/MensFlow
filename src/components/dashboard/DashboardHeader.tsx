@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react"
 import { Bell, Calendar as CalendarIcon, SignOut, Ghost } from "@phosphor-icons/react"
 import { Link } from "react-router-dom"
 import { format } from "date-fns"
@@ -22,6 +23,16 @@ export function DashboardHeader({
   handleLogout,
   getGreeting,
 }: DashboardHeaderProps) {
+  const [now, setNow] = useState(new Date())
+
+  useEffect(() => {
+    if (!mounted) return
+    const interval = setInterval(() => {
+      setNow(new Date())
+    }, 60000) 
+    return () => clearInterval(interval)
+  }, [mounted])
+
   return (
     <header className="flo-header relative z-10">
       <div className="flo-header-left">
@@ -33,9 +44,9 @@ export function DashboardHeader({
             <p className="flo-date">
               {mounted ? (
                 <>
-                  <span className="font-semibold text-[var(--mf-accent)]">{format(new Date(), 'h:mm a')}</span>
+                  <span className="font-semibold text-[var(--mf-accent)]">{format(now, 'h:mm a')}</span>
                   <span className="mx-1.5 opacity-50">•</span>
-                  {format(new Date(), 'EEEE, d MMMM')}
+                  {format(now, 'EEEE, d MMMM')}
                 </>
               ) : ''}
             </p>
