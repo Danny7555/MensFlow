@@ -34,7 +34,7 @@ export function TrackerView() {
     <div className="flex flex-col h-full bg-background overflow-auto relative">
       <div className="flex-1 w-full max-w-[1200px] mx-auto p-4 md:p-6 lg:p-8 animate-in fade-in duration-500">
         <div className="flex items-center justify-end mb-4">
-           <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-card border border-border shadow-sm sync-pill">
+           <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-card border border-border sync-pill">
             <div className={cn("size-2 rounded-full", isSaving ? "bg-orange-400 sync-dot-active" : "bg-green-500")} />
             <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               {isSaving ? 'Syncing with cloud' : 'All data synced'}
@@ -71,7 +71,7 @@ export function TrackerView() {
           </div>
 
           {/* Sidebar */}
-          <aside className="space-y-10 lg:sticky lg:top-8">
+          <aside className="space-y-10">
             <CycleStatsHero />
             <CycleTips />
           </aside>

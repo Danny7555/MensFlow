@@ -260,7 +260,7 @@ export function CycleTrackerHero() {
         </div>
 
         <div className="mt-8 px-1">
-          <div className="p-6 rounded-[24px] bg-gradient-to-br from-[var(--mf-accent-soft)] to-white dark:to-card border border-[var(--mf-accent-border)] relative overflow-hidden group shadow-sm hover:shadow-md transition-all duration-500">
+          <div className="p-6 rounded-[24px] bg-gradient-to-br from-[var(--mf-accent-soft)] to-white dark:to-card border border-[var(--mf-accent-border)] relative overflow-hidden group transition-all duration-500">
             {/* Background Bloom */}
             <div className="absolute -top-12 -right-12 size-32 bg-[var(--mf-accent)] opacity-5 blur-3xl rounded-full group-hover:opacity-10 transition-opacity" />
             
@@ -269,7 +269,7 @@ export function CycleTrackerHero() {
                 <span className="w-fit text-[9px] font-bold uppercase tracking-[0.15em] bg-[var(--mf-accent)] text-white px-2.5 py-1 rounded-full">DAILY TIP</span>
                 <span className="text-[10px] font-semibold text-[var(--mf-accent)] opacity-60">PHASE: LUTEAL</span>
               </div>
-              <div className="size-10 rounded-full bg-white/50 dark:bg-black/20 flex items-center justify-center text-[var(--mf-accent)] shadow-inner">
+              <div className="size-10 rounded-full bg-white/50 dark:bg-black/20 flex items-center justify-center text-[var(--mf-accent)]">
                 <Lightning size={20} weight="fill" />
               </div>
             </div>
