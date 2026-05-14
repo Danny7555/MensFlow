@@ -3222,13 +3222,12 @@
 }
 
 .flo-date {
-  font-size: 0.65rem;
-  font-weight: 500;
+  font-size: 0.7rem;
+  font-weight: 600;
   color: var(--mf-muted);
   margin: 0;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  opacity: 0.6;
+  letter-spacing: 0.1em;
 }
 
 .flo-user-name {
