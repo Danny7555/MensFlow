@@ -23,7 +23,7 @@ export function OnboardingView() {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({})
   const { completeOnboarding, openAuthModal, isAuthenticated } = useAuth()
-  const { updateUser } = useStore()
+  const { updateUser, updateDashboard } = useStore()
   const navigate = useNavigate()
 
   const question = ONBOARDING_QUESTIONS[currentStep]
@@ -48,6 +48,48 @@ export function OnboardingView() {
     if (typeof answers.name === 'string' && answers.name) {
       updateUser({ name: answers.name })
     }
+    
+    // Map onboarding answers to dashboard state
+    const newDashboard: Record<string, any> = {
+      // Start their tracking cycle from today
+      lastPeriodStart: new Date().toISOString().slice(0, 10)
+    }
+
+    if (Array.isArray(answers.symptoms) && answers.symptoms.length > 0) {
+       const labels = answers.symptoms.filter(s => s !== 'none').map(s => {
+          if (s === 'fatigue') return 'Fatigue'
+          if (s === 'fog') return 'Brain fog'
+          if (s === 'stress') return 'High stress'
+          if (s === 'mood') return 'Mood swings'
+          if (s === 'sleep') return 'Poor sleep'
+          return s
+       })
+       if (labels.length > 0) {
+         newDashboard.bodySignals = labels.join(', ')
+       } else {
+         newDashboard.bodySignals = 'Balanced'
+       }
+    }
+
+    if (answers.goal === 'track') {
+       newDashboard.guidanceLines = ['Focus on energy tracking', 'Monitor your sleep cycle', 'Keep a daily journal']
+    } else if (answers.goal === 'health') {
+       newDashboard.guidanceLines = ['Prioritize hydration', 'Aim for 30m exercise daily', 'Establish a morning routine']
+    } else if (answers.goal === 'symptoms') {
+       newDashboard.guidanceLines = ['Track your triggers', 'Practice mindfulness', 'Maintain a regular schedule']
+    } else if (answers.goal === 'learn') {
+       newDashboard.guidanceLines = ['Read the daily insights', 'Listen to your body', 'Focus on holistic wellness']
+    }
+
+    if (answers.energy_consistency === 'irregular') {
+        newDashboard.hormoneTrend = 'Fluctuating energy'
+    } else if (answers.energy_consistency === 'regular') {
+        newDashboard.hormoneTrend = 'Stable energy'
+    } else if (answers.energy_consistency === 'mostly') {
+        newDashboard.hormoneTrend = 'Consistent rhythm'
+    }
+
+    updateDashboard(newDashboard)
     completeOnboarding()
     if (isAuthenticated) {
       navigate('/dashboard')

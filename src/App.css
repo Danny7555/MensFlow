@@ -3171,7 +3171,7 @@
 .dashboard-flo-theme {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
   width: 100%;
   background: radial-gradient(circle at 50% 40%, rgba(255, 113, 141, 0.05) 0%, var(--mf-main-bg) 60%);
   position: relative;
@@ -3438,10 +3438,17 @@
   }
 
   .flo-feed-row {
-    margin-left: -1.25rem;
-    margin-right: -1.25rem;
-    padding-left: 1.25rem;
-    padding-right: 1.25rem;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+    flex-direction: column;
+    overflow-x: visible;
+  }
+  
+  .flo-feed-row .flo-card {
+    flex: auto;
+    width: 100%;
   }
   
   .flo-section-header {
@@ -3683,7 +3690,7 @@
 .dashboard-flo-theme {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
   width: 100%;
   background: radial-gradient(circle at 50% 35%, rgba(var(--mf-accent-rgb, 219, 39, 119), 0.04) 0%, var(--mf-main-bg) 80%);
   position: relative;
@@ -4069,6 +4076,21 @@
 .sync-pill {
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   backdrop-filter: blur(8px);
+}
+
+@media (max-width: 768px) {
+  .flo-feed-row {
+    flex-direction: column !important;
+    overflow-x: visible !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  .flo-feed-row .flo-card {
+    flex: auto !important;
+    width: 100% !important;
+  }
 }
 
 .sync-pill:hover {
