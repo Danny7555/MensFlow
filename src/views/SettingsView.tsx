@@ -343,7 +343,7 @@ export function SettingsView({
       .withOptions({ shallow: false })
   )
   const { settings, updateSettings, resetSettings } = useSettings()
-  const { resetStore } = useStore()
+  const { user, updateUser, resetStore } = useStore()
 
   const confirmResetApp = () => {
     if (window.confirm('Delete all symptom logs, cycle data, and health settings? This cannot be undone.')) {
@@ -703,11 +703,21 @@ export function SettingsView({
             </div>
           ) : (
             <>
-              <div className="settings-account-summary">
-                <UserCircle size={36} weight="duotone" aria-hidden />
-                <div>
-                  <p className="settings-account-name">Demo user</p>
-                  <p className="settings-account-email">session@mensflow.local</p>
+              <div className="settings-account-summary items-start">
+                <UserCircle size={36} weight="duotone" aria-hidden className="mt-2" />
+                <div className="flex-1 w-full max-w-sm space-y-4">
+                  <div className="space-y-1.5">
+                    <label htmlFor="user-name-input" className="text-xs font-medium uppercase tracking-widest text-muted-foreground ml-1">Your Name</label>
+                    <input 
+                      id="user-name-input"
+                      type="text"
+                      value={user?.name ?? ''}
+                      onChange={(e) => updateUser({ name: e.target.value })}
+                      className="w-full h-12 px-4 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-1 focus:ring-[var(--mf-accent)] transition-all outline-none text-base font-medium"
+                      placeholder="Enter your name"
+                    />
+                  </div>
+                  <p className="settings-account-email ml-1">session@mensflow.local</p>
                 </div>
               </div>
 

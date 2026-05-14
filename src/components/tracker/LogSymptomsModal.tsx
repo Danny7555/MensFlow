@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils"
 import { SYMPTOM_DEFS } from "@/data/symptomsData"
 import { Drop, Smiley, Pulse } from "@phosphor-icons/react"
 import { useStore } from "@/store/useStore"
+import { toast } from "sonner"
 
 interface LogSymptomsModalProps {
   isOpen: boolean
@@ -38,6 +39,22 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
 
   const handleSave = async () => {
     await addLog(dateKey, Array.from(selectedSymptoms))
+    
+    // Check if user logged a 'flow' symptom to trigger the toast
+    const loggedFlow = Array.from(selectedSymptoms).some(s => s.startsWith('flow-'))
+    
+    if (loggedFlow) {
+      toast.success("Period logged", {
+        description: `Your period was recorded for Day ${activeDay}.`,
+        duration: 4000,
+      })
+    } else {
+      toast.success("Log saved", {
+        description: `Symptoms saved for Day ${activeDay}.`,
+        duration: 3000,
+      })
+    }
+    
     onOpenChange(false)
   }
 

@@ -23,7 +23,7 @@ export function OnboardingView() {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({})
   const { completeOnboarding, openAuthModal, isAuthenticated } = useAuth()
-  const { updateUser } = useStore()
+  const { updateUser, updateDashboard } = useStore()
   const navigate = useNavigate()
 
   const question = ONBOARDING_QUESTIONS[currentStep]
@@ -48,6 +48,48 @@ export function OnboardingView() {
     if (typeof answers.name === 'string' && answers.name) {
       updateUser({ name: answers.name })
     }
+    
+    // Map onboarding answers to dashboard state
+    const newDashboard: Record<string, any> = {
+      // Start their tracking cycle from today
+      lastPeriodStart: new Date().toISOString().slice(0, 10)
+    }
+
+    if (Array.isArray(answers.symptoms) && answers.symptoms.length > 0) {
+       const labels = answers.symptoms.filter(s => s !== 'none').map(s => {
+          if (s === 'fatigue') return 'Fatigue'
+          if (s === 'fog') return 'Brain fog'
+          if (s === 'stress') return 'High stress'
+          if (s === 'mood') return 'Mood swings'
+          if (s === 'sleep') return 'Poor sleep'
+          return s
+       })
+       if (labels.length > 0) {
+         newDashboard.bodySignals = labels.join(', ')
+       } else {
+         newDashboard.bodySignals = 'Balanced'
+       }
+    }
+
+    if (answers.goal === 'track') {
+       newDashboard.guidanceLines = ['Focus on energy tracking', 'Monitor your sleep cycle', 'Keep a daily journal']
+    } else if (answers.goal === 'health') {
+       newDashboard.guidanceLines = ['Prioritize hydration', 'Aim for 30m exercise daily', 'Establish a morning routine']
+    } else if (answers.goal === 'symptoms') {
+       newDashboard.guidanceLines = ['Track your triggers', 'Practice mindfulness', 'Maintain a regular schedule']
+    } else if (answers.goal === 'learn') {
+       newDashboard.guidanceLines = ['Read the daily insights', 'Listen to your body', 'Focus on holistic wellness']
+    }
+
+    if (answers.energy_consistency === 'irregular') {
+        newDashboard.hormoneTrend = 'Fluctuating energy'
+    } else if (answers.energy_consistency === 'regular') {
+        newDashboard.hormoneTrend = 'Stable energy'
+    } else if (answers.energy_consistency === 'mostly') {
+        newDashboard.hormoneTrend = 'Consistent rhythm'
+    }
+
+    updateDashboard(newDashboard)
     completeOnboarding()
     if (isAuthenticated) {
       navigate('/dashboard')
@@ -191,11 +233,16 @@ export function OnboardingView() {
             )}
             
             {currentStep > 0 && (
-              <div className="onboarding-progress-wrap">
-                <div 
-                  className="onboarding-progress-bar" 
-                  style={{ width: `${progress}%` }} 
-                />
+              <div className="flex flex-col gap-2 w-full mt-4">
+                <div className="flex justify-center text-sm font-medium text-muted-foreground tracking-wide">
+                  {currentStep} / {ONBOARDING_QUESTIONS.length - 1}
+                </div>
+                <div className="onboarding-progress-wrap !mt-0">
+                  <div 
+                    className="onboarding-progress-bar" 
+                    style={{ width: `${progress}%` }} 
+                  />
+                </div>
               </div>
             )}
           </div>
@@ -230,7 +277,7 @@ export function OnboardingView() {
               
               <h1 className="onboarding-title">{question.question}</h1>
               {question.description && (
-                <p className="onboarding-description">{question.description}</p>
+                <p className="onboarding-description text-sm text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis px-2 max-w-full">{question.description}</p>
               )}
 
                 <div className="onboarding-options-grid onboarding-options-grid--mobile-responsive">
@@ -259,9 +306,13 @@ export function OnboardingView() {
                           )}
                         >
                           <div className="onboarding-option-content onboarding-option-content--mobile">
-                            {option.icon && (
+                            {option.img ? (
+                              <div className="size-6 shrink-0 rounded-full overflow-hidden mr-2">
+                                <img src={option.img} alt="" className="w-full h-full object-cover" />
+                              </div>
+                            ) : option.icon ? (
                               <span className="onboarding-option-icon onboarding-option-icon--mobile">{getIcon(option.icon as string)}</span>
-                            )}
+                            ) : null}
                             <span className="onboarding-option-label onboarding-option-label--mobile">{option.label}</span>
                           </div>
                           <div className="onboarding-check-wrap onboarding-check-wrap--mobile">

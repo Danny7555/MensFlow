@@ -13,7 +13,7 @@ export type DashboardSnapshot = {
 
 export const DEFAULT_DASHBOARD: DashboardSnapshot = {
   version: 1,
-  lastPeriodStart: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000)
+  lastPeriodStart: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000)
     .toISOString()
     .slice(0, 10),
   typicalCycleDays: 28,

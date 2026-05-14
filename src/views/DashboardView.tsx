@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { use, useReducer, useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Joyride, type Step, STATUS } from 'react-joyride'
 import { useStore } from '../store/useStore'
 import { useAuth } from '../context/useAuth'
 import { ChatSessionContext } from '../context/chat-session-context'
@@ -76,10 +77,53 @@ export function DashboardView() {
   const [mounted, setMounted] = useState(false)
   const [now, setNow] = useState<Date | null>(null)
   
+  const [{ run, steps }, setTourState] = useState({
+    run: false,
+    steps: [
+      {
+        target: '.cycle-tracker-hero',
+        content: "This is your partner's Cycle Tracker. See their current phase and predictions at a glance.",
+        placement: 'right',
+        disableBeacon: false,
+      },
+      {
+        target: '.flo-story-bubble',
+        content: "Tap these stories to quickly jump to insights, secret chats, or wellness tips.",
+        placement: 'bottom',
+      },
+      {
+        target: '.flo-feed-row .flo-card',
+        content: "Today's Plan gives you phase-specific insights, body signals, and daily tips.",
+        placement: 'top',
+      },
+      {
+        target: '.flo-fab',
+        content: "Use this to quickly log new symptoms or notes for the current day.",
+        placement: 'left',
+      }
+    ] as Step[]
+  })
+
+  const startTour = () => {
+    setTourState(s => ({ ...s, run: true }))
+  }
+
   useEffect(() => {
     setMounted(true)
     setNow(new Date())
+    const hasSeenTour = localStorage.getItem('mensflow_tour_completed')
+    if (!hasSeenTour) {
+      setTourState(s => ({ ...s, run: true }))
+    }
   }, [])
+
+  const handleJoyrideCallback = (data: any) => {
+    const { status } = data;
+    if (([STATUS.FINISHED, STATUS.SKIPPED] as string[]).includes(status)) {
+      localStorage.setItem('mensflow_tour_completed', 'true')
+      setTourState(s => ({ ...s, run: false }))
+    }
+  }
 
   const guidanceText = useMemo(
     () => data.guidanceLines.join('\n'),
@@ -99,6 +143,22 @@ export function DashboardView() {
 
   return (
     <div className="dashboard-flo-theme relative overflow-hidden">
+      {mounted && (
+        <Joyride
+          steps={steps}
+          run={run}
+          continuous
+          onEvent={handleJoyrideCallback}
+          styles={{
+            options: {
+              primaryColor: '#f472b6', // Codebase pink accent
+              backgroundColor: '#ffffff',
+              textColor: '#1f161d',
+              zIndex: 10000,
+            }
+          } as any}
+        />
+      )}
       <DashboardHeader 
         user={user}
         mounted={mounted}
@@ -107,6 +167,7 @@ export function DashboardView() {
         temporaryChat={temporaryChat}
         toggleTempChat={toggleTempChat}
         handleLogout={handleLogout}
+        onStartTour={startTour}
       />
 
       <main className="flo-main-container pb-32 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
