@@ -194,7 +194,7 @@ export function FeedSection({
         </div>
 
         <div className="flex flex-col gap-6">
-          <div className="bg-[var(--mf-main-bg)] rounded-2xl p-4 border border-[var(--mf-border)]">
+          <div>
             <h3 className="text-xs font-semibold text-[var(--mf-muted)] uppercase tracking-wider mb-4 text-center">How's your flow?</h3>
             <div className="flex items-center justify-around">
               {[
@@ -210,7 +210,7 @@ export function FeedSection({
                 >
                   <div className="size-12 flex items-center justify-center rounded-full bg-[var(--mf-card)] border border-[var(--mf-border)] overflow-hidden shadow-sm transition-transform group-hover:scale-110 group-hover:border-[var(--mf-accent)]">
                     {item.img ? (
-                      <img src={item.img} alt="" className="w-full h-full object-cover" />
+                      <img src={item.img} alt="" className="w-full h-full object-cover mix-blend-multiply" />
                     ) : (
                       <div className="text-[var(--mf-muted)] group-hover:text-[var(--mf-accent)] transition-colors">
                         {item.icon}
