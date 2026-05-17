@@ -4,16 +4,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-<<<<<<< HEAD
-import { useStore } from '@/store/useStore'
 
 export function CycleStatsHero() {
-  const { dashboard: data } = useStore()
-  
-=======
-
-export function CycleStatsHero() {
->>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
   return (
     <div className="cycle-stats-hero">
       <div className="stats-banner">
@@ -35,11 +27,7 @@ export function CycleStatsHero() {
             </div>
             <div className="stats-card-info">
               <span className="stats-label">Cycle length</span>
-<<<<<<< HEAD
-              <span className="stats-value">{data.typicalCycleDays} days</span>
-=======
               <span className="stats-value">35 days</span>
->>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
             </div>
           </div>
           <div className="stats-card-action">

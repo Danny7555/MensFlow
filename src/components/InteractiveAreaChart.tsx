@@ -132,13 +132,8 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-/* eslint-disable react-hooks/set-state-in-effect */
 export function InteractiveAreaChart() {
   const [timeRange, setTimeRange] = React.useState("90d")
-  const [mounted, setMounted] = React.useState(false)
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
 
   const filteredData = React.useMemo(() => {
     return chartData.filter((item) => {
@@ -155,17 +150,6 @@ export function InteractiveAreaChart() {
       return date >= startDate
     })
   }, [timeRange])
-<<<<<<< HEAD
-
-  const formatDate = React.useCallback((value: string) => {
-    if (!mounted) return ""
-    return new Date(value).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    })
-  }, [mounted])
-=======
->>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
 
   return (
     <Card className="border-none shadow-none ring-0 bg-transparent">
@@ -237,22 +221,6 @@ export function InteractiveAreaChart() {
                 axisLine={false}
                 tickMargin={8}
                 minTickGap={32}
-<<<<<<< HEAD
-                tickFormatter={formatDate}
-                suppressHydrationWarning
-              />
-              {mounted && (
-                <ChartTooltip
-                  cursor={false}
-                  content={
-                    <ChartTooltipContent
-                      labelFormatter={(value) => formatDate(value as string)}
-                      indicator="dot"
-                    />
-                  }
-                />
-              )}
-=======
                 tickFormatter={(value) => {
                   const date = new Date(value)
                   return date.toLocaleDateString("en-US", {
@@ -276,7 +244,6 @@ export function InteractiveAreaChart() {
                   />
                 }
               />
->>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
               <Area
                 dataKey="bloating"
                 type="natural"

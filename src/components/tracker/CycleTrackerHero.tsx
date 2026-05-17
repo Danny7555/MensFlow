@@ -1,15 +1,7 @@
-<<<<<<< HEAD
-/* eslint-disable react-hooks/set-state-in-effect */
-"use client"
-
-import { useState, useEffect, useMemo } from 'react'
-import { CaretDown, CaretRight, Info, Lightning, Heart } from '@phosphor-icons/react'
-=======
 "use client"
 
 import { useState, useMemo } from 'react'
 import { CaretDown, CaretRight, Smiley, Info } from '@phosphor-icons/react'
->>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
 import { format, addDays, startOfDay } from 'date-fns'
 
 import { 
@@ -25,47 +17,18 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 
-<<<<<<< HEAD
-import { useStore } from '@/store/useStore'
-import { LogSymptomsModal } from './LogSymptomsModal'
-
-export function CycleTrackerHero() {
-  const { dashboard: data } = useStore()
-  
-  const [currentDay, setCurrentDay] = useState(1)
-  const [selectedDay, setSelectedDay] = useState<number>(1);
-=======
 import { LogSymptomsModal } from './LogSymptomsModal'
 
 export function CycleTrackerHero() {
   const [selectedDay, setSelectedDay] = useState<number>(12);
->>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
   const [hoveredDay, setHoveredDay] = useState<number | null>(null);
   const [trackingMode, setTrackingMode] = useState<string>('Period');
   const [isLogModalOpen, setIsLogModalOpen] = useState(false)
 
-<<<<<<< HEAD
-  useEffect(() => {
-    const start = new Date(`${data.lastPeriodStart}T12:00:00`)
-    if (!Number.isNaN(+start)) {
-      const days = Math.floor((Date.now() - +start) / 86400000)
-      const m = ((days % data.typicalCycleDays) + data.typicalCycleDays) % data.typicalCycleDays
-      const day = m + 1
-      setCurrentDay(day)
-      setSelectedDay(day)
-    }
-  }, [data.lastPeriodStart, data.typicalCycleDays])
-
-  const modes = ['Period', 'Conception', 'Pregnancy', 'Perimenopause'];
-
-  const cycleLength = data.typicalCycleDays;
-  // currentDay already defined above
-=======
   const modes = ['Period', 'Conception', 'Pregnancy', 'Perimenopause'];
 
   const cycleLength = 27;
   const currentDay = 12;
->>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
 
   const periodLength = 5;
   const predictedPeriodLength = 2; 
@@ -192,28 +155,17 @@ export function CycleTrackerHero() {
         <div className="viz-ring-container">
           <svg viewBox="0 0 100 100" className="viz-ring" style={{ overflow: 'visible' }}>
             {/* Background track (dashed) */}
-<<<<<<< HEAD
-            <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" strokeWidth="6" className="opacity-10" strokeDasharray="0.1 2.5" strokeLinecap="round" />
-=======
             <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" strokeWidth="9" className="opacity-10" strokeDasharray="0.1 2.5" strokeLinecap="round" />
->>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
             
             {/* Inner Dots */}
             {dots}
             
             {/* Segments */}
             <g className="viz-segments" style={{ pointerEvents: 'none' }}>
-<<<<<<< HEAD
-              <path d={periodPath} fill="none" stroke="#dc2626" strokeWidth="6" strokeLinecap="round" opacity="1" />
-              <path d={predictedPath} fill="none" stroke="#ffc7c8" strokeWidth="6" strokeLinecap="round" opacity={activeDay > periodLength && activeDay <= periodLength + predictedPeriodLength ? 1 : 0.8} />
-              <path d={fertilePath} fill="none" stroke="#26899e" strokeWidth="6" strokeLinecap="round" opacity={activeDay >= fertileStart && activeDay <= fertileEnd ? 1 : 0.8} />
-              <path d={upcomingPath} fill="none" stroke="currentColor" strokeWidth="6" className="opacity-20" strokeLinecap="round" />
-=======
               <path d={periodPath} fill="none" stroke="#dc2626" strokeWidth="9" strokeLinecap="round" opacity="1" />
               <path d={predictedPath} fill="none" stroke="#ffc7c8" strokeWidth="9" strokeLinecap="round" opacity={activeDay > periodLength && activeDay <= periodLength + predictedPeriodLength ? 1 : 0.8} />
               <path d={fertilePath} fill="none" stroke="#26899e" strokeWidth="9" strokeLinecap="round" opacity={activeDay >= fertileStart && activeDay <= fertileEnd ? 1 : 0.8} />
               <path d={upcomingPath} fill="none" stroke="currentColor" strokeWidth="9" className="opacity-20" strokeLinecap="round" />
->>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
             </g>
 
             {/* Selection Marker */}
@@ -279,50 +231,6 @@ export function CycleTrackerHero() {
 
       <div className="cycle-tracker-mood-cta">
         <div 
-<<<<<<< HEAD
-          role="button"
-          tabIndex={0}
-          onClick={() => setIsLogModalOpen(true)}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsLogModalOpen(true) }}
-          className="mood-cta-card cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mf-accent)] rounded-2xl"
-        >
-           <img src="/images/exp.jpg" alt="" className="mood-cta-bg" />
-           <div className="mood-cta-overlay" />
-           <span className="mood-text pl-4">Log symptoms for Day {activeDay}</span>
-           <CaretRight size={20} className="caret-right group-hover:translate-x-1 transition-transform" />
-        </div>
-
-        <div className="mt-8 px-1">
-          <div className="p-6 rounded-[24px] bg-gradient-to-br from-[var(--mf-accent-soft)] to-white dark:to-card border border-[var(--mf-accent-border)] relative overflow-hidden group transition-all duration-500">
-            {/* Background Bloom */}
-            <div className="absolute -top-12 -right-12 size-32 bg-[var(--mf-accent)] opacity-5 blur-3xl rounded-full group-hover:opacity-10 transition-opacity" />
-            
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex flex-col gap-1.5">
-                <span className="w-fit text-[9px] font-bold uppercase tracking-[0.15em] bg-[var(--mf-accent)] text-white px-2.5 py-1 rounded-full">DAILY TIP</span>
-                <span className="text-[10px] font-semibold text-[var(--mf-accent)] opacity-60">PHASE: LUTEAL</span>
-              </div>
-              <div className="size-10 rounded-full bg-white/50 dark:bg-black/20 flex items-center justify-center text-[var(--mf-accent)]">
-                <Lightning size={20} weight="fill" />
-              </div>
-            </div>
-
-            <div className="relative z-10">
-              <h3 className="text-[15px] font-bold text-[var(--mf-text-strong)] mb-2 tracking-tight">Nurture your energy</h3>
-              <p className="text-[13px] text-muted-foreground leading-relaxed opacity-90">
-                Your body is working harder today. Prioritize magnesium-rich foods like dark chocolate or spinach to ease any pre-period tension.
-              </p>
-            </div>
-
-            <div className="mt-5 pt-4 border-t border-[var(--mf-accent-border)] flex items-center justify-between">
-              <button className="text-[11px] font-bold text-[var(--mf-accent)] hover:underline">LEARN MORE</button>
-              <button className="flex items-center gap-1.5 text-[11px] font-bold opacity-40 hover:opacity-100 transition-opacity">
-                <Heart size={14} /> SAVE
-              </button>
-            </div>
-          </div>
-        </div>
-=======
           onClick={() => setIsLogModalOpen(true)}
           className="mood-cta-card cursor-pointer group"
         >
@@ -334,17 +242,12 @@ export function CycleTrackerHero() {
            <span className="mood-text">Log symptoms for Day {activeDay}</span>
            <CaretRight size={20} className="caret-right group-hover:translate-x-1 transition-transform" />
         </div>
->>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
       </div>
 
       <LogSymptomsModal 
         isOpen={isLogModalOpen} 
         onOpenChange={setIsLogModalOpen} 
         activeDay={activeDay} 
-<<<<<<< HEAD
-        activeDate={activeDate}
-=======
->>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
       />
     </div>
   )

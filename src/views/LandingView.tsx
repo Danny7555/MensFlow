@@ -1,15 +1,10 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { CaretRight } from '@phosphor-icons/react'
 import { ChatComposer } from '../components/ChatComposer'
-import { useAuth } from '../context/useAuth'
 import { CLEAR_LOCAL_CHATS_EVENT } from '../lib/constants'
 
 export function LandingView() {
   const [draft, setDraft] = useState('')
   const [lastPrompt, setLastPrompt] = useState<string | null>(null)
-  const { onboardingCompleted } = useAuth()
-  const navigate = useNavigate()
 
   useEffect(() => {
     const onClear = () => {
@@ -62,24 +57,6 @@ export function LandingView() {
           />
         </div>
 
-<<<<<<< HEAD
-        {!onboardingCompleted && (
-          <>
-            <div className="landing-cta-divider">
-              <span>or</span>
-            </div>
-
-            <button 
-              onClick={() => navigate('/onboarding')}
-              className="landing-primary-cta"
-            >
-              <span className="landing-primary-cta-text">Personalize my experience</span>
-              <CaretRight className="size-5" />
-            </button>
-          </>
-        )}
-=======
->>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
       </div>
     </div>
   )

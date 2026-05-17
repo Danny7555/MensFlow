@@ -1,20 +1,3 @@
-<<<<<<< HEAD
-/* eslint-disable react-hooks/set-state-in-effect */
-import { use, useReducer, useState, useEffect, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Joyride, type Step, STATUS } from 'react-joyride'
-import { useStore } from '../store/useStore'
-import { useAuth } from '../context/useAuth'
-import { ChatSessionContext } from '../context/chat-session-context'
-import { CycleTrackerHero } from '../components/tracker/CycleTrackerHero'
-import { LogSymptomsModal } from '../components/tracker/LogSymptomsModal'
-import { SnapshotModal } from '../components/dashboard/SnapshotModal'
-import { CustomizePlanModal } from '../components/dashboard/CustomizePlanModal'
-
-import { DashboardHeader } from '../components/dashboard/DashboardHeader'
-import { StoriesSection } from '../components/dashboard/StoriesSection'
-import { FeedSection } from '../components/dashboard/FeedSection'
-=======
 import { useEffect, useMemo, useState } from 'react'
 import {
   CalendarBlank,
@@ -29,7 +12,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popove
 import { Button } from '../components/ui/button'
 import { cn } from '../lib/utils'
 import { useDashboardData } from '../context/useDashboardData'
->>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
 
 function computeCycleDay(startIso: string, cycleLen: number) {
   const start = new Date(`${startIso}T12:00:00`)
@@ -45,8 +27,6 @@ function getGreeting() {
   if (hour < 17) return 'Good afternoon'
   return 'Good evening'
 }
-<<<<<<< HEAD
-=======
 
 export function DashboardView() {
   const { data, update, lastSaved } = useDashboardData()
@@ -54,127 +34,19 @@ export function DashboardView() {
   const [mounted, setMounted] = useState(false)
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), [])
->>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
 
-type DashboardState = {
-  isSnapshotOpen: boolean
-  isLogOpen: boolean
-  isCustomizeOpen: boolean
-  isEditingGuidance: boolean
-}
-
-type DashboardAction = 
-  | { type: 'TOGGLE_SNAPSHOT'; payload?: boolean }
-  | { type: 'TOGGLE_LOG'; payload?: boolean }
-  | { type: 'TOGGLE_CUSTOMIZE'; payload?: boolean }
-  | { type: 'TOGGLE_GUIDANCE'; payload?: boolean }
-
-function dashboardReducer(state: DashboardState, action: DashboardAction): DashboardState {
-  switch (action.type) {
-    case 'TOGGLE_SNAPSHOT': return { ...state, isSnapshotOpen: action.payload ?? !state.isSnapshotOpen }
-    case 'TOGGLE_LOG': return { ...state, isLogOpen: action.payload ?? !state.isLogOpen }
-    case 'TOGGLE_CUSTOMIZE': return { ...state, isCustomizeOpen: action.payload ?? !state.isCustomizeOpen }
-    case 'TOGGLE_GUIDANCE': return { ...state, isEditingGuidance: action.payload ?? !state.isEditingGuidance }
-    default: return state
-  }
-}
-
-export function DashboardView() {
-  const { dashboard: data, updateDashboard: update, isSaving, user } = useStore()
-  const { logout } = useAuth()
-  const ctx = use(ChatSessionContext)
-  const temporaryChat = ctx?.temporaryChat ?? false
-  const setTemporaryChat = ctx?.setTemporaryChat ?? (() => {})
-  const navigate = useNavigate()
-  
-  const [state, dispatch] = useReducer(dashboardReducer, {
-    isSnapshotOpen: false,
-    isLogOpen: false,
-    isCustomizeOpen: false,
-    isEditingGuidance: false
-  })
-
-  const [planSettings, setPlanSettings] = useState([
-    { label: 'Hormone Trends', active: true },
-    { label: 'Body Signals', active: true },
-    { label: 'Wellness Score', active: true },
-    { label: 'Supplement Guide', active: false },
-    { label: 'Partner Insights', active: true },
-  ])
-  const [mounted, setMounted] = useState(false)
-  const [now, setNow] = useState<Date | null>(null)
-  
-  const [{ run, steps }, setTourState] = useState({
-    run: false,
-    steps: [
-      {
-        target: '.cycle-tracker-hero',
-        content: "This is your partner's Cycle Tracker. See their current phase and predictions at a glance.",
-        placement: 'right',
-        disableBeacon: false,
-      },
-      {
-        target: '.flo-story-bubble',
-        content: "Tap these stories to quickly jump to insights, secret chats, or wellness tips.",
-        placement: 'bottom',
-      },
-      {
-        target: '.flo-feed-row .flo-card',
-        content: "Today's Plan gives you phase-specific insights, body signals, and daily tips.",
-        placement: 'top',
-      },
-      {
-        target: '.flo-fab',
-        content: "Use this to quickly log new symptoms or notes for the current day.",
-        placement: 'left',
-      }
-    ] as Step[]
-  })
-
-  const startTour = () => {
-    setTourState(s => ({ ...s, run: true }))
-  }
-
-  useEffect(() => {
-    setMounted(true)
-    setNow(new Date())
-    const hasSeenTour = localStorage.getItem('mensflow_tour_completed')
-    if (!hasSeenTour) {
-      setTourState(s => ({ ...s, run: true }))
-    }
-  }, [])
-
-  const handleJoyrideCallback = (data: any) => {
-    const { status } = data;
-    if (([STATUS.FINISHED, STATUS.SKIPPED] as string[]).includes(status)) {
-      localStorage.setItem('mensflow_tour_completed', 'true')
-      setTourState(s => ({ ...s, run: false }))
-    }
-  }
-
-  const guidanceText = useMemo(
-    () => data.guidanceLines.join('\n'),
-    [data.guidanceLines],
+  const cycleDay = useMemo(
+    () => computeCycleDay(data.lastPeriodStart, data.typicalCycleDays),
+    [data.lastPeriodStart, data.typicalCycleDays],
   )
 
-<<<<<<< HEAD
-  const handleLogout = () => {
-    logout()
-    navigate('/')
-  }
-=======
   const fmtSaved =
     lastSaved?.toLocaleTimeString(undefined, {
       hour: 'numeric',
       minute: '2-digit',
     }) ?? '-'
->>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
 
-  const toggleTempChat = () => {
-    const next = !temporaryChat
-    setTemporaryChat(next)
-    if (next) navigate('/ask')
-  }
+  const guidanceText = data.guidanceLines.join('\n')
 
   const selectedDate = useMemo(() => {
     try {
@@ -185,40 +57,6 @@ export function DashboardView() {
   }, [data.lastPeriodStart])
 
   return (
-<<<<<<< HEAD
-    <div className="dashboard-flo-theme relative overflow-hidden">
-      {mounted && (
-        <Joyride
-          steps={steps}
-          run={run}
-          continuous
-          onEvent={handleJoyrideCallback}
-          styles={{
-            options: {
-              primaryColor: '#f472b6', // Codebase pink accent
-              backgroundColor: '#ffffff',
-              textColor: '#1f161d',
-              zIndex: 10000,
-            }
-          } as any}
-        />
-      )}
-      <DashboardHeader 
-        user={user}
-        mounted={mounted}
-        isSaving={isSaving}
-        getGreeting={getGreeting}
-        temporaryChat={temporaryChat}
-        toggleTempChat={toggleTempChat}
-        handleLogout={handleLogout}
-        onStartTour={startTour}
-      />
-
-      <main className="flo-main-container pb-32 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
-        <div className="flo-content-inner">
-          <div className="flo-dashboard-top">
-            <StoriesSection />
-=======
     <div className="dashboard-live">
       <header className="dash-header">
         <div className="dash-header-left">
@@ -348,15 +186,12 @@ export function DashboardView() {
               <ClipboardText size={20} aria-hidden />
               Your snapshot
             </h2>
->>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
           </div>
+          <div className="dash-snapshot-body">
+            <p className="dash-snapshot-lede">
+              Update cycle basics and notes when your real-world data changes.
+            </p>
 
-<<<<<<< HEAD
-          <div className="flo-dashboard-grid">
-            <section className="flo-dashboard-left" aria-label="Cycle overview">
-              <div className="flo-hero-panel">
-                <CycleTrackerHero />
-=======
             <div className="dash-snapshot-form">
               <div className="dash-snapshot-field">
                 <label className="dash-field-label" htmlFor="dash-last-period">
@@ -388,68 +223,51 @@ export function DashboardView() {
                     />
                   </PopoverContent>
                 </Popover>
->>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
               </div>
-            </section>
 
-            <section className="flo-dashboard-right" aria-label="Daily plan">
-              <FeedSection 
-                data={data}
-                computeCycleDay={computeCycleDay}
-                dispatch={dispatch as React.Dispatch<{ type: string; payload?: boolean | undefined }>}
-                state={state}
-                guidanceText={guidanceText}
-                update={update}
-              />
-            </section>
+              <div className="dash-snapshot-field">
+                <label className="dash-field-label" htmlFor="dash-cycle-len">
+                  Typical cycle length (days)
+                </label>
+                <input
+                  id="dash-cycle-len"
+                  type="number"
+                  min={21}
+                  max={45}
+                  className="dash-input dash-input--fill"
+                  value={data.typicalCycleDays}
+                  onChange={(e) =>
+                    update({
+                      typicalCycleDays: Math.min(
+                        45,
+                        Math.max(21, Number(e.target.value) || 28),
+                      ),
+                    })
+                  }
+                />
+              </div>
+
+              <div className="dash-snapshot-field dash-snapshot-field--wide">
+                <label className="dash-field-label" htmlFor="dash-notes">
+                  Private notes
+                </label>
+                <textarea
+                  id="dash-notes"
+                  className="dash-textarea dash-textarea--snapshot"
+                  rows={5}
+                  placeholder="Symptoms, meds, questions for your clinician…"
+                  value={data.cycleNotes}
+                  onChange={(e) => update({ cycleNotes: e.target.value })}
+                />
+              </div>
+
+              <p className="dash-snapshot-foot">
+                Edits persist automatically in this browser session.
+              </p>
+            </div>
           </div>
-        </div>
-      </main>
-
-      {/* Persistent Interaction Trigger */}
-      <button 
-        className="flo-fab"
-        onClick={() => dispatch({ type: 'TOGGLE_LOG', payload: true })}
-      >
-        <div className="flo-fab-ripple" />
-        <Plus size={28} weight="bold" />
-      </button>
-
-       <SnapshotModal 
-        key={`snap-${state.isSnapshotOpen}`}
-        isOpen={state.isSnapshotOpen}
-        onOpenChange={(val) => dispatch({ type: 'TOGGLE_SNAPSHOT', payload: val })}
-        data={data}
-        update={update}
-        isSaving={isSaving}
-      />
-
-      <CustomizePlanModal 
-        key={`cust-${state.isCustomizeOpen}`}
-        isOpen={state.isCustomizeOpen}
-        onOpenChange={(val) => dispatch({ type: 'TOGGLE_CUSTOMIZE', payload: val })}
-        planSettings={planSettings}
-        setPlanSettings={setPlanSettings}
-        isSaving={isSaving}
-        onUpdate={async () => {
-          await update({ 
-            // Simulation of update
-          })
-          dispatch({ type: 'TOGGLE_CUSTOMIZE', payload: false })
-        }}
-      />
-
-      {mounted && now && (
-        <LogSymptomsModal 
-          key={`log-${state.isLogOpen}`}
-          isOpen={state.isLogOpen} 
-          onOpenChange={(val) => dispatch({ type: 'TOGGLE_LOG', payload: val })}
-          activeDay={computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)}
-          activeDate={now}
-        />
-      )}
+        </section>
+      </div>
     </div>
   )
 }
-
-import { Plus } from '@phosphor-icons/react'

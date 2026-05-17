@@ -1,28 +1,9 @@
 import * as React from "react"
-<<<<<<< HEAD
-
-// Type for chart payload items
-interface ChartPayloadItem {
-  type?: string
-  name?: string | number
-  dataKey?: string | number
-  value?: string | number
-  fill?: string
-  color?: string
-  payload?: Record<string, unknown>
-  [key: string]: unknown
-}
-
-const ResponsiveContainer = React.lazy(() => import("recharts").then(m => ({ default: m.ResponsiveContainer })))
-const Tooltip = React.lazy(() => import("recharts").then(m => ({ default: m.Tooltip })))
-const Legend = React.lazy(() => import("recharts").then(m => ({ default: m.Legend })))
-=======
 import * as RechartsPrimitive from "recharts"
 import type {
   ValueType as TooltipValueType,
   NameType as TooltipNameType,
 } from "recharts/types/component/DefaultTooltipContent"
->>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
 
 import { cn } from "@/lib/utils"
 
@@ -67,7 +48,9 @@ function ChartContainer({
   ...props
 }: React.ComponentProps<"div"> & {
   config: ChartConfig
-  children: React.ReactNode
+  children: React.ComponentProps<
+    typeof RechartsPrimitive.ResponsiveContainer
+  >["children"]
   initialDimension?: {
     width: number
     height: number
@@ -88,13 +71,11 @@ function ChartContainer({
         {...props}
       >
         <ChartStyle id={chartId} config={config} />
-        <React.Suspense fallback={<div className="h-full w-full bg-muted/5 animate-pulse" />}>
-          <ResponsiveContainer
-            initialDimension={initialDimension}
-          >
-            {children}
-          </ResponsiveContainer>
-        </React.Suspense>
+        <RechartsPrimitive.ResponsiveContainer
+          initialDimension={initialDimension}
+        >
+          {children}
+        </RechartsPrimitive.ResponsiveContainer>
       </div>
     </ChartContext.Provider>
   )
@@ -138,53 +119,7 @@ ${colorConfig
   return null
 }
 
-const ChartTooltip = Tooltip
-
-const ChartTooltipLabel = React.memo(({
-  config,
-  hideLabel,
-  payload,
-  label,
-  labelKey,
-  labelClassName,
-  labelFormatter,
-}: {
-  config: ChartConfig
-  hideLabel: boolean
-  payload: readonly unknown[]
-  label: React.ReactNode
-  labelKey?: string
-  labelClassName?: string
-  labelFormatter?: (value: unknown, payload: readonly unknown[]) => React.ReactNode
-}) => {
-  if (hideLabel) {
-    return null
-  }
-
-  const item = (payload as ChartPayloadItem[] | undefined)?.[0]
-  const key = `${labelKey ?? item?.dataKey ?? item?.name ?? "value"}`
-  const itemConfig = getPayloadConfigFromPayload(config, item, key)
-  const value =
-    !labelKey && typeof label === "string"
-      ? (config[label]?.label ?? label)
-      : itemConfig?.label
-
-  if (labelFormatter) {
-    return (
-      <div className={cn("font-medium", labelClassName)}>
-        {labelFormatter(value, payload ?? [])}
-      </div>
-    )
-  }
-
-  if (!value) {
-    return null
-  }
-
-  return (
-    <div className={cn("font-medium", labelClassName)}>{value}</div>
-  )
-})
+const ChartTooltip = RechartsPrimitive.Tooltip
 
 const ChartTooltipLabel = React.memo(({
   config,
@@ -246,32 +181,27 @@ function ChartTooltipContent({
   color,
   nameKey,
   labelKey,
-}: {
-  active?: boolean
-  payload?: readonly unknown[]
-  className?: string
-  indicator?: "line" | "dot" | "dashed"
-  hideLabel?: boolean
-  hideIndicator?: boolean
-  label?: React.ReactNode
-  labelFormatter?: (value: unknown, payload: readonly unknown[]) => React.ReactNode
-  labelClassName?: string
-  formatter?: (value: unknown, name: unknown, item: unknown, index: number, payload: unknown) => React.ReactNode
-  color?: string
-  nameKey?: string
-  labelKey?: string
-} & React.ComponentProps<"div">) {
+}: React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
+  React.ComponentProps<"div"> & {
+    hideLabel?: boolean
+    hideIndicator?: boolean
+    indicator?: "line" | "dot" | "dashed"
+    nameKey?: string
+    labelKey?: string
+  } & Omit<
+    RechartsPrimitive.DefaultTooltipContentProps<
+      TooltipValueType,
+      TooltipNameType
+    >,
+    "accessibilityLayer"
+  >) {
   const { config } = useChart()
 
-<<<<<<< HEAD
-  if (!active || !Array.isArray(payload) || !payload.length) {
-=======
   if (!active || !payload?.length) {
->>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
     return null
   }
 
-  const nestLabel = (payload as ChartPayloadItem[]).length === 1 && indicator !== "dot"
+  const nestLabel = payload.length === 1 && indicator !== "dot"
 
   return (
     <div
@@ -293,11 +223,7 @@ function ChartTooltipContent({
         />
       ) : null}
       <div className="grid gap-1.5">
-<<<<<<< HEAD
-        {(payload as ChartPayloadItem[]).reduce<React.ReactNode[]>((acc, item: ChartPayloadItem, index) => {
-=======
         {payload.reduce<React.ReactNode[]>((acc, item, index) => {
->>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
           if (item.type === "none") return acc
           const key = `${nameKey ?? item.name ?? item.dataKey ?? "value"}`
           const itemConfig = getPayloadConfigFromPayload(config, item, key)
@@ -380,7 +306,7 @@ function ChartTooltipContent({
   )
 }
 
-const ChartLegend = Legend
+const ChartLegend = RechartsPrimitive.Legend
 
 function ChartLegendContent({
   className,
@@ -391,10 +317,10 @@ function ChartLegendContent({
 }: React.ComponentProps<"div"> & {
   hideIcon?: boolean
   nameKey?: string
-} & Record<string, unknown>) {
+} & RechartsPrimitive.DefaultLegendContentProps) {
   const { config } = useChart()
 
-  if (!Array.isArray(payload) || !payload.length) {
+  if (!payload?.length) {
     return null
   }
 
@@ -406,11 +332,7 @@ function ChartLegendContent({
         className
       )}
     >
-<<<<<<< HEAD
-      {(payload as ChartPayloadItem[]).reduce<React.ReactNode[]>((acc, item: ChartPayloadItem) => {
-=======
       {payload.reduce<React.ReactNode[]>((acc, item) => {
->>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
         if (item.type === "none") return acc
         const key = `${nameKey ?? item.dataKey ?? "value"}`
         const itemConfig = getPayloadConfigFromPayload(config, item, key)

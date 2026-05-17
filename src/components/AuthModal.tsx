@@ -15,16 +15,14 @@ type AuthModalProps = {
   open: boolean
   onClose: () => void
   onContinue: (method: AuthMethod) => void
-  isLoading?: boolean
 }
 
-export function AuthModal({ open, onClose, onContinue, isLoading }: AuthModalProps) {
+export function AuthModal({ open, onClose, onContinue }: AuthModalProps) {
   const [email, setEmail] = useState('')
 
   if (!open) return null
 
   const submitEmail = () => {
-    if (isLoading) return
     const trimmed = email.trim()
     if (!trimmed || !trimmed.includes('@')) return
     onContinue('email')
@@ -61,12 +59,11 @@ export function AuthModal({ open, onClose, onContinue, isLoading }: AuthModalPro
           You&apos;ll get smarter responses and can upload files, images, and more.
         </p>
 
-        <div className={`auth-modal-methods auth-modal-methods--gpt ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}>
+        <div className="auth-modal-methods auth-modal-methods--gpt">
           <button
             type="button"
             className="auth-method-btn auth-method-btn--gpt"
             onClick={() => onContinue('google')}
-            disabled={isLoading}
           >
             <img
               src="/images/google.png"
@@ -82,7 +79,6 @@ export function AuthModal({ open, onClose, onContinue, isLoading }: AuthModalPro
             type="button"
             className="auth-method-btn auth-method-btn--gpt"
             onClick={() => onContinue('apple')}
-            disabled={isLoading}
           >
             <img
               src="/images/apple.png"
@@ -98,7 +94,6 @@ export function AuthModal({ open, onClose, onContinue, isLoading }: AuthModalPro
             type="button"
             className="auth-method-btn auth-method-btn--gpt"
             onClick={() => onContinue('phone')}
-            disabled={isLoading}
           >
             <Phone className="auth-brand-icon" size={22} weight="duotone" aria-hidden />
             Continue with phone
@@ -122,30 +117,22 @@ export function AuthModal({ open, onClose, onContinue, isLoading }: AuthModalPro
           className="auth-modal-email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          disabled={isLoading}
           onKeyDown={(e) => {
             if (e.key === 'Enter') submitEmail()
           }}
         />
         <button
           type="button"
-          className="auth-modal-continue-main flex items-center justify-center gap-2"
+          className="auth-modal-continue-main"
           onClick={submitEmail}
-          disabled={isLoading || !email.trim().includes('@')}
+          disabled={!email.trim().includes('@')}
         >
-<<<<<<< HEAD
-          {isLoading ? (
-             <div className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-          ) : null}
-=======
->>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
           Sign in
         </button>
 
         <button
           type="button"
           className="auth-modal-demo-text"
-          disabled={isLoading}
           onClick={() => {
             onContinue('guest-demo')
             setEmail('')

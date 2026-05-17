@@ -1,11 +1,7 @@
 import { useMemo, useState } from 'react'
 
 import { TIPS_DUMMY, type WellnessTip } from '../data/tipsData'
-<<<<<<< HEAD
-import { useStore } from '../store/useStore'
-=======
 import { useDashboardData } from '../context/useDashboardData'
->>>>>>> 7b2a41f (feat: implement comprehensive cycle tracking dashboard with new navigation, visualizations, and symptom logging components)
 import { cn } from '@/lib/utils';
 
 const CATS: { id: WellnessTip['category'] | 'all'; label: string }[] = [
@@ -17,7 +13,7 @@ const CATS: { id: WellnessTip['category'] | 'all'; label: string }[] = [
 ]
 
 export function TipsView() {
-  const { dashboard: data } = useStore()
+  const { data } = useDashboardData()
   const [cat, setCat] = useState<(typeof CATS)[number]['id']>('all')
   const [saved, setSaved] = useState<Set<string>>(
     () => new Set(TIPS_DUMMY.slice(0, 2).map((t) => t.id)),
