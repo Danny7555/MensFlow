@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/set-state-in-effect */
+
 import { useEffect, useRef, useState } from 'react'
 import { Ghost, Question } from '@phosphor-icons/react'
 import { ChatComposer } from '../components/ChatComposer'
