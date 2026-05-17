@@ -4,8 +4,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { useStore } from '@/store/useStore'
 
 export function CycleStatsHero() {
+  const { dashboard: data } = useStore()
+  
   return (
     <div className="cycle-stats-hero">
       <div className="stats-banner">
@@ -27,7 +30,7 @@ export function CycleStatsHero() {
             </div>
             <div className="stats-card-info">
               <span className="stats-label">Cycle length</span>
-              <span className="stats-value">35 days</span>
+              <span className="stats-value">{data.typicalCycleDays} days</span>
             </div>
           </div>
           <div className="stats-card-action">

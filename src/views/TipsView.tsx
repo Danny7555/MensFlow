@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 
 import { TIPS_DUMMY, type WellnessTip } from '../data/tipsData'
-import { useDashboardData } from '../context/useDashboardData'
+import { useStore } from '../store/useStore'
 import { cn } from '@/lib/utils';
 
 const CATS: { id: WellnessTip['category'] | 'all'; label: string }[] = [
@@ -13,7 +13,7 @@ const CATS: { id: WellnessTip['category'] | 'all'; label: string }[] = [
 ]
 
 export function TipsView() {
-  const { data } = useDashboardData()
+  const { dashboard: data } = useStore()
   const [cat, setCat] = useState<(typeof CATS)[number]['id']>('all')
   const [saved, setSaved] = useState<Set<string>>(
     () => new Set(TIPS_DUMMY.slice(0, 2).map((t) => t.id)),

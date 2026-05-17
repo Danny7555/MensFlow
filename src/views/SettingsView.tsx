@@ -1,5 +1,6 @@
 import type { ComponentType, ReactNode } from 'react'
 import { useState } from 'react'
+import { useStore } from '../store/useStore'
 import {
   ArrowCounterClockwise,
   Bell,
@@ -342,6 +343,18 @@ export function SettingsView({
       .withOptions({ shallow: false })
   )
   const { settings, updateSettings, resetSettings } = useSettings()
+  const { user, updateUser, resetStore } = useStore()
+
+  const confirmResetApp = () => {
+    if (window.confirm('Delete all symptom logs, cycle data, and health settings? This cannot be undone.')) {
+      resetStore()
+      resetSettings()
+      localStorage.removeItem(CHAT_STORAGE_KEY)
+      window.dispatchEvent(new Event(CLEAR_LOCAL_CHATS_EVENT))
+      if (onLogout) onLogout()
+      window.location.reload()
+    }
+  }
 
   const setTheme = (themeMode: ThemeMode) => updateSettings({ themeMode })
 
@@ -618,6 +631,13 @@ export function SettingsView({
             <button
               type="button"
               className="btn btn-ghost danger"
+              onClick={confirmResetApp}
+            >
+              Erase all MensFlow health data
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost danger"
               onClick={confirmWipeLocalData}
             >
               Erase local MensFlow data
@@ -683,11 +703,21 @@ export function SettingsView({
             </div>
           ) : (
             <>
-              <div className="settings-account-summary">
-                <UserCircle size={36} weight="duotone" aria-hidden />
-                <div>
-                  <p className="settings-account-name">Demo user</p>
-                  <p className="settings-account-email">session@mensflow.local</p>
+              <div className="settings-account-summary items-start">
+                <UserCircle size={36} weight="duotone" aria-hidden className="mt-2" />
+                <div className="flex-1 w-full max-w-sm space-y-4">
+                  <div className="space-y-1.5">
+                    <label htmlFor="user-name-input" className="text-xs font-medium uppercase tracking-widest text-muted-foreground ml-1">Your Name</label>
+                    <input 
+                      id="user-name-input"
+                      type="text"
+                      value={user?.name ?? ''}
+                      onChange={(e) => updateUser({ name: e.target.value })}
+                      className="w-full h-12 px-4 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-1 focus:ring-[var(--mf-accent)] transition-all outline-none text-base font-medium"
+                      placeholder="Enter your name"
+                    />
+                  </div>
+                  <p className="settings-account-email ml-1">session@mensflow.local</p>
                 </div>
               </div>
 

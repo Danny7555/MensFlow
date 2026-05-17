@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
+import { cn } from './lib/utils'
 import { ThemeSync } from './components/ThemeSync'
 import { ChatView } from './views/ChatView'
 import { DashboardDataProvider } from './context/DashboardDataProvider'
@@ -11,8 +12,11 @@ import { PlaceholderView } from './views/PlaceholderView'
 import { SettingsView } from './views/SettingsView'
 import { CalendarView } from './views/CalendarView'
 import { TrackerView } from './views/TrackerView'
+import { Toaster } from 'sonner'
 import { SymptomsView } from './views/SymptomsView'
 import { EducationView } from './views/EducationView'
+import { OnboardingView } from './views/OnboardingView'
+import { NotificationsView } from './views/NotificationsView'
 import { NotFoundView } from './views/NotFoundView'
 import { AuthProvider } from './context/AuthProvider'
 import { SettingsProvider } from './context/SettingsProvider'
@@ -21,14 +25,15 @@ import { useAuth } from './context/useAuth'
 import { useSettings } from './context/useSettings'
 import { Header } from './components/Header'
 import { Sidebar } from './components/Sidebar'
-
+import { House, Target, Heartbeat, Bell, UserCircle } from '@phosphor-icons/react'
 import { useMediaQuery } from './hooks/useMediaQuery'
 import './App.css'
 
 function MainShell() {
-  const { isAuthenticated, logout, openAuthModal } = useAuth()
+  const { isAuthenticated, onboardingCompleted, logout, openAuthModal } = useAuth()
   const { settings, updateSettings } = useSettings()
   const navigate = useNavigate()
+  const location = useLocation()
   const isMobile = useMediaQuery('(max-width: 768px)')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [temporaryChat, setTemporaryChat] = useState(false)
@@ -70,46 +75,54 @@ function MainShell() {
       value={{ temporaryChat, setTemporaryChat }}
     >
       <div className="app-shell">
-        <Sidebar
-          isAuthenticated={isAuthenticated}
-          mobileOpen={sidebarOpen}
-          onCloseMobile={() => setSidebarOpen(false)}
-          onLogin={openAuthModal}
-          isMobile={isMobile}
-          desktopCollapsed={settings.sidebarCollapsed}
-          onToggleDesktopCollapse={() =>
-            updateSettings({ sidebarCollapsed: !settings.sidebarCollapsed })
-          }
-        />
-
-        <div className="app-main">
-          <Header
+        {!location.pathname.startsWith('/onboarding') && (!isMobile || location.pathname !== '/dashboard') && (
+          <Sidebar
             isAuthenticated={isAuthenticated}
-            onToggleSidebar={toggleSidebar}
-            sidebarExpanded={sidebarExpanded}
-            sidebarToggleLabel={sidebarToggleLabel}
-            onOpenAuth={openAuthModal}
-            temporaryChat={isAuthenticated ? temporaryChat : undefined}
-            onToggleTemporaryChat={
-              isAuthenticated
-                ? () => {
-                    const next = !temporaryChat
-                    setTemporaryChat(next)
-                    if (next) {
-                      navigate('/ask')
-                    }
-                  }
-                : undefined
-            }
-            onLogout={handleLogout}
+            mobileOpen={sidebarOpen}
+            onCloseMobile={() => setSidebarOpen(false)}
+            onLogin={openAuthModal}
             isMobile={isMobile}
+            desktopCollapsed={settings.sidebarCollapsed}
+            onToggleDesktopCollapse={() =>
+              updateSettings({ sidebarCollapsed: !settings.sidebarCollapsed })
+            }
           />
+        )}
+
+        <div className={cn("app-main", location.pathname.startsWith('/onboarding') && "app-main--full")}>
+          {!location.pathname.startsWith('/onboarding') && location.pathname !== '/dashboard' && (
+            <Header
+              isAuthenticated={isAuthenticated}
+              onToggleSidebar={toggleSidebar}
+              sidebarExpanded={sidebarExpanded}
+              sidebarToggleLabel={sidebarToggleLabel}
+              onOpenAuth={openAuthModal}
+              temporaryChat={isAuthenticated ? temporaryChat : undefined}
+              onToggleTemporaryChat={
+                isAuthenticated
+                  ? () => {
+                      const next = !temporaryChat
+                      setTemporaryChat(next)
+                      if (next) {
+                        navigate('/ask')
+                      }
+                    }
+                  : undefined
+              }
+              onLogout={handleLogout}
+              isMobile={isMobile}
+            />
+          )}
 
           <main className="app-canvas">
             <Routes>
               {!isAuthenticated ? (
                 <>
-                  <Route path="/" element={<LandingView />} />
+                  <Route 
+                    path="/" 
+                    element={!onboardingCompleted ? <Navigate to="/onboarding" replace /> : <LandingView />} 
+                  />
+                  <Route path="/onboarding" element={<OnboardingView />} />
                   <Route path="/ask" element={<LandingView />} />
                   <Route path="/settings" element={<SettingsView isGuest onLogin={openAuthModal} />} />
                   <Route path="/calendar" element={<CalendarView />} />
@@ -126,7 +139,11 @@ function MainShell() {
                 </>
               ) : (
                 <>
-                  <Route path="/" element={<Navigate to="/dashboard" />} />
+                  <Route 
+                    path="/" 
+                    element={!onboardingCompleted ? <Navigate to="/onboarding" replace /> : <Navigate to="/dashboard" replace />} 
+                  />
+                  <Route path="/onboarding" element={<OnboardingView />} />
                   <Route path="/dashboard" element={<DashboardView />} />
                   <Route path="/ask" element={<ChatView />} />
                   <Route path="/settings" element={<SettingsView onLogout={handleLogout} />} />
@@ -135,6 +152,7 @@ function MainShell() {
                   <Route path="/tips" element={<TipsView />} />
                   <Route path="/wellness-tips" element={<Navigate to="/tips" replace />} />
                   <Route path="/calendar" element={<CalendarView />} />
+                  <Route path="/notifications" element={<NotificationsView />} />
                   <Route path="/tracker" element={<TrackerView />} />
                   <Route path="/symptoms" element={<SymptomsView />} />
                   <Route path="/education" element={<EducationView />} />
@@ -144,6 +162,42 @@ function MainShell() {
             </Routes>
           </main>
         </div>
+        {!location.pathname.startsWith('/onboarding') && isAuthenticated && isMobile && (
+          <nav className="flo-bottom-nav">
+            <button 
+              className={cn("flo-nav-item", location.pathname === '/dashboard' && "flo-nav-item--active")}
+              onClick={() => navigate('/dashboard')}
+            >
+              <House size={24} weight={location.pathname === '/dashboard' ? "fill" : "regular"} />
+              <span className="flo-nav-label">Home</span>
+            </button>
+            <button className="flo-nav-item" onClick={() => navigate('/insights')}>
+              <Target size={24} />
+              <span className="flo-nav-label">Insights</span>
+            </button>
+            <button 
+              className={cn("flo-nav-item", location.pathname === '/wellness-tips' && "flo-nav-item--active")}
+              onClick={() => navigate('/wellness-tips')}
+            >
+              <Heartbeat size={24} weight={location.pathname === '/wellness-tips' ? "fill" : "light"} />
+              <span className="flo-nav-label">Wellness</span>
+            </button>
+            <button 
+              className={cn("flo-nav-item", location.pathname === '/notifications' && "flo-nav-item--active")}
+              onClick={() => navigate('/notifications')}
+            >
+              <Bell size={24} weight={location.pathname === '/notifications' ? "fill" : "light"} />
+              <span className="flo-nav-label">Alerts</span>
+            </button>
+            <button 
+              className={cn("flo-nav-item", location.pathname === '/settings' && "flo-nav-item--active")}
+              onClick={() => navigate('/settings')}
+            >
+              <UserCircle size={24} weight={location.pathname === '/settings' ? "fill" : "light"} />
+              <span className="flo-nav-label">Profile</span>
+            </button>
+          </nav>
+        )}
       </div>
     </ChatSessionContext.Provider>
   )
@@ -156,6 +210,7 @@ export default function App() {
         <DashboardDataProvider>
           <ThemeSync />
           <MainShell />
+          <Toaster position="top-right" richColors theme="light" className="mt-14" />
         </DashboardDataProvider>
       </SettingsProvider>
     </AuthProvider>

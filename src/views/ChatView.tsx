@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from 'react'
 import { Ghost, Question } from '@phosphor-icons/react'
 import { ChatComposer } from '../components/ChatComposer'
@@ -56,7 +57,14 @@ export function ChatView() {
   })
 
   const [draft, setDraft] = useState('')
+  const [mounted, setMounted] = useState(false)
+  const [now, setNow] = useState<Date | null>(null)
   const prevTemporary = useRef<boolean | null>(null)
+
+  useEffect(() => {
+    setMounted(true)
+    setNow(new Date())
+  }, [])
 
   useEffect(() => {
     if (prevTemporary.current === null) {
@@ -113,7 +121,7 @@ export function ChatView() {
   const isInitialState = messages.length === 0
 
   return (
-    <div className={isInitialState ? "landing" : "chat-view"} suppressHydrationWarning>
+    <div className={isInitialState ? "landing" : "chat-view"}>
       {isInitialState ? (
         <div className="landing-center animate-in fade-in zoom-in duration-700">
           <div className="landing-hero-image-wrap">
@@ -176,10 +184,10 @@ export function ChatView() {
               >
                 <span className="chat-role">
                   {m.role === 'user' ? 'You' : 'MensFlow'}
-                  {chatShowTimestamps && (
+                  {chatShowTimestamps && mounted && (
                     <time
                       className="chat-time"
-                      dateTime={new Date(m.createdAt).toISOString()}
+                      dateTime={now?.toISOString() || ""}
                       suppressHydrationWarning
                     >
                       {fmtTime(m.createdAt)}

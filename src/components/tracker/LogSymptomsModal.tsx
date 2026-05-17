@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { format } from "date-fns"
 import { 
   Dialog,
   DialogContent,
@@ -9,21 +10,52 @@ import {
 import { cn } from "@/lib/utils"
 import { SYMPTOM_DEFS } from "@/data/symptomsData"
 import { Drop, Smiley, Pulse } from "@phosphor-icons/react"
+import { useStore } from "@/store/useStore"
+import { toast } from "sonner"
 
 interface LogSymptomsModalProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
   activeDay: number
+  activeDate: Date
 }
 
-export function LogSymptomsModal({ isOpen, onOpenChange, activeDay }: LogSymptomsModalProps) {
-  const [selectedSymptoms, setSelectedSymptoms] = useState<Set<string>>(new Set())
+export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }: LogSymptomsModalProps) {
+  const { addLog, getLogForDate, isSaving } = useStore()
+  const dateKey = format(activeDate, 'yyyy-MM-dd')
+  const [selectedSymptoms, setSelectedSymptoms] = useState<Set<string>>(() => {
+    if (!isOpen) return new Set()
+    const existing = getLogForDate(dateKey)
+    return existing ? new Set(existing.symptoms) : new Set()
+  })
 
   const toggleSymptom = (id: string) => {
+    if (isSaving) return
     const next = new Set(selectedSymptoms)
     if (next.has(id)) next.delete(id)
     else next.add(id)
     setSelectedSymptoms(next)
+  }
+
+  const handleSave = async () => {
+    await addLog(dateKey, Array.from(selectedSymptoms))
+    
+    // Check if user logged a 'flow' symptom to trigger the toast
+    const loggedFlow = Array.from(selectedSymptoms).some(s => s.startsWith('flow-'))
+    
+    if (loggedFlow) {
+      toast.success("Period logged", {
+        description: `Your period was recorded for Day ${activeDay}.`,
+        duration: 4000,
+      })
+    } else {
+      toast.success("Log saved", {
+        description: `Symptoms saved for Day ${activeDay}.`,
+        duration: 3000,
+      })
+    }
+    
+    onOpenChange(false)
   }
 
   const categories = [
@@ -33,6 +65,9 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay }: LogSymptom
   ]
 
   const symptomImages: Record<string, string> = {
+    'flow-light': '/images/flow_light.png',
+    'flow-medium': '/images/flow_medium.png',
+    'flow-heavy': '/images/flow_heavy.png',
     'mood-happy': '/images/happy.jpg',
     'mood-sad': '/images/sad.jpg',
     'mood-irritable': '/images/angry.jpg',
@@ -51,13 +86,13 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay }: LogSymptom
       <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden border-none rounded-[32px] bg-background">
         <div className="p-8">
           <DialogHeader className="mb-6">
-            <DialogTitle className="text-2xl font-medium tracking-tight">Log Symptoms — Day {activeDay}</DialogTitle>
+            <DialogTitle className="text-2xl font-medium tracking-tight">Log Symptoms: Day {activeDay}</DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground pt-1">
               Select any symptoms or moods you're experiencing today.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6 max-h-[440px] overflow-y-auto pr-2 scrollbar-hide">
+          <div className={cn("space-y-6 max-h-[440px] overflow-y-auto pr-2 scrollbar-hide transition-opacity", isSaving && "opacity-50 pointer-events-none")}>
             {categories.map((cat) => {
               const items = SYMPTOM_DEFS.filter(s => s.category === cat.name)
               if (items.length === 0) return null
@@ -77,6 +112,7 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay }: LogSymptom
                         <button
                           key={s.id}
                           onClick={() => toggleSymptom(s.id)}
+                          disabled={isSaving}
                           className={cn(
                             "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 border",
                             isActive 
@@ -103,10 +139,21 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay }: LogSymptom
 
           <div className="mt-8 flex gap-3">
             <button 
-              onClick={() => onOpenChange(false)}
-              className="flex-1 h-12 rounded-2xl bg-[var(--mf-accent)] text-white font-medium hover:brightness-110 transition-all shadow-none"
+              onClick={handleSave}
+              disabled={isSaving}
+              className={cn(
+                "flex-1 h-12 rounded-2xl bg-[var(--mf-accent)] text-white font-medium hover:brightness-110 transition-all shadow-none flex items-center justify-center gap-2",
+                isSaving && "opacity-80 cursor-not-allowed"
+              )}
             >
-              Save Log
+              {isSaving ? (
+                <>
+                  <div className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Syncing…</span>
+                </>
+              ) : (
+                "Save Log"
+              )}
             </button>
           </div>
         </div>
