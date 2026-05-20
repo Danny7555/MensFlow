@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { use, useReducer, useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Joyride, type Step, STATUS } from 'react-joyride'
+import { Joyride, STATUS } from 'react-joyride'
 import { useStore } from '../store/useStore'
 import { useAuth } from '../context/useAuth'
 import { ChatSessionContext } from '../context/chat-session-context'
@@ -83,25 +83,29 @@ export function DashboardView() {
       {
         target: '.cycle-tracker-hero',
         content: "This is your partner's Cycle Tracker. See their current phase and predictions at a glance.",
-        placement: 'right',
-        disableBeacon: false,
+        placement: 'bottom',
+        disableBeacon: true,
       },
       {
-        target: '.flo-story-bubble',
+        target: '.flo-story-circle',
         content: "Tap these stories to quickly jump to insights, secret chats, or wellness tips.",
         placement: 'bottom',
+        disableBeacon: true,
       },
       {
         target: '.flo-feed-row .flo-card',
         content: "Today's Plan gives you phase-specific insights, body signals, and daily tips.",
-        placement: 'top',
+        placement: 'bottom',
+        disableBeacon: true,
       },
       {
         target: '.flo-fab',
         content: "Use this to quickly log new symptoms or notes for the current day.",
-        placement: 'left',
+        placement: 'top',
+        disableBeacon: true,
       }
-    ] as Step[]
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ] as any[]
   })
 
   const startTour = () => {
@@ -157,16 +161,63 @@ export function DashboardView() {
       )}
       {mounted && (
         <Joyride
-          steps={steps}
-          run={run}
-          continuous
-          onEvent={handleJoyrideCallback}
-          styles={{
-            options: {
-              primaryColor: '#f472b6', // Codebase pink accent
-              backgroundColor: '#ffffff',
-              textColor: '#1f161d',
-              zIndex: 10000,
+          {...{
+            steps,
+            run,
+            continuous: true,
+            showSkipButton: true,
+            showProgress: true,
+            disableOverlayClose: true,
+            scrollToFirstStep: true,
+            scrollOffset: 100,
+            onEvent: handleJoyrideCallback,
+            locale: {
+              back: 'Back',
+              close: 'Close',
+              last: 'Got it',
+              next: 'Next',
+              skip: 'Skip'
+            },
+            styles: {
+              options: {
+                arrowColor: 'var(--card)',
+                backgroundColor: 'var(--card)',
+                overlayColor: 'rgba(0, 0, 0, 0.45)',
+                primaryColor: 'var(--mf-accent)',
+                textColor: 'var(--mf-text-strong)',
+                width: 290,
+                zIndex: 10000,
+              },
+              tooltip: {
+                borderRadius: '20px',
+                border: '1px solid var(--mf-border)',
+                padding: '20px',
+                boxShadow: 'none',
+              },
+              tooltipContainer: {
+                textAlign: 'left',
+              },
+              buttonNext: {
+                borderRadius: '999px',
+                backgroundColor: 'var(--mf-accent)',
+                color: '#ffffff',
+                padding: '6px 14px',
+                fontSize: '12px',
+                fontWeight: '600',
+                border: 'none',
+                outline: 'none',
+              },
+              buttonBack: {
+                color: 'var(--mf-muted)',
+                marginRight: '12px',
+                fontSize: '12px',
+                fontWeight: '500',
+              },
+              buttonSkip: {
+                color: 'var(--mf-muted)',
+                fontSize: '12px',
+                fontWeight: '500',
+              }
             }
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } as any}

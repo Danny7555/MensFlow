@@ -114,7 +114,7 @@ function MainShell() {
             />
           )}
 
-          <main className="app-canvas">
+          <main className={cn("app-canvas", isAuthenticated && isMobile && !location.pathname.startsWith('/onboarding') && "pb-bottom-nav")}>
             <Routes>
               {!isAuthenticated ? (
                 <>

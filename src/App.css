@@ -3283,7 +3283,8 @@
   width: 100%;
   max-width: 1440px;
   margin: 0 auto;
-  padding: 0 2.5rem;
+  padding-left: 2.5rem;
+  padding-right: 2.5rem;
 }
 
 .flo-content-inner {
@@ -3402,7 +3403,8 @@
 
 @media (max-width: 768px) {
   .flo-main-container {
-    padding: 0 1.25rem;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
   }
   
   .flo-content-inner {
@@ -4139,4 +4141,9 @@
 .sonner-toast,
 [data-registry="toast"] {
   box-shadow: none !important;
+}
+
+/* Add padding-bottom on mobile when bottom navigation is visible */
+.pb-bottom-nav {
+  padding-bottom: calc(88px + env(safe-area-inset-bottom)) !important;
 }
