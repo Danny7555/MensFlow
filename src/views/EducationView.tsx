@@ -1,17 +1,32 @@
+import { useState, useEffect } from 'react'
 import { useQueryState, parseAsStringEnum } from 'nuqs'
 import { cn } from '../lib/utils'
 import { EDUCATION_ARTICLES, EDUCATION_CATEGORIES } from '../data/educationData'
 import type { EduCategory } from '../data/educationData'
 import { useAuth } from "@/context/useAuth"
+import { TipsSkeleton } from '../components/skeletons/TipsSkeleton'
 
 export function EducationView() {
   const { isAuthenticated, openAuthModal } = useAuth()
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false)
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [])
+
   const [activeCategory, setActiveCategory] = useQueryState(
     'topic',
     parseAsStringEnum<EduCategory>(EDUCATION_CATEGORIES as unknown as EduCategory[])
       .withDefault('All')
       .withOptions({ shallow: false })
   )
+
+  if (isLoading) {
+    return <TipsSkeleton />
+  }
 
   const filteredArticles = EDUCATION_ARTICLES.filter(
     (art) => activeCategory === 'All' || art.category === activeCategory

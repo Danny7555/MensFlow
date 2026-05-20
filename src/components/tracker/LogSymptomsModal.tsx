@@ -80,6 +80,10 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
     'phys-headache': '/images/headache.jpg',
     'phys-acne': '/images/acne.jpg',
     'phys-tender': '/images/tender.jpg',
+    'life-sleep': '/images/sleep_3d.png',
+    'life-bbt': '/images/bbt_3d.png',
+    'life-sex': '/images/sex_3d.png',
+    'life-pill': '/images/pill_3d.png',
   }
 
   return (

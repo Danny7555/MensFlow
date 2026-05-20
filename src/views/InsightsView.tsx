@@ -1,12 +1,24 @@
+import { useState, useEffect } from 'react'
 import { ChartLineUp, TrendDown, TrendUp } from '@phosphor-icons/react'
 import { INSIGHT_TRENDS_DUMMY } from '../data/insightsData'
 import { InteractiveAreaChart } from '../components/InteractiveAreaChart'
 import { SymptomTrendsChart } from '../components/SymptomTrendsChart'
 import { useAuth } from "@/context/useAuth"
 import { cn } from '../lib/utils'
+import { InsightsSkeleton } from '../components/skeletons/InsightsSkeleton'
 
 export function InsightsView() {
   const { isAuthenticated, openAuthModal } = useAuth()
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 500)
+    return () => clearTimeout(timer)
+  }, [])
+
+  if (isLoading) {
+    return <InsightsSkeleton />
+  }
 
   return (
     <div className="insights-page relative">

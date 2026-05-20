@@ -96,7 +96,7 @@ export function SymptomTrendsChart() {
                 tickFormatter={(value) => value.slice(0, 3)}
                 className="text-[10px] text-muted-foreground"
               />
-              <YAxis 
+              <YAxis
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}

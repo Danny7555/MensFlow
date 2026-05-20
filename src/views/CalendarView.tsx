@@ -16,6 +16,7 @@ type CalendarState = {
   selectedDate: Date
   isEditingPeriods: boolean
   periodDates: Set<string>
+  today: Date
 }
 
 type CalendarAction =
@@ -23,6 +24,7 @@ type CalendarAction =
   | { type: "SET_SELECTED_DATE"; payload: Date }
   | { type: "SET_EDITING_PERIODS"; payload: boolean }
   | { type: "TOGGLE_PERIOD_DATE"; payload: string }
+  | { type: "INIT_CLIENT_DATE"; payload: { today: Date; periodDates: Set<string>; viewDate: Date } }
 
 function calendarReducer(state: CalendarState, action: CalendarAction): CalendarState {
   switch (action.type) {
@@ -38,18 +40,26 @@ function calendarReducer(state: CalendarState, action: CalendarAction): Calendar
       else next.add(action.payload)
       return { ...state, periodDates: next }
     }
+    case "INIT_CLIENT_DATE":
+      return {
+        ...state,
+        selectedDate: action.payload.today,
+        viewDate: action.payload.viewDate,
+        periodDates: action.payload.periodDates,
+        today: action.payload.today,
+      }
     default:
       return state
   }
 }
 
 import { useAuth } from "@/context/useAuth"
+import { CalendarSkeleton } from "@/components/skeletons/CalendarSkeleton"
 
 export function CalendarView() {
   const { isAuthenticated, openAuthModal } = useAuth()
-  const today = new Date()
-  const currentYear = today.getFullYear()
-  const currentMonth = today.getMonth()
+
+  const [isLoading, setIsLoading] = React.useState(true)
 
   const [view, setView] = useQueryState(
     'view',
@@ -59,30 +69,51 @@ export function CalendarView() {
   )
   
   const [state, dispatch] = React.useReducer(calendarReducer, {
-    viewDate: new Date(currentYear, currentMonth, 1),
-    selectedDate: today,
+    viewDate: new Date(2026, 4, 1),
+    selectedDate: new Date(2026, 4, 20),
     isEditingPeriods: false,
-    periodDates: new Set([
-      `${currentYear}-${String(currentMonth).padStart(2, '0')}-20`,
-      `${currentYear}-${String(currentMonth).padStart(2, '0')}-21`,
-      `${currentYear}-${String(currentMonth).padStart(2, '0')}-22`,
-      `${currentYear}-${String(currentMonth).padStart(2, '0')}-23`,
-      `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-20`,
-      `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-21`,
-    ])
+    periodDates: new Set<string>(),
+    today: new Date(2026, 4, 20)
   })
+
+  React.useEffect(() => {
+    const clientToday = new Date()
+    const y = clientToday.getFullYear()
+    const m = clientToday.getMonth()
+    
+    dispatch({
+      type: "INIT_CLIENT_DATE",
+      payload: {
+        today: clientToday,
+        viewDate: new Date(y, m, 1),
+        periodDates: new Set([
+          `${y}-${String(m).padStart(2, '0')}-20`,
+          `${y}-${String(m).padStart(2, '0')}-21`,
+          `${y}-${String(m).padStart(2, '0')}-22`,
+          `${y}-${String(m).padStart(2, '0')}-23`,
+          `${y}-${String(m + 1).padStart(2, '0')}-20`,
+          `${y}-${String(m + 1).padStart(2, '0')}-21`,
+        ])
+      }
+    })
+
+    const timer = setTimeout(() => setIsLoading(false), 500)
+    return () => clearTimeout(timer)
+  }, [])
 
   const { viewDate, selectedDate, isEditingPeriods, periodDates } = state
 
   const year = viewDate.getFullYear()
   const month = viewDate.getMonth()
 
-
-
   const prevMonth = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year, month - 1, 1) })
   const nextMonth = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year, month + 1, 1) })
   const prevYear = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year - 1, month, 1) })
   const nextYear = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year + 1, month, 1) })
+
+  if (isLoading) {
+    return <CalendarSkeleton />
+  }
 
   return (
     <div className="flex flex-col h-full bg-background overflow-auto relative" suppressHydrationWarning>
@@ -171,6 +202,7 @@ export function CalendarView() {
             <YearView 
               viewDate={viewDate} 
               periodDates={periodDates}
+              today={state.today}
               onMonthClick={(d) => {
                 dispatch({ type: "SET_VIEW_DATE", payload: d })
                 setView("month")
@@ -295,7 +327,7 @@ function MonthView({ viewDate, selectedDate, isEditingPeriods, periodDates, disp
   )
 }
 
-  const YearView = ({ viewDate, periodDates, onMonthClick }: { viewDate: Date, periodDates: Set<string>, onMonthClick: (d: Date) => void }) => {
+  const YearView = ({ viewDate, periodDates, today, onMonthClick }: { viewDate: Date, periodDates: Set<string>, today: Date, onMonthClick: (d: Date) => void }) => {
   const year = viewDate.getFullYear()
   const months = Array.from({ length: 12 }, (_, i) => new Date(year, i, 1))
 
@@ -328,7 +360,7 @@ function MonthView({ viewDate, selectedDate, isEditingPeriods, periodDates, disp
                 const d = i + 1
                 const key = `${year}-${String(idx).padStart(2, '0')}-${String(d).padStart(2, '0')}`
                 const isPeriod = periodDates.has(key)
-                const isToday = d === new Date().getDate() && idx === new Date().getMonth() && year === new Date().getFullYear()
+                const isToday = d === today.getDate() && idx === today.getMonth() && year === today.getFullYear()
                 
                 return (
                   <div 

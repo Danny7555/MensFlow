@@ -5,7 +5,7 @@ import { SYMPTOM_DEFS } from "@/data/symptomsData"
 export function CycleLogs() {
   const { logs } = useStore()
   
-  const sortedLogs = [...logs].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5)
+  const sortedLogs = logs.toSorted((a, b) => b.date.localeCompare(a.date)).slice(0, 5)
 
   if (logs.length === 0) {
     return null

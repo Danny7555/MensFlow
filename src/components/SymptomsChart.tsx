@@ -126,7 +126,7 @@ export function SymptomsChart() {
                 tickFormatter={(value) => value.slice(0, 3)}
                 className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider"
               />
-              <YAxis 
+              <YAxis
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
@@ -137,7 +137,7 @@ export function SymptomsChart() {
                 cursor={{ stroke: 'var(--mf-muted)', strokeWidth: 1, strokeDasharray: '4 4' }}
                 content={<ChartTooltipContent indicator="line" />}
               />
-              
+
               {viewMode === '7days' ? (
                 <Area
                   dataKey="severity"

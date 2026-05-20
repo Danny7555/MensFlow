@@ -274,8 +274,8 @@ export function FeedSection({
           <div className="mt-4 pt-3 border-t border-[var(--mf-border)]">
             <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-2">How you can support</span>
             <ul className="text-sm space-y-2 opacity-90">
-              {partnerTranslation.tips.map((tip, idx) => (
-                <li key={idx} className="flex items-start gap-2">
+              {partnerTranslation.tips.map((tip) => (
+                <li key={tip} className="flex items-start gap-2">
                   <Check size={16} className="text-[var(--mf-accent)] shrink-0 mt-0.5" weight="bold" /> 
                   <span className="leading-snug">{tip}</span>
                 </li>

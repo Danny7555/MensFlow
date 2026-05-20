@@ -884,3 +884,58 @@
     max-width: 600px;
   }
 }
+
+/* Premium Brand-Aligned Skeleton Theme Variables & Styles */
+@keyframes premium-shimmer-animation {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.premium-shimmer {
+  background: var(--mf-skeleton-bg);
+  background-image: linear-gradient(
+    90deg,
+    var(--mf-skeleton-bg) 0%,
+    var(--mf-skeleton-highlight) 37%,
+    var(--mf-skeleton-bg) 63%
+  );
+  background-size: 200% 100%;
+  animation: premium-shimmer-animation 1.8s infinite ease-in-out;
+  border: 1.5px solid var(--mf-skeleton-border);
+}
+
+.premium-skeleton-card {
+  background: var(--mf-card);
+  border: 2px solid var(--mf-skeleton-card-border);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.02);
+}
+
+[data-theme='light'] {
+  --mf-skeleton-bg: #fdf5f7; /* Very soft light pink-plum */
+  --mf-skeleton-highlight: #ffe3ea; /* Soft glowing rose shimmer */
+  --mf-skeleton-border: rgba(255, 107, 139, 0.22);
+  --mf-skeleton-card-border: rgba(255, 107, 139, 0.18);
+}
+
+[data-theme='dark'] {
+  --mf-skeleton-bg: #2d1b26; /* Deep warm plum */
+  --mf-skeleton-highlight: #452839; /* Glowing plum highlight */
+  --mf-skeleton-border: rgba(255, 141, 161, 0.28);
+  --mf-skeleton-card-border: rgba(255, 141, 161, 0.22);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-delay: -1ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    background-attachment: initial !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+  }
+}

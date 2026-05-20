@@ -67,7 +67,7 @@ export function CycleLengthChart() {
                 tickMargin={8}
                 className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider"
               />
-              <YAxis 
+              <YAxis
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}

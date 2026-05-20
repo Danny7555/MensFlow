@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { 
   Pill, Pulse, Drop, DropHalf, DropSimple, 
   Smiley, SmileyWink, SmileyXEyes, SmileySad, Fire, 
@@ -11,6 +11,7 @@ import type { SymptomCategory } from '../data/symptomsData'
 import { SymptomsChart } from '../components/SymptomsChart'
 import { CycleLengthChart } from '../components/tracker/CycleLengthChart'
 import { useStore } from '../store/useStore'
+import { TrackerSkeleton } from '../components/skeletons/TrackerSkeleton'
 
 const SYMPTOM_ICONS: Record<string, React.ElementType> = {
   'flow-light': DropSimple,
@@ -122,14 +123,28 @@ function SymptomCategoryList({
 
 export function SymptomsView() {
   const { addLog, getLogForDate, isSaving } = useStore()
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false)
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [])
+
   const todayKey = useMemo(() => format(new Date(), 'yyyy-MM-dd'), [])
 
   const currentLog = getLogForDate(todayKey)
+
   const activeSymptoms = useMemo(() => new Set(currentLog?.symptoms || []), [currentLog])
 
   const todayStr = useMemo(() => {
     return new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric' })
   }, [])
+
+  if (isLoading) {
+    return <TrackerSkeleton />
+  }
 
   const toggleSymptom = async (id: string) => {
     if (isSaving) return

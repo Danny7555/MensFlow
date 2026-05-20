@@ -1,12 +1,10 @@
 import { useEffect } from 'react'
-import { useSettings } from '../context/useSettings'
+import { useStore } from '../store/useStore'
 import { resolveEffectiveTheme } from '../lib/theme'
 
 /** Applies data-theme + color-scheme on <html> from settings (and OS when system). */
 export function ThemeSync() {
-  const {
-    settings: { themeMode },
-  } = useSettings()
+  const themeMode = useStore((state) => state.settings.themeMode)
 
   useEffect(() => {
     const apply = () => {

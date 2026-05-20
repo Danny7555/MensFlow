@@ -14,6 +14,27 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+]
+
+function formatPeriodStartDeterministic(dateStr: string) {
+  const parts = dateStr.split("-")
+  if (parts.length !== 3) return dateStr
+  const year = parts[0]
+  const monthIdx = parseInt(parts[1], 10) - 1
+  const day = parseInt(parts[2], 10)
+  if (monthIdx >= 0 && monthIdx < 12) {
+    return `${MONTH_NAMES[monthIdx]} ${day}, ${year}`
+  }
+  return dateStr
+}
+
+function parsePeriodStartDeterministic(dateStr?: string) {
+  return dateStr ? new Date(`${dateStr}T12:00:00`) : undefined
+}
+
 interface SnapshotData {
   lastPeriodStart: string
   typicalCycleDays: number
@@ -60,13 +81,13 @@ export function SnapshotModal({ isOpen, onOpenChange, data, update, isSaving }: 
                   )}
                 >
                   <CalendarIcon size={18} className="mr-2 opacity-60" />
-                  {localSnapshot.lastPeriodStart ? format(new Date(`${localSnapshot.lastPeriodStart}T12:00:00`), "PPP") : <span>Pick a date</span>}
+                  {localSnapshot.lastPeriodStart ? formatPeriodStartDeterministic(localSnapshot.lastPeriodStart) : <span>Pick a date</span>}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
-                  selected={localSnapshot.lastPeriodStart ? new Date(`${localSnapshot.lastPeriodStart}T12:00:00`) : undefined}
+                  selected={parsePeriodStartDeterministic(localSnapshot.lastPeriodStart)}
                   onSelect={(day) => {
                     if (day) {
                       setLocalSnapshot(prev => ({ ...prev, lastPeriodStart: format(day, "yyyy-MM-dd") }))

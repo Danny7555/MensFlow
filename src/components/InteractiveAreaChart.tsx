@@ -132,37 +132,43 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
+const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+function parseAndFormatDate(dateStr: string) {
+  const parts = dateStr.split("-")
+  if (parts.length !== 3) return dateStr
+  const monthIdx = parseInt(parts[1], 10) - 1
+  const day = parseInt(parts[2], 10)
+  if (monthIdx >= 0 && monthIdx < 12) {
+    return `${MONTH_NAMES[monthIdx]} ${day}`
+  }
+  return dateStr
+}
+
 /* eslint-disable react-hooks/set-state-in-effect */
 export function InteractiveAreaChart() {
   const [timeRange, setTimeRange] = React.useState("90d")
-  const [mounted, setMounted] = React.useState(false)
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
 
   const filteredData = React.useMemo(() => {
     return chartData.filter((item) => {
-      const date = new Date(item.date)
-      const now = new Date("2024-06-30")
+      const parts = item.date.split("-")
+      const dateVal = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10))
+      const nowVal = new Date(2024, 5, 30) // index 5 is June
       let daysToSubtract = 90
       if (timeRange === "30d") {
         daysToSubtract = 30
       } else if (timeRange === "7d") {
         daysToSubtract = 7
       }
-      const startDate = new Date(now)
-      startDate.setDate(startDate.getDate() - daysToSubtract)
-      return date >= startDate
+      const startVal = new Date(nowVal)
+      startVal.setDate(startVal.getDate() - daysToSubtract)
+      return dateVal >= startVal
     })
   }, [timeRange])
 
   const formatDate = React.useCallback((value: string) => {
-    if (!mounted) return ""
-    return new Date(value).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    })
-  }, [mounted])
+    return parseAndFormatDate(value)
+  }, [])
 
   return (
     <Card className="border-none shadow-none ring-0 bg-transparent">
@@ -237,17 +243,15 @@ export function InteractiveAreaChart() {
                 tickFormatter={formatDate}
                 suppressHydrationWarning
               />
-              {mounted && (
-                <ChartTooltip
-                  cursor={false}
-                  content={
-                    <ChartTooltipContent
-                      labelFormatter={(value) => formatDate(value as string)}
-                      indicator="dot"
-                    />
-                  }
-                />
-              )}
+              <ChartTooltip
+                cursor={false}
+                content={
+                  <ChartTooltipContent
+                    labelFormatter={(value) => formatDate(value as string)}
+                    indicator="dot"
+                  />
+                }
+              />
               <Area
                 dataKey="bloating"
                 type="natural"

@@ -2,6 +2,7 @@
 import { use, useReducer, useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Joyride, STATUS } from 'react-joyride'
+import { Plus } from '@phosphor-icons/react'
 import { useStore } from '../store/useStore'
 import { useAuth } from '../context/useAuth'
 import { ChatSessionContext } from '../context/chat-session-context'
@@ -9,6 +10,7 @@ import { CycleTrackerHero } from '../components/tracker/CycleTrackerHero'
 import { LogSymptomsModal } from '../components/tracker/LogSymptomsModal'
 import { SnapshotModal } from '../components/dashboard/SnapshotModal'
 import { CustomizePlanModal } from '../components/dashboard/CustomizePlanModal'
+import { DashboardSkeleton } from '../components/skeletons/DashboardSkeleton'
 
 import { DashboardHeader } from '../components/dashboard/DashboardHeader'
 import { StoriesSection } from '../components/dashboard/StoriesSection'
@@ -34,6 +36,10 @@ type DashboardState = {
   isLogOpen: boolean
   isCustomizeOpen: boolean
   isEditingGuidance: boolean
+  mounted: boolean
+  now: Date | null
+  isLoading: boolean
+  tourRun: boolean
 }
 
 type DashboardAction = 
@@ -41,6 +47,9 @@ type DashboardAction =
   | { type: 'TOGGLE_LOG'; payload?: boolean }
   | { type: 'TOGGLE_CUSTOMIZE'; payload?: boolean }
   | { type: 'TOGGLE_GUIDANCE'; payload?: boolean }
+  | { type: 'MOUNT'; payload: { now: Date; tourRun: boolean } }
+  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'SET_TOUR_RUN'; payload: boolean }
 
 function dashboardReducer(state: DashboardState, action: DashboardAction): DashboardState {
   switch (action.type) {
@@ -48,9 +57,39 @@ function dashboardReducer(state: DashboardState, action: DashboardAction): Dashb
     case 'TOGGLE_LOG': return { ...state, isLogOpen: action.payload ?? !state.isLogOpen }
     case 'TOGGLE_CUSTOMIZE': return { ...state, isCustomizeOpen: action.payload ?? !state.isCustomizeOpen }
     case 'TOGGLE_GUIDANCE': return { ...state, isEditingGuidance: action.payload ?? !state.isEditingGuidance }
+    case 'MOUNT': return { ...state, mounted: true, now: action.payload.now, tourRun: action.payload.tourRun }
+    case 'SET_LOADING': return { ...state, isLoading: action.payload }
+    case 'SET_TOUR_RUN': return { ...state, tourRun: action.payload }
     default: return state
   }
 }
+
+const TOUR_STEPS = [
+  {
+    target: '.cycle-tracker-hero',
+    content: "This is your partner's Cycle Tracker. See their current phase and predictions at a glance.",
+    placement: 'bottom',
+    disableBeacon: true,
+  },
+  {
+    target: '.flo-story-circle',
+    content: "Tap these stories to quickly jump to insights, secret chats, or wellness tips.",
+    placement: 'bottom',
+    disableBeacon: true,
+  },
+  {
+    target: '.flo-feed-row .flo-card',
+    content: "Today's Plan gives you phase-specific insights, body signals, and daily tips.",
+    placement: 'bottom',
+    disableBeacon: true,
+  },
+  {
+    target: '.flo-fab',
+    content: "Use this to quickly log new symptoms or notes for the current day.",
+    placement: 'top',
+    disableBeacon: true,
+  }
+]
 
 export function DashboardView() {
   const { dashboard: data, updateDashboard: update, isSaving, user } = useStore()
@@ -64,7 +103,11 @@ export function DashboardView() {
     isSnapshotOpen: false,
     isLogOpen: false,
     isCustomizeOpen: false,
-    isEditingGuidance: false
+    isEditingGuidance: false,
+    mounted: false,
+    now: null,
+    isLoading: true,
+    tourRun: false
   })
 
   const [planSettings, setPlanSettings] = useState([
@@ -74,51 +117,24 @@ export function DashboardView() {
     { label: 'Supplement Guide', active: false },
     { label: 'Partner Insights', active: true },
   ])
-  const [mounted, setMounted] = useState(false)
-  const [now, setNow] = useState<Date | null>(null)
-  
-  const [{ run, steps }, setTourState] = useState({
-    run: false,
-    steps: [
-      {
-        target: '.cycle-tracker-hero',
-        content: "This is your partner's Cycle Tracker. See their current phase and predictions at a glance.",
-        placement: 'bottom',
-        disableBeacon: true,
-      },
-      {
-        target: '.flo-story-circle',
-        content: "Tap these stories to quickly jump to insights, secret chats, or wellness tips.",
-        placement: 'bottom',
-        disableBeacon: true,
-      },
-      {
-        target: '.flo-feed-row .flo-card',
-        content: "Today's Plan gives you phase-specific insights, body signals, and daily tips.",
-        placement: 'bottom',
-        disableBeacon: true,
-      },
-      {
-        target: '.flo-fab',
-        content: "Use this to quickly log new symptoms or notes for the current day.",
-        placement: 'top',
-        disableBeacon: true,
-      }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ] as any[]
-  })
 
   const startTour = () => {
-    setTourState(s => ({ ...s, run: true }))
+    dispatch({ type: 'SET_TOUR_RUN', payload: true })
   }
 
   useEffect(() => {
-    setMounted(true)
-    setNow(new Date())
     const hasSeenTour = localStorage.getItem('mensflow_tour_completed')
-    if (!hasSeenTour) {
-      setTourState(s => ({ ...s, run: true }))
-    }
+    dispatch({
+      type: 'MOUNT',
+      payload: {
+        now: new Date(),
+        tourRun: !hasSeenTour
+      }
+    })
+    const timer = setTimeout(() => {
+      dispatch({ type: 'SET_LOADING', payload: false })
+    }, 500)
+    return () => clearTimeout(timer)
   }, [])
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -126,7 +142,7 @@ export function DashboardView() {
     const { status } = data;
     if (([STATUS.FINISHED, STATUS.SKIPPED] as string[]).includes(status)) {
       localStorage.setItem('mensflow_tour_completed', 'true')
-      setTourState(s => ({ ...s, run: false }))
+      dispatch({ type: 'SET_TOUR_RUN', payload: false })
     }
   }
 
@@ -146,6 +162,10 @@ export function DashboardView() {
     if (next) navigate('/ask')
   }
 
+  if (state.isLoading) {
+    return <DashboardSkeleton />
+  }
+
   return (
     <div className="dashboard-flo-theme relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
       {!isAuthenticated && (
@@ -159,11 +179,11 @@ export function DashboardView() {
           </button>
         </div>
       )}
-      {mounted && (
+      {state.mounted && (
         <Joyride
           {...{
-            steps,
-            run,
+            steps: TOUR_STEPS,
+            run: state.tourRun,
             continuous: true,
             showSkipButton: true,
             showProgress: true,
@@ -225,7 +245,7 @@ export function DashboardView() {
       )}
       <DashboardHeader 
         user={user}
-        mounted={mounted}
+        mounted={state.mounted}
         isSaving={isSaving}
         getGreeting={getGreeting}
         temporaryChat={temporaryChat}
@@ -294,17 +314,15 @@ export function DashboardView() {
         }}
       />
 
-      {mounted && now && (
+      {state.mounted && state.now && (
         <LogSymptomsModal 
           key={`log-${state.isLogOpen}`}
           isOpen={state.isLogOpen} 
           onOpenChange={(val) => dispatch({ type: 'TOGGLE_LOG', payload: val })}
           activeDay={computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)}
-          activeDate={now}
+          activeDate={state.now}
         />
       )}
     </div>
   )
 }
-
-import { Plus } from '@phosphor-icons/react'

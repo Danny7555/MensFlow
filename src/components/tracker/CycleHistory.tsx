@@ -7,6 +7,71 @@ import {
 import { useStore } from '@/store/useStore'
 import { format, subDays, differenceInDays, parseISO } from 'date-fns'
 
+interface DotGridProps {
+  cycleLength: number
+  totalRenderLength: number
+  isCurrent: boolean
+  typicalCycleDays: number
+}
+
+function DotGrid({ cycleLength, totalRenderLength, isCurrent, typicalCycleDays }: DotGridProps) {
+  const periodLength = 5
+  const fertileStart = Math.max(6, Math.min(10, Math.floor(typicalCycleDays * 0.35)))
+  const fertileEnd = Math.min(typicalCycleDays - 5, fertileStart + 6)
+  const ovulationDay = Math.floor((fertileStart + fertileEnd) / 2)
+
+  return (
+    <>
+      {Array.from({ length: totalRenderLength }).map((_, i) => {
+        const day = i + 1
+        const isFuture = isCurrent && day > cycleLength
+
+        if (isFuture) {
+          return (
+            <div 
+              key={`future-${day}`} 
+              className="size-2.5 rounded-full bg-[#888] dark:bg-[#555] opacity-40" 
+            />
+          )
+        }
+
+        if (day <= periodLength) {
+          return (
+            <div 
+              key={`menstrual-${day}`} 
+              className="size-2.5 rounded-full bg-[#dc2626]" 
+            />
+          )
+        }
+        
+        if (day >= fertileStart && day <= fertileEnd) {
+          if (day === ovulationDay) {
+            return (
+              <div 
+                key={`ovulation-${day}`} 
+                className="size-2.5 rounded-full bg-[#00a59b]" 
+              />
+            )
+          }
+          return (
+            <div 
+              key={`fertile-${day}`} 
+              className="size-2.5 rounded-full bg-[#6fd0cd] dark:bg-[#26899e]/80" 
+            />
+          )
+        }
+
+        return (
+          <div 
+            key={`regular-${day}`} 
+            className="size-2.5 rounded-full bg-[#eaeaec] dark:bg-[#362430]" 
+          />
+        )
+      })}
+    </>
+  )
+}
+
 export function CycleHistory() {
   const { dashboard: data } = useStore()
   
@@ -30,61 +95,6 @@ export function CycleHistory() {
   // Two Cycles Ago (Cycle 3)
   const cycle3End = subDays(cycle2Start, 1)
   const cycle3Start = subDays(cycle3End, cycle3Length - 1)
-
-  // 3. Dot Generator Helper to build dynamic color-coded dot matrix for the cycles
-  const renderDotGrid = (cycleLength: number, totalRenderLength: number, isCurrent: boolean) => {
-    const periodLength = 5
-    const fertileStart = Math.max(6, Math.min(10, Math.floor(typicalCycleDays * 0.35)))
-    const fertileEnd = Math.min(typicalCycleDays - 5, fertileStart + 6)
-    const ovulationDay = Math.floor((fertileStart + fertileEnd) / 2)
-
-    return Array.from({ length: totalRenderLength }).map((_, i) => {
-      const day = i + 1
-      const isFuture = isCurrent && day > cycleLength
-
-      if (isFuture) {
-        return (
-          <div 
-            key={`future-${day}`} 
-            className="size-2.5 rounded-full bg-[#888] dark:bg-[#555] opacity-40" 
-          />
-        )
-      }
-
-      if (day <= periodLength) {
-        return (
-          <div 
-            key={`menstrual-${day}`} 
-            className="size-2.5 rounded-full bg-[#dc2626]" 
-          />
-        )
-      }
-      
-      if (day >= fertileStart && day <= fertileEnd) {
-        if (day === ovulationDay) {
-          return (
-            <div 
-              key={`ovulation-${day}`} 
-              className="size-2.5 rounded-full bg-[#00a59b]" 
-            />
-          )
-        }
-        return (
-          <div 
-            key={`fertile-${day}`} 
-            className="size-2.5 rounded-full bg-[#6fd0cd] dark:bg-[#26899e]/80" 
-          />
-        )
-      }
-
-      return (
-        <div 
-          key={`regular-${day}`} 
-          className="size-2.5 rounded-full bg-[#eaeaec] dark:bg-[#362430]" 
-        />
-      )
-    })
-  }
 
   return (
     <div className="cycle-history-container">
@@ -122,7 +132,12 @@ export function CycleHistory() {
             <CaretRight size={20} className="text-[#999] mt-2" />
           </div>
           <div className="flex flex-wrap gap-1.5 mt-4">
-            {renderDotGrid(currentCycleDays, Math.max(currentCycleDays, typicalCycleDays), true)}
+            <DotGrid 
+              cycleLength={currentCycleDays} 
+              totalRenderLength={Math.max(currentCycleDays, typicalCycleDays)} 
+              isCurrent={true} 
+              typicalCycleDays={typicalCycleDays} 
+            />
           </div>
         </div>
 
@@ -142,7 +157,12 @@ export function CycleHistory() {
             <CaretRight size={20} className="text-[#999] mt-2" />
           </div>
           <div className="flex flex-wrap gap-1.5 mt-4">
-            {renderDotGrid(cycle2Length, cycle2Length, false)}
+            <DotGrid 
+              cycleLength={cycle2Length} 
+              totalRenderLength={cycle2Length} 
+              isCurrent={false} 
+              typicalCycleDays={typicalCycleDays} 
+            />
           </div>
         </div>
 
@@ -162,7 +182,12 @@ export function CycleHistory() {
             <CaretRight size={20} className="text-[#999] mt-2" />
           </div>
           <div className="flex flex-wrap gap-1.5 mt-4">
-            {renderDotGrid(cycle3Length, cycle3Length, false)}
+            <DotGrid 
+              cycleLength={cycle3Length} 
+              totalRenderLength={cycle3Length} 
+              isCurrent={false} 
+              typicalCycleDays={typicalCycleDays} 
+            />
           </div>
         </div>
       </div>

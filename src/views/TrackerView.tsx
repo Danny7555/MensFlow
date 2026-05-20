@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { CycleTrackerHero } from "@/components/tracker/CycleTrackerHero"
 import { CycleStatsHero } from "@/components/tracker/CycleStatsHero"
 import { CycleHistory } from "@/components/tracker/CycleHistory"
@@ -17,17 +17,28 @@ import {
 
 import { useStore } from "@/store/useStore"
 import { cn } from "@/lib/utils"
+import { TrackerSkeleton } from "@/components/skeletons/TrackerSkeleton"
 
 export function TrackerView() {
   const { isSaving } = useStore()
   const { isAuthenticated, openAuthModal } = useAuth()
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 500)
+    return () => clearTimeout(timer)
+  }, [])
 
   const copyLink = () => {
     navigator.clipboard.writeText("https://mensflow.app/join/u123abc")
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  if (isLoading) {
+    return <TrackerSkeleton />
   }
 
   return (

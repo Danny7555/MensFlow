@@ -3,9 +3,10 @@ import { useEffect, useRef, useState } from 'react'
 import { Ghost, Question } from '@phosphor-icons/react'
 import { ChatComposer } from '../components/ChatComposer'
 import { useChatSession } from '../context/useChatSession'
-import { useSettings } from '../context/useSettings'
+import { useStore } from '../store/useStore'
 import { CHAT_STORAGE_KEY, CLEAR_LOCAL_CHATS_EVENT } from '../lib/constants'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../components/ui/tooltip'
+import { ChatSkeleton } from '../components/skeletons/ChatSkeleton'
 
 type Msg = {
   id: string
@@ -45,9 +46,7 @@ function loadStoredMessages(): Msg[] | null {
 
 export function ChatView() {
   const { temporaryChat } = useChatSession()
-  const {
-    settings: { chatPersistLocal, chatShowTimestamps },
-  } = useSettings()
+  const { chatPersistLocal, chatShowTimestamps } = useStore((state) => state.settings)
 
   const persistToDisk = chatPersistLocal && !temporaryChat
 
@@ -58,6 +57,12 @@ export function ChatView() {
 
   const [draft, setDraft] = useState('')
   const prevTemporary = useRef<boolean | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 500)
+    return () => clearTimeout(timer)
+  }, [])
 
   useEffect(() => {
     if (prevTemporary.current === null) {
@@ -85,11 +90,19 @@ export function ChatView() {
     }
   }, [messages, persistToDisk])
 
-  const fmtTime = (t: number) =>
-    new Date(t).toLocaleTimeString(undefined, {
-      hour: 'numeric',
-      minute: '2-digit',
-    })
+  const fmtTime = (t: number) => {
+    const d = new Date(t)
+    let hours = d.getHours()
+    const minutes = String(d.getMinutes()).padStart(2, '0')
+    const ampm = hours >= 12 ? 'PM' : 'AM'
+    hours = hours % 12
+    hours = hours ? hours : 12
+    return `${hours}:${minutes} ${ampm}`
+  }
+
+  const getIsoString = (t: number) => {
+    return new Date(t).toISOString()
+  }
 
   const send = () => {
     const text = draft.trim()
@@ -112,6 +125,10 @@ export function ChatView() {
   }
 
   const isInitialState = messages.length === 0
+
+  if (isLoading) {
+    return <ChatSkeleton />
+  }
 
   return (
     <div className={isInitialState ? "landing" : "chat-view"}>
@@ -180,7 +197,8 @@ export function ChatView() {
                   {chatShowTimestamps && (
                     <time
                       className="chat-time"
-                      dateTime={new Date(m.createdAt).toISOString()}
+                      dateTime={getIsoString(m.createdAt)}
+                      suppressHydrationWarning
                     >
                       {fmtTime(m.createdAt)}
                     </time>

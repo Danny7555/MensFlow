@@ -1,37 +1,39 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useState, lazy, Suspense } from 'react'
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { cn } from './lib/utils'
 import { ThemeSync } from './components/ThemeSync'
-import { ChatView } from './views/ChatView'
-import { DashboardDataProvider } from './context/DashboardDataProvider'
-import { DashboardView } from './views/DashboardView'
-import { InsightsView } from './views/InsightsView'
-import { TipsView } from './views/TipsView'
-import { LandingView } from './views/LandingView'
-import { PlaceholderView } from './views/PlaceholderView'
-import { SettingsView } from './views/SettingsView'
-import { CalendarView } from './views/CalendarView'
-import { TrackerView } from './views/TrackerView'
 import { Toaster } from 'sonner'
-import { SymptomsView } from './views/SymptomsView'
-import { EducationView } from './views/EducationView'
-import { OnboardingView } from './views/OnboardingView'
-import { NotificationsView } from './views/NotificationsView'
-import { NotFoundView } from './views/NotFoundView'
 import { AuthProvider } from './context/AuthProvider'
-import { SettingsProvider } from './context/SettingsProvider'
 import { ChatSessionContext } from './context/chat-session-context'
 import { useAuth } from './context/useAuth'
-import { useSettings } from './context/useSettings'
+import { useStore } from './store/useStore'
 import { Header } from './components/Header'
 import { Sidebar } from './components/Sidebar'
 import { House, Target, Heartbeat, Bell, UserCircle } from '@phosphor-icons/react'
 import { useMediaQuery } from './hooks/useMediaQuery'
+import { PageLoader } from './components/skeletons/PageLoader'
 import './App.css'
+
+// Asynchronously Lazy Loaded Page Components
+const ChatView = lazy(() => import('./views/ChatView').then(m => ({ default: m.ChatView })))
+const DashboardView = lazy(() => import('./views/DashboardView').then(m => ({ default: m.DashboardView })))
+const InsightsView = lazy(() => import('./views/InsightsView').then(m => ({ default: m.InsightsView })))
+const TipsView = lazy(() => import('./views/TipsView').then(m => ({ default: m.TipsView })))
+const LandingView = lazy(() => import('./views/LandingView').then(m => ({ default: m.LandingView })))
+const PlaceholderView = lazy(() => import('./views/PlaceholderView').then(m => ({ default: m.PlaceholderView })))
+const SettingsView = lazy(() => import('./views/SettingsView').then(m => ({ default: m.SettingsView })))
+const CalendarView = lazy(() => import('./views/CalendarView').then(m => ({ default: m.CalendarView })))
+const TrackerView = lazy(() => import('./views/TrackerView').then(m => ({ default: m.TrackerView })))
+const SymptomsView = lazy(() => import('./views/SymptomsView').then(m => ({ default: m.SymptomsView })))
+const EducationView = lazy(() => import('./views/EducationView').then(m => ({ default: m.EducationView })))
+const OnboardingView = lazy(() => import('./views/OnboardingView').then(m => ({ default: m.OnboardingView })))
+const NotificationsView = lazy(() => import('./views/NotificationsView').then(m => ({ default: m.NotificationsView })))
+const NotFoundView = lazy(() => import('./views/NotFoundView').then(m => ({ default: m.NotFoundView })))
+
 
 function MainShell() {
   const { isAuthenticated, onboardingCompleted, logout, openAuthModal } = useAuth()
-  const { settings, updateSettings } = useSettings()
+  const { settings, updateSettings } = useStore()
   const navigate = useNavigate()
   const location = useLocation()
   const isMobile = useMediaQuery('(max-width: 768px)')
@@ -115,51 +117,53 @@ function MainShell() {
           )}
 
           <main className={cn("app-canvas", isAuthenticated && isMobile && !location.pathname.startsWith('/onboarding') && "pb-bottom-nav")}>
-            <Routes>
-              {!isAuthenticated ? (
-                <>
-                  <Route 
-                    path="/" 
-                    element={!onboardingCompleted ? <Navigate to="/onboarding" replace /> : <DashboardView />} 
-                  />
-                  <Route path="/onboarding" element={<OnboardingView />} />
-                  <Route path="/ask" element={<LandingView />} />
-                  <Route path="/settings" element={<SettingsView isGuest onLogin={openAuthModal} />} />
-                  <Route path="/calendar" element={<CalendarView />} />
-                  <Route path="/tracker" element={<TrackerView />} />
-                  <Route path="/insights" element={<InsightsView />} />
-                  <Route path="/tips" element={<TipsView />} />
-                  <Route path="/symptoms" element={<SymptomsView />} />
-                  <Route path="/education" element={<EducationView />} />
-                  <Route path="/dashboard" element={<Navigate to="/" replace />} />
-                  <Route path="/health-insights" element={<Navigate to="/insights" replace />} />
-                  <Route path="/wellness-tips" element={<Navigate to="/tips" replace />} />
-                  <Route path="/history" element={guestPlaceholder('History / logs', 'Chat and symptom history stays private to your account.')} />
-                  <Route path="*" element={<NotFoundView />} />
-                </>
-              ) : (
-                <>
-                  <Route 
-                    path="/" 
-                    element={!onboardingCompleted ? <Navigate to="/onboarding" replace /> : <Navigate to="/dashboard" replace />} 
-                  />
-                  <Route path="/onboarding" element={<OnboardingView />} />
-                  <Route path="/dashboard" element={<DashboardView />} />
-                  <Route path="/ask" element={<ChatView />} />
-                  <Route path="/settings" element={<SettingsView onLogout={handleLogout} />} />
-                  <Route path="/insights" element={<InsightsView />} />
-                  <Route path="/health-insights" element={<Navigate to="/insights" replace />} />
-                  <Route path="/tips" element={<TipsView />} />
-                  <Route path="/wellness-tips" element={<Navigate to="/tips" replace />} />
-                  <Route path="/calendar" element={<CalendarView />} />
-                  <Route path="/notifications" element={<NotificationsView />} />
-                  <Route path="/tracker" element={<TrackerView />} />
-                  <Route path="/symptoms" element={<SymptomsView />} />
-                  <Route path="/education" element={<EducationView />} />
-                  <Route path="*" element={<NotFoundView />} />
-                </>
-              )}
-            </Routes>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                {!isAuthenticated ? (
+                  <>
+                    <Route 
+                      path="/" 
+                      element={!onboardingCompleted ? <Navigate to="/onboarding" replace /> : <DashboardView />} 
+                    />
+                    <Route path="/onboarding" element={<OnboardingView />} />
+                    <Route path="/ask" element={<LandingView />} />
+                    <Route path="/settings" element={<SettingsView isGuest onLogin={openAuthModal} />} />
+                    <Route path="/calendar" element={<CalendarView />} />
+                    <Route path="/tracker" element={<TrackerView />} />
+                    <Route path="/insights" element={<InsightsView />} />
+                    <Route path="/tips" element={<TipsView />} />
+                    <Route path="/symptoms" element={<SymptomsView />} />
+                    <Route path="/education" element={<EducationView />} />
+                    <Route path="/dashboard" element={<Navigate to="/" replace />} />
+                    <Route path="/health-insights" element={<Navigate to="/insights" replace />} />
+                    <Route path="/wellness-tips" element={<Navigate to="/tips" replace />} />
+                    <Route path="/history" element={guestPlaceholder('History / logs', 'Chat and symptom history stays private to your account.')} />
+                    <Route path="*" element={<NotFoundView />} />
+                  </>
+                ) : (
+                  <>
+                    <Route 
+                      path="/" 
+                      element={!onboardingCompleted ? <Navigate to="/onboarding" replace /> : <Navigate to="/dashboard" replace />} 
+                    />
+                    <Route path="/onboarding" element={<OnboardingView />} />
+                    <Route path="/dashboard" element={<DashboardView />} />
+                    <Route path="/ask" element={<ChatView />} />
+                    <Route path="/settings" element={<SettingsView onLogout={handleLogout} />} />
+                    <Route path="/insights" element={<InsightsView />} />
+                    <Route path="/health-insights" element={<Navigate to="/insights" replace />} />
+                    <Route path="/tips" element={<TipsView />} />
+                    <Route path="/wellness-tips" element={<Navigate to="/tips" replace />} />
+                    <Route path="/calendar" element={<CalendarView />} />
+                    <Route path="/notifications" element={<NotificationsView />} />
+                    <Route path="/tracker" element={<TrackerView />} />
+                    <Route path="/symptoms" element={<SymptomsView />} />
+                    <Route path="/education" element={<EducationView />} />
+                    <Route path="*" element={<NotFoundView />} />
+                  </>
+                )}
+              </Routes>
+            </Suspense>
           </main>
         </div>
         {!location.pathname.startsWith('/onboarding') && isAuthenticated && isMobile && (
@@ -206,13 +210,9 @@ function MainShell() {
 export default function App() {
   return (
     <AuthProvider>
-      <SettingsProvider>
-        <DashboardDataProvider>
-          <ThemeSync />
-          <MainShell />
-          <Toaster position="top-right" richColors theme="light" className="mt-14" />
-        </DashboardDataProvider>
-      </SettingsProvider>
+      <ThemeSync />
+      <MainShell />
+      <Toaster position="top-right" richColors theme="light" className="mt-14" />
     </AuthProvider>
   )
 }
