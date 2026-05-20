@@ -147,7 +147,7 @@ export function DashboardView() {
   }
 
   return (
-    <div className="dashboard-flo-theme relative overflow-hidden">
+    <div className="dashboard-flo-theme relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
       {!isAuthenticated && (
         <div className="bg-gradient-to-r from-[var(--mf-accent)] to-[#f472b6] text-white py-2.5 px-4 text-center text-xs font-medium flex items-center justify-center gap-2 relative z-50 animate-in slide-in-from-top duration-500">
           <span>You are previewing MensFlow as a guest. Your data is stored locally.</span>

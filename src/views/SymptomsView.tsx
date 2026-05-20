@@ -140,7 +140,7 @@ export function SymptomsView() {
   }
 
   return (
-    <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-10 animate-in fade-in duration-700">
+    <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <header className="dash-header">
         <div className="dash-header-left">
           <img src="/images/girl.png" alt="" className="dash-avatar" />
