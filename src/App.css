@@ -4159,20 +4159,3 @@
   scrollbar-width: none;  /* Firefox */
 }
 
-/* Daily Check-In Layout Custom Fixes */
-.flo-checkin-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-}
-
-@media (min-width: 1024px) {
-  .flo-checkin-grid {
-    grid-template-columns: 2fr 1fr;
-  }
-}
-
-.flo-checkin-card {
-  grid-column: auto !important;
-  grid-row: auto !important;
-}

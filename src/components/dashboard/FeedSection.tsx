@@ -1,6 +1,6 @@
-
 import { useState } from "react"
 import { Sparkle, Target, Heartbeat, Plus, Check, CaretRight } from "@phosphor-icons/react"
+import { SymptomLogger } from "./DailyCheckIn"
 
 interface FeedSectionData {
   lastPeriodStart: string
@@ -98,7 +98,7 @@ export function FeedSection({
               </div>
               <p className="flo-card-title !mb-0">{data.phaseLabel} Phase</p>
             </div>
-            <span className="text-[10px] bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] px-2.5 py-1 rounded-full font-semibold active-badge-glow">DAY {currentDay}</span>
+            <span className="text-[10px] bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] px-2.5 py-1 rounded-full font-medium active-badge-glow">DAY {currentDay}</span>
           </div>
           <div className="flo-card-content mt-2 relative z-10 flex flex-col justify-between h-full">
             <div>
@@ -133,7 +133,7 @@ export function FeedSection({
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-[var(--mf-border)] relative z-10">
-            <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">Focus Areas</span>
+            <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider block mb-1.5">Focus Areas</span>
             <div className="flex flex-wrap gap-1">
               <span className="text-[10px] bg-[var(--mf-accent-soft)] px-2 py-0.5 rounded-md font-medium text-[var(--mf-accent)]">💧 Hydrate Extra</span>
               <span className="text-[10px] bg-muted px-2 py-0.5 rounded-md font-medium text-[var(--mf-text-strong)]">🧘‍♀️ Light Stretch</span>
@@ -164,12 +164,12 @@ export function FeedSection({
           </div>
           <div className="mt-4 pt-3 border-t border-[var(--mf-border)] relative z-10 grid grid-cols-2 gap-2 text-[10px]">
             <div>
-              <span className="opacity-60 block uppercase tracking-wider text-[8px] font-semibold">Sleep Rating</span>
-              <span className="font-semibold text-[var(--mf-text-strong)]">92% Optimal</span>
+              <span className="opacity-80 block uppercase tracking-wider text-[8px] font-medium">Sleep Rating</span>
+              <span className="font-medium text-[var(--mf-text-strong)]">92% Optimal</span>
             </div>
             <div>
-              <span className="opacity-60 block uppercase tracking-wider text-[8px] font-semibold">Stress level</span>
-              <span className="font-semibold text-green-500">Low (Stable)</span>
+              <span className="opacity-80 block uppercase tracking-wider text-[8px] font-medium">Stress level</span>
+              <span className="font-medium text-green-500">Low (Stable)</span>
             </div>
           </div>
         </div>
@@ -224,12 +224,12 @@ export function FeedSection({
           </div>
           <div className="mt-2 relative z-10 flex flex-col justify-between h-full">
             <p className="text-[0.95rem] text-[var(--mf-text)] opacity-90 leading-relaxed">
-              Did you know? Progesterone can raise your resting heart rate by <span className="text-[var(--mf-accent)] font-semibold">2-5 beats per minute</span> during this phase. Don't be alarmed if your tracker shows slightly higher exertion today.
+              Did you know? Progesterone can raise your resting heart rate by <span className="text-[var(--mf-accent)] font-medium">2-5 beats per minute</span> during this phase. Don't be alarmed if your tracker shows slightly higher exertion today.
             </p>
+            <button className="text-[var(--mf-accent)] text-xs font-medium mt-6 flex items-center gap-1.5 hover:gap-2 transition-all">
+              Read medical research <CaretRight size={12} />
+            </button>
           </div>
-          <button className="text-[var(--mf-accent)] text-xs font-semibold mt-6 flex items-center gap-1.5 hover:gap-2 transition-all">
-            Read medical research <CaretRight size={12} />
-          </button>
         </div>
       </div>
 
@@ -237,7 +237,7 @@ export function FeedSection({
         <div className="flo-card-top mb-6">
           <p className="flo-card-title">Quick Log</p>
           <button 
-            className="text-[var(--mf-accent)] text-xs font-semibold flex items-center gap-1 hover:opacity-80 transition-opacity" 
+            className="text-[var(--mf-accent)] text-xs font-medium flex items-center gap-1 hover:opacity-80 transition-opacity" 
             onClick={() => dispatch({ type: 'TOGGLE_LOG', payload: true })}
           >
             View all <CaretRight size={12} />
@@ -273,7 +273,8 @@ export function FeedSection({
         </div>
       </div>
 
-
+      {/* Symptom Logger Card rendered natively in the right column */}
+      <SymptomLogger />
     </section>
   )
 }
