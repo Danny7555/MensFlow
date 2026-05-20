@@ -9,6 +9,7 @@ import { cn } from '../lib/utils'
 import { SYMPTOM_DEFS } from '../data/symptomsData'
 import type { SymptomCategory } from '../data/symptomsData'
 import { SymptomsChart } from '../components/SymptomsChart'
+import { CycleLengthChart } from '../components/tracker/CycleLengthChart'
 import { useStore } from '../store/useStore'
 
 const SYMPTOM_ICONS: Record<string, React.ElementType> = {
@@ -185,10 +186,15 @@ export function SymptomsView() {
 
       <section aria-labelledby="trends-title" className="space-y-6 pt-4">
         <h2 id="trends-title" className="text-lg font-medium tracking-tight text-foreground">
-          Historical Trends
+          Analytical Cycle Graphs & Trends
         </h2>
-        <div className="dash-panel p-0 overflow-hidden">
-          <SymptomsChart />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="dash-panel p-0 overflow-hidden">
+            <SymptomsChart />
+          </div>
+          <div className="dash-panel p-0 overflow-hidden">
+            <CycleLengthChart />
+          </div>
         </div>
       </section>
     </div>
