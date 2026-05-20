@@ -19,7 +19,7 @@ export function CycleLogs() {
 
       <div className="space-y-3">
         {sortedLogs.map((log) => (
-          <div key={log.date} className="bg-card border border-border p-5 rounded-3xl">
+          <div key={log.date} className="flo-card">
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm font-medium text-muted-foreground">
                 {format(parseISO(log.date), 'EEEE, MMMM d')}
