@@ -131,7 +131,7 @@ export function CalendarView() {
               <button
                 onClick={() => setView("month")}
                 className={cn(
-                  "px-6 sm:px-8 py-1.5 rounded-md text-[11px] font-medium transition-all border",
+                  "px-6 sm:px-8 py-1.5 rounded-md text-[11px] font-normal transition-all border",
                   view === "month" 
                     ? "bg-white dark:bg-muted-foreground/20 text-[var(--mf-accent)] border-border/40" 
                     : "text-muted-foreground hover:text-foreground border-transparent hover:border-border/20"
@@ -142,7 +142,7 @@ export function CalendarView() {
               <button
                 onClick={() => setView("year")}
                 className={cn(
-                  "px-6 sm:px-8 py-1.5 rounded-md text-[11px] font-medium transition-all border",
+                  "px-6 sm:px-8 py-1.5 rounded-md text-[11px] font-normal transition-all border",
                   view === "year" 
                     ? "bg-white dark:bg-muted-foreground/20 text-[var(--mf-accent)] border-border/40" 
                     : "text-muted-foreground hover:text-foreground border-transparent hover:border-border/20"
@@ -157,7 +157,7 @@ export function CalendarView() {
             <Button variant="ghost" size="icon" onClick={view === "month" ? prevMonth : prevYear} className="rounded-full">
               <CaretLeft className="size-5" />
             </Button>
-            <h2 className="text-xl sm:text-2xl font-medium text-foreground min-w-[140px] text-center">
+            <h2 className="text-xl sm:text-2xl font-normal text-foreground min-w-[140px] text-center">
               {view === "month" ? `${viewDate.toLocaleString("default", { month: "long" })} ${year}` : year}
             </h2>
             <Button variant="ghost" size="icon" onClick={view === "month" ? nextMonth : nextYear} className="rounded-full">
@@ -170,13 +170,13 @@ export function CalendarView() {
               variant={isEditingPeriods ? "default" : "outline"}
               onClick={() => isAuthenticated ? dispatch({ type: "SET_EDITING_PERIODS", payload: !isEditingPeriods }) : openAuthModal()}
               className={cn(
-                "rounded-full text-xs font-medium gap-2",
+                "rounded-full text-xs font-normal gap-2",
                 isEditingPeriods ? "bg-[var(--mf-danger)]/10 text-[var(--mf-danger)] border-[var(--mf-danger)]/30 hover:bg-[var(--mf-danger)]/20" : ""
               )}
             >
               {isEditingPeriods ? (
                 <>
-                  <Check size={14} weight="bold" />
+                  <Check size={14} weight="regular" />
                   <span>Finish Editing</span>
                 </>
               ) : (
@@ -215,7 +215,7 @@ export function CalendarView() {
               <div className="w-full h-full backdrop-blur-[6px] opacity-100" />
               <div className="absolute inset-0 flex flex-col items-center justify-center p-8 pointer-events-auto">
                  <div className="bg-card border border-border p-8 rounded-3xl text-center max-w-[400px] mx-auto">
-                  <h3 className="text-xl font-medium mb-2">Track your patterns</h3>
+                  <h3 className="text-xl font-normal mb-2">Track your patterns</h3>
                   <p className="text-muted-foreground text-sm mb-6">Unlock period editing, symptom logging, and historical calendar views by signing in.</p>
                   <button 
                     onClick={openAuthModal}
@@ -261,7 +261,7 @@ function MonthView({ viewDate, selectedDate, isEditingPeriods, periodDates, disp
     <>
       <div className="grid grid-cols-7 px-4 mb-4">
         {DAYS_OF_WEEK.map((day) => (
-          <div key={day} className="text-center text-[10px] font-medium text-muted-foreground tracking-wider">
+          <div key={day} className="text-center text-[10px] font-normal text-muted-foreground tracking-wider">
             {day}
           </div>
         ))}
@@ -289,7 +289,7 @@ function MonthView({ viewDate, selectedDate, isEditingPeriods, periodDates, disp
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleDayClick(d) }}
                 className="relative flex flex-col items-center justify-center cursor-pointer group py-2 sm:py-0"
               >
-                <span className="text-[10px] text-muted-foreground mb-1 font-medium group-hover:text-foreground transition-colors">
+                <span className="text-[10px] text-muted-foreground mb-1 font-normal group-hover:text-foreground transition-colors">
                   {(d + 6) % 28 + 1}
                 </span>
 
@@ -306,7 +306,7 @@ function MonthView({ viewDate, selectedDate, isEditingPeriods, periodDates, disp
                     </div>
                   )}
                   <span className={cn(
-                    "relative z-0 text-lg font-medium transition-colors",
+                    "relative z-0 text-lg font-normal transition-colors",
                     isPeriod ? "text-[#ff5a5f]" : "text-foreground"
                   )}>
                     {d}
@@ -348,7 +348,7 @@ function MonthView({ viewDate, selectedDate, isEditingPeriods, periodDates, disp
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onMonthClick(m) }}
           >
             <div className="px-4 py-2 -mx-4 -mt-4 mb-4 border-b border-border/60">
-              <h4 className="text-sm font-medium text-foreground group-hover:text-[var(--mf-accent)] transition-colors">
+              <h4 className="text-sm font-normal text-foreground group-hover:text-[var(--mf-accent)] transition-colors">
                 {mName}
               </h4>
             </div>
@@ -406,7 +406,7 @@ function DetailSheet({ selectedDate, isAuthenticated, onOpenAuth }: { selectedDa
           <div className="absolute inset-0 bg-white/60 dark:bg-card/60 backdrop-blur-[2px] z-30 flex items-center justify-center">
             <button 
               onClick={onOpenAuth}
-              className="text-sm font-medium text-[var(--mf-accent)] hover:underline"
+              className="text-sm font-normal text-[var(--mf-accent)] hover:underline"
             >
               Login to log data
             </button>
@@ -415,10 +415,10 @@ function DetailSheet({ selectedDate, isAuthenticated, onOpenAuth }: { selectedDa
         
         <div className="flex items-start justify-between mb-8">
           <div>
-            <h3 className="text-lg font-medium text-foreground">
+            <h3 className="text-lg font-normal text-foreground">
               Edit Period for {selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
             </h3>
-            <p className="text-[var(--mf-accent)] font-medium text-sm">
+            <p className="text-[var(--mf-accent)] font-normal text-sm">
               Cycle Day {displayCycleDay}
             </p>
           </div>
@@ -436,7 +436,7 @@ function DetailSheet({ selectedDate, isAuthenticated, onOpenAuth }: { selectedDa
           
           <div className="flex items-center gap-4 sm:gap-8">
             <div className="hidden sm:flex items-center gap-2">
-              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">LOG DATA</span>
+              <span className="text-[10px] font-normal text-muted-foreground uppercase tracking-widest">LOG DATA</span>
               <svg width="40" height="20" viewBox="0 0 40 20" fill="none" className="text-muted-foreground opacity-30">
                 <path d="M2 18C10 18 30 18 38 2M38 2L32 2M38 2L38 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>

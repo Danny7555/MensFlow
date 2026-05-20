@@ -44,7 +44,7 @@ export function EducationView() {
             type="button"
             onClick={() => setActiveCategory(cat)}
             className={cn(
-              "px-5 py-2 rounded-full text-sm font-medium border transition-all duration-200 cursor-pointer",
+              "px-5 py-2 rounded-full text-sm font-normal border transition-all duration-200 cursor-pointer",
               activeCategory === cat
                 ? "bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] border-[var(--mf-accent-border)]"
                 : "bg-card text-muted-foreground border-border hover:border-foreground hover:text-foreground"
@@ -103,14 +103,14 @@ export function EducationView() {
                         <Icon size={isFeatured ? 44 : 32} weight="duotone" />
                       )}
                     </div>
-                    <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full border border-border/50">
+                    <span className="text-[10px] font-normal uppercase tracking-[0.15em] text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full border border-border/50">
                       {article.category}
                     </span>
                   </div>
                   
                   <div className="flex-1 space-y-4 mt-2">
                     <h3 className={cn(
-                      "text-lg font-medium text-foreground leading-tight",
+                      "text-lg font-normal text-foreground leading-tight",
                       isFeatured && "text-3xl md:text-4xl tracking-tight max-w-[80%]"
                     )}>
                       {article.title}
@@ -123,7 +123,7 @@ export function EducationView() {
                     </p>
                   </div>
 
-                  <div className="mt-6 pt-6 border-t border-border/50 flex justify-between items-center text-[11px] text-muted-foreground font-medium uppercase tracking-widest">
+                  <div className="mt-6 pt-6 border-t border-border/50 flex justify-between items-center text-[11px] text-muted-foreground font-normal uppercase tracking-widest">
                     <span className="flex items-center gap-2">
                       {article.readTime}
                     </span>
@@ -147,7 +147,7 @@ export function EducationView() {
             <div className="w-full h-full backdrop-blur-[6px] opacity-100" />
             <div className="absolute inset-0 flex flex-col items-center justify-center p-8 pointer-events-auto">
                <div className="bg-card border border-border p-8 rounded-3xl text-center max-w-[400px] mx-auto">
-                <h3 className="text-xl font-medium mb-2">Read all guides</h3>
+                <h3 className="text-xl font-normal mb-2">Read all guides</h3>
                 <p className="text-muted-foreground text-sm mb-6">Unlock our full library of expert-reviewed menstrual health guides by signing in.</p>
                 <button 
                   onClick={openAuthModal}
