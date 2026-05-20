@@ -59,10 +59,10 @@ export function InsightsView() {
             Patterns over time
           </h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
-            <div className="border rounded-xl overflow-hidden bg-card">
+            <div className="border rounded-3xl overflow-hidden bg-card">
               <SymptomTrendsChart />
             </div>
-            <div className="border rounded-xl overflow-hidden bg-card">
+            <div className="border rounded-3xl overflow-hidden bg-card">
               <InteractiveAreaChart />
             </div>
           </div>
