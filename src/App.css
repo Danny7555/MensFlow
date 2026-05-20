@@ -4122,5 +4122,21 @@
 
 .sync-pill:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: none;
+}
+
+/* Strip all shadows from all cards and toasts */
+.card, 
+.flo-card, 
+.tip-card, 
+.insight-trend-card, 
+.onboarding-question-card, 
+.settings-logout-card, 
+.dash-panel, 
+.glass-morphism,
+[data-slot="card"],
+[data-sonner-toast], 
+.sonner-toast,
+[data-registry="toast"] {
+  box-shadow: none !important;
 }

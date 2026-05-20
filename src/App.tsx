@@ -90,7 +90,7 @@ function MainShell() {
         )}
 
         <div className={cn("app-main", location.pathname.startsWith('/onboarding') && "app-main--full")}>
-          {!location.pathname.startsWith('/onboarding') && location.pathname !== '/dashboard' && (
+          {!location.pathname.startsWith('/onboarding') && location.pathname !== '/dashboard' && location.pathname !== '/' && (
             <Header
               isAuthenticated={isAuthenticated}
               onToggleSidebar={toggleSidebar}
@@ -120,20 +120,20 @@ function MainShell() {
                 <>
                   <Route 
                     path="/" 
-                    element={!onboardingCompleted ? <Navigate to="/onboarding" replace /> : <LandingView />} 
+                    element={!onboardingCompleted ? <Navigate to="/onboarding" replace /> : <DashboardView />} 
                   />
                   <Route path="/onboarding" element={<OnboardingView />} />
                   <Route path="/ask" element={<LandingView />} />
                   <Route path="/settings" element={<SettingsView isGuest onLogin={openAuthModal} />} />
                   <Route path="/calendar" element={<CalendarView />} />
                   <Route path="/tracker" element={<TrackerView />} />
-                  <Route path="/health-insights" element={<InsightsView />} />
-                  <Route path="/wellness-tips" element={<TipsView />} />
+                  <Route path="/insights" element={<InsightsView />} />
+                  <Route path="/tips" element={<TipsView />} />
+                  <Route path="/symptoms" element={<SymptomsView />} />
+                  <Route path="/education" element={<EducationView />} />
                   <Route path="/dashboard" element={<Navigate to="/" replace />} />
-                  <Route path="/insights" element={<Navigate to="/health-insights" replace />} />
-                  <Route path="/tips" element={<Navigate to="/wellness-tips" replace />} />
-                  <Route path="/symptoms" element={<Navigate to="/tracker" replace />} />
-                  <Route path="/education" element={<Navigate to="/" replace />} />
+                  <Route path="/health-insights" element={<Navigate to="/insights" replace />} />
+                  <Route path="/wellness-tips" element={<Navigate to="/tips" replace />} />
                   <Route path="/history" element={guestPlaceholder('History / logs', 'Chat and symptom history stays private to your account.')} />
                   <Route path="*" element={<NotFoundView />} />
                 </>

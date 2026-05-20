@@ -4,16 +4,10 @@ import * as React from "react"
 import { Plus, X, CaretLeft, CaretRight, Drop, PencilSimple, Check } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
 import { useQueryState, parseAsStringLiteral } from 'nuqs'
 import { cn } from "@/lib/utils"
+import { useStore } from "@/store/useStore"
+import { LogSymptomsModal } from "@/components/tracker/LogSymptomsModal"
 
 const DAYS_OF_WEEK = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
 
@@ -83,12 +77,7 @@ export function CalendarView() {
   const year = viewDate.getFullYear()
   const month = viewDate.getMonth()
 
-  const [mounted, setMounted] = React.useState(false)
 
-  React.useLayoutEffect(() => { 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true)
-  }, [])
 
   const prevMonth = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year, month - 1, 1) })
   const nextMonth = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year, month + 1, 1) })
@@ -182,7 +171,6 @@ export function CalendarView() {
             <YearView 
               viewDate={viewDate} 
               periodDates={periodDates}
-              mounted={mounted}
               onMonthClick={(d) => {
                 dispatch({ type: "SET_VIEW_DATE", payload: d })
                 setView("month")
@@ -307,7 +295,7 @@ function MonthView({ viewDate, selectedDate, isEditingPeriods, periodDates, disp
   )
 }
 
-  const YearView = ({ viewDate, periodDates, onMonthClick, mounted }: { viewDate: Date, periodDates: Set<string>, onMonthClick: (d: Date) => void, mounted: boolean }) => {
+  const YearView = ({ viewDate, periodDates, onMonthClick }: { viewDate: Date, periodDates: Set<string>, onMonthClick: (d: Date) => void }) => {
   const year = viewDate.getFullYear()
   const months = Array.from({ length: 12 }, (_, i) => new Date(year, i, 1))
 
@@ -340,7 +328,7 @@ function MonthView({ viewDate, selectedDate, isEditingPeriods, periodDates, disp
                 const d = i + 1
                 const key = `${year}-${String(idx).padStart(2, '0')}-${String(d).padStart(2, '0')}`
                 const isPeriod = periodDates.has(key)
-                const isToday = mounted && d === new Date().getDate() && idx === new Date().getMonth() && year === new Date().getFullYear()
+                const isToday = d === new Date().getDate() && idx === new Date().getMonth() && year === new Date().getFullYear()
                 
                 return (
                   <div 
@@ -361,9 +349,23 @@ function MonthView({ viewDate, selectedDate, isEditingPeriods, periodDates, disp
   )
 }
 
+function computeCycleDayForDate(targetDate: Date, startIso: string, cycleLen: number) {
+  const start = new Date(`${startIso}T12:00:00`)
+  if (Number.isNaN(+start)) return 1
+  const target = new Date(targetDate)
+  target.setHours(12, 0, 0, 0)
+  const days = Math.floor((+target - +start) / 86400000)
+  const m = ((days % cycleLen) + cycleLen) % cycleLen
+  return m + 1
+}
+
 function DetailSheet({ selectedDate, isAuthenticated, onOpenAuth }: { selectedDate: Date, isAuthenticated: boolean, onOpenAuth: () => void }) {
-  // Mock cycle info
-  const displayCycleDay = 12 // Simplified for component extraction
+  const { dashboard: data } = useStore()
+  const [isLogOpen, setIsLogOpen] = React.useState(false)
+
+  const displayCycleDay = React.useMemo(() => {
+    return computeCycleDayForDate(selectedDate, data.lastPeriodStart, data.typicalCycleDays)
+  }, [selectedDate, data.lastPeriodStart, data.typicalCycleDays])
 
   return (
     <div className="sticky bottom-0 z-20 w-full">
@@ -408,28 +410,22 @@ function DetailSheet({ selectedDate, isAuthenticated, onOpenAuth }: { selectedDa
               </svg>
             </div>
             
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button className="size-14 rounded-full bg-[var(--mf-accent)] hover:bg-[var(--mf-accent-hover)] text-white p-0 flex items-center justify-center border-none transition-transform hover:scale-105 active:scale-95">
-                  <Plus size={32} strokeWidth={2.5} />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Log Daily Data</DialogTitle>
-                  <DialogDescription>
-                    This interface will allow you to track your daily weight, mood, and symptoms.
-                    (Backend integration pending)
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="py-6 flex flex-col gap-4 items-center justify-center text-center text-muted-foreground border-2 border-dashed border-muted rounded-xl bg-muted/20">
-                  <p className="italic text-sm">Form fields will appear here</p>
-                </div>
-              </DialogContent>
-            </Dialog>
+            <Button 
+              onClick={() => setIsLogOpen(true)}
+              className="size-14 rounded-full bg-[var(--mf-accent)] hover:bg-[var(--mf-accent-hover)] text-white p-0 flex items-center justify-center border-none transition-transform hover:scale-105 active:scale-95"
+            >
+              <Plus size={32} strokeWidth={2.5} />
+            </Button>
           </div>
         </div>
       </Card>
+
+      <LogSymptomsModal 
+        isOpen={isLogOpen}
+        onOpenChange={setIsLogOpen}
+        activeDay={displayCycleDay}
+        activeDate={selectedDate}
+      />
     </div>
   )
 }

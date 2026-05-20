@@ -36,7 +36,7 @@ export function NotificationsView() {
               className={`p-5 rounded-2xl border transition-all ${
                 notification.read 
                   ? 'bg-card/30 border-border/40 opacity-70' 
-                  : 'bg-card border-[var(--mf-accent-border)] shadow-sm'
+                  : 'bg-card border-[var(--mf-accent-border)]'
               }`}
             >
               <div className="flex gap-4">

@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react'
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import type { IconProps } from '@phosphor-icons/react'
 import {
   BookOpen,
@@ -12,24 +12,25 @@ import {
   GearSix,
   Heart,
   House,
-  Lightbulb,
   Pulse,
-  Sparkle,
   X,
   SidebarSimple,
 } from '@phosphor-icons/react'
 import type { SectionId } from '../types/nav'
 import { cn } from '../lib/utils'
+import { useAuth } from '../context/useAuth'
 
 type NavIcon = ComponentType<IconProps>
 
 const guestItems: { id: SectionId; label: string; Icon: NavIcon }[] = [
   { id: 'dashboard', label: 'Home', Icon: House },
   { id: 'ask', label: 'Ask MensFlow', Icon: ChatCenteredDots },
+  { id: 'symptoms', label: 'Symptoms', Icon: Pulse },
+  { id: 'insights', label: 'Health insights', Icon: ChartLineUp },
+  { id: 'education', label: 'Education', Icon: BookOpen },
   { id: 'calendar', label: 'Calendar', Icon: CalendarBlank },
   { id: 'tracker', label: 'Tracker', Icon: CalendarHeart },
-  { id: 'health-insights', label: 'Health insights', Icon: ChartLineUp },
-  { id: 'wellness-tips', label: 'Wellness Tips', Icon: Heart },
+  { id: 'tips', label: 'Wellness Tips', Icon: Heart },
   { id: 'settings', label: 'Settings', Icon: GearSix },
 ]
 
@@ -37,11 +38,11 @@ const authItems: { id: SectionId; label: string; Icon: NavIcon }[] = [
   { id: 'dashboard', label: 'Home', Icon: House },
   { id: 'ask', label: 'Ask MensFlow', Icon: ChatCircle },
   { id: 'symptoms', label: 'Symptoms', Icon: Pulse },
-  { id: 'insights', label: 'Insights', Icon: Sparkle },
+  { id: 'insights', label: 'Health insights', Icon: ChartLineUp },
   { id: 'education', label: 'Education', Icon: BookOpen },
   { id: 'calendar', label: 'Calendar', Icon: CalendarBlank },
   { id: 'tracker', label: 'Tracker', Icon: CalendarHeart },
-  { id: 'tips', label: 'Tips', Icon: Lightbulb },
+  { id: 'tips', label: 'Wellness Tips', Icon: Heart },
   { id: 'settings', label: 'Settings', Icon: GearSix },
 ]
 
@@ -67,13 +68,12 @@ export function Sidebar({
   onToggleDesktopCollapse,
   onToggleSidebar,
 }: SidebarProps) {
-  const location = useLocation()
-  const isDashboard = location.pathname === '/' || location.pathname.startsWith('/dashboard')
+  const { onboardingCompleted } = useAuth()
 
   const rawItems = isAuthenticated ? authItems : guestItems
   const items = rawItems.filter(item => {
-    // Hide Home/Settings only for guests who aren't on the landing page
-    if (!isAuthenticated && (item.id === 'settings' || item.id === 'dashboard') && !isDashboard) return false
+    // If onboarding is not completed, only show the chat assistant
+    if (!onboardingCompleted && item.id !== 'ask') return false
     return true
   })
 

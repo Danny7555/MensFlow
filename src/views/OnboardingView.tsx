@@ -17,6 +17,8 @@ import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { cn } from '../lib/utils'
 
+import { type DashboardSnapshot } from '../lib/dashboardStorage'
+
 export function OnboardingView() {
   const [currentStep, setCurrentStep] = useState(0)
   const [, startTransition] = useTransition()
@@ -50,7 +52,7 @@ export function OnboardingView() {
     }
     
     // Map onboarding answers to dashboard state
-    const newDashboard: Record<string, any> = {
+    const newDashboard: Partial<DashboardSnapshot> = {
       // Start their tracking cycle from today
       lastPeriodStart: new Date().toISOString().slice(0, 10)
     }
@@ -97,7 +99,7 @@ export function OnboardingView() {
       openAuthModal()
       navigate('/')
     }
-  }, [answers.name, completeOnboarding, isAuthenticated, navigate, openAuthModal, updateUser])
+  }, [answers.name, answers.symptoms, answers.goal, answers.energy_consistency, updateDashboard, completeOnboarding, isAuthenticated, navigate, openAuthModal, updateUser])
 
   const handleNext = useCallback(() => {
     if (currentStep < ONBOARDING_QUESTIONS.length - 1) {
@@ -119,9 +121,10 @@ export function OnboardingView() {
   }, [currentStep])
 
   const handleNoThanks = useCallback(() => {
+    completeOnboarding()
     openAuthModal()
     navigate('/')
-  }, [navigate, openAuthModal])
+  }, [completeOnboarding, navigate, openAuthModal])
 
   const selectOption = (value: string) => {
     if (question.type === 'single-choice') {

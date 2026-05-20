@@ -57,14 +57,7 @@ export function ChatView() {
   })
 
   const [draft, setDraft] = useState('')
-  const [mounted, setMounted] = useState(false)
-  const [now, setNow] = useState<Date | null>(null)
   const prevTemporary = useRef<boolean | null>(null)
-
-  useEffect(() => {
-    setMounted(true)
-    setNow(new Date())
-  }, [])
 
   useEffect(() => {
     if (prevTemporary.current === null) {
@@ -184,11 +177,10 @@ export function ChatView() {
               >
                 <span className="chat-role">
                   {m.role === 'user' ? 'You' : 'MensFlow'}
-                  {chatShowTimestamps && mounted && (
+                  {chatShowTimestamps && (
                     <time
                       className="chat-time"
-                      dateTime={now?.toISOString() || ""}
-                      suppressHydrationWarning
+                      dateTime={new Date(m.createdAt).toISOString()}
                     >
                       {fmtTime(m.createdAt)}
                     </time>
