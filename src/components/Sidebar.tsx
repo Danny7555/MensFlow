@@ -16,6 +16,7 @@ import {
   X,
   SidebarSimple,
   SignOut,
+  Users,
 } from '@phosphor-icons/react'
 import type { SectionId } from '../types/nav'
 import { cn } from '../lib/utils'
@@ -32,6 +33,7 @@ const guestItems: { id: SectionId; label: string; Icon: NavIcon }[] = [
   { id: 'calendar', label: 'Calendar', Icon: CalendarBlank },
   { id: 'tracker', label: 'Tracker', Icon: CalendarHeart },
   { id: 'tips', label: 'Wellness Tips', Icon: Heart },
+  { id: 'sync', label: 'Partner Sync', Icon: Users },
   { id: 'settings', label: 'Settings', Icon: GearSix },
 ]
 
@@ -44,6 +46,7 @@ const authItems: { id: SectionId; label: string; Icon: NavIcon }[] = [
   { id: 'calendar', label: 'Calendar', Icon: CalendarBlank },
   { id: 'tracker', label: 'Tracker', Icon: CalendarHeart },
   { id: 'tips', label: 'Wellness Tips', Icon: Heart },
+  { id: 'sync', label: 'Partner Sync', Icon: Users },
   { id: 'settings', label: 'Settings', Icon: GearSix },
 ]
 

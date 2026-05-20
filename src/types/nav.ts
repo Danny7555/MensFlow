@@ -13,3 +13,4 @@ export type SectionId =
   | 'tracker'
   | 'tips'
   | 'settings'
+  | 'sync'
