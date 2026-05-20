@@ -2,6 +2,8 @@ import { useState } from "react"
 import { Sparkle, Target, Heartbeat, Plus, Check, CaretRight, Users } from "@phosphor-icons/react"
 import { SymptomLogger } from "./DailyCheckIn"
 import { toast } from "sonner"
+import { DailyTipCard } from "./DailyTipCard"
+import { HormoneInsightCard } from "./HormoneInsightCard"
 
 interface FeedSectionData {
   lastPeriodStart: string
@@ -230,62 +232,14 @@ export function FeedSection({
         </div>
 
         {/* Guidance Card */}
-        <div className="flo-card flo-card--featured animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200 overflow-hidden flex flex-col justify-between">
-          <div>
-            <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0">
-              <img src="/images/star.png" alt="Daily Tip" className="w-full h-full object-cover object-center scale-125" />
-            </div>
-            <div className="flo-card-top relative z-10">
-              <div className="flex items-center gap-2">
-                <div className="flo-card-icon flo-card-icon--pink">
-                  <Plus size={20} weight="fill" />
-                </div>
-                <p className="flo-card-title !mb-0">Daily Tip</p>
-              </div>
-            </div>
-            
-            <div className="mt-2 relative z-10">
-              <div className="flex flex-col gap-3">
-                <ul className="flo-guidance-list">
-                  <li className={`flo-guidance-item transition-all duration-300 ${tipCompleted ? 'opacity-65 line-through' : ''}`}>
-                    <Check size={16} className={tipCompleted ? "text-green-500 shrink-0" : "text-[var(--mf-accent)] shrink-0"} weight="bold" />
-                    <span className="text-[0.9rem] leading-snug">{tipOfTheDay}</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
+        <DailyTipCard
+          tipCompleted={tipCompleted}
+          setTipCompleted={setTipCompleted}
+          tipOfTheDay={tipOfTheDay}
+        />
 
-          <button 
-            type="button"
-            className="mt-4 pt-3 border-t border-[var(--mf-border)] relative z-10 w-full flex items-center justify-between text-[11px] font-normal text-[var(--mf-accent)] hover:opacity-85 transition-opacity"
-            onClick={() => setTipCompleted(!tipCompleted)}
-          >
-            <span>{tipCompleted ? 'Tip Completed' : 'Mark tip as done'}</span>
-            <div className={`size-5 rounded-full border flex items-center justify-center transition-colors ${tipCompleted ? 'bg-green-500 border-green-500 text-white' : 'border-[var(--mf-accent)] text-transparent'}`}>
-              <Check size={10} weight="bold" />
-            </div>
-          </button>
-        </div>
-        
         {/* Hormone Insight Card */}
-        <div className="flo-card flo-card--dark animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300 overflow-hidden">
-          <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0">
-            <img src="/images/brain.png" alt="Insight" className="w-full h-full object-cover object-center scale-[1.3] translate-y-1" />
-          </div>
-          <div className="flo-card-top relative z-10">
-            <p className="flo-card-title">Scientific Insight</p>
-            <Sparkle size={16} className="text-[var(--mf-accent)]" weight="fill" />
-          </div>
-          <div className="mt-2 relative z-10 flex flex-col justify-between h-full">
-            <p className="text-[0.95rem] text-[var(--mf-text)] opacity-90 leading-relaxed">
-              Did you know? Progesterone can raise your resting heart rate by <span className="text-[var(--mf-accent)] font-normal">2-5 beats per minute</span> during this phase. Don't be alarmed if your tracker shows slightly higher exertion today.
-            </p>
-            <button className="text-[var(--mf-accent)] text-xs font-normal mt-6 flex items-center gap-1.5 hover:gap-2 transition-all">
-              Read medical research <CaretRight size={12} />
-            </button>
-          </div>
-        </div>
+        <HormoneInsightCard />
       </div>
 
       {/* Partner Translate Card */}
