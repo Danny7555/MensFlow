@@ -1,4 +1,4 @@
-export type SymptomCategory = 'Flow' | 'Mood' | 'Physical' | 'Other'
+export type SymptomCategory = 'Flow' | 'Mood' | 'Physical' | 'Lifestyle' | 'Other'
 
 export type SymptomDef = {
   id: string
@@ -23,6 +23,11 @@ export const SYMPTOM_DEFS: SymptomDef[] = [
   { id: 'phys-fatigue', label: 'Fatigue', category: 'Physical' },
   { id: 'phys-tender', label: 'Breast tenderness', category: 'Physical' },
   { id: 'phys-acne', label: 'Acne', category: 'Physical' },
+
+  { id: 'life-sleep', label: 'Sleep Quality', category: 'Lifestyle' },
+  { id: 'life-bbt', label: 'BBT Logged', category: 'Lifestyle' },
+  { id: 'life-sex', label: 'Sexual Activity', category: 'Lifestyle' },
+  { id: 'life-pill', label: 'Pill Taken', category: 'Lifestyle' },
 ]
 
 // Dummy data for the Recharts AreaChart

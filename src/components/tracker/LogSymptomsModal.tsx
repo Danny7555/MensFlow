@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { format } from "date-fns"
-import { 
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import { SYMPTOM_DEFS } from "@/data/symptomsData"
-import { Drop, Smiley, Pulse } from "@phosphor-icons/react"
+import { Drop, Smiley, Pulse, Bed } from "@phosphor-icons/react"
 import { useStore } from "@/store/useStore"
 import { toast } from "sonner"
 
@@ -39,10 +39,10 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
 
   const handleSave = async () => {
     await addLog(dateKey, Array.from(selectedSymptoms))
-    
+
     // Check if user logged a 'flow' symptom to trigger the toast
     const loggedFlow = Array.from(selectedSymptoms).some(s => s.startsWith('flow-'))
-    
+
     if (loggedFlow) {
       toast.success("Period logged", {
         description: `Your period was recorded for Day ${activeDay}.`,
@@ -54,7 +54,7 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
         duration: 3000,
       })
     }
-    
+
     onOpenChange(false)
   }
 
@@ -62,6 +62,7 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
     { name: "Flow", icon: Drop, color: "text-[#ff5a5f]", bgColor: "bg-[#ff5a5f]/10" },
     { name: "Mood", icon: Smiley, color: "text-[#007e94]", bgColor: "bg-[#007e94]/10" },
     { name: "Physical", icon: Pulse, color: "text-[#6fd0cd]", bgColor: "bg-[#6fd0cd]/10" },
+    { name: "Lifestyle", icon: Bed, color: "text-[#8b5cf6]", bgColor: "bg-[#8b5cf6]/10" },
   ]
 
   const symptomImages: Record<string, string> = {
@@ -107,7 +108,7 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
                     {items.map((s) => {
                       const isActive = selectedSymptoms.has(s.id)
                       const imgSrc = symptomImages[s.id]
-                      
+
                       return (
                         <button
                           key={s.id}
@@ -115,8 +116,8 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
                           disabled={isSaving}
                           className={cn(
                             "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 border",
-                            isActive 
-                              ? "bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] border-[var(--mf-accent-border)] scale-[1.02]" 
+                            isActive
+                              ? "bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] border-[var(--mf-accent-border)] scale-[1.02]"
                               : "bg-card text-muted-foreground border-border hover:border-[var(--mf-accent-border)] hover:text-foreground"
                           )}
                         >
@@ -124,7 +125,7 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
                             <img src={imgSrc} alt="" className="size-6 rounded-full object-cover" />
                           ) : (
                             <div className={cn("size-6 rounded-full flex items-center justify-center bg-muted/50")}>
-                               <cat.icon size={14} className={isActive ? "text-[var(--mf-accent)]" : "text-muted-foreground/40"} />
+                              <cat.icon size={14} className={isActive ? "text-[var(--mf-accent)]" : "text-muted-foreground/40"} />
                             </div>
                           )}
                           {s.label}
@@ -138,7 +139,7 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
           </div>
 
           <div className="mt-8 flex gap-3">
-            <button 
+            <button
               onClick={handleSave}
               disabled={isSaving}
               className={cn(

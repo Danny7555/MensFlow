@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Sparkle, Target, Heartbeat, Plus, Check, CaretRight } from "@phosphor-icons/react"
+import { Sparkle, Target, Heartbeat, Plus, Check, CaretRight, Users } from "@phosphor-icons/react"
 import { SymptomLogger } from "./DailyCheckIn"
 
 interface FeedSectionData {
@@ -59,6 +59,32 @@ export function FeedSection({
   const currentDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
   const tipOfTheDay = CYCLE_DAILY_TIPS[(currentDay - 1) % CYCLE_DAILY_TIPS.length]
   const [tipCompleted, setTipCompleted] = useState(false)
+
+  const partnerTranslation = (() => {
+    switch(data.phaseLabel) {
+      case 'Menstrual':
+        return {
+          desc: "Their body is resetting. Energy may be low, and they might experience cramps or discomfort.",
+          tips: ["Offer a warm heating pad", "Take over extra chores to allow them to rest", "Be patient with mood fluctuations"]
+        }
+      case 'Follicular':
+        return {
+          desc: "Estrogen is rising. They may feel more energetic, creative, and social.",
+          tips: ["Suggest a fun date or activity", "Encourage their new ideas", "Enjoy their increased energy levels"]
+        }
+      case 'Ovulation':
+        return {
+          desc: "Hormones are peaking. They are likely feeling their most confident and energetic.",
+          tips: ["Compliment them, they are feeling confident", "Great time for social events", "Communicate openly about intimacy"]
+        }
+      case 'Luteal':
+      default:
+        return {
+          desc: "Progesterone is rising. Their body temperature is slightly higher, and they may experience lower energy levels and heightened cravings.",
+          tips: ["Keep the bedroom cool tonight", "Offer a magnesium-rich snack", "Give them space to unwind and relax"]
+        }
+    }
+  })()
 
   return (
     <section className="flo-feed-section">
@@ -233,6 +259,32 @@ export function FeedSection({
         </div>
       </div>
 
+      {/* Partner Translate Card */}
+      <div className="flo-card flo-card--prominent animate-in fade-in slide-in-from-bottom-4 duration-500 delay-400 overflow-hidden mt-8">
+        <div className="flo-card-top relative z-10">
+          <p className="flo-card-title">Partner Translation</p>
+          <div className="flo-card-icon text-[var(--mf-accent)]">
+            <Users size={20} weight="fill" />
+          </div>
+        </div>
+        <div className="mt-2 relative z-10 flex flex-col justify-between h-full">
+          <p className="text-[0.95rem] text-[var(--mf-text)] opacity-90 leading-relaxed">
+            What <span className="font-medium text-[var(--mf-accent)]">{data.phaseLabel} phase</span> means for your partner today: {partnerTranslation.desc}
+          </p>
+          <div className="mt-4 pt-3 border-t border-[var(--mf-border)]">
+            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider block mb-2">How you can support</span>
+            <ul className="text-sm space-y-2 opacity-90">
+              {partnerTranslation.tips.map((tip, idx) => (
+                <li key={idx} className="flex items-start gap-2">
+                  <Check size={16} className="text-[var(--mf-accent)] shrink-0 mt-0.5" weight="bold" /> 
+                  <span className="leading-snug">{tip}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+
       <div className="flo-card flo-card--prominent mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-400">
         <div className="flo-card-top mb-6">
           <p className="flo-card-title">Quick Log</p>
@@ -248,7 +300,7 @@ export function FeedSection({
           <div className="grid grid-cols-4 gap-2">
             {[
               { label: 'Mood', img: '/images/happy.jpg' },
-              { label: 'Weight', img: '/images/weight.png' },
+              { label: 'Sleep', img: '/images/sleep_3d.png?v=1' },
               { label: 'Cravings', img: '/images/cravings.png' },
               { label: 'More', icon: <Plus size={20} weight="bold" /> },
             ].map(action => (

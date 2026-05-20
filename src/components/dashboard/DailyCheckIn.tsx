@@ -19,6 +19,10 @@ const symptomImages: Record<string, string> = {
   'phys-headache': '/images/headache.jpg',
   'phys-acne': '/images/acne.jpg',
   'phys-tender': '/images/tender.jpg',
+  'life-sleep': '/images/sleep_3d.png',
+  'life-bbt': '/images/bbt_3d.png',
+  'life-sex': '/images/sex_3d.png',
+  'life-pill': '/images/pill_3d.png',
 }
 
 interface SymptomBubbleProps {
@@ -38,18 +42,18 @@ function SymptomBubble({ sym, active, onClick }: SymptomBubbleProps) {
       type="button"
       onClick={onClick}
       className={cn(
-        "flex flex-col items-center gap-2 p-3 min-w-[76px] transition-all duration-300 active:scale-95 outline-none",
+        "flex flex-col items-center gap-2 p-3 min-w-[76px] transition-all duration-300 active:scale-95 outline-none group",
         active ? "scale-102" : ""
       )}
     >
       <div className={cn(
-        "w-12 h-12 rounded-full flex items-center justify-center relative transition-all overflow-hidden border-2",
-        active ? "border-[var(--mf-accent)]" : "border-transparent"
+        "w-12 h-12 rounded-full flex items-center justify-center relative transition-all overflow-hidden border-2 group-hover:scale-110",
+        active ? "border-[var(--mf-accent)]" : "border-transparent group-hover:border-[var(--mf-accent)]"
       )}>
         {imgUrl ? (
           <img src={imgUrl} alt={sym.label} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-muted flex items-center justify-center font-bold text-xs uppercase text-muted-foreground">
+          <div className="w-full h-full bg-muted flex items-center justify-center font-bold text-xs uppercase text-muted-foreground group-hover:text-[var(--mf-accent)] transition-colors">
             {sym.label.substring(0, 2)}
           </div>
         )}
@@ -62,8 +66,8 @@ function SymptomBubble({ sym, active, onClick }: SymptomBubbleProps) {
         )}
       </div>
       <span className={cn(
-        "text-[11px] font-medium text-center truncate w-full",
-        active ? "text-[var(--mf-accent)]" : "text-[var(--mf-text-strong)]"
+        "text-[10px] font-medium text-center whitespace-normal text-balance leading-tight w-[76px] transition-colors",
+        active ? "text-[var(--mf-accent)]" : "text-[var(--mf-text-strong)] group-hover:text-[var(--mf-accent)]"
       )}>
         {sym.label}
       </span>
@@ -91,7 +95,7 @@ function QuizOption({ text, selected, showResult, correct, onClick }: QuizOption
       className={cn(
         "w-full text-left p-3 rounded-xl border text-xs font-normal transition-all duration-200 outline-none",
         selected
-          ? correct 
+          ? correct
             ? "bg-green-50/70 dark:bg-green-950/20 border-green-500 text-green-700 dark:text-green-400"
             : "bg-red-50/70 dark:bg-red-950/20 border-red-500 text-red-700 dark:text-red-400"
           : "bg-muted/20 border-border/50 hover:bg-muted/50 text-[var(--mf-text-strong)]"
@@ -143,7 +147,7 @@ export function SymptomLogger() {
           <h3 className="text-lg font-medium text-[var(--mf-text-strong)] tracking-tight">How is your day going?</h3>
         </div>
         <p className="text-xs text-muted-foreground mb-5">Tap to record your current symptoms or moods instantly. Your daily trends will update automatically.</p>
-        
+
         <div className="flex items-center gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-2 px-2">
           {checkInSymptoms.map((sym) => (
             <SymptomBubble
@@ -155,7 +159,7 @@ export function SymptomLogger() {
           ))}
         </div>
       </div>
-      
+
       <div className="mt-4 pt-3 border-t border-[var(--mf-border)] flex items-center justify-between text-[11px] text-muted-foreground">
         <span>Logged today: <span className="font-medium text-[var(--mf-text-strong)]">{currentSymptoms.length}</span> symptoms</span>
         <span className="opacity-50">Flo App Sync Active</span>
@@ -186,9 +190,9 @@ export function DailyQuiz() {
           <h3 className="text-lg font-medium text-[var(--mf-text-strong)] tracking-tight">Daily Quiz</h3>
         </div>
         <p className="text-xs text-muted-foreground mb-4">Learn about your body. Tapping your answer updates your check-in score.</p>
-        
+
         <p className="text-xs font-normal text-[var(--mf-text-strong)] leading-relaxed mb-4">{quiz.question}</p>
-        
+
         <div className="flex flex-col gap-2">
           {quiz.options.map((opt) => (
             <QuizOption
