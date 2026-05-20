@@ -169,8 +169,8 @@ export function FeedSection({
 
         <div className="flo-card flo-card--prominent overflow-hidden flex flex-col justify-between">
           <div>
-            <div className="-mx-6 -mt-6 mb-4 h-[90px] relative shrink-0">
-              <img src="/images/heart.png" alt="Wellness" className="w-full h-full object-cover object-center" style={{ transform: 'scale(1.5) translateY(10px)' }} />
+            <div className="-mx-6 -mt-6 mb-4 h-[110px] relative shrink-0">
+              <img src="/images/heart.png" alt="Wellness" className="w-full h-full object-cover object-center scale-[1.3] translate-y-3" />
             </div>
             <div className="flo-card-top relative z-10">
               <div className="flo-card-icon flo-card-icon--pink">
@@ -203,8 +203,8 @@ export function FeedSection({
         {/* Guidance Card */}
         <div className="flo-card flo-card--featured animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200 overflow-hidden flex flex-col justify-between">
           <div>
-            <div className="-mx-6 -mt-6 mb-4 h-[90px] relative shrink-0">
-              <img src="/images/star.png" alt="Daily Tip" className="w-full h-full object-cover object-center" style={{ transform: 'scale(1.2)' }} />
+            <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0">
+              <img src="/images/star.png" alt="Daily Tip" className="w-full h-full object-cover object-center scale-125" />
             </div>
             <div className="flo-card-top relative z-10">
               <div className="flex items-center gap-2">
@@ -241,8 +241,8 @@ export function FeedSection({
         
         {/* Hormone Insight Card */}
         <div className="flo-card flo-card--dark animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300 overflow-hidden">
-          <div className="-mx-6 -mt-6 mb-4 h-[90px] relative shrink-0">
-            <img src="/images/brain.png" alt="Insight" className="w-full h-full object-cover object-center" style={{ transform: 'scale(1.2)' }} />
+          <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0">
+            <img src="/images/brain.png" alt="Insight" className="w-full h-full object-cover object-center scale-[1.3] translate-y-1" />
           </div>
           <div className="flo-card-top relative z-10">
             <p className="flo-card-title">Scientific Insight</p>
