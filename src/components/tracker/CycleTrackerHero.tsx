@@ -126,7 +126,7 @@ export function CycleTrackerHero({ showCheckIn = false }: CycleTrackerHeroProps)
           <DropdownMenuTrigger asChild>
             <button className="mode-chip">
               Mode: MensFlow {trackingMode}
-              <CaretDown size={14} weight="bold" />
+              <CaretDown size={14} weight="regular" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-56 bg-card border-border">
@@ -164,7 +164,7 @@ export function CycleTrackerHero({ showCheckIn = false }: CycleTrackerHeroProps)
             {/* Chance of pregnancy indicator - moved to top to avoid overlap */}
             <div className="mb-6 animate-in fade-in zoom-in duration-700">
                 <span 
-                  className="px-5 py-1.5 rounded-full text-[9px] font-medium uppercase tracking-widest transition-colors duration-300"
+                  className="px-5 py-1.5 rounded-full text-[9px] font-normal uppercase tracking-widest transition-colors duration-300"
                   style={{ 
                     color: activeInfo.color,
                   }}
@@ -204,7 +204,7 @@ export function CycleTrackerHero({ showCheckIn = false }: CycleTrackerHeroProps)
              <div className="badge-inner">
                 <span className="badge-label">{activeDay === currentDay ? 'Today' : 'Day'}</span>
                 <span className="badge-value">{activeDay}</span>
-                <span className="text-[10px] font-medium opacity-40 mt-0.5">{format(activeDate, 'd MMM').toUpperCase()}</span>
+                <span className="text-[10px] font-normal opacity-40 mt-0.5">{format(activeDate, 'd MMM').toUpperCase()}</span>
              </div>
           </div>
         </div>
@@ -233,8 +233,8 @@ export function CycleTrackerHero({ showCheckIn = false }: CycleTrackerHeroProps)
                 
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex flex-col gap-1.5">
-                    <span className="w-fit text-[9px] font-semibold uppercase tracking-[0.15em] bg-[var(--mf-accent)] text-white px-2.5 py-1 rounded-full">DAILY TIP</span>
-                    <span className="text-[10px] font-medium text-[var(--mf-accent)] opacity-85">PHASE: LUTEAL</span>
+                    <span className="w-fit text-[9px] font-normal uppercase tracking-[0.15em] bg-[var(--mf-accent)] text-white px-2.5 py-1 rounded-full">DAILY TIP</span>
+                    <span className="text-[10px] font-normal text-[var(--mf-accent)] opacity-85">PHASE: LUTEAL</span>
                   </div>
                   <div className="size-10 rounded-full bg-white/50 dark:bg-black/20 flex items-center justify-center text-[var(--mf-accent)]">
                     <Lightning size={20} weight="fill" />
@@ -242,15 +242,15 @@ export function CycleTrackerHero({ showCheckIn = false }: CycleTrackerHeroProps)
                 </div>
 
                 <div className="relative z-10">
-                  <h3 className="text-[15px] font-semibold text-[var(--mf-text-strong)] mb-2 tracking-tight">Nurture your energy</h3>
+                  <h3 className="text-[15px] font-normal text-[var(--mf-text-strong)] mb-2 tracking-tight">Nurture your energy</h3>
                   <p className="text-[13px] text-muted-foreground leading-relaxed opacity-90">
                     Your body is working harder today. Prioritize magnesium-rich foods like dark chocolate or spinach to ease any pre-period tension.
                   </p>
                 </div>
 
                 <div className="mt-5 pt-4 border-t border-[var(--mf-border)] flex items-center justify-between">
-                  <button className="text-[11px] font-medium text-[var(--mf-accent)] hover:underline">LEARN MORE</button>
-                  <button className="flex items-center gap-1.5 text-[11px] font-medium opacity-75 hover:opacity-100 transition-opacity">
+                  <button className="text-[11px] font-normal text-[var(--mf-accent)] hover:underline">LEARN MORE</button>
+                  <button className="flex items-center gap-1.5 text-[11px] font-normal opacity-75 hover:opacity-100 transition-opacity">
                     <Heart size={14} /> SAVE
                   </button>
                 </div>
@@ -267,7 +267,7 @@ export function CycleTrackerHero({ showCheckIn = false }: CycleTrackerHeroProps)
                   <div className="size-8 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-500">
                     <Sparkle size={16} weight="fill" />
                   </div>
-                  <h3 className="text-[15px] font-semibold text-[var(--mf-text-strong)] tracking-tight">Partner Sync</h3>
+                  <h3 className="text-[15px] font-normal text-[var(--mf-text-strong)] tracking-tight">Partner Sync</h3>
                 </div>
                 <p className="text-[13px] text-muted-foreground leading-relaxed mt-1">
                   Her energy levels might naturally dip in the coming days. Offering to handle dinner or a few extra chores can make a huge difference right now.
@@ -276,7 +276,7 @@ export function CycleTrackerHero({ showCheckIn = false }: CycleTrackerHeroProps)
               <div className="mt-4 pt-3 border-t border-[var(--mf-border)]">
                 <a 
                   href={`sms:?body=${encodeURIComponent("Hey! Thinking of you. Let me know if you need anything, I can handle dinner or whatever else you need today. ❤️")}`}
-                  className="flex items-center justify-center gap-2 text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white dark:bg-amber-600 dark:hover:bg-amber-700 py-2.5 px-4 rounded-xl transition-all duration-300 w-full active:scale-95"
+                  className="flex items-center justify-center gap-2 text-xs font-normal bg-amber-500 hover:bg-amber-600 text-white dark:bg-amber-600 dark:hover:bg-amber-700 py-2.5 px-4 rounded-xl transition-all duration-300 w-full active:scale-95"
                 >
                   <Chat size={16} weight="fill" />
                   Text Her Support

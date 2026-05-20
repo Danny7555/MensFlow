@@ -91,7 +91,7 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
       <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden border-none rounded-[32px] bg-background">
         <div className="p-8">
           <DialogHeader className="mb-6">
-            <DialogTitle className="text-2xl font-medium tracking-tight">Log Symptoms: Day {activeDay}</DialogTitle>
+            <DialogTitle className="text-2xl font-normal tracking-tight">Log Symptoms: Day {activeDay}</DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground pt-1">
               Select any symptoms or moods you're experiencing today.
             </DialogDescription>
@@ -105,8 +105,8 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
               return (
                 <div key={cat.name} className="space-y-3">
                   <div className="flex items-center gap-2 px-1">
-                    <cat.icon className={cn("size-4", cat.color)} weight="bold" />
-                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{cat.name}</span>
+                    <cat.icon className={cn("size-4", cat.color)} weight="regular" />
+                    <span className="text-xs font-normal uppercase tracking-widest text-muted-foreground">{cat.name}</span>
                   </div>
                   <div className="flex flex-wrap gap-2.5">
                     {items.map((s) => {
@@ -119,7 +119,7 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
                           onClick={() => toggleSymptom(s.id)}
                           disabled={isSaving}
                           className={cn(
-                            "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 border",
+                            "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-normal transition-all duration-300 border",
                             isActive
                               ? "bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] border-[var(--mf-accent-border)] scale-[1.02]"
                               : "bg-card text-muted-foreground border-border hover:border-[var(--mf-accent-border)] hover:text-foreground"
@@ -147,7 +147,7 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
               onClick={handleSave}
               disabled={isSaving}
               className={cn(
-                "flex-1 h-12 rounded-2xl bg-[var(--mf-accent)] text-white font-medium hover:brightness-110 transition-all shadow-none flex items-center justify-center gap-2",
+                "flex-1 h-12 rounded-2xl bg-[var(--mf-accent)] text-white font-normal hover:brightness-110 transition-all shadow-none flex items-center justify-center gap-2",
                 isSaving && "opacity-80 cursor-not-allowed"
               )}
             >
