@@ -59,11 +59,11 @@ function SymptomCategoryList({
       )}
       <div className="p-6 flex flex-col gap-6">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium tracking-tight text-foreground flex items-center gap-2">
+          <h3 className="text-sm font-normal tracking-tight text-foreground flex items-center gap-2">
             <IconComponent size={20} className="text-[var(--mf-accent)]" />
             {category}
           </h3>
-          <span className="text-[0.65rem] uppercase tracking-widest text-muted-foreground font-medium">
+          <span className="text-[0.65rem] uppercase tracking-widest text-muted-foreground font-normal">
             {items.length} options
           </span>
         </div>
@@ -77,7 +77,7 @@ function SymptomCategoryList({
               onClick={() => toggleSymptom(symptom.id)}
               disabled={isSaving}
               className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-all duration-300 cursor-pointer",
+                "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-normal border transition-all duration-300 cursor-pointer",
                 isActive
                   ? "bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] border-[var(--mf-accent-border)] scale-[1.02]"
                   : "bg-card text-muted-foreground border-border hover:border-[var(--mf-accent-border)] hover:text-foreground",
@@ -165,7 +165,7 @@ export function SymptomsView() {
               <h1 className="dash-title">Daily symptoms</h1>
               <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-muted/40 border border-border/50 sync-pill mt-1">
                 <div className={cn("size-1.5 rounded-full", isSaving ? "bg-orange-400 sync-dot-active" : "bg-green-500")} />
-                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                <span className="text-[10px] font-normal text-muted-foreground uppercase tracking-wider">
                   {isSaving ? 'Syncing' : 'Synced'}
                 </span>
               </div>
@@ -185,7 +185,7 @@ export function SymptomsView() {
 
       <section aria-labelledby="today-log-title" className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 id="today-log-title" className="text-lg font-medium tracking-tight text-foreground">
+          <h2 id="today-log-title" className="text-lg font-normal tracking-tight text-foreground">
             Current Status
           </h2>
           <p className="text-xs text-muted-foreground">
@@ -200,7 +200,7 @@ export function SymptomsView() {
       </section>
 
       <section aria-labelledby="trends-title" className="space-y-6 pt-4">
-        <h2 id="trends-title" className="text-lg font-medium tracking-tight text-foreground">
+        <h2 id="trends-title" className="text-lg font-normal tracking-tight text-foreground">
           Analytical Cycle Graphs & Trends
         </h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

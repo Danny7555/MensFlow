@@ -15,6 +15,7 @@ import {
   Pulse,
   X,
   SidebarSimple,
+  SignOut,
 } from '@phosphor-icons/react'
 import type { SectionId } from '../types/nav'
 import { cn } from '../lib/utils'
@@ -68,7 +69,7 @@ export function Sidebar({
   onToggleDesktopCollapse,
   onToggleSidebar,
 }: SidebarProps) {
-  const { onboardingCompleted } = useAuth()
+  const { onboardingCompleted, logout } = useAuth()
 
   const rawItems = isAuthenticated ? authItems : guestItems
   const items = rawItems.filter(item => {
@@ -138,7 +139,7 @@ export function Sidebar({
           ))}
         </nav>
 
-        {!isAuthenticated && (
+        {!isAuthenticated ? (
           <div className={cn("sidebar-footer", collapsed && "sidebar-footer--compact mt-auto")}>
             {!collapsed && (
               <p className="sidebar-footer-text">
@@ -157,6 +158,21 @@ export function Sidebar({
               ) : (
                 <ChatCircle size={20} weight="bold" aria-hidden />
               )}
+            </button>
+          </div>
+        ) : (
+          <div className={cn("sidebar-footer", collapsed && "sidebar-footer--compact mt-auto")}>
+            <button
+              type="button"
+              className={cn(
+                "btn w-full flex items-center justify-center gap-2 border border-border bg-card text-muted-foreground hover:text-foreground transition-all duration-200 active:scale-95",
+                collapsed ? "sidebar-login-icon" : "h-11 rounded-2xl text-xs font-normal"
+              )}
+              title={collapsed ? 'Sign out' : undefined}
+              onClick={logout}
+            >
+              <SignOut size={collapsed ? 22 : 18} weight="regular" />
+              {!collapsed && <span>Sign out</span>}
             </button>
           </div>
         )}
