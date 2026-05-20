@@ -114,12 +114,12 @@ function QuizOption({ text, selected, showResult, correct, onClick }: QuizOption
 }
 
 export function SymptomLogger() {
-  const { addLog, getLogForDate, isSaving } = useStore()
+  const { addLog, getLogForDate, isSaving, customSymptoms } = useStore()
   const todayDate = format(new Date(), 'yyyy-MM-dd')
   const existingLog = getLogForDate(todayDate)
   const currentSymptoms = existingLog ? existingLog.symptoms : []
 
-  const checkInSymptoms = SYMPTOM_DEFS.filter(sym => sym.category !== 'Flow')
+  const checkInSymptoms = [...SYMPTOM_DEFS, ...customSymptoms].filter(sym => sym.category !== 'Flow')
 
   const toggleSymptom = async (id: string, label: string) => {
     if (isSaving) return

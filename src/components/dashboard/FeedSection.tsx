@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Sparkle, Target, Heartbeat, Plus, Check, CaretRight, Users } from "@phosphor-icons/react"
 import { SymptomLogger } from "./DailyCheckIn"
+import { toast } from "sonner"
 
 interface FeedSectionData {
   lastPeriodStart: string
@@ -65,26 +66,54 @@ export function FeedSection({
       case 'Menstrual':
         return {
           desc: "Their body is resetting. Energy may be low, and they might experience cramps or discomfort.",
-          tips: ["Offer a warm heating pad", "Take over extra chores to allow them to rest", "Be patient with mood fluctuations"]
+          tips: ["Offer a warm heating pad", "Take over extra chores to allow them to rest", "Be patient with mood fluctuations"],
+          gestures: [
+            { title: "Comfort note", text: "Hey! I'm thinking of you. Can I bring you some tea or chocolate to help you feel better? ❤️", icon: "🍫" },
+            { title: "Offer heating pad", text: "Hey, let me know if you want me to heat up the pad or run an errand for you today! 🍵", icon: "🍵" },
+            { title: "Soup recipe", text: "I'm thinking of making a warm, cozy soup for dinner tonight. Rest up, I've got it handled!", icon: "🥣" }
+          ]
         }
       case 'Follicular':
         return {
           desc: "Estrogen is rising. They may feel more energetic, creative, and social.",
-          tips: ["Suggest a fun date or activity", "Encourage their new ideas", "Enjoy their increased energy levels"]
+          tips: ["Suggest a fun date or activity", "Encourage their new ideas", "Enjoy their increased energy levels"],
+          gestures: [
+            { title: "Invite to walk", text: "The weather is nice today! Let's go for a walk or outdoor run after work? 🏃‍♀️", icon: "🏃‍♀️" },
+            { title: "Plan weekend date", text: "Since your energy is up, let's plan a fun date night or weekend outing! Any places you've been wanting to try? 🌟", icon: "📅" },
+            { title: "Encourage ideas", text: "Hey, let's look into that new creative idea you mentioned. I'd love to help you design it!", icon: "💡" }
+          ]
         }
       case 'Ovulation':
         return {
           desc: "Hormones are peaking. They are likely feeling their most confident and energetic.",
-          tips: ["Compliment them, they are feeling confident", "Great time for social events", "Communicate openly about intimacy"]
+          tips: ["Compliment them, they are feeling confident", "Great time for social events", "Communicate openly about intimacy"],
+          gestures: [
+            { title: "Date night dinner", text: "You are absolutely glowing lately. Let me take you out to a nice dinner tonight! 🕯️", icon: "🕯️" },
+            { title: "Sweet message", text: "Just wanted to say I love you and I'm so lucky to have you. Hope you have a wonderful day! ❤️", icon: "❤️" },
+            { title: "Bring flowers", text: "I'm stopping by the store on my way home, bringing something nice for you!", icon: "💐" }
+          ]
         }
       case 'Luteal':
       default:
         return {
           desc: "Progesterone is rising. Their body temperature is slightly higher, and they may experience lower energy levels and heightened cravings.",
-          tips: ["Keep the bedroom cool tonight", "Offer a magnesium-rich snack", "Give them space to unwind and relax"]
+          tips: ["Keep the bedroom cool tonight", "Offer a magnesium-rich snack", "Give them space to unwind and relax"],
+          gestures: [
+            { title: "Cozy night in", text: "Let's just stay in tonight, order some takeout and watch a movie. You deserve to relax! 🍿", icon: "🍿" },
+            { title: "Take over dinner", text: "Don't worry about any chores or dinner tonight, I'll take care of all of it. Just put your feet up!", icon: "🍽️" },
+            { title: "Ask how to help", text: "I know this phase can be a bit overwhelming. Let me know how I can make your day easier!", icon: "✨" }
+          ]
         }
     }
   })()
+
+  const handleCopyGesture = (text: string, title: string) => {
+    navigator.clipboard.writeText(text)
+    toast.success("Copied supportive gesture!", {
+      description: `"${title}" template copied to clipboard.`,
+      duration: 3000
+    })
+  }
 
   return (
     <section className="flo-feed-section">
@@ -281,6 +310,23 @@ export function FeedSection({
                 </li>
               ))}
             </ul>
+          </div>
+
+          <div className="mt-5 pt-4 border-t border-[var(--mf-border)] no-print">
+            <span className="text-[10px] font-normal text-muted-foreground uppercase tracking-wider block mb-2.5">Quick Supportive Gestures</span>
+            <div className="flex flex-wrap gap-2">
+              {partnerTranslation.gestures.map((g) => (
+                <button
+                  key={g.title}
+                  type="button"
+                  onClick={() => handleCopyGesture(g.text, g.title)}
+                  className="px-3.5 py-2 rounded-xl bg-muted/40 hover:bg-muted/70 text-xs font-normal text-[var(--mf-text-strong)] border border-border/50 hover:border-[var(--mf-accent-border)] active:scale-95 transition-all flex items-center gap-1.5"
+                >
+                  <span>{g.icon}</span>
+                  <span>{g.title}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>

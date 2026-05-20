@@ -4194,3 +4194,52 @@
   scrollbar-width: none;  /* Firefox */
 }
 
+/* Print overrides to create clean report printouts */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt !important;
+  }
+
+  .no-print,
+  nav,
+  header,
+  .sidebar,
+  .flo-sidebar,
+  .flo-header,
+  .flo-nav,
+  .btn,
+  button,
+  .flo-text-link,
+  .sync-pill,
+  .absolute-glow-blur {
+    display: none !important;
+  }
+
+  .main-content,
+  .insights-page,
+  .app-container {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border: none !important;
+    background: transparent !important;
+  }
+
+  /* Make sure charts print correctly */
+  .recharts-responsive-container {
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .bg-card, 
+  .flo-card {
+    background: white !important;
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+}
+

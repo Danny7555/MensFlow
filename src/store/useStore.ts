@@ -8,6 +8,7 @@ import {
   DEFAULT_SETTINGS,
   type MensFlowSettings,
 } from '../context/settings-types'
+import { type SymptomDef, type SymptomCategory } from '../data/symptomsData'
 
 export type SymptomLog = {
   date: string; // ISO date string (YYYY-MM-DD)
@@ -19,6 +20,7 @@ interface AppState {
   settings: MensFlowSettings
   logs: SymptomLog[]
   user: { name: string }
+  customSymptoms: SymptomDef[]
   isSaving: boolean
   
   // Actions
@@ -29,6 +31,8 @@ interface AppState {
   addLog: (date: string, symptoms: string[]) => Promise<void>
   getLogForDate: (date: string) => SymptomLog | undefined
   clearLogs: () => void
+  addCustomSymptom: (label: string, category: SymptomCategory) => void
+  removeCustomSymptom: (id: string) => void
   resetStore: () => void
 }
 
@@ -39,6 +43,7 @@ export const useStore = create<AppState>()(
       settings: DEFAULT_SETTINGS,
       logs: [],
       user: { name: 'Daniella' },
+      customSymptoms: [],
       isSaving: false,
 
       updateUser: (patch) => set((state) => ({ user: { ...state.user, ...patch } })),
@@ -50,6 +55,7 @@ export const useStore = create<AppState>()(
         settings: DEFAULT_SETTINGS,
         logs: [],
         user: { name: 'Daniella' },
+        customSymptoms: [],
         isSaving: false
       }),
 
@@ -81,6 +87,17 @@ export const useStore = create<AppState>()(
       },
 
       clearLogs: () => set({ logs: [] }),
+
+      addCustomSymptom: (label, category) => set((state) => {
+        const id = `custom-${category.toLowerCase()}-${Date.now()}`
+        return {
+          customSymptoms: [...state.customSymptoms, { id, label, category }]
+        }
+      }),
+
+      removeCustomSymptom: (id) => set((state) => ({
+        customSymptoms: state.customSymptoms.filter((s) => s.id !== id)
+      })),
     }),
     {
       name: 'mensflow-storage',

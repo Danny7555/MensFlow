@@ -7,15 +7,53 @@ import { useAuth } from "@/context/useAuth"
 import { cn } from '../lib/utils'
 import { InsightsSkeleton } from '../components/skeletons/InsightsSkeleton'
 import { HormoneWave } from '../components/dashboard/HormoneWave'
+import { useStore } from '../store/useStore'
+import { SYMPTOM_DEFS } from '../data/symptomsData'
+import { format } from 'date-fns'
+import { toast } from 'sonner'
 
 export function InsightsView() {
   const { isAuthenticated, openAuthModal } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
+  const { logs, customSymptoms } = useStore()
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 500)
     return () => clearTimeout(timer)
   }, [])
+
+  const handleExportCSV = () => {
+    if (!logs || logs.length === 0) {
+      toast.error("No logs available to export.")
+      return
+    }
+    
+    const allSymptoms = [...SYMPTOM_DEFS, ...customSymptoms]
+    const sorted = logs.toSorted((a, b) => a.date.localeCompare(b.date))
+    
+    let csvContent = "data:text/csv;charset=utf-8,"
+    csvContent += "Date,Logged Symptoms\n"
+    
+    sorted.forEach((log) => {
+      const labels = log.symptoms
+        .map((sId) => allSymptoms.find((s) => s.id === sId)?.label || sId)
+        .join("; ")
+      csvContent += `${log.date},"${labels}"\n`
+    })
+    
+    const encodedUri = encodeURI(csvContent)
+    const link = document.createElement("a")
+    link.setAttribute("href", encodedUri)
+    link.setAttribute("download", `mensflow_cycle_report_${format(new Date(), 'yyyy-MM-dd')}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    toast.success("CSV report downloaded!")
+  }
+
+  const handlePrintPDF = () => {
+    window.print()
+  }
 
   if (isLoading) {
     return <InsightsSkeleton />
@@ -68,6 +106,31 @@ export function InsightsView() {
           </div>
         </section>
 
+        <section className="insights-section no-print" aria-labelledby="reports-title">
+          <h2 id="reports-title" className="insights-section-title">
+            Reports & Export
+          </h2>
+          <div className="bg-card border border-border p-6 rounded-3xl mt-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="max-w-md">
+              <h3 className="text-base font-normal mb-1">Export your cycle summary</h3>
+              <p className="text-xs text-muted-foreground font-normal">Download a complete CSV log of your cycle metrics or print/save a beautifully formatted PDF report for doctor consultations.</p>
+            </div>
+            <div className="flex gap-3">
+              <button 
+                onClick={handleExportCSV}
+                className="px-5 py-2.5 rounded-full border border-border text-xs font-normal hover:bg-muted transition-colors"
+              >
+                Download CSV
+              </button>
+              <button 
+                onClick={handlePrintPDF}
+                className="px-5 py-2.5 rounded-full bg-[var(--mf-accent)] text-white text-xs font-normal hover:brightness-105 transition-all"
+              >
+                Export PDF Report
+              </button>
+            </div>
+          </div>
+        </section>
 
         {!isAuthenticated && (
           <div className="absolute inset-x-0 bottom-0 top-0 bg-gradient-to-t from-background via-background/90 to-transparent pointer-events-none z-20 flex flex-col items-center justify-center pt-24">
