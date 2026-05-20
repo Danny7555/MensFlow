@@ -56,7 +56,7 @@ export function SnapshotModal({ isOpen, onOpenChange, data, update, isSaving }: 
     cycleNotes: data.cycleNotes || "",
   })
 
-  // Removed useEffect sync in favor of key-based re-mounting in parent
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -130,7 +130,7 @@ export function SnapshotModal({ isOpen, onOpenChange, data, update, isSaving }: 
           </div>
         </div>
         <DialogFooter>
-          <Button 
+          <Button
             className="w-full h-12 rounded-full bg-[var(--mf-accent)] text-white hover:brightness-110 flex items-center justify-center gap-2"
             disabled={isSaving}
             onClick={async () => {
