@@ -1,4 +1,5 @@
 
+import { useState } from "react"
 import { Sparkle, Target, Heartbeat, Plus, Check, CaretRight } from "@phosphor-icons/react"
 
 interface FeedSectionData {

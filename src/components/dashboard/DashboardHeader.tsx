@@ -58,8 +58,8 @@ export function DashboardHeader({
               {mounted ? (
                 <>
                   <span className="font-semibold text-[var(--mf-accent)]">{format(now, 'h:mm a')}</span>
-                  <span className="mx-1.5 opacity-50">•</span>
-                  {format(now, 'EEEE, d MMMM')}
+                  <span className="mx-1.5 opacity-50 hidden sm:inline">•</span>
+                  <span className="hidden sm:inline">{format(now, 'EEEE, d MMMM')}</span>
                 </>
               ) : ''}
             </p>
