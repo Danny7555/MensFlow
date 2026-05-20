@@ -3,9 +3,11 @@ import { use, useReducer, useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Joyride, STATUS } from 'react-joyride'
 import { Plus } from '@phosphor-icons/react'
+import { toast } from 'sonner'
 import { useStore } from '../store/useStore'
 import { useAuth } from '../context/useAuth'
 import { ChatSessionContext } from '../context/chat-session-context'
+import { cn } from '../lib/utils'
 import { CycleTrackerHero } from '../components/tracker/CycleTrackerHero'
 import { LogSymptomsModal } from '../components/tracker/LogSymptomsModal'
 import { SnapshotModal } from '../components/dashboard/SnapshotModal'
@@ -123,6 +125,36 @@ export function DashboardView() {
   }
 
   useEffect(() => {
+    const handlePingEvent = () => {
+      const pingStr = localStorage.getItem('mensflow_partner_ping:v1')
+      if (pingStr) {
+        try {
+          const ping = JSON.parse(pingStr)
+          const lastProcessed = localStorage.getItem('mensflow_last_ping_processed:v1')
+          if (lastProcessed !== String(ping.timestamp)) {
+            localStorage.setItem('mensflow_last_ping_processed:v1', String(ping.timestamp))
+            toast.info("Partner Update received!", {
+              icon: "👋",
+              description: `She is: "${ping.label}" (${ping.message})`,
+              duration: 8000,
+            })
+          }
+        } catch (e) {
+          console.error("Failed to parse partner ping", e)
+        }
+      }
+    }
+
+    window.addEventListener('storage', handlePingEvent)
+    // Run once on mount in case a ping was sent while the dashboard was closed
+    handlePingEvent()
+
+    return () => {
+      window.removeEventListener('storage', handlePingEvent)
+    }
+  }, [])
+
+  useEffect(() => {
     const hasSeenTour = localStorage.getItem('mensflow_tour_completed')
     dispatch({
       type: 'MOUNT',
@@ -146,6 +178,21 @@ export function DashboardView() {
     }
   }
 
+  const phase = useMemo(() => {
+    const cycleDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
+    const periodLength = 5
+    const predictedPeriodLength = 2
+    const fertileStart = 10
+    const fertileEnd = 16
+    const upcomingStart = 23
+
+    if (cycleDay <= periodLength) return 'menstrual'
+    if (cycleDay <= periodLength + predictedPeriodLength) return 'follicular'
+    if (cycleDay >= fertileStart && cycleDay <= fertileEnd) return 'fertile'
+    if (cycleDay >= upcomingStart) return 'luteal'
+    return 'follicular'
+  }, [data.lastPeriodStart, data.typicalCycleDays])
+
   const guidanceText = useMemo(
     () => data.guidanceLines.join('\n'),
     [data.guidanceLines],
@@ -168,6 +215,25 @@ export function DashboardView() {
 
   return (
     <div className="dashboard-flo-theme relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {/* Ambient Phase Background Glows */}
+      <div 
+        className={cn(
+          "absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full blur-[150px] opacity-60 pointer-events-none transition-all duration-1000 ease-in-out bg-gradient-to-br z-0",
+          phase === 'menstrual' && "from-red-500/20 to-transparent",
+          phase === 'follicular' && "from-teal-500/20 to-transparent",
+          phase === 'fertile' && "from-sky-500/20 to-transparent",
+          phase === 'luteal' && "from-amber-500/20 to-transparent"
+        )} 
+      />
+      <div 
+        className={cn(
+          "absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full blur-[150px] opacity-40 pointer-events-none transition-all duration-1000 ease-in-out bg-gradient-to-br z-0",
+          phase === 'menstrual' && "from-rose-500/10 to-transparent",
+          phase === 'follicular' && "from-emerald-500/10 to-transparent",
+          phase === 'fertile' && "from-cyan-500/10 to-transparent",
+          phase === 'luteal' && "from-yellow-500/10 to-transparent"
+        )} 
+      />
       {!isAuthenticated && (
         <div className="bg-gradient-to-r from-[var(--mf-accent)] to-[#f472b6] text-white py-2.5 px-4 text-center text-xs font-medium flex items-center justify-center gap-2 relative z-50 animate-in slide-in-from-top duration-500">
           <span>You are previewing MensFlow as a guest. Your data is stored locally.</span>

@@ -2,7 +2,7 @@ import type { ComponentType, ReactNode } from 'react'
 import { useState, useEffect } from 'react'
 import { useStore } from '../store/useStore'
 import { SettingsSkeleton } from '../components/skeletons/SettingsSkeleton'
-import {
+import { 
   ArrowCounterClockwise,
   Bell,
   Database,
@@ -16,7 +16,9 @@ import {
   UsersThree,
   UserCircle,
   CaretRight,
+  Link
 } from '@phosphor-icons/react'
+import { toast } from 'sonner'
 import { 
   Dialog, 
   DialogContent, 
@@ -424,6 +426,30 @@ function GeneralPanel({
         checked={settings.privacyDefaultTemporaryChat}
         onChange={(v) => updateSettings({ privacyDefaultTemporaryChat: v })}
       />
+
+      {/* Partner Connection Settings */}
+      <div className="mt-8 pt-6 border-t border-[var(--mf-border)]">
+        <span className="text-xs font-semibold text-[var(--mf-text-strong)] uppercase tracking-wider block mb-1">Partner Connection</span>
+        <p className="text-xs text-muted-foreground mb-4">
+          Copy this secure sync link and send it to your partner. When they open it on their phone, they can report their current energy level or symptoms to update your dashboard in real-time.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              const syncUrl = window.location.origin + '/sync'
+              navigator.clipboard.writeText(syncUrl)
+              toast.success("Sync link copied!", {
+                description: "Send this link to your partner so they can sync with your dashboard."
+              })
+            }}
+            className="flex items-center justify-center gap-2 text-xs font-semibold bg-[var(--mf-accent)] text-white hover:opacity-90 py-2.5 px-4 rounded-xl transition-all duration-300 active:scale-95 w-fit"
+          >
+            <Link size={16} weight="bold" />
+            <span>Copy Partner Check-In Link</span>
+          </button>
+        </div>
+      </div>
     </>
   )
 }

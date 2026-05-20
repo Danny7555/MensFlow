@@ -28,6 +28,7 @@ const SymptomsView = lazy(() => import('./views/SymptomsView').then(m => ({ defa
 const EducationView = lazy(() => import('./views/EducationView').then(m => ({ default: m.EducationView })))
 const OnboardingView = lazy(() => import('./views/OnboardingView').then(m => ({ default: m.OnboardingView })))
 const NotificationsView = lazy(() => import('./views/NotificationsView').then(m => ({ default: m.NotificationsView })))
+const SyncView = lazy(() => import('./views/SyncView').then(m => ({ default: m.SyncView })))
 const NotFoundView = lazy(() => import('./views/NotFoundView').then(m => ({ default: m.NotFoundView })))
 
 
@@ -138,6 +139,7 @@ function MainShell() {
                     <Route path="/health-insights" element={<Navigate to="/insights" replace />} />
                     <Route path="/wellness-tips" element={<Navigate to="/tips" replace />} />
                     <Route path="/history" element={guestPlaceholder('History / logs', 'Chat and symptom history stays private to your account.')} />
+                    <Route path="/sync" element={<SyncView />} />
                     <Route path="*" element={<NotFoundView />} />
                   </>
                 ) : (
@@ -159,6 +161,7 @@ function MainShell() {
                     <Route path="/tracker" element={<TrackerView />} />
                     <Route path="/symptoms" element={<SymptomsView />} />
                     <Route path="/education" element={<EducationView />} />
+                    <Route path="/sync" element={<SyncView />} />
                     <Route path="*" element={<NotFoundView />} />
                   </>
                 )}

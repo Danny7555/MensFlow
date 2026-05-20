@@ -174,7 +174,7 @@ export function InteractiveAreaChart() {
     <Card className="border-none shadow-none ring-0 bg-transparent">
       <CardHeader className="flex flex-col items-start gap-4 gap-y-0 border-b py-5 sm:flex-row sm:items-center">
         <div className="grid flex-1 gap-1 text-left">
-          <CardTitle>Health Metrics Over Time</CardTitle>
+          <CardTitle className="font-normal text-sm sm:text-base">Health Metrics Over Time</CardTitle>
           <CardDescription suppressHydrationWarning>
             Showing data for the last {timeRange === "90d" ? "3 months" : timeRange === "30d" ? "30 days" : "7 days"}
           </CardDescription>
