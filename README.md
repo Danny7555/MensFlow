@@ -1,76 +1,63 @@
-# React + TypeScript + Vite
+# MensFlow 🌸
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+MensFlow is a premium, beautifully designed health application tailored specifically for tracking menstrual cycles, symptom correlations, and providing holistic wellness tips. Originally designed to help partners track and support their significant other's cycles, it features a fluid, native-feeling user experience with rich micro-interactions and glassmorphism elements.
 
-Currently, two official plugins are available:
+## Features ✨
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Daily Symptom Logging:** Track physical, mood, and flow symptoms with a clean, intuitive interface.
+- **Analytical Cycle Graphs & Trends:** Interactive charts (powered by Recharts) showcasing 6-month cycle length variations and long-term symptom correlations.
+- **Personalized Insights:** Receive science-backed insights based on the current cycle phase.
+- **Cycle Calendar:** Visual calendar to track past cycles and predict future phases.
+- **Premium UX/UI:**
+  - Soft, organic glassmorphism design (frosted glass navigation, soft gradients).
+  - Fluid staggered page transitions and animations.
+  - Satisfying "squish" micro-interactions mimicking native haptic feedback.
+  - Dark mode support with a warm, deep plum palette.
 
-## React Compiler
+## Tech Stack 🛠️
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Framework:** React 19 + TypeScript + Vite
+- **Styling:** Tailwind CSS v4 + Vanilla CSS (Custom Design System)
+- **Routing:** React Router v7
+- **State Management:** Zustand
+- **Data Visualization:** Recharts
+- **Icons:** Phosphor Icons & Lucide React
+- **Animations:** Tailwind Animate & custom CSS keyframes
 
-## Expanding the ESLint configuration
+## Getting Started 🚀
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Prerequisites
+- Node.js (v18 or higher recommended)
+- npm or pnpm
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Installation
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd MensFlow
+   ```
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+4. Build for production:
+   ```bash
+   npm run build
+   ```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Design System
+
+The application relies heavily on a bespoke design system managed within `src/App.css` and `src/index.css`.
+- **CSS Variables:** Drive the light/dark themes (`--mf-accent`, `--mf-card`, etc.).
+- **Tailwind v4:** Extends utility classes while maintaining clean CSS structure.
 
 ## Branch Naming Convention
 
@@ -94,29 +81,3 @@ This document defines the standard naming format for Git branches to ensure clar
 - `test/` – tests only
 - `refactor/` – code restructuring (no behavior change)
 - `release/` – release preparation
-
-### With Ticket / Task ID (Recommended)
-
-`<type>/<ticket-id>-<short-description>`
-
-**Examples:**
-- `feature/WEB-124-sanity-integration`
-- `fix/BUG-77-contact-form`
-- `chore/DEV-9-eslint-update`
-
-### Examples
-
-**Good:**
-- `feature/sanity-dynamic-content`
-- `fix/contact-form-validation`
-- `docs/cms-dynamic-scope`
-
-**Avoid:**
-- `testing123`
-- `new-feature`
-- `yaw-branch`
-- `cms`
-
-### Rule of Thumb
-
-A branch name should clearly explain its purpose without opening the code or PR.
