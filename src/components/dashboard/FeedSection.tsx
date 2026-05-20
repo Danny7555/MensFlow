@@ -245,35 +245,6 @@ export function FeedSection({
         </div>
 
         <div className="flex flex-col gap-6">
-          <div>
-            <h3 className="text-xs font-semibold text-[var(--mf-muted)] uppercase tracking-wider mb-4 text-center">How's your flow?</h3>
-            <div className="flex items-center justify-around">
-              {[
-                { label: 'None', id: 'none', icon: <Plus size={16} weight="bold" /> },
-                { label: 'Light', id: 'light', img: '/images/flow_light.png' },
-                { label: 'Medium', id: 'medium', img: '/images/flow_medium.png' },
-                { label: 'Heavy', id: 'heavy', img: '/images/flow_heavy.png' },
-              ].map(item => (
-                <button 
-                  key={item.id} 
-                  className="flex flex-col items-center gap-2 transition-all group outline-none"
-                  onClick={() => dispatch({ type: 'TOGGLE_LOG', payload: true })}
-                >
-                  <div className="size-12 flex items-center justify-center rounded-full bg-[var(--mf-accent)]/10 border border-[var(--mf-border)] overflow-hidden transition-transform group-hover:scale-110 group-hover:border-[var(--mf-accent)]">
-                    {item.img ? (
-                      <img src={item.img} alt="" className="w-full h-full object-cover p-1" />
-                    ) : (
-                      <div className="text-[var(--mf-muted)] group-hover:text-[var(--mf-accent)] transition-colors">
-                        {item.icon}
-                      </div>
-                    )}
-                  </div>
-                  <span className="text-[0.65rem] font-medium text-[var(--mf-muted)] group-hover:text-[var(--mf-text-strong)] transition-colors">{item.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
           <div className="grid grid-cols-4 gap-2">
             {[
               { label: 'Mood', img: '/images/happy.jpg' },

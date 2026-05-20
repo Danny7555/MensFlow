@@ -4147,3 +4147,32 @@
 .pb-bottom-nav {
   padding-bottom: calc(88px + env(safe-area-inset-bottom)) !important;
 }
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Daily Check-In Layout Custom Fixes */
+.flo-checkin-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .flo-checkin-grid {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+.flo-checkin-card {
+  grid-column: auto !important;
+  grid-row: auto !important;
+}

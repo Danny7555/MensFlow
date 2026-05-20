@@ -13,6 +13,7 @@ import { CustomizePlanModal } from '../components/dashboard/CustomizePlanModal'
 import { DashboardHeader } from '../components/dashboard/DashboardHeader'
 import { StoriesSection } from '../components/dashboard/StoriesSection'
 import { FeedSection } from '../components/dashboard/FeedSection'
+import { DailyCheckIn } from '../components/dashboard/DailyCheckIn'
 
 function computeCycleDay(startIso: string, cycleLen: number) {
   const start = new Date(`${startIso}T12:00:00`)
@@ -258,6 +259,7 @@ export function DashboardView() {
               />
             </section>
           </div>
+          <DailyCheckIn />
         </div>
       </main>
 
