@@ -182,7 +182,7 @@ export function HormoneWave() {
 
   return (
     <div className="flo-card flo-card--prominent p-6 relative overflow-hidden group transition-all duration-500 mb-8" ref={containerRef}>
-      
+
       <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <div className="flex items-center gap-2.5 mb-1.5">
@@ -224,9 +224,9 @@ export function HormoneWave() {
           </div>
         )}
 
-        <svg 
+        <svg
           ref={svgRef}
-          viewBox="0 0 1000 248" 
+          viewBox="0 0 1000 248"
           className="w-full h-full overflow-visible cursor-ew-resize select-none focus:outline-none focus:ring-1 focus:ring-[var(--mf-accent)] rounded-lg"
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
@@ -295,34 +295,34 @@ export function HormoneWave() {
           </g>
 
           {/* Translucent Area Fills */}
-          <path 
-            d={`${ESTROGEN_PATH} L 1000 225 L 0 225 Z`} 
-            fill="url(#estrogenAreaGrad)" 
+          <path
+            d={`${ESTROGEN_PATH} L 1000 225 L 0 225 Z`}
+            fill="url(#estrogenAreaGrad)"
             className="pointer-events-none"
           />
-          <path 
-            d={`${PROGESTERONE_PATH} L 1000 225 L 0 225 Z`} 
-            fill="url(#progesteroneAreaGrad)" 
+          <path
+            d={`${PROGESTERONE_PATH} L 1000 225 L 0 225 Z`}
+            fill="url(#progesteroneAreaGrad)"
             className="pointer-events-none"
           />
 
           {/* Estrogen Ribbon */}
-          <path 
+          <path
             ref={estrogenPathRef}
-            d={ESTROGEN_PATH} 
-            fill="none" 
-            stroke="url(#estrogenGrad)" 
-            strokeWidth="4" 
+            d={ESTROGEN_PATH}
+            fill="none"
+            stroke="url(#estrogenGrad)"
+            strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
           {/* Progesterone Ribbon */}
-          <path 
+          <path
             ref={progesteronePathRef}
-            d={PROGESTERONE_PATH} 
-            fill="none" 
-            stroke="url(#progesteroneGrad)" 
-            strokeWidth="4" 
+            d={PROGESTERONE_PATH}
+            fill="none"
+            stroke="url(#progesteroneGrad)"
+            strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
@@ -330,13 +330,13 @@ export function HormoneWave() {
           {/* Active Day Vertical Scrub Line (Ladder ticks) */}
           <g className="transition-all duration-300 pointer-events-none">
             {/* Main vertical line */}
-            <line 
-              x1={activePercent} 
-              y1="15" 
-              x2={activePercent} 
-              y2="225" 
-              stroke={dayInsight.accentColor} 
-              strokeWidth="2" 
+            <line
+              x1={activePercent}
+              y1="15"
+              x2={activePercent}
+              y2="225"
+              stroke={dayInsight.accentColor}
+              strokeWidth="2"
               strokeDasharray="4,4"
               opacity="0.85"
             />
@@ -369,7 +369,7 @@ export function HormoneWave() {
                 />
               )
             })}
-            
+
             {/* Estrogen intersection glowing marker */}
             {intersections.estY !== 0 && (
               <g>
@@ -430,9 +430,9 @@ export function HormoneWave() {
             <span className="inline-block size-1.5 rounded-full" style={{ backgroundColor: dayInsight.accentColor }} />
             Day {activeDay} of 28
           </span>
-          <span 
+          <span
             className="text-[11px] font-normal px-2.5 py-0.5 rounded-full border transition-all duration-300"
-            style={{ 
+            style={{
               color: dayInsight.accentColor,
               borderColor: `${dayInsight.accentColor}30`,
               backgroundColor: `${dayInsight.accentColor}10`
@@ -442,11 +442,11 @@ export function HormoneWave() {
           </span>
         </div>
         <div className="relative">
-          <input 
-            type="range" 
-            min="1" 
-            max="28" 
-            value={activeDay} 
+          <input
+            type="range"
+            min="1"
+            max="28"
+            value={activeDay}
             onChange={(e) => setActiveDay(parseInt(e.target.value))}
             className="hormone-range-input w-full h-1.5 bg-[var(--mf-border)] rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-[var(--mf-accent)]"
           />
@@ -476,11 +476,10 @@ export function HormoneWave() {
                   {Array.from({ length: 3 }).map((_, idx) => {
                     const estStrength = getLevelStrength(dayInsight.estrogen)
                     return (
-                      <div 
-                        key={idx} 
-                        className={`w-3.5 h-1.5 rounded-full transition-all duration-300 ${
-                          idx < estStrength ? 'bg-pink-500' : 'bg-[var(--mf-border)]'
-                        }`}
+                      <div
+                        key={idx}
+                        className={`w-3.5 h-1.5 rounded-full transition-all duration-300 ${idx < estStrength ? 'bg-pink-500' : 'bg-[var(--mf-border)]'
+                          }`}
                       />
                     )
                   })}
@@ -495,11 +494,10 @@ export function HormoneWave() {
                   {Array.from({ length: 3 }).map((_, idx) => {
                     const progStrength = getLevelStrength(dayInsight.progesterone)
                     return (
-                      <div 
-                        key={idx} 
-                        className={`w-3.5 h-1.5 rounded-full transition-all duration-300 ${
-                          idx < progStrength ? 'bg-violet-500' : 'bg-[var(--mf-border)]'
-                        }`}
+                      <div
+                        key={idx}
+                        className={`w-3.5 h-1.5 rounded-full transition-all duration-300 ${idx < progStrength ? 'bg-violet-500' : 'bg-[var(--mf-border)]'
+                          }`}
                       />
                     )
                   })}
