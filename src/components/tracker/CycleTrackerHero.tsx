@@ -2,7 +2,7 @@
 "use client"
 
 import { useEffect, useMemo, useReducer } from 'react'
-import { CaretDown, CaretRight, Info, Lightning, Heart } from '@phosphor-icons/react'
+import { CaretDown, CaretRight, Info, Lightning, Heart, Sparkle } from '@phosphor-icons/react'
 import { format, addDays, startOfDay } from 'date-fns'
 
 import { 
@@ -259,6 +259,19 @@ export function CycleTrackerHero({ showCheckIn = false }: CycleTrackerHeroProps)
 
             {/* Daily Quiz rendered natively in the left column */}
             <DailyQuiz />
+            
+            {/* Filler section to balance columns */}
+            <div className="flo-card flo-card--featured mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-700 bg-gradient-to-br from-amber-500/10 to-transparent border-amber-500/20">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="size-8 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-500">
+                  <Sparkle size={16} weight="fill" />
+                </div>
+                <h3 className="text-[15px] font-semibold text-[var(--mf-text-strong)] tracking-tight">Partner Sync</h3>
+              </div>
+              <p className="text-[13px] text-muted-foreground leading-relaxed mt-1">
+                Her energy levels might naturally dip in the coming days. Offering to handle dinner or a few extra chores can make a huge difference right now.
+              </p>
+            </div>
           </>
         )}
       </div>
