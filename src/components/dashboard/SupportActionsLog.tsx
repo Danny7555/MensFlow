@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Check, Fire, Sparkle, Heart } from '@phosphor-icons/react'
+import { Check } from '@phosphor-icons/react'
 import { useStore } from '../../store/useStore'
 import { toast } from 'sonner'
 
@@ -124,8 +124,8 @@ export function SupportActionsLog() {
             <span className={`w-fit text-[9px] font-medium uppercase tracking-[0.12em] ${theme.accentBg} ${theme.accentColor} px-3 py-1 rounded-full border ${theme.borderColor}`}>
               {theme.badgeText}
             </span>
-            <div className={`flex items-center gap-1 text-[10px] ${theme.accentColor} font-medium`}>
-              <Sparkle size={12} weight="fill" />
+            <div className={`flex items-center gap-1.5 text-[10px] ${theme.accentColor} font-medium`}>
+              <img src="/images/star.png" alt="Star" className="size-3.5 object-contain" />
               <span>Empathy Tracker</span>
             </div>
           </div>
@@ -139,8 +139,8 @@ export function SupportActionsLog() {
 
         {/* Streak Badge */}
         <div className="flex flex-col items-center justify-center bg-[var(--mf-card)] border border-[var(--mf-border)] rounded-2xl px-3.5 py-2.5 !shadow-none transition-all duration-300">
-          <div className="flex items-center gap-1 text-amber-500">
-            <Fire size={18} weight="fill" className={supportStreak > 0 ? "animate-bounce" : ""} />
+          <div className="flex items-center gap-1.5 text-amber-500">
+            <img src="/images/star.png" alt="Streak" className={`size-5 object-contain ${supportStreak > 0 ? "animate-pulse" : ""}`} />
             <span className="text-lg font-medium font-mono">{supportStreak}</span>
           </div>
           <span className="text-[9px] uppercase tracking-wider text-[var(--mf-muted)] mt-0.5 font-medium">
@@ -196,7 +196,7 @@ export function SupportActionsLog() {
               </div>
 
               {isDone && (
-                <Heart size={14} weight="fill" className="text-emerald-500 animate-pulse shrink-0 ml-2" />
+                <img src="/images/heart.png" alt="Heart" className="size-4 object-contain animate-pulse shrink-0 ml-2" />
               )}
             </button>
           )

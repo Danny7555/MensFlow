@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChatText, ArrowRight, Check, Brain, Lightbulb, Heart } from '@phosphor-icons/react'
+import { ArrowRight, Check } from '@phosphor-icons/react'
 import { useStore } from '../../store/useStore'
 import { toast } from 'sonner'
 
@@ -254,8 +254,8 @@ export function EmotionTranslator() {
             <span className={`w-fit text-[9px] font-medium uppercase tracking-[0.12em] ${theme.accentBg} ${theme.accentColor} px-3 py-1 rounded-full border ${theme.borderColor}`}>
               {theme.badgeText}
             </span>
-            <div className={`flex items-center gap-1 text-[10px] ${theme.accentColor} font-medium`}>
-              <ChatText size={12} weight="fill" />
+            <div className={`flex items-center gap-1.5 text-[10px] ${theme.accentColor} font-medium`}>
+              <img src="/images/star.png" alt="Star" className="size-3.5 object-contain" />
               <span>Emotion Translator</span>
             </div>
           </div>
@@ -292,7 +292,7 @@ export function EmotionTranslator() {
             {/* Decoded Bio Context */}
             <div className="space-y-1">
               <span className={`flex items-center gap-1.5 text-[9px] font-medium uppercase tracking-wider ${theme.accentColor}`}>
-                <Brain size={12} weight="fill" /> Decoded Biological Context
+                <img src="/images/brain.png" alt="Brain" className="size-3.5 object-contain" /> Decoded Biological Context
               </span>
               <p className="text-[11.5px] text-[var(--mf-text-strong)] leading-relaxed font-normal">
                 {translation.biologicalContext}
@@ -302,7 +302,7 @@ export function EmotionTranslator() {
             {/* Core Need */}
             <div className="space-y-1">
               <span className="flex items-center gap-1.5 text-[9px] font-medium uppercase tracking-wider text-amber-500">
-                <Heart size={12} weight="fill" /> Core Need
+                <img src="/images/heart.png" alt="Heart" className="size-3.5 object-contain" /> Core Need
               </span>
               <p className="text-[11.5px] text-[var(--mf-text-strong)] leading-relaxed font-normal">
                 {translation.coreNeed}
@@ -312,7 +312,7 @@ export function EmotionTranslator() {
             {/* Recommended Action Checklist */}
             <div className="space-y-1.5 pt-1">
               <span className="flex items-center gap-1.5 text-[9px] font-medium uppercase tracking-wider text-emerald-500">
-                <Lightbulb size={12} weight="fill" /> Recommended Actions
+                <img src="/images/star.png" alt="Action" className="size-3.5 object-contain" /> Recommended Actions
               </span>
               <ul className="space-y-1">
                 {translation.actions.map((act) => (
@@ -351,7 +351,7 @@ export function EmotionTranslator() {
           </div>
         ) : (
           <div className="mt-4 py-8 px-4 text-center rounded-2xl bg-[var(--mf-composer-bg)]/40 border border-dashed border-[var(--mf-border)]">
-            <ChatText size={24} className="text-[var(--mf-muted)] mx-auto opacity-40 mb-2" />
+            <img src="/images/brain.png" alt="Brain" className="size-10 object-contain mx-auto opacity-55 mb-2" />
             <p className="text-[11.5px] text-[var(--mf-muted)]">
               Tap any of the common phrases above to decode their underlying message.
             </p>
