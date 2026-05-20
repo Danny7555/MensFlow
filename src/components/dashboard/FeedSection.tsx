@@ -58,6 +58,7 @@ export function FeedSection({
 }: FeedSectionProps) {
   const currentDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
   const tipOfTheDay = CYCLE_DAILY_TIPS[(currentDay - 1) % CYCLE_DAILY_TIPS.length]
+  const [tipCompleted, setTipCompleted] = useState(false)
 
   return (
     <section className="flo-feed-section">
@@ -115,67 +116,101 @@ export function FeedSection({
           </div>
         </div>
 
-        <div className="flo-card flo-card--prominent overflow-hidden">
-          <div className="-mx-6 -mt-6 mb-4 h-[90px] relative shrink-0">
-            <img src="/images/calm.jpg" alt="Body Signals" className="w-full h-full object-cover" />
-          </div>
-          <div className="flo-card-top relative z-10">
-            <div className="flo-card-icon flo-card-icon--pink">
-              <Target size={20} weight="fill" />
+        <div className="flo-card flo-card--prominent overflow-hidden flex flex-col justify-between">
+          <div>
+            <div className="-mx-6 -mt-6 mb-4 h-[90px] relative shrink-0">
+              <img src="/images/calm.jpg" alt="Body Signals" className="w-full h-full object-cover" />
+            </div>
+            <div className="flo-card-top relative z-10">
+              <div className="flo-card-icon flo-card-icon--pink">
+                <Target size={20} weight="fill" />
+              </div>
+            </div>
+            <div className="flo-card-content mt-2 relative z-10">
+              <p className="flo-card-title">Body Signals</p>
+              <h3 className="flo-card-desc text-lg">{data.bodySignals}</h3>
+              <p className="text-xs opacity-50 mt-2">Common for Day {currentDay}</p>
             </div>
           </div>
-          <div className="flo-card-content mt-2 relative z-10">
-            <p className="flo-card-title">Body Signals</p>
-            <h3 className="flo-card-desc text-lg">{data.bodySignals}</h3>
-            <p className="text-xs opacity-50 mt-2">Common for Day {currentDay}</p>
+          <div className="mt-4 pt-3 border-t border-[var(--mf-border)] relative z-10">
+            <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">Focus Areas</span>
+            <div className="flex flex-wrap gap-1">
+              <span className="text-[10px] bg-[var(--mf-accent-soft)] px-2 py-0.5 rounded-md font-medium text-[var(--mf-accent)]">💧 Hydrate Extra</span>
+              <span className="text-[10px] bg-muted px-2 py-0.5 rounded-md font-medium text-[var(--mf-text-strong)]">🧘‍♀️ Light Stretch</span>
+            </div>
           </div>
         </div>
 
-        <div className="flo-card flo-card--prominent overflow-hidden">
-          <div className="-mx-6 -mt-6 mb-4 h-[90px] relative shrink-0">
-            <img src="/images/heart.png" alt="Wellness" className="w-full h-full object-cover object-center" style={{ transform: 'scale(1.5) translateY(10px)' }} />
-          </div>
-          <div className="flo-card-top relative z-10">
-            <div className="flo-card-icon flo-card-icon--pink">
-              <Heartbeat size={20} weight="fill" />
+        <div className="flo-card flo-card--prominent overflow-hidden flex flex-col justify-between">
+          <div>
+            <div className="-mx-6 -mt-6 mb-4 h-[90px] relative shrink-0">
+              <img src="/images/heart.png" alt="Wellness" className="w-full h-full object-cover object-center" style={{ transform: 'scale(1.5) translateY(10px)' }} />
+            </div>
+            <div className="flo-card-top relative z-10">
+              <div className="flo-card-icon flo-card-icon--pink">
+                <Heartbeat size={20} weight="fill" />
+              </div>
+            </div>
+            <div className="flo-card-content mt-2 relative z-10">
+              <p className="flo-card-title">Wellness Score</p>
+              <div className="flex items-end gap-1">
+                <h3 className="flo-card-desc text-2xl font-medium text-[var(--mf-accent)]">84</h3>
+                <span className="text-xs mb-1.5 font-medium text-[var(--mf-accent)] opacity-60">/100</span>
+              </div>
+              <div className="w-full h-1.5 bg-[var(--mf-border)] rounded-full mt-3">
+                <div className="h-full bg-[var(--mf-accent)] rounded-full" style={{ width: '84%' }} />
+              </div>
             </div>
           </div>
-          <div className="flo-card-content mt-2 relative z-10">
-            <p className="flo-card-title">Wellness Score</p>
-            <div className="flex items-end gap-1">
-              <h3 className="flo-card-desc text-2xl font-medium text-[var(--mf-accent)]">84</h3>
-              <span className="text-xs mb-1.5 font-medium text-[var(--mf-accent)] opacity-60">/100</span>
+          <div className="mt-4 pt-3 border-t border-[var(--mf-border)] relative z-10 grid grid-cols-2 gap-2 text-[10px]">
+            <div>
+              <span className="opacity-60 block uppercase tracking-wider text-[8px] font-semibold">Sleep Rating</span>
+              <span className="font-semibold text-[var(--mf-text-strong)]">92% Optimal</span>
             </div>
-            <div className="w-full h-1.5 bg-[var(--mf-border)] rounded-full mt-3">
-              <div className="h-full bg-[var(--mf-accent)] rounded-full" style={{ width: '84%' }} />
+            <div>
+              <span className="opacity-60 block uppercase tracking-wider text-[8px] font-semibold">Stress level</span>
+              <span className="font-semibold text-green-500">Low (Stable)</span>
             </div>
           </div>
         </div>
 
         {/* Guidance Card */}
-        <div className="flo-card flo-card--featured animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200 overflow-hidden">
-          <div className="-mx-6 -mt-6 mb-4 h-[90px] relative shrink-0">
-            <img src="/images/star.png" alt="Daily Tip" className="w-full h-full object-cover object-center" style={{ transform: 'scale(1.2)' }} />
-          </div>
-          <div className="flo-card-top relative z-10">
-            <div className="flex items-center gap-2">
-              <div className="flo-card-icon flo-card-icon--pink">
-                <Plus size={20} weight="fill" />
+        <div className="flo-card flo-card--featured animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200 overflow-hidden flex flex-col justify-between">
+          <div>
+            <div className="-mx-6 -mt-6 mb-4 h-[90px] relative shrink-0">
+              <img src="/images/star.png" alt="Daily Tip" className="w-full h-full object-cover object-center" style={{ transform: 'scale(1.2)' }} />
+            </div>
+            <div className="flo-card-top relative z-10">
+              <div className="flex items-center gap-2">
+                <div className="flo-card-icon flo-card-icon--pink">
+                  <Plus size={20} weight="fill" />
+                </div>
+                <p className="flo-card-title !mb-0">Daily Tip</p>
               </div>
-              <p className="flo-card-title !mb-0">Daily Tip</p>
+            </div>
+            
+            <div className="mt-2 relative z-10">
+              <div className="flex flex-col gap-3">
+                <ul className="flo-guidance-list">
+                  <li className={`flo-guidance-item transition-all duration-300 ${tipCompleted ? 'opacity-65 line-through' : ''}`}>
+                    <Check size={16} className={tipCompleted ? "text-green-500 shrink-0" : "text-[var(--mf-accent)] shrink-0"} weight="bold" />
+                    <span className="text-[0.9rem] leading-snug">{tipOfTheDay}</span>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
-          
-          <div className="mt-2 relative z-10">
-            <div className="flex flex-col gap-3">
-              <ul className="flo-guidance-list">
-                <li className="flo-guidance-item">
-                  <Check size={16} className="text-[var(--mf-accent)] shrink-0" weight="bold" />
-                  <span className="text-[0.9rem] leading-snug">{tipOfTheDay}</span>
-                </li>
-              </ul>
+
+          <button 
+            type="button"
+            className="mt-4 pt-3 border-t border-[var(--mf-border)] relative z-10 w-full flex items-center justify-between text-[11px] font-medium text-[var(--mf-accent)] hover:opacity-85 transition-opacity"
+            onClick={() => setTipCompleted(!tipCompleted)}
+          >
+            <span>{tipCompleted ? 'Tip Completed' : 'Mark tip as done'}</span>
+            <div className={`size-5 rounded-full border flex items-center justify-center transition-colors ${tipCompleted ? 'bg-green-500 border-green-500 text-white' : 'border-[var(--mf-accent)] text-transparent'}`}>
+              <Check size={10} weight="bold" />
             </div>
-          </div>
+          </button>
         </div>
         
         {/* Hormone Insight Card */}
