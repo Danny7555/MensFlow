@@ -74,7 +74,7 @@ export function InsightsView() {
             <div className="w-full h-full backdrop-blur-[6px] opacity-100" />
             <div className="absolute inset-0 flex flex-col items-center justify-center p-8 pointer-events-auto">
                <div className="bg-card border border-border p-8 rounded-3xl text-center max-w-[400px] mx-auto">
-                <h3 className="text-xl font-medium mb-2">Detailed AI Insights</h3>
+                <h3 className="text-xl font-normal mb-2">Detailed AI Insights</h3>
                 <p className="text-muted-foreground text-sm mb-6">Unlock deeper patterns, AI-driven correlations, and symptom history by signing in.</p>
                 <button 
                   onClick={openAuthModal}

@@ -1176,7 +1176,7 @@
 .auth-modal-title--gpt {
   margin: 0 0 0.65rem;
   font-size: 1.35rem;
-  font-weight: 500;
+  font-weight: 400;
   letter-spacing: -0.03em;
   text-align: center;
   color: var(--foreground);
@@ -1207,7 +1207,7 @@
   background: var(--background);
   font: inherit;
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 400;
   color: var(--foreground);
   cursor: pointer;
   text-align: left;
@@ -1244,7 +1244,7 @@
 
 .auth-modal-or-text {
   font-size: 0.68rem;
-  font-weight: 500;
+  font-weight: 400;
   letter-spacing: 0.12em;
   color: var(--muted-foreground);
 }
@@ -1280,7 +1280,7 @@
   color: var(--primary-foreground);
   font: inherit;
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 400;
   cursor: pointer;
 }
 

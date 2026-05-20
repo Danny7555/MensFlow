@@ -210,12 +210,20 @@ function MainShell() {
   )
 }
 
+import { resolveEffectiveTheme } from './lib/theme'
+
+function DynamicToaster() {
+  const themeMode = useStore((state) => state.settings.themeMode)
+  const resolved = resolveEffectiveTheme(themeMode)
+  return <Toaster position="top-right" richColors theme={resolved} className="mt-14" />
+}
+
 export default function App() {
   return (
     <AuthProvider>
       <ThemeSync />
       <MainShell />
-      <Toaster position="top-right" richColors theme="light" className="mt-14" />
+      <DynamicToaster />
     </AuthProvider>
   )
 }

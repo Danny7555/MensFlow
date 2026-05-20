@@ -62,14 +62,14 @@ export function SnapshotModal({ isOpen, onOpenChange, data, update, isSaving }: 
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px] rounded-[32px] p-8 border-none">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-medium">Your Snapshot</DialogTitle>
+          <DialogTitle className="text-2xl font-normal">Your Snapshot</DialogTitle>
           <DialogDescription>
             Update your cycle basics to get more accurate predictions.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-6 py-4">
           <div className="grid gap-2">
-            <label htmlFor="period-start" className="text-sm font-medium ml-1">Last period start</label>
+            <label htmlFor="period-start" className="text-sm font-normal ml-1">Last period start</label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -98,7 +98,7 @@ export function SnapshotModal({ isOpen, onOpenChange, data, update, isSaving }: 
             </Popover>
           </div>
           <div className="grid gap-2">
-            <label htmlFor="cycle-days" className="text-sm font-medium ml-1">Typical cycle length (days)</label>
+            <label htmlFor="cycle-days" className="text-sm font-normal ml-1">Typical cycle length (days)</label>
             <input
               id="cycle-days"
               type="number"
@@ -118,7 +118,7 @@ export function SnapshotModal({ isOpen, onOpenChange, data, update, isSaving }: 
             />
           </div>
           <div className="grid gap-2">
-            <label htmlFor="cycle-notes" className="text-sm font-medium ml-1">Private notes</label>
+            <label htmlFor="cycle-notes" className="text-sm font-normal ml-1">Private notes</label>
             <textarea
               id="cycle-notes"
               className="w-full p-4 rounded-2xl bg-muted/50 border-none outline-none focus:ring-2 ring-[var(--mf-accent)] transition-all resize-none"

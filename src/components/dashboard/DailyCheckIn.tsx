@@ -53,7 +53,7 @@ function SymptomBubble({ sym, active, onClick }: SymptomBubbleProps) {
         {imgUrl ? (
           <img src={imgUrl} alt={sym.label} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-muted flex items-center justify-center font-bold text-xs uppercase text-muted-foreground group-hover:text-[var(--mf-accent)] transition-colors">
+          <div className="w-full h-full bg-muted flex items-center justify-center font-normal text-xs uppercase text-muted-foreground group-hover:text-[var(--mf-accent)] transition-colors">
             {sym.label.substring(0, 2)}
           </div>
         )}
@@ -66,7 +66,7 @@ function SymptomBubble({ sym, active, onClick }: SymptomBubbleProps) {
         )}
       </div>
       <span className={cn(
-        "text-[10px] font-medium text-center whitespace-normal text-balance leading-tight w-[76px] transition-colors",
+        "text-[10px] font-normal text-center whitespace-normal text-balance leading-tight w-[76px] transition-colors",
         active ? "text-[var(--mf-accent)]" : "text-[var(--mf-text-strong)] group-hover:text-[var(--mf-accent)]"
       )}>
         {sym.label}
@@ -104,7 +104,7 @@ function QuizOption({ text, selected, showResult, correct, onClick }: QuizOption
       <div className="flex items-center justify-between">
         <span>{text}</span>
         {selected && (
-          <span className="font-medium uppercase tracking-wider text-[9px] px-1.5 py-0.5 rounded bg-white dark:bg-muted/40">
+          <span className="font-normal uppercase tracking-wider text-[9px] px-1.5 py-0.5 rounded bg-white dark:bg-muted/40">
             {correct ? "Correct" : "Wrong"}
           </span>
         )}
@@ -144,7 +144,7 @@ export function SymptomLogger() {
     <div className="flo-card flo-card--prominent overflow-hidden flex flex-col justify-between mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-400">
       <div>
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-lg font-medium text-[var(--mf-text-strong)] tracking-tight">How is your day going?</h3>
+          <h3 className="text-lg font-normal text-[var(--mf-text-strong)] tracking-tight">How is your day going?</h3>
         </div>
         <p className="text-xs text-muted-foreground mb-5">Tap to record your current symptoms or moods instantly. Your daily trends will update automatically.</p>
 
@@ -161,7 +161,7 @@ export function SymptomLogger() {
       </div>
 
       <div className="mt-4 pt-3 border-t border-[var(--mf-border)] flex items-center justify-between text-[11px] text-muted-foreground">
-        <span>Logged today: <span className="font-medium text-[var(--mf-text-strong)]">{currentSymptoms.length}</span> symptoms</span>
+        <span>Logged today: <span className="font-normal text-[var(--mf-text-strong)]">{currentSymptoms.length}</span> symptoms</span>
         <span className="opacity-50">Flo App Sync Active</span>
       </div>
     </div>
@@ -187,7 +187,7 @@ export function DailyQuiz() {
           <div className="flo-card-icon flo-card-icon--pink">
             <Question size={20} weight="bold" />
           </div>
-          <h3 className="text-lg font-medium text-[var(--mf-text-strong)] tracking-tight">Daily Quiz</h3>
+          <h3 className="text-lg font-normal text-[var(--mf-text-strong)] tracking-tight">Daily Quiz</h3>
         </div>
         <p className="text-xs text-muted-foreground mb-4">Learn about your body. Tapping your answer updates your check-in score.</p>
 
@@ -228,8 +228,8 @@ export function DailyQuiz() {
       </div>
 
       <div className="mt-4 pt-3 border-t border-[var(--mf-border)] flex items-center justify-between text-[11px] text-muted-foreground">
-        <span>Weekly Streak: <span className="font-medium text-[var(--mf-text-strong)]">5 Days</span></span>
-        <span className="text-[var(--mf-accent)] font-medium flex items-center gap-1">
+        <span>Weekly Streak: <span className="font-normal text-[var(--mf-text-strong)]">5 Days</span></span>
+        <span className="text-[var(--mf-accent)] font-normal flex items-center gap-1">
           <Trophy size={12} weight="fill" /> +50 pts
         </span>
       </div>

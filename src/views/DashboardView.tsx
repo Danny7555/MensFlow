@@ -235,11 +235,11 @@ export function DashboardView() {
         )} 
       />
       {!isAuthenticated && (
-        <div className="bg-gradient-to-r from-[var(--mf-accent)] to-[#f472b6] text-white py-2.5 px-4 text-center text-xs font-medium flex items-center justify-center gap-2 relative z-50 animate-in slide-in-from-top duration-500">
+        <div className="bg-gradient-to-r from-[var(--mf-accent)] to-[#f472b6] text-white py-2.5 px-4 text-center text-xs font-normal flex items-center justify-center gap-2 relative z-50 animate-in slide-in-from-top duration-500">
           <span>You are previewing MensFlow as a guest. Your data is stored locally.</span>
           <button 
             onClick={openAuthModal}
-            className="bg-white text-[var(--mf-accent)] px-3 py-1 rounded-full text-[11px] font-bold hover:bg-opacity-95 transition-all active:scale-95 cursor-pointer ml-1"
+            className="bg-white text-[var(--mf-accent)] px-3 py-1 rounded-full text-[11px] font-normal hover:bg-opacity-95 transition-all active:scale-95 cursor-pointer ml-1"
           >
             Create account
           </button>

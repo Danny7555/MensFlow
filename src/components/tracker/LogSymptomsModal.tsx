@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { format } from "date-fns"
 import {
   Dialog,
@@ -28,6 +28,13 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
     const existing = getLogForDate(dateKey)
     return existing ? new Set(existing.symptoms) : new Set()
   })
+
+  useEffect(() => {
+    if (isOpen) {
+      const existing = getLogForDate(dateKey)
+      setSelectedSymptoms(existing ? new Set(existing.symptoms) : new Set())
+    }
+  }, [isOpen, dateKey, getLogForDate])
 
   const toggleSymptom = (id: string) => {
     if (isSaving) return
