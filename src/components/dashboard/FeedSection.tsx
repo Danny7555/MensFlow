@@ -217,7 +217,7 @@ export function PartnerTranslationCard({ label, desc, tips, gestures, onCopy }: 
                 key={g.title}
                 type="button"
                 onClick={() => onCopy(g.text, g.title)}
-                className="px-3.5 py-2 rounded-xl bg-[var(--mf-card)] text-xs font-normal text-[var(--mf-text-strong)] border border-[var(--mf-border-strong)] hover:border-[var(--mf-accent-border)] transition-all flex items-center gap-1.5 shadow-sm"
+                className="px-3.5 py-2 rounded-xl bg-[var(--mf-card)] text-xs font-normal text-[var(--mf-text-strong)] border border-[var(--mf-border-strong)] hover:border-[var(--mf-accent-border)] transition-all flex items-center gap-1.5 "
               >
                 <g.Icon size={14} className={cn(g.color)} weight="bold" />
                 <span>{g.title}</span>
