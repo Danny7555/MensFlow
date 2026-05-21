@@ -207,14 +207,8 @@ export function DashboardView() {
     return getPhaseFromDay(cycleDay)
   }, [data.lastPeriodStart, data.typicalCycleDays])
 
-  const guidanceText = useMemo(
-    () => data.guidanceLines.join('\n'),
-    [data.guidanceLines],
-  )
-
   const partnerTranslation = usePartnerTranslation(phase)
   const currentDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
-  const tipOfTheDay = CYCLE_DAILY_TIPS[(currentDay - 1) % CYCLE_DAILY_TIPS.length]
   const [tipCompleted, setTipCompleted] = useState(false)
 
   const handleCopyGesture = (text: string, title: string) => {
@@ -346,7 +340,6 @@ export function DashboardView() {
                 <DailyTipCard
                   tipCompleted={tipCompleted}
                   setTipCompleted={setTipCompleted}
-                  tipOfTheDay={tipOfTheDay}
                 />
               </div>
 
