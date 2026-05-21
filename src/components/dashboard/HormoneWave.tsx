@@ -69,7 +69,6 @@ export function HormoneWave() {
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-4">
             <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-pink-500" />
               <span className="text-[10px] font-medium text-pink-600 dark:text-pink-400 uppercase tracking-[0.15em]">
                 Hormone Matrix
               </span>
@@ -141,7 +140,6 @@ export function HormoneWave() {
             <span className="text-[10px] font-medium text-[var(--mf-muted)] uppercase tracking-widest">Timeline Position</span>
             <span className="text-sm font-medium text-[var(--mf-text-strong)] flex items-center gap-2">
               Day {activeDay} of 28
-              <span className="size-2 rounded-full" style={{ backgroundColor: dayInsight.accentColor }} />
             </span>
           </div>
           
@@ -153,7 +151,6 @@ export function HormoneWave() {
               backgroundColor: `${dayInsight.accentColor}08`
             }}
           >
-            <div className="size-1.5 rounded-full" style={{ backgroundColor: dayInsight.accentColor }} />
             <span className="text-[11px] font-medium tracking-tight uppercase">
               {dayInsight.phase}
             </span>

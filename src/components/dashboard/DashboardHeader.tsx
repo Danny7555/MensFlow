@@ -64,7 +64,6 @@ export function DashboardHeader({
               ) : ''}
             </p>
             <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-muted/30 border border-border/50 sync-pill">
-              <div className={cn("size-1.5 rounded-full", isSaving ? "bg-orange-400 sync-dot-active" : "bg-green-500")} />
               <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
                 {isSaving ? 'Syncing' : 'Synced'}
               </span>
