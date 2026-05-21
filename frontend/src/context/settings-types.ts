@@ -19,8 +19,11 @@ export type MensFlowSettings = {
   notificationsCycleReminders: boolean
   notificationsProduct: boolean
   privacyShareAnalytics: boolean
-  /** Applied when you start a new signed-in session */
   privacyDefaultTemporaryChat: boolean
+  privacyLockChats: boolean
+  privacyLockChatsPassword: string | null
+  privacyLockChatsSecurityQuestion: string | null
+  privacyLockChatsSecurityAnswer: string | null
   chatPersistLocal: boolean
   chatEnterToSend: boolean
   chatShowTimestamps: boolean
@@ -43,6 +46,10 @@ export const DEFAULT_SETTINGS: MensFlowSettings = {
   notificationsProduct: false,
   privacyShareAnalytics: false,
   privacyDefaultTemporaryChat: false,
+  privacyLockChats: false,
+  privacyLockChatsPassword: null,
+  privacyLockChatsSecurityQuestion: null,
+  privacyLockChatsSecurityAnswer: null,
   chatPersistLocal: true,
   chatEnterToSend: true,
   chatShowTimestamps: false,

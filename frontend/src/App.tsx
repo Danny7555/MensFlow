@@ -31,6 +31,7 @@ const EducationView = lazy(() => import('./views/EducationView').then(m => ({ de
 const OnboardingView = lazy(() => import('./views/OnboardingView').then(m => ({ default: m.OnboardingView })))
 const NotificationsView = lazy(() => import('./views/NotificationsView').then(m => ({ default: m.NotificationsView })))
 const SyncView = lazy(() => import('./views/SyncView').then(m => ({ default: m.SyncView })))
+const LockedChatsView = lazy(() => import('./views/LockedChatsView').then(m => ({ default: m.LockedChatsView })))
 const NotFoundView = lazy(() => import('./views/NotFoundView').then(m => ({ default: m.NotFoundView })))
 
 
