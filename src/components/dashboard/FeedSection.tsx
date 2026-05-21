@@ -109,12 +109,14 @@ function FeedHeader({ currentDay, totalDays, onUpdateSnapshot, onCustomize }: {
         >
           Update Snapshot
         </m.button>
-        <button 
+        <m.button 
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           className="flo-text-link"
           onClick={onCustomize}
         >
           Customize <CaretRight size={12} />
-        </button>
+        </m.button>
       </div>
     </m.div>
   )

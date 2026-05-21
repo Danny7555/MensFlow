@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import { m } from 'framer-motion'
+import type { Variants } from 'framer-motion'
 import { ChartLineUp, TrendDown, TrendUp } from '@phosphor-icons/react'
 import { INSIGHT_TRENDS_DUMMY } from '../data/insightsData'
 import { InteractiveAreaChart } from '../components/InteractiveAreaChart'
@@ -11,6 +13,30 @@ import { useStore } from '../store/useStore'
 import { SYMPTOM_DEFS } from '../data/symptomsData'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.1
+    }
+  }
+}
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 15 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 260,
+      damping: 20
+    }
+  }
+}
 
 export function InsightsView() {
   const { isAuthenticated, openAuthModal } = useAuth()
@@ -60,15 +86,27 @@ export function InsightsView() {
   }
 
   return (
-    <div className="insights-page relative">
-      <HormoneWave />
-      <section className="insights-section" aria-labelledby="trends-title">
+    <m.div 
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      className="insights-page relative"
+    >
+      <m.div variants={itemVariants}>
+        <HormoneWave />
+      </m.div>
+
+      <m.section variants={itemVariants} className="insights-section" aria-labelledby="trends-title">
         <h2 id="trends-title" className="insights-section-title">
           Trend summary
         </h2>
         <div className="insight-trends">
           {INSIGHT_TRENDS_DUMMY.map((t) => (
-            <div key={t.id} className="insight-trend-card">
+            <m.div 
+              key={t.id} 
+              variants={itemVariants}
+              className="insight-trend-card"
+            >
               <div className="flex flex-col h-full">
                 <span className="insight-trend-label">{t.label}</span>
                 <span className="insight-trend-value">{t.value}</span>
@@ -86,13 +124,13 @@ export function InsightsView() {
                   </div>
                 </div>
               </div>
-            </div>
+            </m.div>
           ))}
         </div>
-      </section>
+      </m.section>
 
       <div className="relative">
-        <section className="insights-section" aria-labelledby="charts-title">
+        <m.section variants={itemVariants} className="insights-section" aria-labelledby="charts-title">
           <h2 id="charts-title" className="insights-section-title">
             Patterns over time
           </h2>
@@ -104,9 +142,9 @@ export function InsightsView() {
               <InteractiveAreaChart />
             </div>
           </div>
-        </section>
+        </m.section>
 
-        <section className="insights-section no-print" aria-labelledby="reports-title">
+        <m.section variants={itemVariants} className="insights-section no-print" aria-labelledby="reports-title">
           <h2 id="reports-title" className="insights-section-title">
             Reports & Export
           </h2>
@@ -130,10 +168,15 @@ export function InsightsView() {
               </button>
             </div>
           </div>
-        </section>
+        </m.section>
 
         {!isAuthenticated && (
-          <div className="absolute inset-x-0 bottom-0 top-0 bg-gradient-to-t from-background via-background/90 to-transparent pointer-events-none z-20 flex flex-col items-center justify-center pt-24">
+          <m.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+            className="absolute inset-x-0 bottom-0 top-0 bg-gradient-to-t from-background via-background/90 to-transparent pointer-events-none z-20 flex flex-col items-center justify-center pt-24"
+          >
             <div className="w-full h-full backdrop-blur-[6px] opacity-100" />
             <div className="absolute inset-0 flex flex-col items-center justify-center p-8 pointer-events-auto">
                <div className="bg-card border border-border p-8 rounded-3xl text-center max-w-[400px] mx-auto">
@@ -147,9 +190,9 @@ export function InsightsView() {
                 </button>
               </div>
             </div>
-          </div>
+          </m.div>
         )}
       </div>
-    </div>
+    </m.div>
   )
 }

@@ -2,12 +2,14 @@
 import { use, useReducer, useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Joyride, STATUS } from 'react-joyride'
+import { m } from 'framer-motion'
 import { Plus } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { useStore } from '../store/useStore'
 import { useAuth } from '../context/useAuth'
 import { ChatSessionContext } from '../context/chat-session-context'
 import { cn } from '../lib/utils'
+import { computeCycleDay, getPhaseFromDay, getGreeting, type CyclePhase } from '../lib/cycleUtils'
 import { CycleTrackerHero } from '../components/tracker/CycleTrackerHero'
 import { LogSymptomsModal } from '../components/tracker/LogSymptomsModal'
 import { SnapshotModal } from '../components/dashboard/SnapshotModal'
@@ -18,19 +20,29 @@ import { DashboardHeader } from '../components/dashboard/DashboardHeader'
 import { StoriesSection } from '../components/dashboard/StoriesSection'
 import { FeedSection } from '../components/dashboard/FeedSection'
 
-function computeCycleDay(startIso: string, cycleLen: number) {
-  const start = new Date(`${startIso}T12:00:00`)
-  if (Number.isNaN(+start)) return 1
-  const days = Math.floor((Date.now() - +start) / 86400000)
-  const m = ((days % cycleLen) + cycleLen) % cycleLen
-  return m + 1
-}
-
-function getGreeting() {
-  const hour = new Date().getHours()
-  if (hour < 12) return 'Good morning'
-  if (hour < 17) return 'Good afternoon'
-  return 'Good evening'
+function AmbientBackground({ phase }: { phase: CyclePhase }) {
+  return (
+    <>
+      <div 
+        className={cn(
+          "absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full blur-[150px] opacity-60 pointer-events-none transition-all duration-1000 ease-in-out bg-gradient-to-br z-0",
+          phase === 'menstrual' && "from-red-500/20 to-transparent",
+          phase === 'follicular' && "from-teal-500/20 to-transparent",
+          phase === 'fertile' && "from-sky-500/20 to-transparent",
+          phase === 'luteal' && "from-amber-500/20 to-transparent"
+        )} 
+      />
+      <div 
+        className={cn(
+          "absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full blur-[150px] opacity-40 pointer-events-none transition-all duration-1000 ease-in-out bg-gradient-to-br z-0",
+          phase === 'menstrual' && "from-rose-500/10 to-transparent",
+          phase === 'follicular' && "from-emerald-500/10 to-transparent",
+          phase === 'fertile' && "from-cyan-500/10 to-transparent",
+          phase === 'luteal' && "from-yellow-500/10 to-transparent"
+        )} 
+      />
+    </>
+  )
 }
 
 type DashboardState = {
@@ -180,17 +192,7 @@ export function DashboardView() {
 
   const phase = useMemo(() => {
     const cycleDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
-    const periodLength = 5
-    const predictedPeriodLength = 2
-    const fertileStart = 10
-    const fertileEnd = 16
-    const upcomingStart = 23
-
-    if (cycleDay <= periodLength) return 'menstrual'
-    if (cycleDay <= periodLength + predictedPeriodLength) return 'follicular'
-    if (cycleDay >= fertileStart && cycleDay <= fertileEnd) return 'fertile'
-    if (cycleDay >= upcomingStart) return 'luteal'
-    return 'follicular'
+    return getPhaseFromDay(cycleDay)
   }, [data.lastPeriodStart, data.typicalCycleDays])
 
   const guidanceText = useMemo(
@@ -215,25 +217,7 @@ export function DashboardView() {
 
   return (
     <div className="dashboard-flo-theme relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* Ambient Phase Background Glows */}
-      <div 
-        className={cn(
-          "absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full blur-[150px] opacity-60 pointer-events-none transition-all duration-1000 ease-in-out bg-gradient-to-br z-0",
-          phase === 'menstrual' && "from-red-500/20 to-transparent",
-          phase === 'follicular' && "from-teal-500/20 to-transparent",
-          phase === 'fertile' && "from-sky-500/20 to-transparent",
-          phase === 'luteal' && "from-amber-500/20 to-transparent"
-        )} 
-      />
-      <div 
-        className={cn(
-          "absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full blur-[150px] opacity-40 pointer-events-none transition-all duration-1000 ease-in-out bg-gradient-to-br z-0",
-          phase === 'menstrual' && "from-rose-500/10 to-transparent",
-          phase === 'follicular' && "from-emerald-500/10 to-transparent",
-          phase === 'fertile' && "from-cyan-500/10 to-transparent",
-          phase === 'luteal' && "from-yellow-500/10 to-transparent"
-        )} 
-      />
+      <AmbientBackground phase={phase} />
       {!isAuthenticated && (
         <div className="bg-gradient-to-r from-[var(--mf-accent)] to-[#f472b6] text-white py-2.5 px-4 text-center text-xs font-normal flex items-center justify-center gap-2 relative z-50 animate-in slide-in-from-top duration-500">
           <span>You are previewing MensFlow as a guest. Your data is stored locally.</span>
@@ -348,13 +332,15 @@ export function DashboardView() {
       </main>
 
       {/* Persistent Interaction Trigger */}
-      <button 
+      <m.button 
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
         className="flo-fab"
         onClick={() => dispatch({ type: 'TOGGLE_LOG', payload: true })}
       >
         <div className="flo-fab-ripple" />
         <Plus size={28} weight="bold" />
-      </button>
+      </m.button>
 
        <SnapshotModal 
         key={`snap-${state.isSnapshotOpen}`}

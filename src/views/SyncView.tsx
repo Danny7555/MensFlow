@@ -1,12 +1,13 @@
 import { useState, useMemo } from 'react'
 import { m, AnimatePresence } from 'framer-motion'
 import type { Variants } from 'framer-motion'
-import { Check, Sparkle, Users } from '@phosphor-icons/react'
+import { Check, Sparkle,  PaperPlaneTilt } from '@phosphor-icons/react'
 import { toast } from 'sonner'
-import { SupportActionsLog } from '../components/dashboard/SupportActionsLog'
+import { SupportActionsLog, getPhaseTasks } from '../components/dashboard/SupportActionsLog'
 import { EmotionTranslator } from '../components/dashboard/EmotionTranslator'
 import { useStore } from '../store/useStore'
 import { cn } from '../lib/utils'
+import { computeCycleDay, getPhaseFromDay } from '../lib/cycleUtils'
 
 interface StatusOption {
   id: string
@@ -22,14 +23,6 @@ const STATUS_OPTIONS: StatusOption[] = [
   { id: 'space', label: 'Need Space', image: '/images/calm.jpg', message: "I just need a quiet day." },
   { id: 'great', label: 'Feeling Great!', image: '/images/happy.jpg', message: "I'm feeling energetic and good!" },
 ]
-
-function computeCycleDay(startIso: string, cycleLen: number) {
-  const start = new Date(`${startIso}T12:00:00`)
-  if (Number.isNaN(+start)) return 1
-  const days = Math.floor((Date.now() - +start) / 86400000)
-  const m = ((days % cycleLen) + cycleLen) % cycleLen
-  return m + 1
-}
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -66,6 +59,46 @@ const floatVariants: Variants = {
   }
 }
 
+function SupportHistory() {
+  const { completedActions } = useStore()
+  const allPossibleTasks = [
+    ...getPhaseTasks('menstrual'),
+    ...getPhaseTasks('follicular'),
+    ...getPhaseTasks('ovulatory'),
+    ...getPhaseTasks('luteal'),
+  ]
+
+  const completed = allPossibleTasks.filter(t => completedActions.includes(t.id))
+
+  if (completed.length === 0) return null
+
+  return (
+    <m.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flo-card p-6 border border-[var(--mf-border)] !shadow-none"
+    >
+      <div className="flex items-center gap-2 mb-4">
+        <div className="size-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+          <Check size={18} weight="bold" />
+        </div>
+        <h3 className="text-base font-medium text-[var(--mf-text-strong)]">Shared Support History</h3>
+      </div>
+      <div className="space-y-3">
+        {completed.slice(-3).reverse().map((task) => (
+          <div key={task.id} className="flex items-center justify-between text-[11.5px] py-2 border-b border-border/40 last:border-0">
+            <div className="flex items-center gap-2.5">
+              <img src="/images/heart.png" alt="" className="size-3.5 object-contain" />
+              <span className="text-[var(--mf-text)]">{task.label}</span>
+            </div>
+            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Completed</span>
+          </div>
+        ))}
+      </div>
+    </m.div>
+  )
+}
+
 export function SyncView() {
   const { dashboard: data } = useStore()
   const [selected, setSelected] = useState<string | null>(null)
@@ -74,17 +107,7 @@ export function SyncView() {
 
   const phase = useMemo(() => {
     const cycleDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
-    const periodLength = 5
-    const predictedPeriodLength = 2
-    const fertileStart = 10
-    const fertileEnd = 16
-    const upcomingStart = 23
-
-    if (cycleDay <= periodLength) return 'menstrual'
-    if (cycleDay <= periodLength + predictedPeriodLength) return 'follicular'
-    if (cycleDay >= fertileStart && cycleDay <= fertileEnd) return 'fertile'
-    if (cycleDay >= upcomingStart) return 'luteal'
-    return 'follicular'
+    return getPhaseFromDay(cycleDay)
   }, [data.lastPeriodStart, data.typicalCycleDays])
 
   const handleSendPing = () => {
@@ -263,13 +286,21 @@ export function SyncView() {
                       whileTap={{ scale: 0.99 }}
                       onClick={handleSendPing}
                       disabled={!selected || isSending}
-                      className="w-full h-12 bg-[var(--mf-accent)] text-white rounded-2xl font-normal flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-xs transition-all"
+                      className="w-full h-12 bg-[var(--mf-accent)] text-white rounded-2xl font-normal flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-xs transition-all !shadow-none"
                     >
                       {isSending ? (
-                        <span>Sending Check-in…</span>
+                        <div className="flex items-center gap-2">
+                          <m.div 
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          >
+                            <Sparkle size={16} weight="bold" />
+                          </m.div>
+                          <span>Sending Check-in…</span>
+                        </div>
                       ) : (
                         <>
-                          <Users size={16} weight="bold" />
+                          <PaperPlaneTilt size={16} weight="bold" />
                           <span>Send Instant Ping</span>
                         </>
                       )}
@@ -283,6 +314,7 @@ export function SyncView() {
             <m.section variants={itemVariants} className="flo-dashboard-right space-y-8">
               <SupportActionsLog />
               <EmotionTranslator />
+              <SupportHistory />
             </m.section>
 
           </div>

@@ -3,7 +3,7 @@ import { Check } from '@phosphor-icons/react'
 import { useStore } from '../../store/useStore'
 import { toast } from 'sonner'
 
-interface SupportTask {
+export interface SupportTask {
   id: string
   label: string
 }
@@ -16,7 +16,7 @@ interface PhaseStyle {
   progressBarColor: string
 }
 
-const getPhaseTasks = (phase: string): SupportTask[] => {
+export const getPhaseTasks = (phase: string): SupportTask[] => {
   const normalized = (phase || '').toLowerCase()
   if (normalized.includes('menstrual')) {
     return [

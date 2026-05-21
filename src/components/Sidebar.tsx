@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react'
 import { NavLink } from 'react-router-dom'
+import { m } from 'framer-motion'
 import type { IconProps } from '@phosphor-icons/react'
 import {
   BookOpen,
@@ -21,6 +22,8 @@ import {
 import type { SectionId } from '../types/nav'
 import { cn } from '../lib/utils'
 import { useAuth } from '../context/useAuth'
+import { useStore } from '../store/useStore'
+import { computeCycleDay, getPhaseFromDay, getPhaseInfo } from '../lib/cycleUtils'
 
 type NavIcon = ComponentType<IconProps>
 
@@ -84,6 +87,11 @@ export function Sidebar({
   const collapsed = !isMobile && desktopCollapsed
   const navIconSize = collapsed ? 22 : 20
 
+  const { dashboard: data } = useStore()
+  const cycleDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
+  const phase = getPhaseFromDay(cycleDay)
+  const phaseInfo = getPhaseInfo(phase)
+
   return (
     <>
       <div
@@ -117,11 +125,45 @@ export function Sidebar({
           <button
             type="button"
             className={cn("icon-btn sidebar-toggle-btn-top", !collapsed && "ml-auto")}
-            onClick={onToggleDesktopCollapse || onToggleSidebar}
+            onClick={desktopCollapsed ? onToggleDesktopCollapse : (onToggleSidebar || onToggleDesktopCollapse)}
             aria-label="Toggle sidebar"
           >
             {isMobile && mobileOpen ? <X size={20} /> : <SidebarSimple size={22} />}
           </button>
+        </div>
+
+        {/* Empathy Widget */}
+        <div className={cn("px-3 mb-2 mt-4", collapsed && "px-2 text-center")}>
+          <m.div 
+            layout
+            className={cn(
+              "flo-card transition-all duration-500 overflow-hidden !shadow-none !border-[var(--mf-border)] !bg-transparent",
+              collapsed ? "p-1" : "p-3"
+            )}
+          >
+            <div className={cn("flex items-center gap-2.5", collapsed && "justify-center")}>
+              <div 
+                className="size-7 rounded-full flex items-center justify-center shrink-0 border border-border overflow-hidden bg-white/50"
+              >
+                <img src="/images/star.png" alt="" className="size-4 object-contain animate-pulse" />
+              </div>
+              {!collapsed && (
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[9px] font-normal uppercase tracking-[0.1em] text-muted-foreground">Partner</span>
+                  <span className="text-xs font-medium truncate text-[var(--mf-text-strong)]">{phaseInfo.label}</span>
+                </div>
+              )}
+            </div>
+            {!collapsed && (
+              <m.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-[10px] text-muted-foreground mt-2 leading-relaxed border-t pt-2 border-border/30 font-normal"
+              >
+                {phaseInfo.description}
+              </m.p>
+            )}
+          </m.div>
         </div>
 
         <nav className="sidebar-nav">

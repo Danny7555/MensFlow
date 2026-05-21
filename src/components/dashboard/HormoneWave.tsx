@@ -63,7 +63,7 @@ export function HormoneWave() {
   const dayInsight = useMemo(() => getDayInsight(activeDay), [activeDay])
 
   return (
-    <div className="flo-card flo-card--prominent p-7 relative overflow-hidden group transition-all duration-500 mb-8 border border-[var(--mf-border)]/60">
+    <div className="flo-card p-7 relative overflow-hidden group transition-all duration-500 mb-8 border border-[var(--mf-border)]/60 !shadow-none">
       
       <div className="relative z-10 flex flex-col md:flex-row md:items-start justify-between gap-6 mb-10">
         <div className="flex-1">
