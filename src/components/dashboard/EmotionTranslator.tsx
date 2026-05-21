@@ -317,7 +317,6 @@ export function EmotionTranslator() {
               <ul className="space-y-1">
                 {translation.actions.map((act) => (
                   <li key={act} className="flex items-start gap-1.5 text-[11px] text-[var(--mf-text)] font-normal leading-relaxed">
-                    <span className="text-emerald-500 mt-0.5">•</span>
                     <span>{act}</span>
                   </li>
                 ))}

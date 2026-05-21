@@ -3792,8 +3792,6 @@
 }
 
 .flo-card--featured {
-  grid-column: 2;
-  grid-row: 1 / span 2;
   background: var(--mf-elevated);
   display: flex;
   flex-direction: column;
@@ -3801,10 +3799,9 @@
 }
 
 .flo-card--dark {
-  grid-column: 1 / span 2;
   background: linear-gradient(135deg, rgba(var(--mf-info-rgb, 23, 92, 211), 0.12) 0%, var(--mf-card) 100%);
   border-color: rgba(var(--mf-info-rgb, 23, 92, 211), 0.2);
-  min-height: 140px !important;
+  min-height: 100px;
   position: relative;
   overflow: hidden;
 }
@@ -3829,7 +3826,7 @@
 .flo-card-content {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: auto;
 }
 
 .flo-guidance-list {

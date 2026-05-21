@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react'
-import { Check } from '@phosphor-icons/react'
+import { motion, AnimatePresence } from 'framer-motion'
+import type { Variants } from 'framer-motion'
+import { Check, Sparkle, Heart, Users } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { SupportActionsLog } from '../components/dashboard/SupportActionsLog'
 import { EmotionTranslator } from '../components/dashboard/EmotionTranslator'
@@ -27,6 +29,41 @@ function computeCycleDay(startIso: string, cycleLen: number) {
   const days = Math.floor((Date.now() - +start) / 86400000)
   const m = ((days % cycleLen) + cycleLen) % cycleLen
   return m + 1
+}
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15,
+      delayChildren: 0.1
+    }
+  }
+}
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 100,
+      damping: 15
+    }
+  }
+}
+
+const floatVariants: Variants = {
+  animate: {
+    y: [0, -10, 0],
+    transition: {
+      duration: 5,
+      repeat: Infinity,
+      ease: "easeInOut"
+    }
+  }
 }
 
 export function SyncView() {
@@ -76,43 +113,78 @@ export function SyncView() {
   }
 
   return (
-    <div className="dashboard-flo-theme relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
-      
-      <main className="flo-main-container pb-32 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
+    <motion.div 
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      className="dashboard-flo-theme relative overflow-hidden"
+    >
+      {/* Dynamic Background Glow - Softer and more subtle */}
+      <AnimatePresence mode="wait">
+        <motion.div 
+          key={phase}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.4 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1.5 }}
+          className={cn(
+            "absolute -top-[10%] -left-[10%] w-[120%] h-[120%] blur-[120px] pointer-events-none z-0",
+            phase === 'menstrual' && "bg-gradient-radial from-rose-500/10 via-transparent to-transparent",
+            phase === 'follicular' && "bg-gradient-radial from-teal-500/10 via-transparent to-transparent",
+            phase === 'fertile' && "bg-gradient-radial from-sky-500/10 via-transparent to-transparent",
+            phase === 'luteal' && "bg-gradient-radial from-amber-500/10 via-transparent to-transparent"
+          )} 
+        />
+      </AnimatePresence>
+
+      <main className="flo-main-container pb-32 relative z-10">
         <div className="flo-content-inner">
           
-          <div className="flo-dashboard-top mb-12">
+          <motion.div variants={itemVariants} className="flo-dashboard-top mb-12">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div className="max-w-xl">
                 <div className="flex items-center gap-3 mb-3">
-                  <img src="/images/star.png" alt="Star" className="size-5 object-contain" />
+                  <motion.img 
+                    animate={{ rotate: [0, 10, -10, 0] }}
+                    transition={{ duration: 4, repeat: Infinity }}
+                    src="/images/star.png" alt="Star" className="size-5 object-contain" 
+                  />
                   <span className="text-[10px] font-normal uppercase tracking-[0.15em] bg-pink-500/10 text-pink-500 px-3 py-1 rounded-full border border-pink-500/20">
                     Interactive Hub
                   </span>
                 </div>
-                <h1 className="text-3xl font-normal tracking-tight text-[var(--mf-text-strong)]">
-                  Partner Sync & Empathy Hub
+                <h1 className="text-4xl font-normal tracking-tight text-[var(--mf-text-strong)] leading-[1.1]">
+                  Partner Sync & <br />
+                  <span className="text-[var(--mf-accent)]">Empathy Hub</span>
                 </h1>
-                <p className="text-xs text-[var(--mf-muted)] mt-2 leading-relaxed">
+                <p className="text-sm text-[var(--mf-muted)] mt-4 leading-relaxed max-w-lg">
                   Strengthen your relationship with real-time status pings, hormone decoding translators, and empathetic task sheets aligned with her cycle.
                 </p>
               </div>
-              <div className="hidden md:block shrink-0">
-                <img src="/images/lady.png" alt="Empathy Hub Illustration" className="h-24 object-contain opacity-95" />
-              </div>
+              <motion.div 
+                variants={floatVariants}
+                animate="animate"
+                className="hidden md:block shrink-0"
+              >
+                <img src="/images/lady.png" alt="Empathy Hub Illustration" className="h-32 object-contain opacity-95" />
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
 
           <div className="flo-dashboard-grid">
             
             {/* Left Column: Real-Time Ping Card */}
-            <section className="flo-dashboard-left">
+            <motion.section variants={itemVariants} className="flo-dashboard-left">
               <div className="flo-card p-8 relative overflow-hidden transition-all duration-300">
                 
                 <div className="flex flex-col items-center text-center">
-                  <div className="mb-4">
+                  <motion.div 
+                    animate={{ scale: [1, 1.05, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="mb-4"
+                  >
                     <img src="/images/heart.png" alt="Heart" className="size-14 object-contain" />
-                  </div>
+                  </motion.div>
 
                   <h2 className="text-xl font-normal tracking-tight text-[var(--mf-text-strong)]">
                     Send Real-Time Check-In
@@ -123,9 +195,13 @@ export function SyncView() {
                 </div>
 
                 {sent ? (
-                  <div className="mt-8 flex flex-col items-center text-center py-8 bg-[var(--mf-composer-bg)] border border-[var(--mf-border)] rounded-2xl animate-in slide-in-from-bottom-4 duration-500">
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="mt-8 flex flex-col items-center text-center py-8 bg-[var(--mf-composer-bg)] border border-[var(--mf-border)] rounded-2xl"
+                  >
                     <div className="mb-4">
-                      <img src="/images/star.png" alt="Success" className="size-14 object-contain" />
+                      <Sparkle size={48} weight="fill" className="text-pink-400 animate-pulse" />
                     </div>
                     <h3 className="text-base font-medium text-[var(--mf-text-strong)]">Check-in Sent!</h3>
                     <p className="text-[11px] text-[var(--mf-muted)] mt-1.5 max-w-xs px-4 leading-relaxed">
@@ -137,7 +213,7 @@ export function SyncView() {
                     >
                       Send another update
                     </button>
-                  </div>
+                  </motion.div>
                 ) : (
                   <div className="mt-8 space-y-6">
                     <div className="space-y-3">
@@ -147,65 +223,71 @@ export function SyncView() {
                       
                       <div className="grid grid-cols-2 gap-3">
                         {STATUS_OPTIONS.map((opt) => (
-                          <button
+                          <motion.button
                             key={opt.id}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
                             onClick={() => setSelected(opt.id)}
                             type="button"
-                            className={`relative overflow-hidden aspect-[4/3] rounded-2xl border text-left p-3.5 transition-all flex flex-col justify-between outline-none group ${
+                            className={cn(
+                              "relative overflow-hidden aspect-[4/3] rounded-2xl border text-left p-3.5 transition-all flex flex-col justify-between outline-none group",
                               selected === opt.id
-                                ? "border-[var(--mf-accent)] ring-1 ring-[var(--mf-accent)] scale-[1.01]"
-                                : "border-[var(--mf-border)] hover:border-[var(--mf-accent)]/45"
-                            }`}
+                                ? "border-[var(--mf-accent)] ring-1 ring-[var(--mf-accent)]"
+                                : "border-[var(--mf-border)] hover:border-[var(--mf-accent-border)]"
+                            )}
                           >
                             <div className="absolute inset-0 bg-black/45 group-hover:bg-black/50 transition-colors z-10" />
-                            <img src={opt.image} alt={opt.label} className="absolute inset-0 size-full object-cover z-0 transition-transform duration-500 group-hover:scale-105" />
+                            <img src={opt.image} alt={opt.label} className="absolute inset-0 size-full object-cover z-0 transition-transform duration-700 group-hover:scale-110" />
                             
                             <div className="flex justify-end w-full z-20">
-                              <div className={`rounded-full p-1 border transition-all ${
+                              <div className={cn(
+                                "rounded-full p-1 border transition-all",
                                 selected === opt.id
                                   ? "bg-[var(--mf-accent)] text-white border-[var(--mf-accent)]"
                                   : "bg-black/30 text-transparent border-white/40"
-                              }`}>
-                                <Check size={10} weight="bold" />
+                              )}>
+                                <Check size="10" weight="bold" />
                               </div>
                             </div>
                             
                             <span className="text-white text-[11px] font-normal tracking-wide z-20 mt-auto drop-shadow-sm">
                               {opt.label}
                             </span>
-                          </button>
+                          </motion.button>
                         ))}
                       </div>
                     </div>
 
-                    <button
+                    <motion.button
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
                       onClick={handleSendPing}
                       disabled={!selected || isSending}
-                      className="w-full btn btn-primary py-3.5 rounded-2xl font-normal flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-xs active:scale-98 transition-all duration-300"
+                      className="w-full h-12 bg-[var(--mf-accent)] text-white rounded-2xl font-normal flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-xs transition-all"
                     >
                       {isSending ? (
                         <span>Sending Check-in…</span>
                       ) : (
                         <>
-                          <img src="/images/star.png" alt="Star" className="size-4 object-contain" />
+                          <Users size={16} weight="bold" />
                           <span>Send Instant Ping</span>
                         </>
                       )}
-                    </button>
+                    </motion.button>
                   </div>
                 )}
               </div>
-            </section>
+            </motion.section>
 
             {/* Right Column: Empathy Log & Emotion Translator */}
-            <section className="flo-dashboard-right space-y-8">
+            <motion.section variants={itemVariants} className="flo-dashboard-right space-y-8">
               <SupportActionsLog />
               <EmotionTranslator />
-            </section>
+            </motion.section>
 
           </div>
         </div>
       </main>
-    </div>
+    </motion.div>
   )
 }

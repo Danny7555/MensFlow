@@ -164,7 +164,6 @@ export function SymptomsView() {
             <div className="flex items-center gap-3">
               <h1 className="dash-title">Daily symptoms</h1>
               <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-muted/40 border border-border/50 sync-pill mt-1">
-                <div className={cn("size-1.5 rounded-full", isSaving ? "bg-orange-400 sync-dot-active" : "bg-green-500")} />
                 <span className="text-[10px] font-normal text-muted-foreground uppercase tracking-wider">
                   {isSaving ? 'Syncing' : 'Synced'}
                 </span>
