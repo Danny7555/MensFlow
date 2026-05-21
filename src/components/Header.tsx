@@ -71,7 +71,7 @@ export function Header({
               Login
             </button>
             <button type="button" className="btn btn-primary" onClick={onOpenAuth}>
-              Sign up - free
+              Sign up
             </button>
           </>
         ) : (
@@ -91,12 +91,14 @@ export function Header({
                 {temporaryChat ? (
                   <>
                     <Ghost size={15} weight="duotone" className="chat-mode-chip-icon" aria-hidden />
-                    Temporary chat
+                    <span className="hidden sm:inline">Temporary chat</span>
+                    <span className="sm:hidden inline">Temporary</span>
                   </>
                 ) : (
                   <>
                     <span className="chat-mode-dot" aria-hidden />
-                    Saved chat
+                    <span className="hidden sm:inline">Saved chat</span>
+                    <span className="sm:hidden inline">Saved</span>
                   </>
                 )}
               </button>

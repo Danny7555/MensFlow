@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 
 import { TIPS_DUMMY, type WellnessTip } from '../data/tipsData'
 import { useStore } from '../store/useStore'
 import { cn } from '@/lib/utils';
+import { TipsSkeleton } from '../components/skeletons/TipsSkeleton';
 
 const CATS: { id: WellnessTip['category'] | 'all'; label: string }[] = [
   { id: 'all', label: 'All' },
@@ -18,6 +19,12 @@ export function TipsView() {
   const [saved, setSaved] = useState<Set<string>>(
     () => new Set(TIPS_DUMMY.slice(0, 2).map((t) => t.id)),
   )
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 500)
+    return () => clearTimeout(timer)
+  }, [])
 
   const fromDashboard = useMemo(() => {
     const rotate: WellnessTip['category'][] = [
@@ -60,6 +67,10 @@ export function TipsView() {
       else n.add(id)
       return n
     })
+  }
+
+  if (isLoading) {
+    return <TipsSkeleton />
   }
 
   return (

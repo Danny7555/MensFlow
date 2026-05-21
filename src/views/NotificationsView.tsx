@@ -25,7 +25,7 @@ export function NotificationsView() {
         >
           <CaretLeft size={20} weight="bold" />
         </button>
-        <h1 className="text-xl font-bold tracking-tight">Notifications</h1>
+        <h1 className="text-xl font-semibold tracking-tight">Notifications</h1>
       </header>
 
       <main className="max-w-2xl mx-auto mt-8 px-6">
@@ -36,7 +36,7 @@ export function NotificationsView() {
               className={`p-5 rounded-2xl border transition-all ${
                 notification.read 
                   ? 'bg-card/30 border-border/40 opacity-70' 
-                  : 'bg-card border-[var(--mf-accent-border)] shadow-sm'
+                  : 'bg-card border-[var(--mf-accent-border)]'
               }`}
             >
               <div className="flex gap-4">
@@ -52,7 +52,7 @@ export function NotificationsView() {
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <h3 className="font-bold text-[var(--mf-text-strong)]">{notification.title}</h3>
+                    <h3 className="font-semibold text-[var(--mf-text-strong)]">{notification.title}</h3>
                     <span className="text-[10px] text-muted-foreground uppercase font-medium">
                       {format(notification.time, 'HH:mm')}
                     </span>

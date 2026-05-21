@@ -15,7 +15,7 @@ import {
   Plus,
   X,
 } from '@phosphor-icons/react'
-import { useSettings } from '../context/useSettings'
+import { useStore } from '../store/useStore'
 import { cn } from '../lib/utils'
 
 const MAX_FILES = 12
@@ -51,9 +51,7 @@ export function ChatComposer({
   attachments: controlledAttachments,
   onAttachmentsChange,
 }: ChatComposerProps) {
-  const {
-    settings: { chatEnterToSend },
-  } = useSettings()
+  const chatEnterToSend = useStore((state) => state.settings.chatEnterToSend)
 
   const menuId = useId()
   const [menuOpen, setMenuOpen] = useState(false)

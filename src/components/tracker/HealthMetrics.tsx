@@ -7,7 +7,7 @@ export function HealthMetrics() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-      <div className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between group hover:border-[var(--mf-accent-border)] transition-all cursor-pointer">
+      <div className="flo-card !flex-row items-center justify-between group hover:border-[var(--mf-accent-border)] transition-all cursor-pointer">
         <div className="flex items-center gap-3">
           <img src="/images/water.png" alt="" className="size-10 object-contain" />
           <div>
@@ -26,7 +26,7 @@ export function HealthMetrics() {
         </button>
       </div>
 
-      <div className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between group hover:border-[var(--mf-accent-border)] transition-all cursor-pointer">
+      <div className="flo-card !flex-row items-center justify-between group hover:border-[var(--mf-accent-border)] transition-all cursor-pointer">
         <div className="flex items-center gap-3">
           <img src="/images/weight.png" alt="" className="size-10 object-cover rounded-xl" />
           <div>

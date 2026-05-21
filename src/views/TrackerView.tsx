@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useMemo, useReducer } from "react"
 import { CycleTrackerHero } from "@/components/tracker/CycleTrackerHero"
 import { CycleStatsHero } from "@/components/tracker/CycleStatsHero"
 import { CycleHistory } from "@/components/tracker/CycleHistory"
@@ -16,18 +16,78 @@ import {
 } from "@/components/ui/dialog"
 
 import { useStore } from "@/store/useStore"
-import { cn } from "@/lib/utils"
+import { TrackerSkeleton } from "@/components/skeletons/TrackerSkeleton"
+
+type TrackerState = {
+  isInviteModalOpen: boolean
+  copied: boolean
+  isLoading: boolean
+  selectedDay: number | null
+  hoveredDay: number | null
+}
+
+type TrackerAction =
+  | { type: 'SET_INVITE_MODAL'; payload: boolean }
+  | { type: 'SET_COPIED'; payload: boolean }
+  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'SET_SELECTED_DAY'; payload: number }
+  | { type: 'SET_HOVERED_DAY'; payload: number | null }
+
+function trackerReducer(state: TrackerState, action: TrackerAction): TrackerState {
+  switch (action.type) {
+    case 'SET_INVITE_MODAL': return { ...state, isInviteModalOpen: action.payload }
+    case 'SET_COPIED': return { ...state, copied: action.payload }
+    case 'SET_LOADING': return { ...state, isLoading: action.payload }
+    case 'SET_SELECTED_DAY': return { ...state, selectedDay: action.payload }
+    case 'SET_HOVERED_DAY': return { ...state, hoveredDay: action.payload }
+    default: return state
+  }
+}
 
 export function TrackerView() {
-  const { isSaving } = useStore()
+  const { isSaving, dashboard: data } = useStore()
   const { isAuthenticated, openAuthModal } = useAuth()
-  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
-  const [copied, setCopied] = useState(false)
+
+  // Compute initial cycle day based on store last period start
+  const initialDay = useMemo(() => {
+    const start = new Date(`${data.lastPeriodStart}T12:00:00`)
+    if (!Number.isNaN(+start)) {
+      const days = Math.floor((Date.now() - +start) / 86400000)
+      const m = ((days % data.typicalCycleDays) + data.typicalCycleDays) % data.typicalCycleDays
+      return m + 1
+    }
+    return 1
+  }, [data.lastPeriodStart, data.typicalCycleDays])
+
+  const [state, dispatch] = useReducer(trackerReducer, {
+    isInviteModalOpen: false,
+    copied: false,
+    isLoading: true,
+    selectedDay: initialDay,
+    hoveredDay: null,
+  })
+
+  // Derive active selection
+  const selectedDay = state.selectedDay ?? initialDay
+
+  useEffect(() => {
+    // Sync selectedDay if initialDay changes (e.g. data loaded)
+    dispatch({ type: 'SET_SELECTED_DAY', payload: initialDay })
+  }, [initialDay])
+
+  useEffect(() => {
+    const timer = setTimeout(() => dispatch({ type: 'SET_LOADING', payload: false }), 500)
+    return () => clearTimeout(timer)
+  }, [])
 
   const copyLink = () => {
     navigator.clipboard.writeText("https://mensflow.app/join/u123abc")
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    dispatch({ type: 'SET_COPIED', payload: true })
+    setTimeout(() => dispatch({ type: 'SET_COPIED', payload: false }), 2000)
+  }
+
+  if (state.isLoading) {
+    return <TrackerSkeleton />
   }
 
   return (
@@ -35,8 +95,7 @@ export function TrackerView() {
       <div className="flex-1 w-full max-w-[1200px] mx-auto p-4 md:p-6 lg:p-8 animate-in fade-in duration-500">
         <div className="flex items-center justify-end mb-4">
            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-card border border-border sync-pill">
-            <div className={cn("size-2 rounded-full", isSaving ? "bg-orange-400 sync-dot-active" : "bg-green-500")} />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            <span className="text-[10px] font-normal uppercase tracking-wider text-muted-foreground">
               {isSaving ? 'Syncing with cloud' : 'All data synced'}
             </span>
           </div>
@@ -46,7 +105,12 @@ export function TrackerView() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-10 items-start mt-4">
           {/* Main Column */}
           <div className="space-y-12">
-            <CycleTrackerHero />
+            <CycleTrackerHero 
+              selectedDay={selectedDay}
+              hoveredDay={state.hoveredDay}
+              onSelectDay={(day) => dispatch({ type: 'SET_SELECTED_DAY', payload: day })}
+              onHoverDay={(day) => dispatch({ type: 'SET_HOVERED_DAY', payload: day })}
+            />
             <CycleLogs />
             <HealthMetrics />
             
@@ -56,10 +120,10 @@ export function TrackerView() {
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/80 to-background pointer-events-none z-20 flex flex-col items-center justify-center">
                   <div className="absolute inset-0 backdrop-blur-[6px]" style={{ maskImage: 'linear-gradient(to bottom, transparent, black 150px)' }} />
                   <div className="relative z-30 pointer-events-auto bg-card border border-border p-8 rounded-3xl text-center max-w-[400px] mx-auto mt-24">
-                    <h3 className="text-xl font-medium mb-2">Unlock your full history</h3>
+                    <h3 className="text-xl font-normal mb-2">Unlock your full history</h3>
                     <p className="text-muted-foreground text-sm mb-6">Log in to see your past cycles, personalized tips, and partner sharing features.</p>
                     <button 
-                      onClick={openAuthModal}
+                       onClick={openAuthModal}
                       className="btn btn-primary px-8 py-3 rounded-full"
                     >
                       Log in to access
@@ -73,7 +137,7 @@ export function TrackerView() {
           {/* Sidebar */}
           <aside className="space-y-10">
             <CycleStatsHero />
-            <CycleTips />
+            <CycleTips activeDay={state.hoveredDay ?? selectedDay} />
           </aside>
         </div>
 
@@ -82,8 +146,8 @@ export function TrackerView() {
             <div 
               role="button"
               tabIndex={0}
-              onClick={() => setIsInviteModalOpen(true)}
-              onKeyDown={(e) => e.key === 'Enter' && setIsInviteModalOpen(true)}
+              onClick={() => dispatch({ type: 'SET_INVITE_MODAL', payload: true })}
+              onKeyDown={(e) => e.key === 'Enter' && dispatch({ type: 'SET_INVITE_MODAL', payload: true })}
               className="bg-gradient-to-r from-[var(--mf-accent)] to-[#be185d] rounded-3xl p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative group cursor-pointer border border-white/10"
             >
               <div className="z-10 text-center md:text-left">
@@ -102,14 +166,14 @@ export function TrackerView() {
           </div>
         )}
 
-        <Dialog open={isInviteModalOpen} onOpenChange={setIsInviteModalOpen}>
+        <Dialog open={state.isInviteModalOpen} onOpenChange={(open) => dispatch({ type: 'SET_INVITE_MODAL', payload: open })}>
           <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden border-none rounded-[32px] bg-background">
             <div className="p-6 sm:p-8">
               <DialogHeader className="mb-4">
                 <div className="size-12 rounded-2xl bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-4">
                   <ShareNetwork size={24} weight="duotone" />
                 </div>
-                <DialogTitle className="text-2xl font-medium tracking-tight">Invite your partner</DialogTitle>
+                <DialogTitle className="text-2xl font-normal tracking-tight">Invite your partner</DialogTitle>
                 <DialogDescription className="text-sm text-muted-foreground pt-1">
                   Shared access allows your partner to see your cycle phases, symptoms, and daily insights.
                 </DialogDescription>
@@ -119,7 +183,7 @@ export function TrackerView() {
                 <div className="space-y-3">
                   <label 
                     htmlFor="partner-email"
-                    className="text-xs font-medium uppercase tracking-widest text-muted-foreground ml-1"
+                    className="text-xs font-normal uppercase tracking-widest text-muted-foreground ml-1"
                   >
                     Partner's Email
                   </label>
@@ -130,7 +194,7 @@ export function TrackerView() {
                       placeholder="email@example.com"
                       className="w-full h-14 px-5 rounded-2xl bg-muted/50 border border-border focus:border-[var(--mf-accent-border)] focus:bg-background transition-all outline-none text-base"
                     />
-                    <button className="absolute right-2 top-2 h-10 px-6 bg-[var(--mf-accent)] text-white rounded-xl text-sm font-medium hover:brightness-110 transition-all">
+                    <button className="absolute right-2 top-2 h-10 px-6 bg-[var(--mf-accent)] text-white rounded-xl text-sm font-normal hover:brightness-110 transition-all">
                       Invite
                     </button>
                   </div>
@@ -141,7 +205,7 @@ export function TrackerView() {
                     <span className="w-full border-t border-border" />
                   </div>
                   <div className="relative flex justify-center text-[10px] uppercase">
-                    <span className="bg-background px-4 text-muted-foreground tracking-widest font-medium">Or use a link</span>
+                    <span className="bg-background px-4 text-muted-foreground tracking-widest font-normal">Or use a link</span>
                   </div>
                 </div>
 
@@ -152,9 +216,9 @@ export function TrackerView() {
                     </div>
                     <button 
                       onClick={copyLink}
-                      className="flex items-center gap-2 px-4 py-2 bg-background border border-border rounded-xl text-xs font-medium hover:bg-muted transition-colors"
+                      className="flex items-center gap-2 px-4 py-2 bg-background border border-border rounded-xl text-xs font-normal hover:bg-muted transition-colors"
                     >
-                      {copied ? (
+                      {state.copied ? (
                         <>
                           <Check size={14} className="text-green-500" weight="bold" />
                           <span>Copied!</span>
@@ -179,7 +243,7 @@ export function TrackerView() {
                 <Users size={18} className="text-muted-foreground" />
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                You can manage or revoke access at any time from your <span className="text-foreground font-medium">Account Settings</span>.
+                You can manage or revoke access at any time from your <span className="text-foreground font-normal">Account Settings</span>.
               </p>
             </div>
           </DialogContent>

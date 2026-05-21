@@ -17,6 +17,8 @@ import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { cn } from '../lib/utils'
 
+import { type DashboardSnapshot } from '../lib/dashboardStorage'
+
 export function OnboardingView() {
   const [currentStep, setCurrentStep] = useState(0)
   const [, startTransition] = useTransition()
@@ -50,20 +52,23 @@ export function OnboardingView() {
     }
     
     // Map onboarding answers to dashboard state
-    const newDashboard: Record<string, any> = {
+    const newDashboard: Partial<DashboardSnapshot> = {
       // Start their tracking cycle from today
       lastPeriodStart: new Date().toISOString().slice(0, 10)
     }
 
     if (Array.isArray(answers.symptoms) && answers.symptoms.length > 0) {
-       const labels = answers.symptoms.filter(s => s !== 'none').map(s => {
-          if (s === 'fatigue') return 'Fatigue'
-          if (s === 'fog') return 'Brain fog'
-          if (s === 'stress') return 'High stress'
-          if (s === 'mood') return 'Mood swings'
-          if (s === 'sleep') return 'Poor sleep'
-          return s
-       })
+       const labels = answers.symptoms.reduce<string[]>((acc, s) => {
+         if (s !== 'none') {
+           if (s === 'fatigue') acc.push('Fatigue')
+           else if (s === 'fog') acc.push('Brain fog')
+           else if (s === 'stress') acc.push('High stress')
+           else if (s === 'mood') acc.push('Mood swings')
+           else if (s === 'sleep') acc.push('Poor sleep')
+           else acc.push(s)
+         }
+         return acc
+       }, [])
        if (labels.length > 0) {
          newDashboard.bodySignals = labels.join(', ')
        } else {
@@ -97,7 +102,7 @@ export function OnboardingView() {
       openAuthModal()
       navigate('/')
     }
-  }, [answers.name, completeOnboarding, isAuthenticated, navigate, openAuthModal, updateUser])
+  }, [answers.name, answers.symptoms, answers.goal, answers.energy_consistency, updateDashboard, completeOnboarding, isAuthenticated, navigate, openAuthModal, updateUser])
 
   const handleNext = useCallback(() => {
     if (currentStep < ONBOARDING_QUESTIONS.length - 1) {
@@ -119,9 +124,10 @@ export function OnboardingView() {
   }, [currentStep])
 
   const handleNoThanks = useCallback(() => {
+    completeOnboarding()
     openAuthModal()
     navigate('/')
-  }, [navigate, openAuthModal])
+  }, [completeOnboarding, navigate, openAuthModal])
 
   const selectOption = (value: string) => {
     if (question.type === 'single-choice') {
@@ -152,43 +158,7 @@ export function OnboardingView() {
     <LazyMotion features={domAnimation}>
       <AnimatePresence mode="wait">
         {isAnalyzing ? (
-          <m.div 
-            key="analyzing"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="onboarding-container onboarding-container--analyzing"
-          >
-            <div className="onboarding-analyzing-content">
-              <div className="onboarding-loader-wrap">
-                <div className="onboarding-loader-ring-outer" />
-                <div className="onboarding-loader-ring-mid" />
-                <m.div
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  className="onboarding-loader-circle"
-                >
-                  <div className="onboarding-loader-inner" />
-                </m.div>
-              </div>
-              <m.h2
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.3 }}
-                className="onboarding-analyzing-title"
-              >
-                Personalizing your experience…
-              </m.h2>
-              <m.p
-                initial={{ y: 10, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.6 }}
-                className="onboarding-analyzing-sub"
-              >
-                Creating your custom health dashboard based on your goals and symptoms.
-              </m.p>
-            </div>
-          </m.div>
+          <OnboardingAnalyzing />
         ) : (
           <m.div 
             key="questions"
@@ -198,161 +168,258 @@ export function OnboardingView() {
             className="onboarding-container"
           >
             <div className="onboarding-inner onboarding-inner--mobile-responsive">
-          <div className="onboarding-header">
-            {currentStep > 0 && (
-              <div className="onboarding-nav-top">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleBack}
-                  className="rounded-full"
-                >
-                  <CaretLeft size={24} weight="bold" />
-                </Button>
-                
-                <div className="onboarding-brand">
-                  <FlowerLotus size={28} weight="duotone" className="text-primary" />
-                  <span className="onboarding-brand-text">MensFlow</span>
-                </div>
+              <OnboardingHeader
+                currentStep={currentStep}
+                totalSteps={ONBOARDING_QUESTIONS.length - 1}
+                progress={progress}
+                handleBack={handleBack}
+                handleNext={handleNext}
+              />
 
-                <Button
-                  variant="ghost"
-                  onClick={handleNext}
-                  className="onboarding-skip-btn"
-                >
-                  Skip
-                </Button>
-              </div>
-            )}
+              <main className="onboarding-main">
+                <AnimatePresence mode="wait">
+                  <m.div
+                    key={currentStep}
+                    initial={{ opacity: 0, x: currentStep === 0 ? 0 : -20, y: currentStep === 0 ? 20 : 0 }}
+                    animate={{ opacity: 1, x: 0, y: 0 }}
+                    exit={{ opacity: 0, x: currentStep === 0 ? 0 : 20, y: currentStep === 0 ? -20 : 0 }}
+                    transition={{ duration: 0.5, ease: [0.2, 0, 0, 1] }}
+                    className={cn(
+                      "onboarding-question-card",
+                      currentStep === 0 && "onboarding-question-card--intro"
+                    )}
+                  >
+                    {currentStep === 0 && (
+                      <m.div
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ delay: 0.2 }}
+                        className="onboarding-illustration-wrap"
+                      >
+                        <img 
+                          src="/images/girl.png" 
+                          alt="Health illustration" 
+                          className="onboarding-illustration"
+                        />
+                      </m.div>
+                    )}
+                    
+                    <h1 className="onboarding-title">{question.question}</h1>
+                    {question.description && (
+                      <p className="onboarding-description text-sm text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis px-2 max-w-full">
+                        {question.description}
+                      </p>
+                    )}
 
-            {currentStep === 0 && (
-              <div className="onboarding-brand-centered">
-                <FlowerLotus size={32} weight="duotone" className="text-primary" />
-                <span className="onboarding-brand-text-lg">MensFlow</span>
-              </div>
-            )}
-            
-            {currentStep > 0 && (
-              <div className="flex flex-col gap-2 w-full mt-4">
-                <div className="flex justify-center text-sm font-medium text-muted-foreground tracking-wide">
-                  {currentStep} / {ONBOARDING_QUESTIONS.length - 1}
-                </div>
-                <div className="onboarding-progress-wrap !mt-0">
-                  <div 
-                    className="onboarding-progress-bar" 
-                    style={{ width: `${progress}%` }} 
-                  />
-                </div>
-              </div>
-            )}
-          </div>
+                    <div className="onboarding-options-grid onboarding-options-grid--mobile-responsive">
+                      {question.type === 'input' ? (
+                        <div className="onboarding-input-wrap onboarding-input-wrap--mobile">
+                          <Input
+                            value={answers[question.id] || ''}
+                            onChange={handleInputChange}
+                            className="onboarding-text-input onboarding-text-input--mobile"
+                            onKeyDown={(e) => e.key === 'Enter' && isStepValid() && handleNext()}
+                          />
+                        </div>
+                      ) : (
+                        question.options?.map((option) => {
+                          const isSelected = question.type === 'single-choice'
+                            ? answers[question.id] === option.value
+                            : (answers[question.id] || []).includes(option.value)
 
-          <main className="onboarding-main">
-            <AnimatePresence mode="wait">
-              <m.div
-                key={currentStep}
-                initial={{ opacity: 0, x: currentStep === 0 ? 0 : -20, y: currentStep === 0 ? 20 : 0 }}
-                animate={{ opacity: 1, x: 0, y: 0 }}
-                exit={{ opacity: 0, x: currentStep === 0 ? 0 : 20, y: currentStep === 0 ? -20 : 0 }}
-                transition={{ duration: 0.5, ease: [0.2, 0, 0, 1] }}
-                className={cn(
-                  "onboarding-question-card",
-                  currentStep === 0 && "onboarding-question-card--intro"
-                )}
-              >
-                {currentStep === 0 && (
-                <m.div
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="onboarding-illustration-wrap"
-                >
-                  <img 
-                    src="/images/girl.png" 
-                    alt="Health illustration" 
-                    className="onboarding-illustration"
-                  />
-                </m.div>
-              )}
-              
-              <h1 className="onboarding-title">{question.question}</h1>
-              {question.description && (
-                <p className="onboarding-description text-sm text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis px-2 max-w-full">{question.description}</p>
-              )}
-
-                <div className="onboarding-options-grid onboarding-options-grid--mobile-responsive">
-                  {question.type === 'input' ? (
-                    <div className="onboarding-input-wrap onboarding-input-wrap--mobile">
-                      <Input
-                        value={answers[question.id] || ''}
-                        onChange={handleInputChange}
-                        className="onboarding-text-input onboarding-text-input--mobile"
-                        onKeyDown={(e) => e.key === 'Enter' && isStepValid() && handleNext()}
-                      />
-                    </div>
-                  ) : (
-                    question.options?.map((option) => {
-                      const isSelected = question.type === 'single-choice'
-                        ? answers[question.id] === option.value
-                        : (answers[question.id] || []).includes(option.value)
-
-                      return (
-                        <button
-                          key={option.value}
-                          onClick={() => selectOption(option.value)}
-                          className={cn(
-                            "onboarding-option-btn onboarding-option-btn--mobile",
-                            isSelected && "onboarding-option-btn--selected"
-                          )}
-                        >
-                          <div className="onboarding-option-content onboarding-option-content--mobile">
-                            {option.img ? (
-                              <div className="size-6 shrink-0 rounded-full overflow-hidden mr-2">
-                                <img src={option.img} alt="" className="w-full h-full object-cover" />
+                          return (
+                            <button
+                              key={option.value}
+                              onClick={() => selectOption(option.value)}
+                              className={cn(
+                                "onboarding-option-btn onboarding-option-btn--mobile",
+                                isSelected && "onboarding-option-btn--selected"
+                              )}
+                            >
+                              <div className="onboarding-option-content onboarding-option-content--mobile">
+                                {option.img ? (
+                                  <div className="size-6 shrink-0 rounded-full overflow-hidden mr-2">
+                                    <img src={option.img} alt="" className="w-full h-full object-cover" />
+                                  </div>
+                                ) : option.icon ? (
+                                  <span className="onboarding-option-icon onboarding-option-icon--mobile">
+                                    {getIcon(option.icon as string)}
+                                  </span>
+                                ) : null}
+                                <span className="onboarding-option-label onboarding-option-label--mobile">
+                                  {option.label}
+                                </span>
                               </div>
-                            ) : option.icon ? (
-                              <span className="onboarding-option-icon onboarding-option-icon--mobile">{getIcon(option.icon as string)}</span>
-                            ) : null}
-                            <span className="onboarding-option-label onboarding-option-label--mobile">{option.label}</span>
-                          </div>
-                          <div className="onboarding-check-wrap onboarding-check-wrap--mobile">
-                            {isSelected && <Check size={14} />}
-                          </div>
-                        </button>
-                      )
-                    })
-                  )}
-                </div>
-              </m.div>
-            </AnimatePresence>
-          </main>
+                              <div className="onboarding-check-wrap onboarding-check-wrap--mobile">
+                                {isSelected && <Check size={14} />}
+                              </div>
+                            </button>
+                          )
+                        })
+                      )}
+                    </div>
+                  </m.div>
+                </AnimatePresence>
+              </main>
 
-          <footer className="onboarding-footer">
-            <div className="onboarding-footer-inner">
-              <Button
-                onClick={handleNext}
-                disabled={currentStep !== 0 && !isStepValid()}
-                className="onboarding-next-btn"
-              >
-                {currentStep === 0 
-                  ? 'Yes, fine by me' 
-                  : (currentStep === ONBOARDING_QUESTIONS.length - 1 ? 'Finish' : 'Next')}
-              </Button>
-              {currentStep === 0 && (
-                <button 
-                  type="button"
-                  className="onboarding-secondary-btn" 
-                  onClick={handleNoThanks}
-                >
-                  No, thanks
-                </button>
-              )}
+              <OnboardingFooter
+                currentStep={currentStep}
+                isStepValid={isStepValid()}
+                handleNext={handleNext}
+                handleNoThanks={handleNoThanks}
+              />
             </div>
-          </footer>
-          </div>
-        </m.div>
-      )}
+          </m.div>
+        )}
       </AnimatePresence>
     </LazyMotion>
+  )
+}
+
+interface OnboardingHeaderProps {
+  currentStep: number
+  totalSteps: number
+  progress: number
+  handleBack: () => void
+  handleNext: () => void
+}
+
+function OnboardingHeader({
+  currentStep,
+  totalSteps,
+  progress,
+  handleBack,
+  handleNext,
+}: OnboardingHeaderProps) {
+  return (
+    <div className="onboarding-header">
+      {currentStep > 0 && (
+        <div className="onboarding-nav-top">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleBack}
+            className="rounded-full"
+          >
+            <CaretLeft size={24} weight="bold" />
+          </Button>
+          
+          <div className="onboarding-brand">
+            <FlowerLotus size={28} weight="duotone" className="text-primary" />
+            <span className="onboarding-brand-text">MensFlow</span>
+          </div>
+
+          <Button
+            variant="ghost"
+            onClick={handleNext}
+            className="onboarding-skip-btn"
+          >
+            Skip
+          </Button>
+        </div>
+      )}
+
+      {currentStep === 0 && (
+        <div className="onboarding-brand-centered">
+          <FlowerLotus size={32} weight="duotone" className="text-primary" />
+          <span className="onboarding-brand-text-lg">MensFlow</span>
+        </div>
+      )}
+      
+      {currentStep > 0 && (
+        <div className="flex flex-col gap-2 w-full mt-4">
+          <div className="flex justify-center text-sm font-medium text-muted-foreground tracking-wide">
+            {currentStep} / {totalSteps}
+          </div>
+          <div className="onboarding-progress-wrap !mt-0">
+            <div 
+              className="onboarding-progress-bar" 
+              style={{ width: `${progress}%` }} 
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+interface OnboardingFooterProps {
+  currentStep: number
+  isStepValid: boolean
+  handleNext: () => void
+  handleNoThanks: () => void
+}
+
+function OnboardingFooter({
+  currentStep,
+  isStepValid,
+  handleNext,
+  handleNoThanks,
+}: OnboardingFooterProps) {
+  return (
+    <footer className="onboarding-footer">
+      <div className="onboarding-footer-inner">
+        <Button
+          onClick={handleNext}
+          disabled={currentStep !== 0 && !isStepValid}
+          className="onboarding-next-btn"
+        >
+          {currentStep === 0 
+            ? 'Yes, fine by me' 
+            : (currentStep === ONBOARDING_QUESTIONS.length - 1 ? 'Finish' : 'Next')}
+        </Button>
+        {currentStep === 0 && (
+          <button 
+            type="button"
+            className="onboarding-secondary-btn" 
+            onClick={handleNoThanks}
+          >
+            No, thanks
+          </button>
+        )}
+      </div>
+    </footer>
+  )
+}
+
+function OnboardingAnalyzing() {
+  return (
+    <m.div 
+      key="analyzing"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="onboarding-container onboarding-container--analyzing"
+    >
+      <div className="onboarding-analyzing-content">
+        <div className="onboarding-loader-wrap">
+          <div className="onboarding-loader-ring-outer" />
+          <div className="onboarding-loader-ring-mid" />
+          <m.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="onboarding-loader-circle"
+          >
+            <div className="onboarding-loader-inner" />
+          </m.div>
+        </div>
+        <m.h2
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="onboarding-analyzing-title"
+        >
+          Personalizing your experience…
+        </m.h2>
+        <m.p
+          initial={{ y: 10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="onboarding-analyzing-sub"
+        >
+          Creating your custom health dashboard based on your goals and symptoms.
+        </m.p>
+      </div>
+    </m.div>
   )
 }

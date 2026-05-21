@@ -55,10 +55,10 @@ export function AuthModal({ open, onClose, onContinue, isLoading }: AuthModalPro
         </button>
 
         <h1 id="auth-modal-title" className="auth-modal-title auth-modal-title--gpt">
-          Log in or sign up
+          Welcome to MensFlow
         </h1>
         <p className="auth-modal-lede">
-          You&apos;ll get smarter responses and can upload files, images, and more.
+          Create an account to unlock private symptom history, detailed calendar views, advanced hormonal insights, and interactive partner sync.
         </p>
 
         <div className={`auth-modal-methods auth-modal-methods--gpt ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}>

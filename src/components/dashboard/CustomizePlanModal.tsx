@@ -36,7 +36,7 @@ export function CustomizePlanModal({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px] rounded-[32px] p-6 border-none">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-medium">Customize Plan</DialogTitle>
+          <DialogTitle className="text-2xl font-normal">Customize Plan</DialogTitle>
           <DialogDescription>
             Choose which insights you want to see in your daily feed.
           </DialogDescription>
@@ -61,7 +61,7 @@ export function CustomizePlanModal({
                 }
               }}
             >
-              <span className="font-medium">{item.label}</span>
+              <span className="font-normal">{item.label}</span>
               <div className={cn(
                 "w-10 h-6 rounded-full transition-all flex items-center px-1",
                 item.active ? "bg-[var(--mf-accent)]" : "bg-muted"

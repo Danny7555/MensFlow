@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { m } from "framer-motion"
 import { Bell, Calendar as CalendarIcon, SignOut, Ghost, Question } from "@phosphor-icons/react"
 import { Link } from "react-router-dom"
 import { format } from "date-fns"
@@ -47,65 +48,97 @@ export function DashboardHeader({
   }, [mounted])
 
   return (
-    <header className="flo-header relative z-10">
+    <m.header 
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="flo-header relative z-10 px-4 py-3 md:px-0 md:py-0"
+    >
       <div className="flo-header-left">
-        <div className="flo-avatar-wrap">
+        <m.div 
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="flo-avatar-wrap"
+        >
           <img src="/images/girl.png" alt="Profile" className="flo-avatar" />
-        </div>
+        </m.div>
         <div className="flo-greeting">
-          <div className="flex items-center gap-2">
+          <m.div 
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="flex items-center gap-2"
+          >
             <p className="flo-date">
               {mounted ? (
                 <>
                   <span className="font-semibold text-[var(--mf-accent)]">{format(now, 'h:mm a')}</span>
-                  <span className="mx-1.5 opacity-50">•</span>
-                  {format(now, 'EEEE, d MMMM')}
+                  <span className="mx-2 hidden sm:inline"></span>
+                  <span className="hidden sm:inline">{format(now, 'EEEE, d MMMM')}</span>
                 </>
               ) : ''}
             </p>
-            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-muted/30 border border-border/50 sync-pill">
-              <div className={cn("size-1.5 rounded-full", isSaving ? "bg-orange-400 sync-dot-active" : "bg-green-500")} />
+            <m.div 
+              animate={isSaving ? { opacity: [0.5, 1, 0.5] } : { opacity: 1 }}
+              transition={{ repeat: Infinity, duration: 2 }}
+              className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-muted/30 border border-border/50 sync-pill"
+            >
               <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
                 {isSaving ? 'Syncing' : 'Synced'}
               </span>
-            </div>
-          </div>
-          <h1 className="flo-user-name">
+            </m.div>
+          </m.div>
+          <m.h1 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="flo-user-name"
+          >
             {mounted ? getGreeting() : 'Welcome'}, {user.name}
-          </h1>
+          </m.h1>
         </div>
       </div>
       <div className="flo-header-right gap-2">
-        <button 
-          className={cn("flo-icon-btn hover:bg-muted/50 transition-colors", temporaryChat && "flo-icon-btn--active")}
+        <m.button 
+          whileHover={{ scale: 1.1, backgroundColor: "var(--mf-hover)" }}
+          whileTap={{ scale: 0.9 }}
+          className={cn("flo-icon-btn transition-colors", temporaryChat && "flo-icon-btn--active")}
           onClick={toggleTempChat}
           title={temporaryChat ? "Temporary chat: On" : "Temporary chat: Off"}
         >
           <Ghost size={20} weight={temporaryChat ? "fill" : "regular"} />
-        </button>
-        <Link to="/notifications" className="flo-icon-btn hidden md:flex hover:bg-muted/50 transition-colors" aria-label="Notifications">
-          <Bell size={24} weight="light" />
-        </Link>
-        <Link to="/calendar" className="flo-icon-btn hover:bg-muted/50 transition-colors" aria-label="Calendar">
-          <CalendarIcon size={24} weight="light" />
-        </Link>
-        <button 
+        </m.button>
+        <m.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+          <Link to="/notifications" className="flo-icon-btn hidden md:flex hover:bg-muted/50 transition-colors" aria-label="Notifications">
+            <Bell size={24} weight="light" />
+          </Link>
+        </m.div>
+        <m.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+          <Link to="/calendar" className="flo-icon-btn hover:bg-muted/50 transition-colors" aria-label="Calendar">
+            <CalendarIcon size={24} weight="light" />
+          </Link>
+        </m.div>
+        <m.button 
+          whileHover={{ scale: 1.1, rotate: 15 }}
+          whileTap={{ scale: 0.9 }}
           className="flo-icon-btn hover:bg-muted/50 transition-colors"
           onClick={onStartTour}
           title="Start Tour"
         >
           <Question size={24} weight="light" />
-        </button>
+        </m.button>
         <div className="w-px h-6 bg-border mx-2 opacity-50 hidden md:block" />
         
         <Dialog>
           <DialogTrigger asChild>
-            <button 
-              className="flo-icon-btn hidden md:flex text-destructive/50 hover:text-destructive hover:bg-destructive/5 transition-colors"
+            <m.button 
+              whileHover={{ scale: 1.1, color: "var(--mf-danger)" }}
+              whileTap={{ scale: 0.9 }}
+              className="flo-icon-btn hidden md:flex text-destructive/50 hover:bg-destructive/5 transition-colors"
               title="Log out"
             >
               <SignOut size={24} weight="light" />
-            </button>
+            </m.button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
@@ -134,6 +167,6 @@ export function DashboardHeader({
         </Dialog>
 
       </div>
-    </header>
+    </m.header>
   )
 }
