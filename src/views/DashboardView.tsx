@@ -355,6 +355,14 @@ export function DashboardView() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                <HormoneInsightCard />
+                <ConnectionChecklistCard />
+              </div>
+            </div>
+
+            {/* Right Sidebar Stack */}
+            <div className="flex flex-col gap-6 md:gap-8">
+              <section aria-label="Partner support">
                 <PartnerTranslationCard 
                   label={phase}
                   desc={partnerTranslation.desc}
@@ -362,14 +370,6 @@ export function DashboardView() {
                   gestures={partnerTranslation.gestures}
                   onCopy={handleCopyGesture}
                 />
-                <ConnectionChecklistCard />
-              </div>
-            </div>
-
-            {/* Right Sidebar Stack */}
-            <div className="flex flex-col gap-6 md:gap-8">
-              <section aria-label="Scientific insight">
-                <HormoneInsightCard />
               </section>
 
               <WellnessScoreCard />

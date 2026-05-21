@@ -176,25 +176,32 @@ export function PartnerTranslationCard({ label, desc, tips, gestures, onCopy }: 
   return (
     <m.div 
       variants={itemVariants}
-      className="flo-card flo-card--prominent overflow-hidden h-full flex flex-col"
+      className="flo-card flo-card--prominent overflow-hidden h-full flex flex-col border-[var(--mf-border-strong)] bg-white dark:bg-[var(--mf-card)]"
     >
-      <div className="flo-card-top relative z-10">
-        <p className="flo-card-title">Partner Translation</p>
+      <div className="flo-card-top relative z-10 mb-2">
+        <div className="flex flex-col gap-0.5">
+          <p className="flo-card-title !text-[10px] !text-[var(--mf-accent)] font-semibold tracking-[0.15em]">Partner</p>
+          <h3 className="text-xl font-medium text-[var(--mf-text-strong)] capitalize">{label}</h3>
+        </div>
         <div className="flo-card-icon text-[var(--mf-accent)]">
-          <Users size={20} weight="fill" />
+          <Users size={24} weight="fill" />
         </div>
       </div>
+      
       <div className="mt-2 relative z-10 flex flex-col flex-1">
-        <p className="text-[0.95rem] text-[var(--mf-text)] opacity-90 leading-relaxed">
-          What <span className="font-normal text-[var(--mf-accent)]">{label} phase</span> means for your partner today: {desc}
-        </p>
-        <div className="mt-4 pt-3 border-t border-[var(--mf-border)]">
+        <div className="p-4 rounded-2xl bg-[var(--mf-accent-soft)]/30 border border-[var(--mf-accent-soft)] mb-4">
+          <p className="text-[0.95rem] text-[var(--mf-text-strong)] leading-relaxed font-medium">
+            {desc}
+          </p>
+        </div>
+
+        <div className="mt-2 pt-3 border-t border-[var(--mf-border)]">
           <span className="text-[10px] font-normal text-muted-foreground uppercase tracking-wider block mb-2">How you can support</span>
-          <ul className="text-sm space-y-2 opacity-90">
+          <ul className="text-sm space-y-2 text-[var(--mf-text-strong)]">
             {tips.map((tip) => (
               <li key={tip} className="flex items-start gap-2">
                 <Check size={16} className="text-[var(--mf-accent)] shrink-0 mt-0.5" weight="bold" /> 
-                <span className="leading-snug">{tip}</span>
+                <span className="leading-snug opacity-90">{tip}</span>
               </li>
             ))}
           </ul>
@@ -210,7 +217,7 @@ export function PartnerTranslationCard({ label, desc, tips, gestures, onCopy }: 
                 key={g.title}
                 type="button"
                 onClick={() => onCopy(g.text, g.title)}
-                className="px-3.5 py-2 rounded-xl bg-muted/40 text-xs font-normal text-[var(--mf-text-strong)] border border-border/50 hover:border-[var(--mf-accent-border)] transition-all flex items-center gap-1.5"
+                className="px-3.5 py-2 rounded-xl bg-[var(--mf-card)] text-xs font-normal text-[var(--mf-text-strong)] border border-[var(--mf-border-strong)] hover:border-[var(--mf-accent-border)] transition-all flex items-center gap-1.5 shadow-sm"
               >
                 <g.Icon size={14} className={cn(g.color)} weight="bold" />
                 <span>{g.title}</span>
@@ -284,7 +291,7 @@ export function usePartnerTranslation(phaseLabel: string) {
       }
     case 'follicular':
       return {
-        desc: "Estrogen is rising. They may feel more energetic, creative, and social.",
+        desc: "Energy is rising. Great for new ideas.",
         tips: ["Suggest a fun date or activity", "Encourage their new ideas", "Enjoy their increased energy levels"],
         gestures: [
           { title: "Invite to walk", text: "The weather is nice today! Let's go for a walk or outdoor run after work? 🏃‍♀️", Icon: Sun, color: "text-amber-500" },
