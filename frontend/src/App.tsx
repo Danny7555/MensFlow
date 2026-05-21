@@ -170,6 +170,8 @@ function MainShell() {
                     <Route path="/symptoms" element={<AccessGate><SymptomsView /></AccessGate>} />
                     <Route path="/education" element={<EducationView />} />
                     <Route path="/sync" element={<AccessGate><SyncView /></AccessGate>} />
+                    <Route path="/sync" element={<SyncView />} />
+                    <Route path="/locked-chats" element={<LockedChatsView />} />
                     <Route path="*" element={<NotFoundView />} />
                   </>
                 )}
