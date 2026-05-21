@@ -21,7 +21,7 @@ interface LogSymptomsModalProps {
 }
 
 export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }: LogSymptomsModalProps) {
-  const { addLog, getLogForDate, isSaving, customSymptoms, addCustomSymptom, removeCustomSymptom } = useStore()
+  const { addLog, getLogForDate, isSaving, customSymptoms, addCustomSymptom } = useStore()
   const dateKey = format(activeDate, 'yyyy-MM-dd')
   const [selectedSymptoms, setSelectedSymptoms] = useState<Set<string>>(() => {
     if (!isOpen) return new Set()
@@ -132,7 +132,6 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
                     {items.map((s) => {
                       const isActive = selectedSymptoms.has(s.id)
                       const imgSrc = symptomImages[s.id]
-                      const isCustom = s.id.startsWith("custom-")
 
                       return (
                         <button
