@@ -36,6 +36,11 @@ export function EducationView() {
   return (
     <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-8 animate-in fade-in duration-500 relative">
       
+      {/* Daily Quiz Integration */}
+      <section className="w-full">
+        <DailyQuiz />
+      </section>
+      
       {/* Category Filter */}
       <section aria-label="Filter guides by category" className="flex flex-wrap gap-2 justify-center">
         {EDUCATION_CATEGORIES.map((cat) => (
@@ -56,14 +61,10 @@ export function EducationView() {
       </section>
 
       <div className="relative">
-        {/* Article Grid */}
         <section aria-label="Educational Guides" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {filteredArticles.map((article, index) => {
             const Icon = article.icon
             const isFeatured = activeCategory === 'All' && index === 0
-            
-            // Insert after the first row is complete
-            const shouldInsertQuiz = activeCategory === 'All' ? index === 1 : index === 2;
 
             return (
               <Fragment key={article.id}>
@@ -143,24 +144,9 @@ export function EducationView() {
                     </div>
                   </div>
                 </article>
-                
-                {/* Insert Daily Quiz as a full-width banner after the first row */}
-                {shouldInsertQuiz && (
-                  <div className="md:col-span-2 lg:col-span-3 w-full">
-                    <DailyQuiz />
-                  </div>
-                )}
               </Fragment>
             )
           })}
-          
-          {/* Fallback if there are very few articles */}
-          {((activeCategory === 'All' && filteredArticles.length <= 1) || 
-            (activeCategory !== 'All' && filteredArticles.length <= 2)) && (
-            <div className="md:col-span-2 lg:col-span-3 w-full mt-2">
-              <DailyQuiz />
-            </div>
-          )}
         </section>
 
         {!isAuthenticated && (
