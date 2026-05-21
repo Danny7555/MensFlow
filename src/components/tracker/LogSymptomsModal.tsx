@@ -135,45 +135,29 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
                       const isCustom = s.id.startsWith("custom-")
 
                       return (
-                        <div key={s.id} className="relative group/symptom">
-                          <button
-                            onClick={() => toggleSymptom(s.id)}
-                            disabled={isSaving}
-                            className={cn(
-                              "flex items-center gap-2 py-2 rounded-full text-sm font-normal transition-all duration-300 border",
-                              isCustom ? "pl-4 pr-9" : "px-4",
-                              isActive
-                                ? "bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] border-[var(--mf-accent-border)] scale-[1.02]"
-                                : "bg-card text-muted-foreground border-border hover:border-[var(--mf-accent-border)] hover:text-foreground"
-                            )}
-                          >
-                            {imgSrc ? (
-                              <img src={imgSrc} alt="" className="size-6 rounded-full object-cover" />
-                            ) : (
-                              <div className={cn("size-6 rounded-full flex items-center justify-center bg-muted/50")}>
-                                <cat.icon size={14} className={isActive ? "text-[var(--mf-accent)]" : "text-muted-foreground/40"} />
-                              </div>
-                            )}
-                            <span className="pr-1">{s.label}</span>
-                          </button>
-                          {isCustom && (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                removeCustomSymptom(s.id)
-                                // Also remove from selected set if currently active
-                                if (selectedSymptoms.has(s.id)) {
-                                  const next = new Set(selectedSymptoms)
-                                  next.delete(s.id)
-                                  setSelectedSymptoms(next)
-                                }
-                              }}
-                              className="absolute right-2 top-1/2 -translate-y-1/2 opacity-40 hover:opacity-100 hover:text-red-500 transition-opacity p-0.5 text-[9px]"
-                              title="Delete custom symptom"
-                            >
-                              ✕
-                            </button>
+                        <button
+                          key={s.id}
+                          onClick={() => toggleSymptom(s.id)}
+                          disabled={isSaving}
+                          className={cn(
+                            "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 border",
+                            isActive 
+                              ? (s.id === 'flow-medium' ? "bg-rose-100 text-rose-600 border-rose-300 scale-[1.02] dark:bg-rose-500/20 dark:text-rose-400 dark:border-rose-500/40" : 
+                                 s.id === 'flow-heavy' ? "bg-red-100 text-red-700 border-red-400 scale-[1.02] dark:bg-red-500/30 dark:text-red-400 dark:border-red-500/50" : 
+                                 "bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] border-[var(--mf-accent-border)] scale-[1.02]") 
+                              : "bg-card text-muted-foreground border-border hover:border-[var(--mf-accent-border)] hover:text-foreground"
+                          )}
+                        >
+                          {imgSrc ? (
+                            <img src={imgSrc} alt="" className="size-6 rounded-full object-cover" />
+                          ) : (
+                            <div className={cn("size-6 rounded-full flex items-center justify-center bg-muted/50")}>
+                               <cat.icon size={14} className={isActive ? (
+                                  s.id === 'flow-medium' ? "text-rose-600 dark:text-rose-400" :
+                                  s.id === 'flow-heavy' ? "text-red-700 dark:text-red-400" :
+                                  "text-[var(--mf-accent)]"
+                               ) : "text-muted-foreground/40"} />
+                            </div>
                           )}
                         </div>
                       )
