@@ -57,10 +57,10 @@ export function EducationView() {
 
       <div className="relative">
         {/* Article Grid */}
-        <section aria-label="Educational Guides" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+        <section aria-label="Educational Guides" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 grid-flow-dense">
           {/* Show Daily Quiz as the first item if not in 'All' category, to maintain visibility */}
           {activeCategory !== 'All' && (
-            <div className="h-full flex flex-col md:col-span-2 lg:col-span-1">
+            <div className="h-full flex flex-col md:col-span-2 lg:col-span-2">
               <DailyQuiz />
             </div>
           )}
@@ -149,7 +149,7 @@ export function EducationView() {
                 
                 {/* Insert Daily Quiz right after the featured article in 'All' category */}
                 {isFeatured && (
-                  <div className="h-full flex flex-col md:col-span-2 lg:col-span-1">
+                  <div className="h-full flex flex-col md:col-span-2 lg:col-span-2">
                     <DailyQuiz />
                   </div>
                 )}
