@@ -1,4 +1,4 @@
-import { Info, Waveform, Drop } from '@phosphor-icons/react'
+import { Info, Waveform, Drop, Sparkle } from '@phosphor-icons/react'
 
 const getLevelStrength = (levelStr: string) => {
   const str = levelStr.toLowerCase()
@@ -17,26 +17,26 @@ interface BiologicalSnapshotProps {
 export function BiologicalSnapshot({ estrogen, progesterone, description }: BiologicalSnapshotProps) {
   return (
     <div className="flex flex-col h-full">
-      <h4 className="text-[10px] font-medium text-[var(--mf-muted)] uppercase tracking-[0.15em] mb-4 flex items-center gap-2">
-        <div className="size-5 rounded-lg bg-pink-500/10 flex items-center justify-center text-pink-500">
-          <Info size={12} weight="bold" />
+      <h4 className="text-[10px] font-medium text-[var(--mf-muted)] uppercase tracking-[0.15em] mb-3 flex items-center gap-2">
+        <div className="size-4 rounded-md bg-pink-500/10 flex items-center justify-center text-pink-500">
+          <Info size={10} weight="bold" />
         </div>
         Biological Snapshot
       </h4>
       
-      <div className="space-y-4 flex-grow">
-        <div className="bg-[var(--mf-card)]/40 border border-[var(--mf-border)]/50 rounded-2xl p-3.5 transition-all hover:bg-[var(--mf-card)]/60">
-          <div className="flex justify-between items-center mb-2.5">
+      <div className="space-y-2">
+        <div className="bg-[var(--mf-card)]/40 border border-[var(--mf-border)]/50 rounded-[12px] p-2.5 transition-all hover:bg-[var(--mf-card)]/60">
+          <div className="flex justify-between items-center mb-1.5">
             <div className="flex items-center gap-2">
-              <div className="size-7 rounded-full bg-pink-500/10 flex items-center justify-center text-pink-500">
-                <Drop size={14} weight="fill" />
+              <div className="size-6 rounded-full bg-pink-500/10 flex items-center justify-center text-pink-500">
+                <Drop size={12} weight="fill" />
               </div>
               <span className="text-[11px] text-[var(--mf-text-strong)] font-normal">Estrogen Level</span>
             </div>
             <span className="text-[11px] font-medium text-pink-500">{estrogen}</span>
           </div>
           
-          <div className="flex items-center gap-1.5 h-1.5 w-full">
+          <div className="flex items-center gap-1 h-1 w-full">
             {Array.from({ length: 3 }).map((_, idx) => {
               const estStrength = getLevelStrength(estrogen)
               return (
@@ -53,18 +53,18 @@ export function BiologicalSnapshot({ estrogen, progesterone, description }: Biol
           </div>
         </div>
 
-        <div className="bg-[var(--mf-card)]/40 border border-[var(--mf-border)]/50 rounded-2xl p-3.5 transition-all hover:bg-[var(--mf-card)]/60">
-          <div className="flex justify-between items-center mb-2.5">
+        <div className="bg-[var(--mf-card)]/40 border border-[var(--mf-border)]/50 rounded-[16px] p-3 transition-all hover:bg-[var(--mf-card)]/60">
+          <div className="flex justify-between items-center mb-2">
             <div className="flex items-center gap-2">
-              <div className="size-7 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-500">
-                <Waveform size={14} weight="bold" />
+              <div className="size-6 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-500">
+                <Waveform size={12} weight="bold" />
               </div>
               <span className="text-[11px] text-[var(--mf-text-strong)] font-normal">Progesterone Level</span>
             </div>
             <span className="text-[11px] font-medium text-violet-500">{progesterone}</span>
           </div>
           
-          <div className="flex items-center gap-1.5 h-1.5 w-full">
+          <div className="flex items-center gap-1 h-1 w-full">
             {Array.from({ length: 3 }).map((_, idx) => {
               const progStrength = getLevelStrength(progesterone)
               return (
@@ -81,8 +81,12 @@ export function BiologicalSnapshot({ estrogen, progesterone, description }: Biol
           </div>
         </div>
 
-        <div className="mt-2 px-1">
-          <p className="text-[var(--mf-text)] leading-relaxed text-[11px] font-normal opacity-90">
+        <div className="mt-3 pt-3 border-t border-[var(--mf-border)]/30">
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <Sparkle size={10} className="text-pink-500" weight="fill" />
+            <span className="text-[9px] font-medium text-pink-600 dark:text-pink-400 uppercase tracking-wider">Phase Insight:</span>
+          </div>
+          <p className="text-[var(--mf-text-strong)] leading-relaxed text-[10.5px] font-normal">
             {description}
           </p>
         </div>

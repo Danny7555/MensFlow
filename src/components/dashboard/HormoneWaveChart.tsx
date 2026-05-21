@@ -118,7 +118,7 @@ export function HormoneWaveChart({ activeDay, setActiveDay, accentColor }: Hormo
   const activePercent = ((activeDay - 1) / 27) * 1000
 
   return (
-    <div className="relative h-44 w-full border-b border-dashed border-[var(--mf-border)]/50 mb-6 z-10">
+    <div className="relative h-24 w-full border-b border-dashed border-[var(--mf-border)]/50 mb-2.5 z-10">
       {/* Helper overlay instruction on hover */}
       {isHovered && (
         <div className="absolute top-0 right-0 flex items-center gap-1 text-[9px] text-[var(--mf-muted)] bg-[var(--mf-card)]/80 backdrop-blur-sm border border-[var(--mf-border)] px-2 py-0.5 rounded-full pointer-events-none select-none transition-all duration-300 animate-pulse">
@@ -128,7 +128,7 @@ export function HormoneWaveChart({ activeDay, setActiveDay, accentColor }: Hormo
 
       <svg
         ref={svgRef}
-        viewBox="0 0 1000 248"
+        viewBox="0 0 1000 220"
         className="w-full h-full overflow-visible cursor-ew-resize select-none focus:outline-none focus:ring-1 focus:ring-[var(--mf-accent)] rounded-lg"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -165,35 +165,35 @@ export function HormoneWaveChart({ activeDay, setActiveDay, accentColor }: Hormo
 
         {/* Background Phase Columns */}
         <g opacity="0.03" className="transition-all duration-300 pointer-events-none">
-          <rect x="0" y="0" width="148" height="225" fill="#f43f5e" />
-          <rect x="148" y="0" width="148" height="225" fill="#0d9488" />
-          <rect x="296" y="0" width="259" height="225" fill="#0ea5e9" />
-          <rect x="555" y="0" width="222" height="225" fill="#d97706" />
-          <rect x="777" y="0" width="223" height="225" fill="#6b7280" />
+          <rect x="0" y="0" width="148" height="195" fill="#f43f5e" />
+          <rect x="148" y="0" width="148" height="195" fill="#0d9488" />
+          <rect x="296" y="0" width="259" height="195" fill="#0ea5e9" />
+          <rect x="555" y="0" width="222" height="195" fill="#d97706" />
+          <rect x="777" y="0" width="223" height="195" fill="#6b7280" />
         </g>
 
         {/* Phase boundary dashed separator lines */}
         <g opacity="0.15" stroke="var(--mf-text)" strokeWidth="1" strokeDasharray="3,3" className="pointer-events-none">
-          <line x1="148" y1="0" x2="148" y2="225" />
-          <line x1="296" y1="0" x2="296" y2="225" />
-          <line x1="555" y1="0" x2="555" y2="225" />
-          <line x1="777" y1="0" x2="777" y2="225" />
+          <line x1="148" y1="0" x2="148" y2="195" />
+          <line x1="296" y1="0" x2="296" y2="195" />
+          <line x1="555" y1="0" x2="555" y2="195" />
+          <line x1="777" y1="0" x2="777" y2="195" />
         </g>
 
         {/* Grid lines (Subtle background horizontal guides) */}
         <g opacity="0.3" className="pointer-events-none">
-          <line x1="0" y1="60" x2="1000" y2="60" stroke="var(--mf-border)" strokeWidth="1" strokeDasharray="6,6" />
-          <line x1="0" y1="120" x2="1000" y2="120" stroke="var(--mf-border)" strokeWidth="1" strokeDasharray="6,6" />
-          <line x1="0" y1="180" x2="1000" y2="180" stroke="var(--mf-border)" strokeWidth="1" strokeDasharray="6,6" />
+          <line x1="0" y1="45" x2="1000" y2="45" stroke="var(--mf-border)" strokeWidth="1" strokeDasharray="6,6" />
+          <line x1="0" y1="90" x2="1000" y2="90" stroke="var(--mf-border)" strokeWidth="1" strokeDasharray="6,6" />
+          <line x1="0" y1="135" x2="1000" y2="135" stroke="var(--mf-border)" strokeWidth="1" strokeDasharray="6,6" />
         </g>
 
         {/* Phase label text at the bottom */}
-        <g className="text-[9.5px] font-normal tracking-wide pointer-events-none select-none" fill="var(--mf-muted)" opacity="0.75">
-          <text x="74" y="240" textAnchor="middle">Days 1-5: Menstrual</text>
-          <text x="222" y="240" textAnchor="middle">Days 6-9: Follicular</text>
-          <text x="425" y="240" textAnchor="middle">Days 10-16: Fertile Window</text>
-          <text x="666" y="240" textAnchor="middle">Days 17-22: Mid-Luteal</text>
-          <text x="888" y="240" textAnchor="middle">Days 23-28: PMS Phase</text>
+        <g className="text-[9px] font-normal tracking-wide pointer-events-none select-none" fill="var(--mf-muted)" opacity="0.75">
+          <text x="74" y="212" textAnchor="middle">Days 1-5: Menstrual</text>
+          <text x="222" y="212" textAnchor="middle">Days 6-9: Follicular</text>
+          <text x="425" y="212" textAnchor="middle">Days 10-16: Fertile Window</text>
+          <text x="666" y="212" textAnchor="middle">Days 17-22: Mid-Luteal</text>
+          <text x="888" y="212" textAnchor="middle">Days 23-28: PMS Phase</text>
         </g>
 
         {/* Translucent Area Fills */}
@@ -236,7 +236,7 @@ export function HormoneWaveChart({ activeDay, setActiveDay, accentColor }: Hormo
             x1={activePercent}
             y1="15"
             x2={activePercent}
-            y2="225"
+            y2="195"
             stroke={accentColor}
             strokeWidth="2"
             strokeDasharray="4,4"
@@ -256,8 +256,8 @@ export function HormoneWaveChart({ activeDay, setActiveDay, accentColor }: Hormo
             />
           )}
           {/* Ladder steps */}
-          {Array.from({ length: 24 }).map((_, idx) => {
-            const y = 30 + idx * 7.5
+          {Array.from({ length: 18 }).map((_, idx) => {
+            const y = 30 + idx * 8
             return (
               <line
                 key={idx}
