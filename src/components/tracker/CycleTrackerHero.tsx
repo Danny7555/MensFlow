@@ -25,6 +25,10 @@ import { CycleWheel } from './CycleWheel'
 
 interface CycleTrackerHeroProps {
   showCheckIn?: boolean
+  selectedDay?: number
+  hoveredDay?: number | null
+  onSelectDay?: (day: number) => void
+  onHoverDay?: (day: number | null) => void
 }
 
 interface CycleTrackerState {
@@ -62,7 +66,13 @@ function cycleTrackerReducer(state: CycleTrackerState, action: CycleTrackerActio
   }
 }
 
-export function CycleTrackerHero({ showCheckIn = false }: CycleTrackerHeroProps) {
+export function CycleTrackerHero({ 
+  showCheckIn = false,
+  selectedDay: controlledSelectedDay,
+  hoveredDay: controlledHoveredDay,
+  onSelectDay,
+  onHoverDay
+}: CycleTrackerHeroProps) {
   const { dashboard: data } = useStore()
   
   const [state, dispatch] = useReducer(cycleTrackerReducer, {
@@ -73,7 +83,11 @@ export function CycleTrackerHero({ showCheckIn = false }: CycleTrackerHeroProps)
     isLogModalOpen: false,
   })
 
-  const { currentDay, selectedDay, hoveredDay, trackingMode, isLogModalOpen } = state
+  const { currentDay, trackingMode, isLogModalOpen } = state
+
+  const isControlled = controlledSelectedDay !== undefined
+  const selectedDay = isControlled ? controlledSelectedDay : state.selectedDay
+  const hoveredDay = isControlled ? (controlledHoveredDay ?? null) : state.hoveredDay
 
   useEffect(() => {
     const start = new Date(`${data.lastPeriodStart}T12:00:00`)
@@ -82,8 +96,11 @@ export function CycleTrackerHero({ showCheckIn = false }: CycleTrackerHeroProps)
       const m = ((days % data.typicalCycleDays) + data.typicalCycleDays) % data.typicalCycleDays
       const day = m + 1
       dispatch({ type: 'INIT_DAYS', currentDay: day, selectedDay: day })
+      if (isControlled && onSelectDay) {
+        onSelectDay(day)
+      }
     }
-  }, [data.lastPeriodStart, data.typicalCycleDays])
+  }, [data.lastPeriodStart, data.typicalCycleDays, isControlled, onSelectDay])
 
   const modes = ['Period', 'Conception', 'Pregnancy', 'Perimenopause'];
 
@@ -156,8 +173,14 @@ export function CycleTrackerHero({ showCheckIn = false }: CycleTrackerHeroProps)
             fertileEnd={fertileEnd}
             upcomingStart={upcomingStart}
             upcomingEnd={upcomingEnd}
-            onSelectDay={(day) => dispatch({ type: 'SET_SELECTED_DAY', payload: day })}
-            onHoverDay={(day) => dispatch({ type: 'SET_HOVERED_DAY', payload: day })}
+            onSelectDay={(day) => {
+              if (isControlled && onSelectDay) onSelectDay(day)
+              else dispatch({ type: 'SET_SELECTED_DAY', payload: day })
+            }}
+            onHoverDay={(day) => {
+              if (isControlled && onHoverDay) onHoverDay(day)
+              else dispatch({ type: 'SET_HOVERED_DAY', payload: day })
+            }}
           />
 
           <div className="viz-content">

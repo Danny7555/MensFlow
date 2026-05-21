@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { CycleTrackerHero } from "@/components/tracker/CycleTrackerHero"
 import { CycleStatsHero } from "@/components/tracker/CycleStatsHero"
 import { CycleHistory } from "@/components/tracker/CycleHistory"
@@ -20,11 +20,29 @@ import { cn } from "@/lib/utils"
 import { TrackerSkeleton } from "@/components/skeletons/TrackerSkeleton"
 
 export function TrackerView() {
-  const { isSaving } = useStore()
+  const { isSaving, dashboard: data } = useStore()
   const { isAuthenticated, openAuthModal } = useAuth()
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+
+  // Compute initial cycle day based on store last period start
+  const initialDay = useMemo(() => {
+    const start = new Date(`${data.lastPeriodStart}T12:00:00`)
+    if (!Number.isNaN(+start)) {
+      const days = Math.floor((Date.now() - +start) / 86400000)
+      const m = ((days % data.typicalCycleDays) + data.typicalCycleDays) % data.typicalCycleDays
+      return m + 1
+    }
+    return 1
+  }, [data.lastPeriodStart, data.typicalCycleDays])
+
+  const [selectedDay, setSelectedDay] = useState<number>(initialDay)
+  const [hoveredDay, setHoveredDay] = useState<number | null>(null)
+
+  useEffect(() => {
+    setSelectedDay(initialDay)
+  }, [initialDay])
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 500)
@@ -57,7 +75,12 @@ export function TrackerView() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-10 items-start mt-4">
           {/* Main Column */}
           <div className="space-y-12">
-            <CycleTrackerHero />
+            <CycleTrackerHero 
+              selectedDay={selectedDay}
+              hoveredDay={hoveredDay}
+              onSelectDay={setSelectedDay}
+              onHoverDay={setHoveredDay}
+            />
             <CycleLogs />
             <HealthMetrics />
             
@@ -70,7 +93,7 @@ export function TrackerView() {
                     <h3 className="text-xl font-normal mb-2">Unlock your full history</h3>
                     <p className="text-muted-foreground text-sm mb-6">Log in to see your past cycles, personalized tips, and partner sharing features.</p>
                     <button 
-                      onClick={openAuthModal}
+                       onClick={openAuthModal}
                       className="btn btn-primary px-8 py-3 rounded-full"
                     >
                       Log in to access
@@ -84,7 +107,7 @@ export function TrackerView() {
           {/* Sidebar */}
           <aside className="space-y-10">
             <CycleStatsHero />
-            <CycleTips />
+            <CycleTips activeDay={hoveredDay ?? selectedDay} />
           </aside>
         </div>
 
