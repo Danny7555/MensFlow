@@ -17,7 +17,7 @@ interface BiologicalSnapshotProps {
 export function BiologicalSnapshot({ estrogen, progesterone, description }: BiologicalSnapshotProps) {
   return (
     <div className="flex flex-col h-full">
-      <h4 className="text-[10px] font-medium text-[var(--mf-muted)] uppercase tracking-[0.15em] mb-3 flex items-center gap-2">
+      <h4 className="text-[9px] md:text-[10px] font-medium text-[var(--mf-muted)] uppercase tracking-[0.15em] mb-3 flex items-center gap-2">
         <div className="size-4 rounded-md bg-pink-500/10 flex items-center justify-center text-pink-500">
           <Info size={10} weight="bold" />
         </div>
@@ -25,15 +25,15 @@ export function BiologicalSnapshot({ estrogen, progesterone, description }: Biol
       </h4>
       
       <div className="space-y-2">
-        <div className="bg-[var(--mf-card)]/40 border border-[var(--mf-border)]/50 rounded-[12px] p-2.5 transition-all hover:bg-[var(--mf-card)]/60">
+        <div className="bg-[var(--mf-card)]/40 border border-[var(--mf-border)]/50 rounded-[12px] p-2 md:p-2.5 transition-all hover:bg-[var(--mf-card)]/60">
           <div className="flex justify-between items-center mb-1.5">
             <div className="flex items-center gap-2">
-              <div className="size-6 rounded-full bg-pink-500/10 flex items-center justify-center text-pink-500">
-                <Drop size={12} weight="fill" />
+              <div className="size-5.5 md:size-6 rounded-full bg-pink-500/10 flex items-center justify-center text-pink-500">
+                <Drop size={12} weight="fill" className="scale-90 md:scale-100" />
               </div>
-              <span className="text-[11px] text-[var(--mf-text-strong)] font-normal">Estrogen Level</span>
+              <span className="text-[10.5px] md:text-[11px] text-[var(--mf-text-strong)] font-normal">Estrogen Level</span>
             </div>
-            <span className="text-[11px] font-medium text-pink-500">{estrogen}</span>
+            <span className="text-[10.5px] md:text-[11px] font-medium text-pink-500">{estrogen}</span>
           </div>
           
           <div className="flex items-center gap-1 h-1 w-full">
@@ -53,15 +53,15 @@ export function BiologicalSnapshot({ estrogen, progesterone, description }: Biol
           </div>
         </div>
 
-        <div className="bg-[var(--mf-card)]/40 border border-[var(--mf-border)]/50 rounded-[16px] p-3 transition-all hover:bg-[var(--mf-card)]/60">
-          <div className="flex justify-between items-center mb-2">
+        <div className="bg-[var(--mf-card)]/40 border border-[var(--mf-border)]/50 rounded-[12px] p-2 md:p-2.5 transition-all hover:bg-[var(--mf-card)]/60">
+          <div className="flex justify-between items-center mb-1.5">
             <div className="flex items-center gap-2">
-              <div className="size-6 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-500">
-                <Waveform size={12} weight="bold" />
+              <div className="size-5.5 md:size-6 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-500">
+                <Waveform size={12} weight="bold" className="scale-90 md:scale-100" />
               </div>
-              <span className="text-[11px] text-[var(--mf-text-strong)] font-normal">Progesterone Level</span>
+              <span className="text-[10.5px] md:text-[11px] text-[var(--mf-text-strong)] font-normal">Progesterone Level</span>
             </div>
-            <span className="text-[11px] font-medium text-violet-500">{progesterone}</span>
+            <span className="text-[10.5px] md:text-[11px] font-medium text-violet-500">{progesterone}</span>
           </div>
           
           <div className="flex items-center gap-1 h-1 w-full">

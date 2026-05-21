@@ -63,32 +63,32 @@ export function HormoneWave() {
   const dayInsight = useMemo(() => getDayInsight(activeDay), [activeDay])
 
   return (
-    <div className="flo-card p-4 relative overflow-hidden group transition-all duration-500 mb-6 border border-[var(--mf-border)]/60 !shadow-none">
+    <div className="flo-card p-4 md:p-5 relative overflow-hidden group transition-all duration-500 mb-6 border border-[var(--mf-border)]/60 !shadow-none">
       
       <div className="relative z-10 flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
         <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1.5">
+          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
             <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20">
-              <span className="text-[10px] font-medium text-pink-600 dark:text-pink-400 uppercase tracking-[0.15em]">
+              <span className="text-[9px] md:text-[10px] font-medium text-pink-600 dark:text-pink-400 uppercase tracking-[0.15em]">
                 Hormone Matrix
               </span>
             </div>
             <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--mf-hover)] border border-[var(--mf-border)]">
-              <Sparkle size={12} weight="fill" className="text-amber-500" />
-              <span className="text-[10px] text-[var(--mf-muted)] font-medium">Interactive Wave</span>
+              <Sparkle size={10} weight="fill" className="text-amber-500" />
+              <span className="text-[9px] md:text-[10px] text-[var(--mf-muted)] font-medium">Interactive Wave</span>
             </div>
           </div>
           
-          <h3 className="text-xl font-medium text-[var(--mf-text-strong)] tracking-tight leading-none mb-2">
+          <h3 className="text-lg md:text-xl font-medium text-[var(--mf-text-strong)] tracking-tight leading-none mb-2">
             Estrogen & Progesterone Trends
           </h3>
-          <p className="text-[11px] text-[var(--mf-muted)] max-w-xl leading-relaxed font-normal">
+          <p className="text-[10.5px] md:text-[11px] text-[var(--mf-muted)] max-w-xl leading-relaxed font-normal">
             <span className="font-medium text-[var(--mf-text-strong)]">Hormone Guide:</span> Estrogen drives physical energy, positive mood, and social confidence. Progesterone promotes physical relaxation and calm, but its drop can trigger premenstrual sensitivity.
           </p>
         </div>
 
         {/* Legend */}
-        <div className="shrink-0 pt-2">
+        <div className="shrink-0 pt-0 md:pt-2">
           <HormoneLegend />
         </div>
       </div>
@@ -137,21 +137,21 @@ export function HormoneWave() {
         
         <div className="flex justify-between items-end mb-1">
           <div className="flex flex-col gap-0.5">
-            <span className="text-[10px] font-medium text-[var(--mf-muted)] uppercase tracking-widest">Timeline Position</span>
-            <span className="text-sm font-medium text-[var(--mf-text-strong)] flex items-center gap-2">
+            <span className="text-[9px] md:text-[10px] font-medium text-[var(--mf-muted)] uppercase tracking-widest">Timeline Position</span>
+            <span className="text-xs md:text-sm font-medium text-[var(--mf-text-strong)] flex items-center gap-2">
               Day {activeDay} of 28
             </span>
           </div>
           
           <div
-            className="px-4 py-1.5 rounded-xl border transition-all duration-500 flex items-center gap-2"
+            className="px-3 md:px-4 py-1 md:py-1.5 rounded-xl border transition-all duration-500 flex items-center gap-2"
             style={{
               color: dayInsight.accentColor,
               borderColor: `${dayInsight.accentColor}25`,
               backgroundColor: `${dayInsight.accentColor}08`
             }}
           >
-            <span className="text-[11px] font-medium tracking-tight uppercase">
+            <span className="text-[10px] md:text-[11px] font-medium tracking-tight uppercase">
               {dayInsight.phase}
             </span>
           </div>

@@ -118,7 +118,7 @@ export function HormoneWaveChart({ activeDay, setActiveDay, accentColor }: Hormo
   const activePercent = ((activeDay - 1) / 27) * 1000
 
   return (
-    <div className="relative h-24 w-full border-b border-dashed border-[var(--mf-border)]/50 mb-2.5 z-10">
+    <div className="relative h-20 md:h-24 w-full border-b border-dashed border-[var(--mf-border)]/50 mb-2.5 z-10">
       {/* Helper overlay instruction on hover */}
       {isHovered && (
         <div className="absolute top-0 right-0 flex items-center gap-1 text-[9px] text-[var(--mf-muted)] bg-[var(--mf-card)]/80 backdrop-blur-sm border border-[var(--mf-border)] px-2 py-0.5 rounded-full pointer-events-none select-none transition-all duration-300 animate-pulse">
