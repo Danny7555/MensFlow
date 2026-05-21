@@ -77,26 +77,7 @@ export function SyncView() {
 
   return (
     <div className="dashboard-flo-theme relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* Ambient Phase Background Glows */}
-      <div 
-        className={cn(
-          "absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full blur-[150px] opacity-60 pointer-events-none transition-all duration-1000 ease-in-out bg-gradient-to-br z-0",
-          phase === 'menstrual' && "from-red-500/20 to-transparent",
-          phase === 'follicular' && "from-teal-500/20 to-transparent",
-          phase === 'fertile' && "from-sky-500/20 to-transparent",
-          phase === 'luteal' && "from-amber-500/20 to-transparent"
-        )} 
-      />
-      <div 
-        className={cn(
-          "absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full blur-[150px] opacity-40 pointer-events-none transition-all duration-1000 ease-in-out bg-gradient-to-br z-0",
-          phase === 'menstrual' && "from-rose-500/10 to-transparent",
-          phase === 'follicular' && "from-emerald-500/10 to-transparent",
-          phase === 'fertile' && "from-cyan-500/10 to-transparent",
-          phase === 'luteal' && "from-yellow-500/10 to-transparent"
-        )} 
-      />
-
+      
       <main className="flo-main-container pb-32 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
         <div className="flo-content-inner">
           
@@ -105,11 +86,11 @@ export function SyncView() {
               <div className="max-w-xl">
                 <div className="flex items-center gap-3 mb-3">
                   <img src="/images/star.png" alt="Star" className="size-5 object-contain" />
-                  <span className="text-[10px] font-medium uppercase tracking-[0.15em] bg-pink-500/10 text-pink-500 px-3 py-1 rounded-full border border-pink-500/20">
+                  <span className="text-[10px] font-normal uppercase tracking-[0.15em] bg-pink-500/10 text-pink-500 px-3 py-1 rounded-full border border-pink-500/20">
                     Interactive Hub
                   </span>
                 </div>
-                <h1 className="text-3xl font-medium tracking-tight text-[var(--mf-text-strong)]">
+                <h1 className="text-3xl font-normal tracking-tight text-[var(--mf-text-strong)]">
                   Partner Sync & Empathy Hub
                 </h1>
                 <p className="text-xs text-[var(--mf-muted)] mt-2 leading-relaxed">
@@ -130,10 +111,10 @@ export function SyncView() {
                 
                 <div className="flex flex-col items-center text-center">
                   <div className="mb-4">
-                    <img src="/images/heart.png" alt="Heart" className="size-14 object-contain animate-pulse" />
+                    <img src="/images/heart.png" alt="Heart" className="size-14 object-contain" />
                   </div>
 
-                  <h2 className="text-xl font-medium tracking-tight text-[var(--mf-text-strong)]">
+                  <h2 className="text-xl font-normal tracking-tight text-[var(--mf-text-strong)]">
                     Send Real-Time Check-In
                   </h2>
                   <p className="text-[11.5px] text-[var(--mf-muted)] mt-2 max-w-xs leading-relaxed">
@@ -144,7 +125,7 @@ export function SyncView() {
                 {sent ? (
                   <div className="mt-8 flex flex-col items-center text-center py-8 bg-[var(--mf-composer-bg)] border border-[var(--mf-border)] rounded-2xl animate-in slide-in-from-bottom-4 duration-500">
                     <div className="mb-4">
-                      <img src="/images/star.png" alt="Success" className="size-14 object-contain animate-pulse" />
+                      <img src="/images/star.png" alt="Success" className="size-14 object-contain" />
                     </div>
                     <h3 className="text-base font-medium text-[var(--mf-text-strong)]">Check-in Sent!</h3>
                     <p className="text-[11px] text-[var(--mf-muted)] mt-1.5 max-w-xs px-4 leading-relaxed">
@@ -152,7 +133,7 @@ export function SyncView() {
                     </p>
                     <button 
                       onClick={() => { setSent(false); setSelected(null); }}
-                      className="mt-5 text-xs text-[var(--mf-accent)] hover:underline font-medium"
+                      className="mt-5 text-xs text-[var(--mf-accent)] hover:underline font-normal"
                     >
                       Send another update
                     </button>
@@ -160,7 +141,7 @@ export function SyncView() {
                 ) : (
                   <div className="mt-8 space-y-6">
                     <div className="space-y-3">
-                      <span className="text-[10px] font-medium text-[var(--mf-text-strong)] uppercase tracking-wider block">
+                      <span className="text-[10px] font-normal text-[var(--mf-text-strong)] uppercase tracking-wider block">
                         Choose Your Current Feeling:
                       </span>
                       
@@ -170,7 +151,7 @@ export function SyncView() {
                             key={opt.id}
                             onClick={() => setSelected(opt.id)}
                             type="button"
-                            className={`relative overflow-hidden aspect-[4/3] rounded-2xl border text-left p-3.5 transition-all flex flex-col justify-between outline-none !shadow-none group ${
+                            className={`relative overflow-hidden aspect-[4/3] rounded-2xl border text-left p-3.5 transition-all flex flex-col justify-between outline-none group ${
                               selected === opt.id
                                 ? "border-[var(--mf-accent)] ring-1 ring-[var(--mf-accent)] scale-[1.01]"
                                 : "border-[var(--mf-border)] hover:border-[var(--mf-accent)]/45"
@@ -189,7 +170,7 @@ export function SyncView() {
                               </div>
                             </div>
                             
-                            <span className="text-white text-[11px] font-medium tracking-wide z-20 mt-auto drop-shadow-sm">
+                            <span className="text-white text-[11px] font-normal tracking-wide z-20 mt-auto drop-shadow-sm">
                               {opt.label}
                             </span>
                           </button>
@@ -200,7 +181,7 @@ export function SyncView() {
                     <button
                       onClick={handleSendPing}
                       disabled={!selected || isSending}
-                      className="w-full btn btn-primary py-3.5 rounded-2xl font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-xs active:scale-98 transition-all duration-300"
+                      className="w-full btn btn-primary py-3.5 rounded-2xl font-normal flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-xs active:scale-98 transition-all duration-300"
                     >
                       {isSending ? (
                         <span>Sending Check-in…</span>

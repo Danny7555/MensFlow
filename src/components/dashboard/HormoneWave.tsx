@@ -63,119 +63,137 @@ export function HormoneWave() {
   const dayInsight = useMemo(() => getDayInsight(activeDay), [activeDay])
 
   return (
-    <div className="flo-card flo-card--prominent p-6 relative overflow-hidden group transition-all duration-500 mb-8">
-
-      <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <div>
-          <div className="flex items-center gap-2.5 mb-1.5">
-            <span className="w-fit text-[9px] font-normal uppercase tracking-[0.12em] bg-pink-500 text-white px-3 py-1.5 rounded-full">
-              HORMONE MATRIX
-            </span>
-            <div className="flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-500 font-normal">
-              <Sparkle size={12} weight="fill" />
-              <span>Interactive Wave</span>
+    <div className="flo-card flo-card--prominent p-7 relative overflow-hidden group transition-all duration-500 mb-8 border border-[var(--mf-border)]/60">
+      
+      <div className="relative z-10 flex flex-col md:flex-row md:items-start justify-between gap-6 mb-10">
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20">
+              <span className="w-1.5 h-1.5 rounded-full bg-pink-500" />
+              <span className="text-[10px] font-medium text-pink-600 dark:text-pink-400 uppercase tracking-[0.15em]">
+                Hormone Matrix
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--mf-hover)] border border-[var(--mf-border)]">
+              <Sparkle size={12} weight="fill" className="text-amber-500" />
+              <span className="text-[10px] text-[var(--mf-muted)] font-medium">Interactive Wave</span>
             </div>
           </div>
-          <h3 className="text-xl font-normal text-[var(--mf-text-strong)] tracking-tight">
+          
+          <h3 className="text-2xl font-medium text-[var(--mf-text-strong)] tracking-tight leading-none mb-3">
             Estrogen & Progesterone Trends
           </h3>
-          <p className="text-[11px] text-[var(--mf-muted)] mt-1.5 max-w-xl leading-relaxed">
-            Hormone Guide: Estrogen drives physical energy, positive mood, and social confidence. Progesterone promotes physical relaxation and calm, but its drop can trigger premenstrual sensitivity.
+          <p className="text-[11.5px] text-[var(--mf-muted)] max-w-xl leading-relaxed font-normal">
+            <span className="font-medium text-[var(--mf-text-strong)]">Hormone Guide:</span> Estrogen drives physical energy, positive mood, and social confidence. Progesterone promotes physical relaxation and calm, but its drop can trigger premenstrual sensitivity.
           </p>
         </div>
 
         {/* Legend */}
-        <HormoneLegend />
+        <div className="shrink-0 pt-2">
+          <HormoneLegend />
+        </div>
       </div>
 
       {/* SVG Waves Container */}
-      <HormoneWaveChart
-        activeDay={activeDay}
-        setActiveDay={setActiveDay}
-        accentColor={dayInsight.accentColor}
-      />
+      <div className="relative mb-8 bg-[var(--mf-hover)]/20 rounded-3xl p-2 border border-[var(--mf-border)]/30 transition-all duration-500">
+        <HormoneWaveChart
+          activeDay={activeDay}
+          setActiveDay={setActiveDay}
+          accentColor={dayInsight.accentColor}
+        />
+      </div>
 
       {/* Scrub Slider */}
-      <div className="relative z-10 flex flex-col gap-2 mb-6">
+      <div className="relative z-10 flex flex-col gap-4 mb-8 px-2">
         <style>{`
+          .hormone-range-input {
+            -webkit-appearance: none;
+            height: 4px;
+            background: ${dayInsight.accentColor}25;
+            border-radius: 10px;
+          }
           .hormone-range-input::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            border-radius: 10px;
             background: #ffffff;
-            border: 3px solid ${dayInsight.accentColor};
+            border: 2px solid ${dayInsight.accentColor};
             cursor: pointer;
-            transition: transform 0.1s ease, border-color 0.2s ease;
+            transition: all 0.2s ease;
           }
           .hormone-range-input::-webkit-slider-thumb:hover {
-            transform: scale(1.15);
-          }
-          .hormone-range-input::-webkit-slider-thumb:active {
-            transform: scale(0.95);
+            background: ${dayInsight.accentColor}10;
           }
           .hormone-range-input::-moz-range-thumb {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            border-radius: 10px;
             background: #ffffff;
-            border: 3px solid ${dayInsight.accentColor};
+            border: 2px solid ${dayInsight.accentColor};
             cursor: pointer;
-            transition: transform 0.1s ease, border-color 0.2s ease;
-          }
-          .hormone-range-input::-moz-range-thumb:hover {
-            transform: scale(1.15);
-          }
-          .hormone-range-input::-moz-range-thumb:active {
-            transform: scale(0.95);
           }
         `}</style>
-        <div className="flex justify-between items-center text-xs text-[var(--mf-muted)] mb-1">
-          <span className="font-normal text-[var(--mf-text-strong)] flex items-center gap-1.5">
-            <span className="inline-block size-1.5 rounded-full" style={{ backgroundColor: dayInsight.accentColor }} />
-            Day {activeDay} of 28
-          </span>
-          <span
-            className="text-[11px] font-normal px-2.5 py-0.5 rounded-full border transition-all duration-300"
+        
+        <div className="flex justify-between items-end mb-1">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[10px] font-medium text-[var(--mf-muted)] uppercase tracking-widest">Timeline Position</span>
+            <span className="text-sm font-medium text-[var(--mf-text-strong)] flex items-center gap-2">
+              Day {activeDay} of 28
+              <span className="size-2 rounded-full" style={{ backgroundColor: dayInsight.accentColor }} />
+            </span>
+          </div>
+          
+          <div
+            className="px-4 py-1.5 rounded-xl border transition-all duration-500 flex items-center gap-2"
             style={{
               color: dayInsight.accentColor,
-              borderColor: `${dayInsight.accentColor}30`,
-              backgroundColor: `${dayInsight.accentColor}10`
+              borderColor: `${dayInsight.accentColor}25`,
+              backgroundColor: `${dayInsight.accentColor}08`
             }}
           >
-            {dayInsight.phase}
-          </span>
+            <div className="size-1.5 rounded-full" style={{ backgroundColor: dayInsight.accentColor }} />
+            <span className="text-[11px] font-medium tracking-tight uppercase">
+              {dayInsight.phase}
+            </span>
+          </div>
         </div>
-        <div className="relative">
+        
+        <div className="relative pt-2">
           <input
             type="range"
             min="1"
             max="28"
             value={activeDay}
             onChange={(e) => setActiveDay(parseInt(e.target.value))}
-            className="hormone-range-input w-full h-1.5 bg-[var(--mf-border)] rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-[var(--mf-accent)]"
+            className="hormone-range-input w-full cursor-pointer focus:outline-none"
           />
         </div>
-        <div className="flex justify-between text-[9px] text-[var(--mf-muted)] px-1 mt-0.5 font-normal select-none pointer-events-none opacity-80">
+        
+        <div className="flex justify-between text-[10px] text-[var(--mf-muted)] px-1 font-normal opacity-60">
           <span>Day 1</span>
           <span>Day 7</span>
-          <span>Day 14 (Ovulation)</span>
+          <span className="text-[var(--mf-text-strong)] font-medium">Day 14 (Ovulation)</span>
           <span>Day 21</span>
           <span>Day 28</span>
         </div>
       </div>
 
       {/* Info Output Dashboard */}
-      <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-6 p-5 rounded-3xl bg-[var(--mf-composer-bg)]/90 border border-[var(--mf-border)]">
-        <BiologicalSnapshot
-          estrogen={dayInsight.estrogen}
-          progesterone={dayInsight.progesterone}
-          description={dayInsight.description}
-        />
-        <EmpathySupportGuide
-          supportTip={dayInsight.supportTip}
-        />
+      <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-0 rounded-[32px] bg-[var(--mf-card)] border border-[var(--mf-border)] overflow-hidden">
+        <div className="p-7">
+          <BiologicalSnapshot
+            estrogen={dayInsight.estrogen}
+            progesterone={dayInsight.progesterone}
+            description={dayInsight.description}
+          />
+        </div>
+        <div className="p-7 bg-[var(--mf-hover)]/20">
+          <EmpathySupportGuide
+            supportTip={dayInsight.supportTip}
+          />
+        </div>
       </div>
     </div>
   )
