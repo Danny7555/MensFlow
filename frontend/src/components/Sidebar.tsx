@@ -69,7 +69,7 @@ export function Sidebar({
   onToggleDesktopCollapse,
   onToggleSidebar,
 }: SidebarProps) {
-  const { logout } = useAuth()
+  const { logout, onboardingCompleted } = useAuth()
 
   const { dashboard: data, settings, user } = useStore()
 
@@ -78,7 +78,11 @@ export function Sidebar({
     rawItems.splice(rawItems.length - 1, 0, { id: 'locked-chats', label: 'Locked Chats', Icon: Lock })
   }
 
-  const items = rawItems
+  const items = rawItems.filter(item => {
+    // If onboarding is not completed, only show the chat assistant
+    if (!onboardingCompleted && item.id !== 'ask') return false
+    return true
+  })
 
   const collapsed = !isMobile && desktopCollapsed
   const navIconSize = collapsed ? 22 : 20
