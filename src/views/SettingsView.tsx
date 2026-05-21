@@ -16,7 +16,10 @@ import {
   UsersThree,
   UserCircle,
   CaretRight,
-  Link
+  Link,
+  Lock,
+  LockKey,
+  Info
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { 
@@ -608,7 +611,216 @@ function DataControlsPanel({
   )
 }
 
-function SecurityPanel() {
+export const SECURITY_QUESTIONS = [
+  { id: 'q1', label: 'What was the name of your first pet?', type: 'text' },
+  { id: 'q2', label: 'What is your favorite color?', type: 'select', options: ['Red', 'Blue', 'Green', 'Yellow', 'Black', 'White', 'Purple', 'Orange'] },
+  { id: 'q3', label: 'In what city were you born?', type: 'text' },
+  { id: 'q4', label: 'What is your favorite season?', type: 'select', options: ['Spring', 'Summer', 'Autumn', 'Winter'] },
+]
+
+function LockChatSetupModal({
+  trigger,
+  updateSettings,
+}: {
+  trigger: ReactNode
+  updateSettings: (s: any) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [step, setStep] = useState<1 | 2>(1)
+  const [password, setPassword] = useState('')
+  const [questionId, setQuestionId] = useState(SECURITY_QUESTIONS[0].id)
+  const [answer, setAnswer] = useState('')
+
+  const activeQuestion = SECURITY_QUESTIONS.find(q => q.id === questionId)!
+
+  const isStrong = password.length >= 8 && 
+    /[A-Z]/.test(password) && 
+    /[a-z]/.test(password) && 
+    /[0-9]/.test(password) && 
+    /[^A-Za-z0-9]/.test(password);
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => {
+      setOpen(o)
+      if (!o) {
+        setTimeout(() => {
+          setStep(1)
+          setPassword('')
+          setQuestionId(SECURITY_QUESTIONS[0].id)
+          setAnswer('')
+        }, 200)
+      }
+    }}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="sm:max-w-[420px] bg-card border-border p-6">
+        <DialogHeader className="mb-4">
+          <DialogTitle className="text-xl font-medium tracking-tight flex items-center gap-2">
+            <Lock size={24} className="text-[var(--mf-accent)]" /> {step === 1 ? 'Setup Locked Chats' : 'Security Question'}
+          </DialogTitle>
+          <DialogDescription>
+            {step === 1 
+              ? 'Create a password to protect your hidden conversations.'
+              : 'Choose a security question. This will be used to reset your password if you forget it.'}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-4">
+          {step === 1 ? (
+            <div className="space-y-2">
+              <label className="text-xs font-medium uppercase text-muted-foreground">Privacy Password</label>
+              <div className="relative">
+                <LockKey size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <input 
+                  type="password"
+                  placeholder="Enter password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full h-11 pl-10 pr-4 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-1 focus:ring-[var(--mf-accent)] outline-none text-sm"
+                  autoFocus
+                />
+              </div>
+              <div className={`flex gap-2 items-start text-xs p-3 rounded-lg border mt-3 transition-colors ${
+                password.length > 0 && !isStrong 
+                  ? 'bg-red-50 text-red-600 border-red-200 dark:bg-red-950/30 dark:border-red-900/50' 
+                  : 'text-muted-foreground bg-[var(--mf-accent-soft)]/30 border-[var(--mf-accent)]/20'
+              }`}>
+                <Info size={16} className={`shrink-0 mt-0.5 ${password.length > 0 && !isStrong ? 'text-red-500' : 'text-[var(--mf-accent)]'}`} />
+                <p>
+                  <strong>Tip for a strong password:</strong> Use at least 8 characters, combining uppercase and lowercase letters, numbers, and symbols (e.g., !@#$%).
+                  {password.length > 0 && !isStrong && <span className="block mt-1 font-medium">Your password is too weak and cannot be used.</span>}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-medium uppercase text-muted-foreground">Select a question</label>
+                <select 
+                  className="w-full h-11 px-3 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-1 focus:ring-[var(--mf-accent)] outline-none text-sm"
+                  value={questionId}
+                  onChange={(e) => {
+                    setQuestionId(e.target.value)
+                    setAnswer('')
+                  }}
+                >
+                  {SECURITY_QUESTIONS.map(q => (
+                    <option key={q.id} value={q.id}>{q.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium uppercase text-muted-foreground">Your Answer</label>
+                {activeQuestion.type === 'select' ? (
+                  <select 
+                    className="w-full h-11 px-3 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-1 focus:ring-[var(--mf-accent)] outline-none text-sm"
+                    value={answer}
+                    onChange={(e) => setAnswer(e.target.value)}
+                  >
+                    <option value="" disabled>Select an answer...</option>
+                    {activeQuestion.options?.map(opt => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input 
+                    type="text"
+                    placeholder="Enter your answer"
+                    value={answer}
+                    onChange={(e) => setAnswer(e.target.value)}
+                    className="w-full h-11 px-4 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-1 focus:ring-[var(--mf-accent)] outline-none text-sm"
+                  />
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <DialogFooter>
+          {step === 1 ? (
+            <>
+              <Button variant="outline" onClick={() => setOpen(false)} className="rounded-xl">Cancel</Button>
+              <Button 
+                disabled={!isStrong}
+                className="rounded-xl"
+                onClick={() => setStep(2)}
+              >
+                Continue
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="outline" onClick={() => setStep(1)} className="rounded-xl">Back</Button>
+              <Button 
+                disabled={!answer.trim()}
+                className="rounded-xl"
+                onClick={() => {
+                  updateSettings({ 
+                    privacyLockChats: true, 
+                    privacyLockChatsPassword: password,
+                    privacyLockChatsSecurityQuestion: questionId,
+                    privacyLockChatsSecurityAnswer: answer.trim().toLowerCase()
+                  })
+                  setOpen(false)
+                  toast.success("Locked chats enabled!")
+                }}
+              >
+                Enable Lock
+              </Button>
+            </>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function DeleteLockChatModal({
+  trigger,
+  updateSettings,
+}: {
+  trigger: ReactNode
+  updateSettings: (s: any) => void
+}) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="sm:max-w-[420px] bg-card border-border p-6">
+        <DialogHeader className="mb-4">
+          <DialogTitle className="text-xl font-medium tracking-tight text-red-500 flex items-center gap-2">
+            <Trash size={24} /> Delete Locked Chats
+          </DialogTitle>
+          <DialogDescription>
+            This will permanently delete all your hidden conversations and disable the locked chats feature. This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="mt-6 gap-2 sm:gap-0">
+          <Button variant="outline" onClick={() => setOpen(false)} className="rounded-xl">Cancel</Button>
+          <Button 
+            variant="destructive"
+            className="rounded-xl"
+            onClick={() => {
+              updateSettings({ privacyLockChats: false, privacyLockChatsPassword: null })
+              setOpen(false)
+              toast.success("Locked chats deleted and feature disabled.")
+            }}
+          >
+            Delete & Disable
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function SecurityPanel({
+  settings,
+  updateSettings,
+}: {
+  settings: any
+  updateSettings: (s: any) => void
+}) {
   return (
     <>
       <div className="settings-field-row border-b border-border/50 pb-6 mb-6">
@@ -626,6 +838,50 @@ function SecurityPanel() {
           }
         />
       </div>
+
+      <div className="settings-field-row border-b border-border/50 pb-6 mb-6">
+        <div className="settings-field-text">
+          <span className="settings-field-label">Hidden / Locked Chats</span>
+          <p className="settings-field-desc">
+            Lock specific conversations behind a password so they don't appear in your main chat history.
+          </p>
+        </div>
+        {!settings.privacyLockChats ? (
+          <LockChatSetupModal 
+            updateSettings={updateSettings}
+            trigger={
+              <button
+                type="button"
+                role="switch"
+                aria-checked={false}
+                className="switch"
+              >
+                <span className="switch-thumb" aria-hidden />
+              </button>
+            }
+          />
+        ) : (
+          <div className="flex items-center gap-3">
+            <DeleteLockChatModal 
+              updateSettings={updateSettings}
+              trigger={
+                <Button variant="outline" size="sm" className="rounded-lg text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50">
+                  Delete Locked Chats
+                </Button>
+              }
+            />
+            <button
+              type="button"
+              role="switch"
+              aria-checked={true}
+              className="switch switch--on pointer-events-none opacity-80"
+            >
+              <span className="switch-thumb" aria-hidden />
+            </button>
+          </div>
+        )}
+      </div>
+
       <div className="settings-placeholder-block opacity-60">
         <ShieldCheck size={40} weight="duotone" aria-hidden />
         <p className="settings-placeholder-title">Login history</p>
@@ -861,7 +1117,12 @@ export function SettingsView({
       )
       break
     case 'security':
-      panel = <SecurityPanel />
+      panel = (
+        <SecurityPanel
+          settings={settings}
+          updateSettings={updateSettings}
+        />
+      )
       break
     case 'parental':
       panel = <ParentalPanel />
