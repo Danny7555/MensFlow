@@ -25,7 +25,6 @@ import {
   PrimaryInsightCard,
   BodySignalsCard,
   WellnessScoreCard,
-  CYCLE_DAILY_TIPS,
   ConnectionChecklistCard
 } from '../components/dashboard/FeedSection'
 import { DailyTipCard } from '../components/dashboard/DailyTipCard'

@@ -1,126 +1,42 @@
-import { useState } from "react"
 import { m } from "framer-motion"
 import type { Variants } from "framer-motion"
-import { Sparkle, Target, Heartbeat, Plus, Check, CaretRight, Users, Popcorn, CookingPot, Question, Coffee, Sun, Calendar, Lightbulb, Martini, Heart, Flower } from "@phosphor-icons/react"
-import { SymptomLogger, DailyQuiz } from "./DailyCheckIn"
-import { toast } from "sonner"
-import { DailyTipCard } from "./DailyTipCard"
-import { HormoneInsightCard } from "./HormoneInsightCard"
-import { cn } from "../../lib/utils"
-
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.1
-    }
-  }
-}
+import { 
+  Sparkle, 
+  Target, 
+  Heartbeat, 
+  Plus, 
+  Check, 
+  CaretRight, 
+  Users, 
+  Popcorn, 
+  CookingPot, 
+  Question, 
+  Coffee, 
+  Sun, 
+  Calendar, 
+  Lightbulb, 
+  Martini, 
+  Heart, 
+  Flower
+} from "@phosphor-icons/react"
+import { cn } from "@/lib/utils"
 
 const itemVariants: Variants = {
   hidden: { opacity: 0, y: 15 },
   visible: { 
     opacity: 1, 
     y: 0,
-    transition: {
-      type: "spring",
-      stiffness: 260,
-      damping: 20
-    }
+    transition: { duration: 0.5, ease: "easeOut" }
   }
 }
 
-interface FeedSectionData {
-  lastPeriodStart: string
-  typicalCycleDays: number
-  phaseLabel: string
-  hormoneTrend: string
-  bodySignals: string
-  guidanceLines: string[]
-}
-
-interface FeedSectionProps {
-  data: FeedSectionData
-  computeCycleDay: (start: string, len: number) => number
-  dispatch: React.Dispatch<{ type: string; payload?: boolean | undefined }>
-  state: { isEditingGuidance: boolean }
-  guidanceText: string
-  update: (data: Partial<FeedSectionData>) => Promise<void>
-}
-
 export const CYCLE_DAILY_TIPS = [
-  "Rest and hydrate. Your body is resetting today.",
-  "Keep workouts light. Walking or stretching is ideal.",
-  "Energy is still low. Focus on nutrient-dense warm meals.",
-  "You might start feeling a slight energy lift. Ease into activity.",
-  "Your focus is improving. Great day for planning ahead.",
-  "Energy is rising! Add a bit more intensity to your workout.",
-  "Confidence is building. Tackle tasks you've been putting off.",
-  "Social energy is high. Connect with friends or colleagues.",
-  "Peak brain power today. Focus on complex problem solving.",
-  "Your stamina is strong. Try a high-intensity (HIIT) session.",
-  "Testosterone and estrogen are peaking. You're feeling your best.",
-  "Great day for strength training and pushing your limits.",
-  "Communication skills are at their peak. Have important conversations.",
-  "Metabolism naturally increases. Listen to your hunger cues.",
-  "Energy might start to plateau. Maintain steady habits.",
-  "You might feel a slight dip. Prioritize complex carbohydrates.",
-  "Focus on steady-state cardio rather than max-effort lifting.",
-  "Emotions might feel closer to the surface. Practice mindfulness.",
-  "Your body needs more recovery time after workouts.",
-  "Cravings might spike. Opt for magnesium-rich dark chocolate.",
-  "Energy is turning inward. Great day for solo, focused work.",
-  "Water retention might occur. Drink plenty of fluids.",
-  "Keep your evening schedule light to prioritize sleep.",
-  "Your core temperature is higher. Keep your sleeping room cool.",
-  "Avoid excessive caffeine as it might heighten stress.",
-  "Focus on active recovery like yoga or light mobility work.",
-  "Listen to your body. If you're tired, it's okay to rest.",
-  "Prepare for tomorrow. Keep your routine simple and grounding."
+  "Focus on restorative sleep tonight.",
+  "Magnesium-rich foods can help ease tension.",
+  "Keep your bedroom cool for optimal rest.",
+  "Light movement like yoga might feel good today.",
+  "Drink extra water to stay hydrated."
 ]
-
-function FeedHeader({ currentDay, totalDays, onUpdateSnapshot, onCustomize }: { 
-  currentDay: number; 
-  totalDays: number; 
-  onUpdateSnapshot: () => void; 
-  onCustomize: () => void; 
-}) {
-  return (
-    <m.div className="flo-section-header" variants={itemVariants}>
-      <div className="flex flex-col gap-1">
-        <h2 className="flo-section-title">Today's plan</h2>
-        <div className="flo-progress-track">
-          <m.div 
-            className="flo-progress-fill" 
-            initial={{ width: 0 }}
-            animate={{ width: `${(currentDay / totalDays) * 100}%` }}
-            transition={{ duration: 1, ease: "easeOut" }}
-          />
-        </div>
-      </div>
-      <div className="flex items-center gap-4">
-        <m.button 
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="text-[10px] uppercase tracking-widest font-normal bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] px-3 py-1.5 rounded-full transition-all"
-          onClick={onUpdateSnapshot}
-        >
-          Update Snapshot
-        </m.button>
-        <m.button 
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="flo-text-link"
-          onClick={onCustomize}
-        >
-          Customize <CaretRight size={12} />
-        </m.button>
-      </div>
-    </m.div>
-  )
-}
 
 export function PrimaryInsightCard({ label, currentDay, trend }: { label: string; currentDay: number; trend: string }) {
   return (
@@ -448,61 +364,5 @@ export function ConnectionChecklistCard() {
         </div>
       </div>
     </m.div>
-  )
-}
-
-export function FeedSection({
-  data,
-  computeCycleDay,
-  dispatch,
-}: FeedSectionProps) {
-  const currentDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
-  const tipOfTheDay = CYCLE_DAILY_TIPS[(currentDay - 1) % CYCLE_DAILY_TIPS.length]
-  const [tipCompleted, setTipCompleted] = useState(false)
-
-  return (
-    <m.section 
-      className="flo-feed-section"
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      <FeedHeader 
-        currentDay={currentDay}
-        totalDays={data.typicalCycleDays}
-        onUpdateSnapshot={() => dispatch({ type: 'TOGGLE_SNAPSHOT', payload: true })}
-        onCustomize={() => dispatch({ type: 'TOGGLE_CUSTOMIZE', payload: true })}
-      />
-
-      <div className="flo-feed-row flex items-stretch overflow-x-auto no-scrollbar pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:flex-wrap md:overflow-visible">
-        <div className="flex-shrink-0 w-[280px] md:w-auto md:flex-1 md:min-w-[280px]">
-          <PrimaryInsightCard 
-            label={data.phaseLabel}
-            currentDay={currentDay}
-            trend={data.hormoneTrend}
-          />
-        </div>
-
-        <div className="flex-shrink-0 w-[280px] md:w-auto md:flex-1 md:min-w-[280px] ml-4 md:ml-0">
-          <BodySignalsCard 
-            signals={data.bodySignals}
-            currentDay={currentDay}
-          />
-        </div>
-
-        <div className="flex-shrink-0 w-[280px] md:w-auto md:flex-1 md:min-w-[280px] ml-4 md:ml-0">
-          <WellnessScoreCard />
-        </div>
-
-        <div className="flex-shrink-0 w-[280px] md:w-auto md:flex-1 md:min-w-[280px] ml-4 md:ml-0">
-          <DailyTipCard
-            variants={itemVariants}
-            tipCompleted={tipCompleted}
-            setTipCompleted={setTipCompleted}
-            tipOfTheDay={tipOfTheDay}
-          />
-        </div>
-      </div>
-    </m.section>
   )
 }

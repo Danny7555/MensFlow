@@ -44,7 +44,7 @@ export function DailyTipCard({ tipCompleted, setTipCompleted, variants }: DailyT
           </div>
           
           <div className="relative z-10 ml-8">
-            <h3 className="text-xl md:text-2xl font-medium text-[var(--mf-text-strong)] tracking-tight mb-2.5">Nurture your energy</h3>
+            <h3 className="text-xl md:text-2xl font-normal text-[var(--mf-text-strong)] tracking-tight whitespace-nowrap mb-2.5">Nurture your energy</h3>
             <p className="text-[13px] md:text-[15px] leading-relaxed text-[var(--mf-text)] opacity-80 max-w-2xl font-normal">
               Water retention might occur. Drink plenty of fluids.
             </p>
