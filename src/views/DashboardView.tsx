@@ -18,7 +18,19 @@ import { DashboardSkeleton } from '../components/skeletons/DashboardSkeleton'
 
 import { DashboardHeader } from '../components/dashboard/DashboardHeader'
 import { StoriesSection } from '../components/dashboard/StoriesSection'
-import { FeedSection } from '../components/dashboard/FeedSection'
+import { 
+  PartnerTranslationCard, 
+  QuickLogCard, 
+  usePartnerTranslation,
+  PrimaryInsightCard,
+  BodySignalsCard,
+  WellnessScoreCard,
+  CYCLE_DAILY_TIPS,
+  ConnectionChecklistCard
+} from '../components/dashboard/FeedSection'
+import { DailyTipCard } from '../components/dashboard/DailyTipCard'
+import { HormoneInsightCard } from '../components/dashboard/HormoneInsightCard'
+import { SymptomLogger } from '../components/dashboard/DailyCheckIn'
 
 function AmbientBackground({ phase }: { phase: CyclePhase }) {
   return (
@@ -200,6 +212,19 @@ export function DashboardView() {
     [data.guidanceLines],
   )
 
+  const partnerTranslation = usePartnerTranslation(phase)
+  const currentDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
+  const tipOfTheDay = CYCLE_DAILY_TIPS[(currentDay - 1) % CYCLE_DAILY_TIPS.length]
+  const [tipCompleted, setTipCompleted] = useState(false)
+
+  const handleCopyGesture = (text: string, title: string) => {
+    navigator.clipboard.writeText(text)
+    toast.success("Copied supportive gesture!", {
+      description: `"${title}" template copied to clipboard.`,
+      duration: 3000
+    })
+  }
+
   const handleLogout = () => {
     logout()
     navigate('/')
@@ -304,29 +329,65 @@ export function DashboardView() {
         onStartTour={startTour}
       />
 
-      <main className="flo-main-container pb-32 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
+      <main className="flo-main-container pb-32 px-4 md:px-0 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
         <div className="flo-content-inner">
-          <div className="flo-dashboard-top">
+          <div className="flo-dashboard-top mb-6 md:mb-8">
             <StoriesSection />
           </div>
 
-          <div className="flo-dashboard-grid">
-            <section className="flo-dashboard-left" aria-label="Cycle overview">
-              <div className="flo-hero-panel">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 md:gap-8">
+            {/* Left Main Content */}
+            <div className="flex flex-col gap-6 md:gap-8">
+              <section className="flo-hero-panel" aria-label="Cycle overview">
                 <CycleTrackerHero showCheckIn={true} />
-              </div>
-            </section>
+              </section>
 
-            <section className="flo-dashboard-right" aria-label="Daily plan">
-              <FeedSection 
-                data={data}
-                computeCycleDay={computeCycleDay}
-                dispatch={dispatch as React.Dispatch<{ type: string; payload?: boolean | undefined }>}
-                state={state}
-                guidanceText={guidanceText}
-                update={update}
-              />
-            </section>
+              <div className="w-full">
+                <DailyTipCard
+                  tipCompleted={tipCompleted}
+                  setTipCompleted={setTipCompleted}
+                  tipOfTheDay={tipOfTheDay}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                <PrimaryInsightCard 
+                  label={phase}
+                  currentDay={currentDay}
+                  trend={data.hormoneTrend}
+                />
+                <BodySignalsCard 
+                  signals={data.bodySignals}
+                  currentDay={currentDay}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                <PartnerTranslationCard 
+                  label={phase}
+                  desc={partnerTranslation.desc}
+                  tips={partnerTranslation.tips}
+                  gestures={partnerTranslation.gestures}
+                  onCopy={handleCopyGesture}
+                />
+                <ConnectionChecklistCard />
+              </div>
+            </div>
+
+            {/* Right Sidebar Stack */}
+            <div className="flex flex-col gap-6 md:gap-8">
+              <section aria-label="Scientific insight">
+                <HormoneInsightCard />
+              </section>
+
+              <WellnessScoreCard />
+
+              <QuickLogCard onViewAll={() => dispatch({ type: 'TOGGLE_LOG', payload: true })} />
+
+              <div className="flex-1">
+                <SymptomLogger />
+              </div>
+            </div>
           </div>
         </div>
       </main>

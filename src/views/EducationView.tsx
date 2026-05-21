@@ -5,6 +5,7 @@ import { EDUCATION_ARTICLES, EDUCATION_CATEGORIES } from '../data/educationData'
 import type { EduCategory } from '../data/educationData'
 import { useAuth } from "@/context/useAuth"
 import { TipsSkeleton } from '../components/skeletons/TipsSkeleton'
+import { DailyQuiz } from '../components/dashboard/DailyCheckIn'
 
 export function EducationView() {
   const { isAuthenticated, openAuthModal } = useAuth()
@@ -34,7 +35,11 @@ export function EducationView() {
 
   return (
     <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-8 animate-in fade-in duration-500 relative">
-
+      
+      {/* Daily Quiz Integration */}
+      <section className="max-w-2xl mx-auto w-full">
+        <DailyQuiz />
+      </section>
 
       {/* Category Filter */}
       <section aria-label="Filter guides by category" className="flex flex-wrap gap-2 justify-center">

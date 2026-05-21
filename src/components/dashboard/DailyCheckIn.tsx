@@ -141,7 +141,7 @@ export function SymptomLogger() {
   }
 
   return (
-    <div className="flo-card flo-card--prominent overflow-hidden flex flex-col justify-between mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-400">
+    <div className="flo-card flo-card--prominent overflow-hidden flex flex-col justify-between h-full animate-in fade-in slide-in-from-bottom-4 duration-500 delay-400">
       <div>
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-lg font-normal text-[var(--mf-text-strong)] tracking-tight">How is your day going?</h3>
@@ -181,19 +181,19 @@ export function DailyQuiz() {
   }
 
   return (
-    <div className="flo-card flo-card--featured flex flex-col justify-between overflow-hidden mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-500">
-      <div>
+    <div className="flo-card border border-[var(--mf-border)] bg-gradient-to-br from-card to-[var(--mf-accent-soft)]/10 flex flex-col justify-between overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 !shadow-none">
+      <div className="p-5 md:p-6">
         <div className="flex items-center gap-2 mb-2">
-          <div className="flo-card-icon flo-card-icon--pink">
-            <Question size={20} weight="bold" />
+          <div className="size-8 rounded-xl bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)]">
+            <Question size={18} weight="bold" />
           </div>
-          <h3 className="text-lg font-normal text-[var(--mf-text-strong)] tracking-tight">Daily Quiz</h3>
+          <h3 className="text-lg font-medium text-[var(--mf-text-strong)] tracking-tight">Daily Quiz</h3>
         </div>
         <p className="text-xs text-muted-foreground mb-4">Learn about your body. Tapping your answer updates your check-in score.</p>
 
-        <p className="text-xs font-normal text-[var(--mf-text-strong)] leading-relaxed mb-4">{quiz.question}</p>
+        <p className="text-[13px] font-normal text-[var(--mf-text-strong)] leading-relaxed mb-5">{quiz.question}</p>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2.5">
           {quiz.options.map((opt) => (
             <QuizOption
               key={opt.id}
@@ -219,17 +219,19 @@ export function DailyQuiz() {
         </div>
 
         {selectedQuizAnswer !== null && (
-          <div className="mt-4 p-3 bg-muted/30 border border-border/40 rounded-xl animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <p className="text-[10px] leading-relaxed text-muted-foreground">
+          <div className="mt-5 p-3.5 bg-white/50 dark:bg-black/20 border border-border/30 rounded-xl animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <p className="text-[11px] leading-relaxed text-[var(--mf-text-strong)]">
               {selectedQuizAnswer === 1 ? quiz.explanation : "Progesterone is a natural relaxant. High levels after ovulation promote restorative rest and calm GABA receptors."}
             </p>
           </div>
         )}
       </div>
 
-      <div className="mt-4 pt-3 border-t border-[var(--mf-border)] flex items-center justify-between text-[11px] text-muted-foreground">
-        <span>Weekly Streak: <span className="font-normal text-[var(--mf-text-strong)]">5 Days</span></span>
-        <span className="text-[var(--mf-accent)] font-normal flex items-center gap-1">
+      <div className="px-5 md:px-6 py-4 bg-muted/20 border-t border-[var(--mf-border)] flex items-center justify-between text-[11px] text-muted-foreground">
+        <span className="flex items-center gap-1.5">
+          Weekly Streak: <span className="font-medium text-[var(--mf-text-strong)]">5 Days</span>
+        </span>
+        <span className="text-[var(--mf-accent)] font-medium flex items-center gap-1">
           <Trophy size={12} weight="fill" /> +50 pts
         </span>
       </div>

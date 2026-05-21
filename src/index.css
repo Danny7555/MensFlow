@@ -274,6 +274,13 @@
   .glass-nav {
     @apply bg-background/70 backdrop-blur-xl border-t border-border/50;
   }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
 
 /* Onboarding */

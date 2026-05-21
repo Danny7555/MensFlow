@@ -1,6 +1,6 @@
 import { m } from "framer-motion"
 import type { Variants } from "framer-motion"
-import { Check, Plus } from "@phosphor-icons/react"
+import { Check, Plus, Heart } from "@phosphor-icons/react"
 
 interface DailyTipCardProps {
   tipCompleted: boolean
@@ -13,10 +13,10 @@ export function DailyTipCard({ tipCompleted, setTipCompleted, tipOfTheDay, varia
   return (
     <m.div 
       variants={variants}
-      className="flo-card flo-card--featured overflow-hidden flex flex-col group"
+      className="flo-card flo-card--featured overflow-hidden flex flex-col group relative !p-6 md:!p-8"
     >
-      <div className="flex-1">
-        <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden">
+      <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-10">
+        <div className="-mx-6 -mt-6 md:mt-0 md:mx-0 h-[100px] md:h-[140px] md:w-[180px] relative shrink-0 overflow-hidden rounded-b-3xl md:rounded-2xl">
           <m.img 
             animate={{ 
               y: [0, -5, 0],
@@ -30,53 +30,65 @@ export function DailyTipCard({ tipCompleted, setTipCompleted, tipOfTheDay, varia
             src="/images/star.png" alt="Daily Tip" className="w-full h-full object-cover object-center" 
           />
         </div>
-        <div className="flo-card-top relative z-10">
-          <div className="flex items-center gap-2">
-            <div className="flo-card-icon flo-card-icon--pink">
-              <Plus size={20} weight="fill" />
+
+        <div className="flex-1 flex flex-col">
+          <div className="relative z-10 mb-4">
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center gap-2">
+                <div className="size-6 rounded-lg bg-pink-500/10 flex items-center justify-center text-pink-500">
+                  <Plus size={14} weight="bold" />
+                </div>
+                <span className="text-[10px] md:text-[11px] font-medium text-pink-500 uppercase tracking-[0.2em]">Daily Tip</span>
+              </div>
+              <span className="text-[9px] md:text-[10px] font-normal text-[var(--mf-muted)] uppercase tracking-[0.15em] ml-8">Phase: Luteal</span>
             </div>
-            <p className="flo-card-title !mb-0">Daily Tip</p>
+          </div>
+          
+          <div className="relative z-10 ml-8">
+            <h3 className="text-xl md:text-2xl font-medium text-[var(--mf-text-strong)] tracking-tight mb-2.5">Nurture your energy</h3>
+            <p className="text-[13px] md:text-[15px] leading-relaxed text-[var(--mf-text)] opacity-80 max-w-2xl font-normal">
+              Water retention might occur. Drink plenty of fluids.
+            </p>
           </div>
         </div>
-        
-        <div className="mt-2 relative z-10">
-          <div className="flex flex-col gap-3">
-            <ul className="flo-guidance-list">
-              <m.li 
-                animate={tipCompleted ? { opacity: 0.65, x: 5 } : { opacity: 1, x: 0 }}
-                className={`flo-guidance-item flex items-start gap-2 transition-all duration-300 ${tipCompleted ? 'line-through' : ''}`}
-              >
-                <div className="mt-1">
-                  {tipCompleted ? (
-                    <m.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring" }}>
-                      <Check size={16} className="text-green-500 shrink-0" weight="bold" />
-                    </m.div>
-                  ) : (
-                    <Check size={16} className="text-[var(--mf-accent)] shrink-0" weight="bold" />
-                  )}
-                </div>
-                <span className="text-[0.9rem] leading-snug">{tipOfTheDay}</span>
-              </m.li>
-            </ul>
+
+        <div className="md:border-l border-[var(--mf-border)]/50 md:pl-10 flex flex-col gap-3 shrink-0 min-w-[180px]">
+          <div className="flex flex-col gap-2">
+            <m.button 
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full px-6 py-2.5 rounded-full bg-[var(--mf-accent)] text-white text-[10px] font-medium tracking-widest uppercase"
+            >
+              Learn More
+            </m.button>
+            
+            <m.button 
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full px-6 py-2.5 rounded-full border border-[var(--mf-border)] bg-[var(--mf-card)] text-[var(--mf-text-strong)] text-[10px] font-medium tracking-widest uppercase flex items-center justify-center gap-2 hover:bg-[var(--mf-hover)] transition-all"
+            >
+              <Heart size={14} weight="bold" />
+              <span>Save</span>
+            </m.button>
           </div>
+          
+          <m.button 
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
+            type="button"
+            className="flex items-center justify-between gap-4 text-[11px] font-normal text-[var(--mf-accent)] transition-all hover:opacity-80 mt-1"
+            onClick={() => setTipCompleted(!tipCompleted)}
+          >
+            <span className="font-medium tracking-wide">{tipCompleted ? 'Tip Completed' : 'Mark as done'}</span>
+            <m.div 
+              animate={tipCompleted ? { scale: [1, 1.2, 1], backgroundColor: "#22c55e", borderColor: "#22c55e" } : { scale: 1 }}
+              className={`size-6 rounded-full border flex items-center justify-center transition-colors ${tipCompleted ? 'text-white' : 'border-[var(--mf-accent)] text-transparent'}`}
+            >
+              <Check size={12} weight="bold" />
+            </m.div>
+          </m.button>
         </div>
       </div>
-
-      <m.button 
-        whileHover={{ scale: 1.01 }}
-        whileTap={{ scale: 0.98 }}
-        type="button"
-        className="mt-4 pt-3 border-t border-[var(--mf-border)] relative z-10 w-full flex items-center justify-between text-[11px] font-normal text-[var(--mf-accent)] transition-all"
-        onClick={() => setTipCompleted(!tipCompleted)}
-      >
-        <span className="font-medium">{tipCompleted ? 'Tip Completed' : 'Mark tip as done'}</span>
-        <m.div 
-          animate={tipCompleted ? { scale: [1, 1.2, 1], backgroundColor: "#22c55e", borderColor: "#22c55e" } : { scale: 1 }}
-          className={`size-6 rounded-full border flex items-center justify-center transition-colors ${tipCompleted ? 'text-white' : 'border-[var(--mf-accent)] text-transparent'}`}
-        >
-          <Check size={12} weight="bold" />
-        </m.div>
-      </m.button>
     </m.div>
   )
 }

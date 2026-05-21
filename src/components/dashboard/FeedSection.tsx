@@ -2,7 +2,7 @@ import { useState } from "react"
 import { m } from "framer-motion"
 import type { Variants } from "framer-motion"
 import { Sparkle, Target, Heartbeat, Plus, Check, CaretRight, Users, Popcorn, CookingPot, Question, Coffee, Sun, Calendar, Lightbulb, Martini, Heart, Flower } from "@phosphor-icons/react"
-import { SymptomLogger } from "./DailyCheckIn"
+import { SymptomLogger, DailyQuiz } from "./DailyCheckIn"
 import { toast } from "sonner"
 import { DailyTipCard } from "./DailyTipCard"
 import { HormoneInsightCard } from "./HormoneInsightCard"
@@ -50,7 +50,7 @@ interface FeedSectionProps {
   update: (data: Partial<FeedSectionData>) => Promise<void>
 }
 
-const CYCLE_DAILY_TIPS = [
+export const CYCLE_DAILY_TIPS = [
   "Rest and hydrate. Your body is resetting today.",
   "Keep workouts light. Walking or stretching is ideal.",
   "Energy is still low. Focus on nutrient-dense warm meals.",
@@ -122,9 +122,9 @@ function FeedHeader({ currentDay, totalDays, onUpdateSnapshot, onCustomize }: {
   )
 }
 
-function PrimaryInsightCard({ label, currentDay, trend }: { label: string; currentDay: number; trend: string }) {
+export function PrimaryInsightCard({ label, currentDay, trend }: { label: string; currentDay: number; trend: string }) {
   return (
-    <m.div variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group">
+    <m.div variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
       <div className="flex flex-col h-full">
         <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden">
           <m.img 
@@ -167,9 +167,9 @@ function PrimaryInsightCard({ label, currentDay, trend }: { label: string; curre
   )
 }
 
-function BodySignalsCard({ signals, currentDay }: { signals: string; currentDay: number }) {
+export function BodySignalsCard({ signals, currentDay }: { signals: string; currentDay: number }) {
   return (
-    <m.div variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group">
+    <m.div variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
       <div className="flex flex-col h-full">
         <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden">
           <m.img 
@@ -202,9 +202,9 @@ function BodySignalsCard({ signals, currentDay }: { signals: string; currentDay:
   )
 }
 
-function WellnessScoreCard() {
+export function WellnessScoreCard() {
   return (
-    <m.div variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group">
+    <m.div variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
       <div className="flex flex-col h-full">
         <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden">
           <m.img 
@@ -250,7 +250,7 @@ function WellnessScoreCard() {
   )
 }
 
-function PartnerTranslationCard({ label, desc, tips, gestures, onCopy }: { 
+export function PartnerTranslationCard({ label, desc, tips, gestures, onCopy }: { 
   label: string; 
   desc: string; 
   tips: string[]; 
@@ -260,7 +260,7 @@ function PartnerTranslationCard({ label, desc, tips, gestures, onCopy }: {
   return (
     <m.div 
       variants={itemVariants}
-      className="flo-card flo-card--prominent overflow-hidden mt-8"
+      className="flo-card flo-card--prominent overflow-hidden h-full flex flex-col"
     >
       <div className="flo-card-top relative z-10">
         <p className="flo-card-title">Partner Translation</p>
@@ -268,7 +268,7 @@ function PartnerTranslationCard({ label, desc, tips, gestures, onCopy }: {
           <Users size={20} weight="fill" />
         </div>
       </div>
-      <div className="mt-2 relative z-10 flex flex-col justify-between h-full">
+      <div className="mt-2 relative z-10 flex flex-col flex-1">
         <p className="text-[0.95rem] text-[var(--mf-text)] opacity-90 leading-relaxed">
           What <span className="font-normal text-[var(--mf-accent)]">{label} phase</span> means for your partner today: {desc}
         </p>
@@ -284,7 +284,7 @@ function PartnerTranslationCard({ label, desc, tips, gestures, onCopy }: {
           </ul>
         </div>
 
-        <div className="mt-5 pt-4 border-t border-[var(--mf-border)] no-print">
+        <div className="mt-auto pt-4 border-t border-[var(--mf-border)] no-print">
           <span className="text-[10px] font-normal text-muted-foreground uppercase tracking-wider block mb-2.5">Quick Supportive Gestures</span>
           <div className="flex flex-wrap gap-2">
             {gestures.map((g) => (
@@ -307,9 +307,9 @@ function PartnerTranslationCard({ label, desc, tips, gestures, onCopy }: {
   )
 }
 
-function QuickLogCard({ onViewAll }: { onViewAll: () => void }) {
+export function QuickLogCard({ onViewAll }: { onViewAll: () => void }) {
   return (
-    <m.div variants={itemVariants} className="flo-card flo-card--prominent mt-8">
+    <m.div variants={itemVariants} className="flo-card flo-card--prominent h-full">
       <div className="flo-card-top mb-6">
         <p className="flo-card-title">Quick Log</p>
         <button 
@@ -353,6 +353,104 @@ function QuickLogCard({ onViewAll }: { onViewAll: () => void }) {
   )
 }
 
+export function usePartnerTranslation(phaseLabel: string) {
+  const normalizedPhase = phaseLabel.toLowerCase()
+  switch(normalizedPhase) {
+    case 'menstrual':
+      return {
+        desc: "Their body is resetting. Energy may be low, and they might experience cramps or discomfort.",
+        tips: ["Offer a warm heating pad", "Take over extra chores to allow them to rest", "Be patient with mood fluctuations"],
+        gestures: [
+          { title: "Comfort note", text: "Hey! I'm thinking of you. Can I bring you some tea or chocolate to help you feel better? ❤️", Icon: Heart, color: "text-rose-500" },
+          { title: "Offer heating pad", text: "Hey, let me know if you want me to heat up the pad or run an errand for you today! 🍵", Icon: Coffee, color: "text-amber-600" },
+          { title: "Soup recipe", text: "I'm thinking of making a warm, cozy soup for dinner tonight. Rest up, I've got it handled!", Icon: CookingPot, color: "text-orange-500" }
+        ]
+      }
+    case 'follicular':
+      return {
+        desc: "Estrogen is rising. They may feel more energetic, creative, and social.",
+        tips: ["Suggest a fun date or activity", "Encourage their new ideas", "Enjoy their increased energy levels"],
+        gestures: [
+          { title: "Invite to walk", text: "The weather is nice today! Let's go for a walk or outdoor run after work? 🏃‍♀️", Icon: Sun, color: "text-amber-500" },
+          { title: "Plan weekend date", text: "Since your energy is up, let's plan a fun date night or weekend outing! Any places you've been wanting to try? 🌟", Icon: Calendar, color: "text-teal-500" },
+          { title: "Encourage ideas", text: "Hey, let's look into that new creative idea you mentioned. I'd love to help you design it!", Icon: Lightbulb, color: "text-yellow-500" }
+        ]
+      }
+    case 'fertile':
+      return {
+        desc: "Hormones are peaking. They are likely feeling their most confident and energetic.",
+        tips: ["Compliment them, they are feeling confident", "Great time for social events", "Communicate openly about intimacy"],
+        gestures: [
+          { title: "Date night dinner", text: "You are absolutely glowing lately. Let me take you out to a nice dinner tonight! 🕯️", Icon: Martini, color: "text-indigo-500" },
+          { title: "Sweet message", text: "Just wanted to say I love you and I'm so lucky to have you. Hope you have a wonderful day! ❤️", Icon: Heart, color: "text-rose-500" },
+          { title: "Bring flowers", text: "I'm stopping by the store on my way home, bringing something nice for you!", Icon: Flower, color: "text-pink-500" }
+        ]
+      }
+    case 'luteal':
+    default:
+      return {
+        desc: "Progesterone is rising. Their body temperature is slightly higher, and they may experience lower energy levels and heightened cravings.",
+        tips: ["Keep the bedroom cool tonight", "Offer a magnesium-rich snack", "Give them space to unwind and relax"],
+        gestures: [
+          { title: "Cozy night in", text: "Let's just stay in tonight, order some takeout and watch a movie. You deserve to relax! 🍿", Icon: Popcorn, color: "text-amber-600" },
+          { title: "Take over dinner", text: "Don't worry about any chores or dinner tonight, I'll take care of all of it. Just put your feet up!", Icon: CookingPot, color: "text-orange-500" },
+          { title: "Ask how to help", text: "I know this phase can be a bit overwhelming. Let me know how I can make your day easier!", Icon: Question, color: "text-teal-500" }
+        ]
+      }
+  }
+}
+
+export function ConnectionChecklistCard() {
+  const checklist = [
+    { id: 1, text: "Shared a meaningful conversation", checked: true },
+    { id: 2, text: "Planned a future activity together", checked: false },
+    { id: 3, text: "Acknowledged a small effort", checked: false },
+  ]
+
+  return (
+    <m.div 
+      variants={itemVariants}
+      className="flo-card flo-card--prominent overflow-hidden h-full flex flex-col bg-gradient-to-br from-card to-teal-50/5"
+    >
+      <div className="flo-card-top relative z-10">
+        <p className="flo-card-title">Daily Connection</p>
+        <div className="flo-card-icon text-teal-500">
+          <Heart size={20} weight="fill" />
+        </div>
+      </div>
+      <div className="mt-2 relative z-10 flex flex-col flex-1">
+        <p className="text-[0.85rem] text-[var(--mf-muted)] mb-4">
+          Small gestures build lasting resonance. Try to complete these today:
+        </p>
+        
+        <div className="space-y-3">
+          {checklist.map((item) => (
+            <div key={item.id} className="flex items-center gap-3 p-2.5 rounded-xl bg-muted/30 border border-border/20 transition-all hover:bg-muted/50">
+              <div className={cn(
+                "size-5 rounded-full border-2 flex items-center justify-center transition-all",
+                item.checked ? "bg-teal-500 border-teal-500 text-white" : "border-muted-foreground/30"
+              )}>
+                {item.checked && <Check size={12} weight="bold" />}
+              </div>
+              <span className={cn(
+                "text-[13px] transition-all",
+                item.checked ? "text-[var(--mf-text-strong)] opacity-60 line-through" : "text-[var(--mf-text-strong)]"
+              )}>
+                {item.text}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-auto pt-4 flex items-center justify-between text-[10px] text-muted-foreground border-t border-[var(--mf-border)]">
+          <span>Relationship resonance</span>
+          <span className="text-teal-500 font-medium">80% Optimal</span>
+        </div>
+      </div>
+    </m.div>
+  )
+}
+
 export function FeedSection({
   data,
   computeCycleDay,
@@ -361,60 +459,6 @@ export function FeedSection({
   const currentDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
   const tipOfTheDay = CYCLE_DAILY_TIPS[(currentDay - 1) % CYCLE_DAILY_TIPS.length]
   const [tipCompleted, setTipCompleted] = useState(false)
-
-  const partnerTranslation = (() => {
-    switch(data.phaseLabel) {
-      case 'Menstrual':
-        return {
-          desc: "Their body is resetting. Energy may be low, and they might experience cramps or discomfort.",
-          tips: ["Offer a warm heating pad", "Take over extra chores to allow them to rest", "Be patient with mood fluctuations"],
-          gestures: [
-            { title: "Comfort note", text: "Hey! I'm thinking of you. Can I bring you some tea or chocolate to help you feel better? ❤️", Icon: Heart, color: "text-rose-500" },
-            { title: "Offer heating pad", text: "Hey, let me know if you want me to heat up the pad or run an errand for you today! 🍵", Icon: Coffee, color: "text-amber-600" },
-            { title: "Soup recipe", text: "I'm thinking of making a warm, cozy soup for dinner tonight. Rest up, I've got it handled!", Icon: CookingPot, color: "text-orange-500" }
-          ]
-        }
-      case 'Follicular':
-        return {
-          desc: "Estrogen is rising. They may feel more energetic, creative, and social.",
-          tips: ["Suggest a fun date or activity", "Encourage their new ideas", "Enjoy their increased energy levels"],
-          gestures: [
-            { title: "Invite to walk", text: "The weather is nice today! Let's go for a walk or outdoor run after work? 🏃‍♀️", Icon: Sun, color: "text-amber-500" },
-            { title: "Plan weekend date", text: "Since your energy is up, let's plan a fun date night or weekend outing! Any places you've been wanting to try? 🌟", Icon: Calendar, color: "text-teal-500" },
-            { title: "Encourage ideas", text: "Hey, let's look into that new creative idea you mentioned. I'd love to help you design it!", Icon: Lightbulb, color: "text-yellow-500" }
-          ]
-        }
-      case 'Ovulation':
-        return {
-          desc: "Hormones are peaking. They are likely feeling their most confident and energetic.",
-          tips: ["Compliment them, they are feeling confident", "Great time for social events", "Communicate openly about intimacy"],
-          gestures: [
-            { title: "Date night dinner", text: "You are absolutely glowing lately. Let me take you out to a nice dinner tonight! 🕯️", Icon: Martini, color: "text-indigo-500" },
-            { title: "Sweet message", text: "Just wanted to say I love you and I'm so lucky to have you. Hope you have a wonderful day! ❤️", Icon: Heart, color: "text-rose-500" },
-            { title: "Bring flowers", text: "I'm stopping by the store on my way home, bringing something nice for you!", Icon: Flower, color: "text-pink-500" }
-          ]
-        }
-      case 'Luteal':
-      default:
-        return {
-          desc: "Progesterone is rising. Their body temperature is slightly higher, and they may experience lower energy levels and heightened cravings.",
-          tips: ["Keep the bedroom cool tonight", "Offer a magnesium-rich snack", "Give them space to unwind and relax"],
-          gestures: [
-            { title: "Cozy night in", text: "Let's just stay in tonight, order some takeout and watch a movie. You deserve to relax! 🍿", Icon: Popcorn, color: "text-amber-600" },
-            { title: "Take over dinner", text: "Don't worry about any chores or dinner tonight, I'll take care of all of it. Just put your feet up!", Icon: CookingPot, color: "text-orange-500" },
-            { title: "Ask how to help", text: "I know this phase can be a bit overwhelming. Let me know how I can make your day easier!", Icon: Question, color: "text-teal-500" }
-          ]
-        }
-    }
-  })()
-
-  const handleCopyGesture = (text: string, title: string) => {
-    navigator.clipboard.writeText(text)
-    toast.success("Copied supportive gesture!", {
-      description: `"${title}" template copied to clipboard.`,
-      duration: 3000
-    })
-  }
 
   return (
     <m.section 
@@ -430,43 +474,35 @@ export function FeedSection({
         onCustomize={() => dispatch({ type: 'TOGGLE_CUSTOMIZE', payload: true })}
       />
 
-      <div className="flo-feed-row flex items-stretch">
-        <PrimaryInsightCard 
-          label={data.phaseLabel}
-          currentDay={currentDay}
-          trend={data.hormoneTrend}
-        />
+      <div className="flo-feed-row flex items-stretch overflow-x-auto no-scrollbar pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:flex-wrap md:overflow-visible">
+        <div className="flex-shrink-0 w-[280px] md:w-auto md:flex-1 md:min-w-[280px]">
+          <PrimaryInsightCard 
+            label={data.phaseLabel}
+            currentDay={currentDay}
+            trend={data.hormoneTrend}
+          />
+        </div>
 
-        <BodySignalsCard 
-          signals={data.bodySignals}
-          currentDay={currentDay}
-        />
+        <div className="flex-shrink-0 w-[280px] md:w-auto md:flex-1 md:min-w-[280px] ml-4 md:ml-0">
+          <BodySignalsCard 
+            signals={data.bodySignals}
+            currentDay={currentDay}
+          />
+        </div>
 
-        <WellnessScoreCard />
+        <div className="flex-shrink-0 w-[280px] md:w-auto md:flex-1 md:min-w-[280px] ml-4 md:ml-0">
+          <WellnessScoreCard />
+        </div>
 
-        <DailyTipCard
-          variants={itemVariants}
-          tipCompleted={tipCompleted}
-          setTipCompleted={setTipCompleted}
-          tipOfTheDay={tipOfTheDay}
-        />
-
-        <HormoneInsightCard variants={itemVariants} />
+        <div className="flex-shrink-0 w-[280px] md:w-auto md:flex-1 md:min-w-[280px] ml-4 md:ml-0">
+          <DailyTipCard
+            variants={itemVariants}
+            tipCompleted={tipCompleted}
+            setTipCompleted={setTipCompleted}
+            tipOfTheDay={tipOfTheDay}
+          />
+        </div>
       </div>
-
-      <PartnerTranslationCard 
-        label={data.phaseLabel}
-        desc={partnerTranslation.desc}
-        tips={partnerTranslation.tips}
-        gestures={partnerTranslation.gestures}
-        onCopy={handleCopyGesture}
-      />
-
-      <QuickLogCard onViewAll={() => dispatch({ type: 'TOGGLE_LOG', payload: true })} />
-
-      <m.div variants={itemVariants}>
-        <SymptomLogger />
-      </m.div>
     </m.section>
   )
 }

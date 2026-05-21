@@ -52,7 +52,7 @@ export function DashboardHeader({
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className="flo-header relative z-10"
+      className="flo-header relative z-10 px-4 py-3 md:px-0 md:py-0"
     >
       <div className="flo-header-left">
         <m.div 

@@ -1,8 +1,18 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client"
 
-import { useMemo, useReducer } from 'react'
-import { CaretDown, CaretRight, Info, Lightning, Heart, Sparkle, Chat } from '@phosphor-icons/react'
+import { useState, useMemo, useReducer, useEffect } from 'react'
+import { m, AnimatePresence } from 'framer-motion'
+import { 
+  CaretDown, 
+  CaretRight, 
+  Info, 
+  Lightning, 
+  Heart, 
+  Plus, 
+  Check, 
+  CalendarBlank 
+} from '@phosphor-icons/react'
 import { format, addDays, startOfDay } from 'date-fns'
 
 import { 
@@ -20,7 +30,6 @@ import {
 
 import { useStore } from '@/store/useStore'
 import { LogSymptomsModal } from './LogSymptomsModal'
-import { DailyQuiz } from '../dashboard/DailyCheckIn'
 import { CycleWheel } from './CycleWheel'
 
 interface CycleTrackerHeroProps {
@@ -246,65 +255,9 @@ export function CycleTrackerHero({
         </div>
 
         {showCheckIn && (
-          <>
-            <div className="mt-8">
-              <div className="flo-card flo-card--prominent relative overflow-hidden group transition-all duration-500">
-                {/* Background Bloom */}
-                <div className="absolute -top-12 -right-12 size-32 bg-[var(--mf-accent)] opacity-5 blur-3xl rounded-full group-hover:opacity-10 transition-opacity" />
-                
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex flex-col gap-1.5">
-                    <span className="w-fit text-[9px] font-normal uppercase tracking-[0.15em] bg-[var(--mf-accent)] text-white px-2.5 py-1 rounded-full">DAILY TIP</span>
-                    <span className="text-[10px] font-normal text-[var(--mf-accent)] opacity-85">PHASE: LUTEAL</span>
-                  </div>
-                  <div className="size-10 rounded-full bg-white/50 dark:bg-black/20 flex items-center justify-center text-[var(--mf-accent)]">
-                    <Lightning size={20} weight="fill" />
-                  </div>
-                </div>
-
-                <div className="relative z-10">
-                  <h3 className="text-[15px] font-normal text-[var(--mf-text-strong)] mb-2 tracking-tight">Nurture your energy</h3>
-                  <p className="text-[13px] text-muted-foreground leading-relaxed opacity-90">
-                    Your body is working harder today. Prioritize magnesium-rich foods like dark chocolate or spinach to ease any pre-period tension.
-                  </p>
-                </div>
-
-                <div className="mt-5 pt-4 border-t border-[var(--mf-border)] flex items-center justify-between">
-                  <button className="text-[11px] font-normal text-[var(--mf-accent)] hover:underline">LEARN MORE</button>
-                  <button className="flex items-center gap-1.5 text-[11px] font-normal opacity-75 hover:opacity-100 transition-opacity">
-                    <Heart size={14} /> SAVE
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Daily Quiz rendered natively in the left column */}
-            <DailyQuiz />
-            
-            {/* Filler section to balance columns */}
-            <div className="flo-card flo-card--featured mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-700 bg-gradient-to-br from-amber-500/10 to-transparent border-amber-500/20 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="size-8 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-500">
-                    <Sparkle size={16} weight="fill" />
-                  </div>
-                  <h3 className="text-[15px] font-normal text-[var(--mf-text-strong)] tracking-tight">Partner Sync</h3>
-                </div>
-                <p className="text-[13px] text-muted-foreground leading-relaxed mt-1">
-                  Her energy levels might naturally dip in the coming days. Offering to handle dinner or a few extra chores can make a huge difference right now.
-                </p>
-              </div>
-              <div className="mt-4 pt-3 border-t border-[var(--mf-border)]">
-                <a 
-                  href={`sms:?body=${encodeURIComponent("Hey! Thinking of you. Let me know if you need anything, I can handle dinner or whatever else you need today. ❤️")}`}
-                  className="flex items-center justify-center gap-2 text-xs font-normal bg-amber-500 hover:bg-amber-600 text-white dark:bg-amber-600 dark:hover:bg-amber-700 py-2.5 px-4 rounded-xl transition-all duration-300 w-full active:scale-95"
-                >
-                  <Chat size={16} weight="fill" />
-                  Text Her Support
-                </a>
-              </div>
-            </div>
-          </>
+          <div className="mt-8">
+            {/* Daily Tip has been moved to the main Dashboard grid for better visibility */}
+          </div>
         )}
       </div>
 
