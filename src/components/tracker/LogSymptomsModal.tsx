@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import { SYMPTOM_DEFS, type SymptomCategory } from "@/data/symptomsData"
-import { Drop, Smiley, Pulse, Bed } from "@phosphor-icons/react"
+import { Drop, Smiley, Pulse, Bed, Check } from "@phosphor-icons/react"
 import { useStore } from "@/store/useStore"
 import { toast } from "sonner"
 
@@ -159,7 +159,9 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
                                ) : "text-muted-foreground/40"} />
                             </div>
                           )}
-                        </div>
+                          <span className="truncate">{s.label}</span>
+                          {isActive && <Check size={14} weight="bold" className="shrink-0" />}
+                        </button>
                       )
                     })}
                   </div>

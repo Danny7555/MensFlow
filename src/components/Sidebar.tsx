@@ -18,12 +18,15 @@ import {
   SidebarSimple,
   SignOut,
   Users,
+  Sparkle,
+  Check,
 } from '@phosphor-icons/react'
 import type { SectionId } from '../types/nav'
 import { cn } from '../lib/utils'
 import { useAuth } from '../context/useAuth'
 import { useStore } from '../store/useStore'
 import { computeCycleDay, getPhaseFromDay, getPhaseInfo } from '../lib/cycleUtils'
+import { usePartnerTranslation } from './dashboard/FeedSection'
 
 type NavIcon = ComponentType<IconProps>
 
@@ -77,6 +80,10 @@ export function Sidebar({
 }: SidebarProps) {
   const { onboardingCompleted, logout } = useAuth()
 
+  const handleCopyGesture = (text: string) => {
+    navigator.clipboard.writeText(text)
+  }
+
   const rawItems = isAuthenticated ? authItems : guestItems
   const items = rawItems.filter(item => {
     // If onboarding is not completed, only show the chat assistant
@@ -91,6 +98,7 @@ export function Sidebar({
   const cycleDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
   const phase = getPhaseFromDay(cycleDay)
   const phaseInfo = getPhaseInfo(phase)
+  const partnerTranslation = usePartnerTranslation(phase)
 
   return (
     <>
@@ -133,35 +141,66 @@ export function Sidebar({
         </div>
 
         {/* Empathy Widget */}
-        <div className={cn("px-3 mb-2 mt-4", collapsed && "px-2 text-center")}>
+        <div className={cn("px-4 mb-4 mt-4", collapsed && "px-2 text-center")}>
           <m.div 
             layout
             className={cn(
-              "flo-card transition-all duration-500 overflow-hidden !shadow-none !border-[var(--mf-border)] !bg-transparent",
-              collapsed ? "p-1" : "p-3"
+              "transition-all duration-500 overflow-hidden border border-[var(--mf-border)] bg-white dark:bg-white/5 rounded-[2rem]",
+              collapsed ? "p-2" : "py-5 px-6"
             )}
           >
-            <div className={cn("flex items-center gap-2.5", collapsed && "justify-center")}>
+            <div className={cn("flex items-center gap-4", collapsed && "justify-center")}>
               <div 
-                className="size-7 rounded-full flex items-center justify-center shrink-0 border border-border overflow-hidden bg-white/50"
+                className="size-12 rounded-full flex items-center justify-center shrink-0 border border-[var(--mf-border)] bg-white dark:bg-transparent shadow-sm"
               >
-                <img src="/images/star.png" alt="" className="size-4 object-contain animate-pulse" />
+                <Sparkle size={20} weight="fill" className="text-yellow-400" />
               </div>
               {!collapsed && (
                 <div className="flex flex-col min-w-0">
-                  <span className="text-[9px] font-normal uppercase tracking-[0.1em] text-muted-foreground">Partner</span>
-                  <span className="text-xs font-medium truncate text-[var(--mf-text-strong)]">{phaseInfo.label}</span>
+                  <span className="text-[10px] font-normal uppercase tracking-[0.15em] text-muted-foreground/50 mb-0.5">Partner</span>
+                  <span className="text-base font-normal truncate text-[var(--mf-text-strong)]">{phaseInfo.label}</span>
                 </div>
               )}
             </div>
             {!collapsed && (
-              <m.p 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-[10px] text-muted-foreground mt-2 leading-relaxed border-t pt-2 border-border/30 font-normal"
-              >
-                {phaseInfo.description}
-              </m.p>
+              <div className="mt-4">
+                <div className="h-[1px] w-full bg-[var(--mf-border)] opacity-30 mb-4" />
+                <m.p 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-[12px] text-muted-foreground/70 leading-relaxed font-normal mb-4"
+                >
+                  {phaseInfo.description}
+                </m.p>
+
+                <div className="space-y-4">
+                  <span className="text-[10px] font-normal text-muted-foreground/60 uppercase tracking-widest block">How you can support</span>
+                  <ul className="space-y-2.5">
+                    {partnerTranslation.tips.map((tip) => (
+                      <li key={tip} className="flex items-start gap-2.5">
+                        <Check size={14} className="text-[var(--mf-accent)] shrink-0 mt-0.5" weight="bold" /> 
+                        <span className="text-[11px] leading-snug text-[var(--mf-text-strong)] opacity-80">{tip}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-[var(--mf-border)]/50">
+                  <span className="text-[10px] font-normal text-muted-foreground/60 uppercase tracking-widest block mb-3">Quick Supportive Gestures</span>
+                  <div className="flex flex-col gap-2">
+                    {partnerTranslation.gestures.slice(0, 2).map((g) => (
+                      <button
+                        key={g.title}
+                        onClick={() => handleCopyGesture(g.text)}
+                        className="w-full px-3 py-2 rounded-xl bg-muted/30 text-[10px] font-normal text-[var(--mf-text-strong)] border border-border/40 hover:border-[var(--mf-accent-border)] transition-all flex items-center gap-2"
+                      >
+                        <g.Icon size={12} className={cn(g.color)} weight="bold" />
+                        <span className="truncate">{g.title}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
             )}
           </m.div>
         </div>
