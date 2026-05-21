@@ -72,7 +72,9 @@ function SymptomCategoryList({
               className={cn(
                 "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-all duration-300 cursor-pointer",
                 isActive
-                  ? "bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] border-[var(--mf-accent-border)] scale-[1.02]"
+                  ? (symptom.id === 'flow-medium' ? "bg-rose-100 text-rose-600 border-rose-300 scale-[1.02] dark:bg-rose-500/20 dark:text-rose-400 dark:border-rose-500/40" : 
+                     symptom.id === 'flow-heavy' ? "bg-red-100 text-red-700 border-red-400 scale-[1.02] dark:bg-red-500/30 dark:text-red-400 dark:border-red-500/50" : 
+                     "bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] border-[var(--mf-accent-border)] scale-[1.02]")
                   : "bg-card text-muted-foreground border-border hover:border-[var(--mf-accent-border)] hover:text-foreground"
               )}
             >
@@ -96,7 +98,11 @@ function SymptomCategoryList({
                 if (SYMPTOM_ICONS[symptom.id]) {
                   const Icon = SYMPTOM_ICONS[symptom.id]
                   return (
-                    <span className={cn(isActive ? "text-[var(--mf-accent)]" : "text-muted-foreground/60")}>
+                    <span className={cn(isActive ? (
+                      symptom.id === 'flow-medium' ? "text-rose-600 dark:text-rose-400" :
+                      symptom.id === 'flow-heavy' ? "text-red-700 dark:text-red-400" :
+                      "text-[var(--mf-accent)]"
+                    ) : "text-muted-foreground/60")}>
                       <Icon size={16} />
                     </span>
                   )

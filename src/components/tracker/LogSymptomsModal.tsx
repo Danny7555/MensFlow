@@ -116,7 +116,9 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
                           className={cn(
                             "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 border",
                             isActive 
-                              ? "bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] border-[var(--mf-accent-border)] scale-[1.02]" 
+                              ? (s.id === 'flow-medium' ? "bg-rose-100 text-rose-600 border-rose-300 scale-[1.02] dark:bg-rose-500/20 dark:text-rose-400 dark:border-rose-500/40" : 
+                                 s.id === 'flow-heavy' ? "bg-red-100 text-red-700 border-red-400 scale-[1.02] dark:bg-red-500/30 dark:text-red-400 dark:border-red-500/50" : 
+                                 "bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] border-[var(--mf-accent-border)] scale-[1.02]") 
                               : "bg-card text-muted-foreground border-border hover:border-[var(--mf-accent-border)] hover:text-foreground"
                           )}
                         >
@@ -124,7 +126,11 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
                             <img src={imgSrc} alt="" className="size-6 rounded-full object-cover" />
                           ) : (
                             <div className={cn("size-6 rounded-full flex items-center justify-center bg-muted/50")}>
-                               <cat.icon size={14} className={isActive ? "text-[var(--mf-accent)]" : "text-muted-foreground/40"} />
+                               <cat.icon size={14} className={isActive ? (
+                                  s.id === 'flow-medium' ? "text-rose-600 dark:text-rose-400" :
+                                  s.id === 'flow-heavy' ? "text-red-700 dark:text-red-400" :
+                                  "text-[var(--mf-accent)]"
+                               ) : "text-muted-foreground/40"} />
                             </div>
                           )}
                           {s.label}
