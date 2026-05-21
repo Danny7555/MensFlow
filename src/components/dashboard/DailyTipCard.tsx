@@ -5,11 +5,10 @@ import { Check, Plus, Heart } from "@phosphor-icons/react"
 interface DailyTipCardProps {
   tipCompleted: boolean
   setTipCompleted: (completed: boolean) => void
-  tipOfTheDay: string
   variants?: Variants
 }
 
-export function DailyTipCard({ tipCompleted, setTipCompleted, tipOfTheDay, variants }: DailyTipCardProps) {
+export function DailyTipCard({ tipCompleted, setTipCompleted, variants }: DailyTipCardProps) {
   return (
     <m.div 
       variants={variants}

@@ -1,17 +1,13 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client"
 
-import { useState, useMemo, useReducer, useEffect } from 'react'
-import { m, AnimatePresence } from 'framer-motion'
+import {useMemo, useReducer } from 'react'
+
 import { 
   CaretDown, 
   CaretRight, 
   Info, 
-  Lightning, 
-  Heart, 
-  Plus, 
-  Check, 
-  CalendarBlank 
+  
 } from '@phosphor-icons/react'
 import { format, addDays, startOfDay } from 'date-fns'
 
