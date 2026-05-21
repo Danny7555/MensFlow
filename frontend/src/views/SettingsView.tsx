@@ -16,10 +16,14 @@ import {
   UsersThree,
   UserCircle,
   CaretRight,
+<<<<<<< HEAD
   Link,
   Lock,
   LockKey,
   Info
+=======
+  Link
+>>>>>>> 338986d (feat: implement password-protected locked chats feature with dedicated security settings and view)
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import {
