@@ -16,7 +16,10 @@ import {
   UsersThree,
   UserCircle,
   CaretRight,
-  Link
+  Link,
+  Lock,
+  LockKey,
+  Info
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import {
