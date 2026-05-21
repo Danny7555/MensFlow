@@ -26,9 +26,9 @@ function welcomeMessage(): Msg {
   }
 }
 
-function loadStoredMessages(): Msg[] | null {
+function loadStoredMessages(key: string): Msg[] | null {
   try {
-    const raw = localStorage.getItem(CHAT_STORAGE_KEY)
+    const raw = localStorage.getItem(key)
     if (!raw) return null
     const data = JSON.parse(raw) as { messages?: Msg[] }
     if (!Array.isArray(data.messages) || data.messages.length === 0)
@@ -43,17 +43,25 @@ function loadStoredMessages(): Msg[] | null {
   }
 }
 
-export function ChatView() {
+type ChatViewProps = {
+  storageKey?: string
+  clearEventName?: string
+}
+
+export function ChatView({
+  storageKey = CHAT_STORAGE_KEY,
+  clearEventName = CLEAR_LOCAL_CHATS_EVENT,
+}: ChatViewProps = {}) {
   const { temporaryChat } = useChatSession()
   const {
-    settings: { chatPersistLocal, chatShowTimestamps },
+    settings: { chatPersistLocal, chatShowTimestamps, privacyChatHidden },
   } = useSettings()
 
   const persistToDisk = chatPersistLocal && !temporaryChat
 
   const [messages, setMessages] = useState<Msg[]>(() => {
     if (temporaryChat) return []
-    return loadStoredMessages() ?? []
+    return loadStoredMessages(storageKey) ?? []
   })
 
   const [draft, setDraft] = useState('')
@@ -79,18 +87,18 @@ export function ChatView() {
 
   useEffect(() => {
     const onClear = () => setMessages([welcomeMessage()])
-    window.addEventListener(CLEAR_LOCAL_CHATS_EVENT, onClear)
-    return () => window.removeEventListener(CLEAR_LOCAL_CHATS_EVENT, onClear)
-  }, [])
+    window.addEventListener(clearEventName, onClear)
+    return () => window.removeEventListener(clearEventName, onClear)
+  }, [clearEventName])
 
   useEffect(() => {
     if (!persistToDisk) return
     try {
-      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify({ messages }))
+      localStorage.setItem(storageKey, JSON.stringify({ messages }))
     } catch {
       /* quota */
     }
-  }, [messages, persistToDisk])
+  }, [messages, persistToDisk, storageKey])
 
   const fmtTime = (t: number) =>
     new Date(t).toLocaleTimeString(undefined, {
@@ -194,7 +202,7 @@ export function ChatView() {
                     </time>
                   )}
                 </span>
-                <p className="chat-text">{m.text}</p>
+                <p className={`chat-text ${privacyChatHidden ? 'blur-md select-none opacity-50 transition-all duration-300' : ''}`}>{m.text}</p>
               </div>
             ))}
           </div>

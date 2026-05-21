@@ -32,10 +32,13 @@ import type {
   AccentPreset,
   ContrastMode,
   ThemeMode,
+  MensFlowSettings,
 } from '../context/settings-types'
 import {
   CHAT_STORAGE_KEY,
   CLEAR_LOCAL_CHATS_EVENT,
+  LOCKED_CHAT_STORAGE_KEY,
+  CLEAR_LOCKED_CHATS_EVENT,
   SETTINGS_STORAGE_KEY,
 } from '../lib/constants'
 
@@ -287,6 +290,118 @@ function MfaSetupModal({ trigger }: { trigger: ReactNode }) {
   )
 }
 
+function LockedChatSetupModal({ trigger, settings, updateSettings }: { trigger: ReactNode, settings: MensFlowSettings, updateSettings: any }) {
+  const [open, setOpen] = useState(false)
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [error, setError] = useState('')
+
+  const isEnabled = !!settings.chatLockPassword
+
+  const handleSave = () => {
+    if (!isEnabled) {
+      if (password.length < 4) {
+        setError('Password must be at least 4 characters')
+        return
+      }
+      if (password !== confirmPassword) {
+        setError('Passwords do not match')
+        return
+      }
+      updateSettings({ chatLockPassword: password })
+      setOpen(false)
+    } else {
+      if (currentPassword !== settings.chatLockPassword) {
+        setError('Incorrect current password')
+        return
+      }
+      if (window.confirm('Turn off Locked Chats? This will delete your locked chat history.')) {
+        updateSettings({ chatLockPassword: null })
+        localStorage.removeItem(LOCKED_CHAT_STORAGE_KEY)
+        window.dispatchEvent(new Event(CLEAR_LOCKED_CHATS_EVENT))
+        setOpen(false)
+      }
+    }
+  }
+
+  const reset = () => {
+    setPassword('')
+    setConfirmPassword('')
+    setCurrentPassword('')
+    setError('')
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(val) => {
+      setOpen(val)
+      if (!val) reset()
+    }}>
+      <DialogTrigger asChild>
+        {trigger}
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[420px] bg-card border-border p-6">
+        <DialogHeader className="mb-4">
+          <DialogTitle className="text-xl font-medium">
+            {isEnabled ? 'Turn off Locked Chats' : 'Set up Locked Chats'}
+          </DialogTitle>
+          <DialogDescription>
+            {isEnabled 
+              ? 'Enter your password to disable Locked Chats. Your hidden messages will be permanently deleted.'
+              : 'Create a password to secure your hidden chats. If you forget this password, you will have to clear your locked chats to reset it.'}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          {isEnabled ? (
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-muted-foreground">Current Password</label>
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => { setCurrentPassword(e.target.value); setError(''); }}
+                className={`w-full h-10 px-3 rounded-lg bg-muted border ${error ? 'border-red-500' : 'border-border'} outline-none`}
+                placeholder="Enter current password"
+              />
+            </div>
+          ) : (
+            <>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">New Password</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); setError(''); }}
+                  className={`w-full h-10 px-3 rounded-lg bg-muted border ${error ? 'border-red-500' : 'border-border'} outline-none`}
+                  placeholder="Enter a password"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">Confirm Password</label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => { setConfirmPassword(e.target.value); setError(''); }}
+                  className={`w-full h-10 px-3 rounded-lg bg-muted border ${error ? 'border-red-500' : 'border-border'} outline-none`}
+                  placeholder="Confirm password"
+                />
+              </div>
+            </>
+          )}
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+        </div>
+
+        <DialogFooter className="mt-6">
+          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant={isEnabled ? 'destructive' : 'default'} onClick={handleSave}>
+            {isEnabled ? 'Turn Off & Delete' : 'Enable Locked Chats'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 function MfaBanner() {
   const [hidden, setHidden] = useState(
     () => sessionStorage.getItem('mensflow-mfa-dismiss') === '1',
@@ -516,6 +631,12 @@ export function SettingsView({
             onChange={(v) => updateSettings({ chatShowTimestamps: v })}
           />
           <ToggleRow
+            label="Hide chat messages"
+            description="Obscures chat text for privacy when sharing your screen or in public."
+            checked={settings.privacyChatHidden}
+            onChange={(v) => updateSettings({ privacyChatHidden: v })}
+          />
+          <ToggleRow
             label="New sessions start as temporary chat"
             description="When on, signing in opens ephemeral chats until you switch to saved chat in the header."
             checked={settings.privacyDefaultTemporaryChat}
@@ -660,6 +781,23 @@ export function SettingsView({
               trigger={
                 <Button variant="outline" className="rounded-xl">
                   Set up
+                </Button>
+              }
+            />
+          </div>
+          <div className="settings-field-row border-b border-border/50 pb-6 mb-6">
+            <div className="settings-field-text">
+              <span className="settings-field-label">Locked Chats</span>
+              <p className="settings-field-desc">
+                {settings.chatLockPassword ? 'Locked Chats is currently enabled.' : 'Set up a password to hide private conversations.'}
+              </p>
+            </div>
+            <LockedChatSetupModal 
+              settings={settings}
+              updateSettings={updateSettings}
+              trigger={
+                <Button variant="outline" className="rounded-xl">
+                  {settings.chatLockPassword ? 'Manage' : 'Set up'}
                 </Button>
               }
             />

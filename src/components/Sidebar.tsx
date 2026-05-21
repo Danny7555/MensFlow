@@ -17,7 +17,9 @@ import {
   Sparkle,
   X,
   SidebarSimple,
+  LockKey,
 } from '@phosphor-icons/react'
+import { useSettings } from '../context/useSettings'
 import type { SectionId } from '../types/nav'
 import { cn } from '../lib/utils'
 
@@ -69,6 +71,7 @@ export function Sidebar({
 }: SidebarProps) {
   const location = useLocation()
   const isDashboard = location.pathname === '/' || location.pathname.startsWith('/dashboard')
+  const { settings } = useSettings()
 
   const rawItems = isAuthenticated ? authItems : guestItems
   const items = rawItems.filter(item => {
@@ -76,6 +79,14 @@ export function Sidebar({
     if (!isAuthenticated && (item.id === 'settings' || item.id === 'dashboard') && !isDashboard) return false
     return true
   })
+
+  // Add Locked Chats if activated
+  if (isAuthenticated && settings.chatLockPassword) {
+    const askIndex = items.findIndex(i => i.id === 'ask')
+    if (askIndex !== -1) {
+      items.splice(askIndex + 1, 0, { id: 'locked-chats', label: 'Locked Chats', Icon: LockKey })
+    }
+  }
 
   const collapsed = !isMobile && desktopCollapsed
   const navIconSize = collapsed ? 22 : 20

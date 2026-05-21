@@ -24,6 +24,8 @@ export type MensFlowSettings = {
   chatPersistLocal: boolean
   chatEnterToSend: boolean
   chatShowTimestamps: boolean
+  privacyChatHidden: boolean
+  chatLockPassword: string | null
   cycleAvgLengthDays: number
   cycleShowFertileWindow: boolean
 }
@@ -46,6 +48,8 @@ export const DEFAULT_SETTINGS: MensFlowSettings = {
   chatPersistLocal: true,
   chatEnterToSend: true,
   chatShowTimestamps: false,
+  privacyChatHidden: false,
+  chatLockPassword: null,
   cycleAvgLengthDays: 28,
   cycleShowFertileWindow: true,
 }

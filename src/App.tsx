@@ -11,6 +11,7 @@ import { LandingView } from './views/LandingView'
 import { PlaceholderView } from './views/PlaceholderView'
 import { SettingsView } from './views/SettingsView'
 import { CalendarView } from './views/CalendarView'
+import { LockedChatView } from './views/LockedChatView'
 import { TrackerView } from './views/TrackerView'
 import { Toaster } from 'sonner'
 import { SymptomsView } from './views/SymptomsView'
@@ -146,6 +147,7 @@ function MainShell() {
                   <Route path="/onboarding" element={<OnboardingView />} />
                   <Route path="/dashboard" element={<DashboardView />} />
                   <Route path="/ask" element={<ChatView />} />
+                  <Route path="/locked-chats" element={<LockedChatView />} />
                   <Route path="/settings" element={<SettingsView onLogout={handleLogout} />} />
                   <Route path="/insights" element={<InsightsView />} />
                   <Route path="/health-insights" element={<Navigate to="/insights" replace />} />
