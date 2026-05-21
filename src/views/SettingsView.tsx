@@ -1,7 +1,8 @@
 import type { ComponentType, ReactNode } from 'react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useStore } from '../store/useStore'
-import {
+import { SettingsSkeleton } from '../components/skeletons/SettingsSkeleton'
+import { 
   ArrowCounterClockwise,
   Bell,
   Database,
@@ -15,7 +16,9 @@ import {
   UsersThree,
   UserCircle,
   CaretRight,
+  Link
 } from '@phosphor-icons/react'
+import { toast } from 'sonner'
 import { 
   Dialog, 
   DialogContent, 
@@ -27,7 +30,6 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { useQueryState, parseAsStringLiteral } from 'nuqs'
-import { useSettings } from '../context/useSettings'
 import type {
   AccentPreset,
   ContrastMode,
@@ -228,7 +230,7 @@ function MfaSetupModal({ trigger }: { trigger: ReactNode }) {
                 </div>
               )}
               <Button className="w-full rounded-xl py-6" onClick={() => setStep('verify')}>
-                Continue
+                Continue to verification
               </Button>
             </div>
           )}
@@ -276,7 +278,7 @@ function MfaSetupModal({ trigger }: { trigger: ReactNode }) {
               </div>
               <DialogFooter className="w-full mt-4">
                 <Button className="w-full rounded-xl py-6" variant="outline">
-                  Done
+                  Finish setup
                 </Button>
               </DialogFooter>
             </div>
@@ -325,6 +327,395 @@ function MfaBanner() {
   )
 }
 
+function GeneralPanel({
+  isGuest,
+  settings,
+  updateSettings,
+}: {
+  isGuest: boolean
+  settings: any
+  updateSettings: (s: any) => void
+}) {
+  const setTheme = (themeMode: ThemeMode) => updateSettings({ themeMode })
+  return (
+    <>
+      {!isGuest && <MfaBanner />}
+      <SelectRow
+        label="Appearance"
+        value={settings.themeMode}
+        onChange={(v) => setTheme(v as ThemeMode)}
+        options={[
+          { value: 'light', label: 'Light' },
+          { value: 'dark', label: 'Dark' },
+          { value: 'system', label: 'System' },
+        ]}
+      />
+      <SelectRow
+        label="Contrast"
+        value={settings.contrastMode}
+        onChange={(v) => updateSettings({ contrastMode: v as ContrastMode })}
+        options={[
+          { value: 'system', label: 'System' },
+          { value: 'standard', label: 'Standard' },
+        ]}
+      />
+      <SelectRow
+        label="Accent color"
+        value={settings.accentPreset}
+        onChange={(v) => updateSettings({ accentPreset: v as AccentPreset })}
+        options={[
+          { value: 'default', label: 'Default' },
+          { value: 'orchid', label: 'Orchid' },
+          { value: 'ocean', label: 'Ocean' },
+        ]}
+      />
+      <SelectRow
+        label="Language"
+        value={settings.languageUi}
+        onChange={(v) =>
+          updateSettings({ languageUi: v as 'auto' | 'en' })
+        }
+        options={[
+          { value: 'auto', label: 'Auto-detect' },
+          { value: 'en', label: 'English' },
+        ]}
+      />
+      <ToggleRow
+        label="Enable dictation"
+        description="Use dictation in the chat composer."
+        checked={settings.enableDictation}
+        onChange={(v) => updateSettings({ enableDictation: v })}
+      />
+      <SelectRow
+        label="Spoken language"
+        value={settings.spokenLanguage}
+        onChange={(v) =>
+          updateSettings({ spokenLanguage: v as 'auto' | 'en-US' })
+        }
+        options={[
+          { value: 'auto', label: 'Auto-detect' },
+          { value: 'en-US', label: 'English (US)' },
+        ]}
+      />
+      <ToggleRow
+        label="Collapsed sidebar (desktop)"
+        description="Use a slim icon rail, expand anytime with the header menu."
+        checked={settings.sidebarCollapsed}
+        onChange={(v) => updateSettings({ sidebarCollapsed: v })}
+      />
+      <ToggleRow
+        label="Enter sends message"
+        description="Off uses ⌘/Ctrl+Enter to send and Enter for a new line."
+        checked={settings.chatEnterToSend}
+        onChange={(v) => updateSettings({ chatEnterToSend: v })}
+      />
+      <ToggleRow
+        label="Remember chats on this device"
+        description="Stores transcripts in your browser when not in a temporary chat."
+        checked={settings.chatPersistLocal}
+        onChange={(v) => updateSettings({ chatPersistLocal: v })}
+      />
+      <ToggleRow
+        label="Show timestamps"
+        checked={settings.chatShowTimestamps}
+        onChange={(v) => updateSettings({ chatShowTimestamps: v })}
+      />
+      <ToggleRow
+        label="New sessions start as temporary chat"
+        description="When on, signing in opens ephemeral chats until you switch to saved chat in the header."
+        checked={settings.privacyDefaultTemporaryChat}
+        onChange={(v) => updateSettings({ privacyDefaultTemporaryChat: v })}
+      />
+
+      {/* Partner Connection Settings */}
+      <div className="mt-8 pt-6 border-t border-[var(--mf-border)]">
+        <span className="text-xs font-semibold text-[var(--mf-text-strong)] uppercase tracking-wider block mb-1">Partner Connection</span>
+        <p className="text-xs text-muted-foreground mb-4">
+          Copy this secure sync link and send it to your partner. When they open it on their phone, they can report their current energy level or symptoms to update your dashboard in real-time.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              const syncUrl = window.location.origin + '/sync'
+              navigator.clipboard.writeText(syncUrl)
+              toast.success("Sync link copied!", {
+                description: "Send this link to your partner so they can sync with your dashboard."
+              })
+            }}
+            className="flex items-center justify-center gap-2 text-xs font-semibold bg-[var(--mf-accent)] text-white hover:opacity-90 py-2.5 px-4 rounded-xl transition-all duration-300 active:scale-95 w-fit"
+          >
+            <Link size={16} weight="bold" />
+            <span>Copy Partner Check-In Link</span>
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}
+
+function NotificationsPanel({
+  settings,
+  updateSettings,
+}: {
+  settings: any
+  updateSettings: (s: any) => void
+}) {
+  return (
+    <>
+      <p className="settings-panel-intro">
+        Preferences only, connect push/email providers when your backend is ready.
+      </p>
+      <ToggleRow
+        label="Cycle & wellness reminders"
+        checked={settings.notificationsCycleReminders}
+        onChange={(v) => updateSettings({ notificationsCycleReminders: v })}
+      />
+      <ToggleRow
+        label="Push-style alerts (device)"
+        checked={settings.notificationsPush}
+        onChange={(v) => updateSettings({ notificationsPush: v })}
+      />
+      <ToggleRow
+        label="Email digest"
+        checked={settings.notificationsEmail}
+        onChange={(v) => updateSettings({ notificationsEmail: v })}
+      />
+      <ToggleRow
+        label="Product tips & surveys"
+        checked={settings.notificationsProduct}
+        onChange={(v) => updateSettings({ notificationsProduct: v })}
+      />
+    </>
+  )
+}
+
+function PersonalizationPanel({
+  settings,
+  updateSettings,
+}: {
+  settings: any
+  updateSettings: (s: any) => void
+}) {
+  return (
+    <>
+      <p className="settings-panel-intro">
+        Cycle modeling used for insights until your tracker has enough history.
+      </p>
+      <div className="settings-slider-row">
+        <label htmlFor="cycle-length" className="settings-field-label">
+          Average cycle length
+        </label>
+        <div className="settings-slider-val">{settings.cycleAvgLengthDays} days</div>
+        <input
+          id="cycle-length"
+          type="range"
+          min={21}
+          max={45}
+          value={settings.cycleAvgLengthDays}
+          onChange={(e) =>
+            updateSettings({ cycleAvgLengthDays: Number(e.target.value) })
+          }
+          className="settings-range"
+        />
+      </div>
+      <ToggleRow
+        label="Show fertile window hints"
+        checked={settings.cycleShowFertileWindow}
+        onChange={(v) => updateSettings({ cycleShowFertileWindow: v })}
+      />
+    </>
+  )
+}
+
+function AppsPanel() {
+  return (
+    <div className="settings-placeholder-block">
+      <TreeStructure size={40} weight="duotone" aria-hidden />
+      <p className="settings-placeholder-title">Apps & connectors</p>
+      <p className="settings-placeholder-desc">
+        Calendar sync, wearables, and health exports will plug in here, same pattern as ChatGPT's Apps tab.
+      </p>
+    </div>
+  )
+}
+
+function DataControlsPanel({
+  settings,
+  updateSettings,
+  exportBundle,
+  confirmClearChats,
+  confirmResetSettings,
+  confirmResetApp,
+  confirmWipeLocalData,
+}: {
+  settings: any
+  updateSettings: (s: any) => void
+  exportBundle: () => void
+  confirmClearChats: () => void
+  confirmResetSettings: () => void
+  confirmResetApp: () => void
+  confirmWipeLocalData: () => void
+}) {
+  return (
+    <>
+      <ToggleRow
+        label="Share anonymous analytics"
+        description="Help improve MensFlow with crash and usage metrics."
+        checked={settings.privacyShareAnalytics}
+        onChange={(v) => updateSettings({ privacyShareAnalytics: v })}
+      />
+      <p className="settings-panel-intro">
+        Export or delete data stored locally in this browser.
+      </p>
+      <div className="settings-actions settings-actions--stack">
+        <button type="button" className="btn btn-secondary" onClick={exportBundle}>
+          <DownloadSimple size={18} aria-hidden />
+          Export JSON
+        </button>
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={confirmClearChats}
+        >
+          <Trash size={18} aria-hidden />
+          Clear local chats
+        </button>
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={confirmResetSettings}
+        >
+          <ArrowCounterClockwise size={18} aria-hidden />
+          Reset preferences
+        </button>
+        <button
+          type="button"
+          className="btn btn-ghost danger"
+          onClick={confirmResetApp}
+        >
+          Erase all MensFlow health data
+        </button>
+        <button
+          type="button"
+          className="btn btn-ghost danger"
+          onClick={confirmWipeLocalData}
+        >
+          Erase local MensFlow data
+        </button>
+      </div>
+    </>
+  )
+}
+
+function SecurityPanel() {
+  return (
+    <>
+      <div className="settings-field-row border-b border-border/50 pb-6 mb-6">
+        <div className="settings-field-text">
+          <span className="settings-field-label">Multi-factor authentication (MFA)</span>
+          <p className="settings-field-desc">
+            Require a second step to sign in to your MensFlow account.
+          </p>
+        </div>
+        <MfaSetupModal 
+          trigger={
+            <Button variant="outline" className="rounded-xl">
+              Set up
+            </Button>
+          }
+        />
+      </div>
+      <div className="settings-placeholder-block opacity-60">
+        <ShieldCheck size={40} weight="duotone" aria-hidden />
+        <p className="settings-placeholder-title">Login history</p>
+        <p className="settings-placeholder-desc">
+          Active sessions and device history will be visible here once your account is connected to the cloud.
+        </p>
+      </div>
+    </>
+  )
+}
+
+function ParentalPanel() {
+  return (
+    <div className="settings-placeholder-block">
+      <UsersThree size={40} weight="duotone" aria-hidden />
+      <p className="settings-placeholder-title">Parental controls</p>
+      <p className="settings-placeholder-desc">
+        Age gates and guardian-managed accounts can be enforced here for younger users.
+      </p>
+    </div>
+  )
+}
+
+function AccountPanel({
+  isGuest,
+  user,
+  updateUser,
+  onLogin,
+  onLogout,
+}: {
+  isGuest: boolean
+  user: any
+  updateUser: (u: any) => void
+  onLogin?: () => void
+  onLogout?: () => void
+}) {
+  return (
+    <>
+      {isGuest ? (
+        <div className="settings-placeholder-block settings-placeholder-block--left">
+          <UserCircle size={40} weight="duotone" aria-hidden />
+          <p className="settings-placeholder-title">You&apos;re signed out</p>
+          <p className="settings-placeholder-desc">
+            Sign in to sync chats and trackers across devices when backend auth ships.
+          </p>
+          {onLogin && (
+            <button type="button" className="btn btn-primary" onClick={onLogin}>
+              Open sign in
+            </button>
+          )}
+        </div>
+      ) : (
+        <>
+          <div className="settings-account-summary items-start">
+            <UserCircle size={36} weight="duotone" aria-hidden className="mt-2" />
+            <div className="flex-1 w-full max-w-sm space-y-4">
+              <div className="space-y-1.5">
+                <label htmlFor="user-name-input" className="text-xs font-medium uppercase tracking-widest text-muted-foreground ml-1">Your Name</label>
+                <input 
+                  id="user-name-input"
+                  type="text"
+                  value={user?.name ?? ''}
+                  onChange={(e) => updateUser({ name: e.target.value })}
+                  className="w-full h-12 px-4 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-1 focus:ring-[var(--mf-accent)] transition-all outline-none text-base font-medium"
+                  placeholder="Enter your name"
+                />
+              </div>
+              <p className="settings-account-email ml-1">session@mensflow.local</p>
+            </div>
+          </div>
+
+          <section className="settings-logout-card" aria-labelledby="logout-heading">
+            <h3 id="logout-heading" className="settings-logout-title">
+              Sign out
+            </h3>
+            <p className="settings-logout-desc">
+              Ends this demo session on this device. Saved chats stay in the browser until you clear them under Data controls.
+            </p>
+            {onLogout && (
+              <button type="button" className="btn btn-logout" onClick={onLogout}>
+                Log out
+              </button>
+            )}
+          </section>
+        </>
+      )}
+    </>
+  )
+}
+
 type SettingsViewProps = {
   isGuest?: boolean
   onLogin?: () => void
@@ -342,8 +733,7 @@ export function SettingsView({
       .withDefault('general')
       .withOptions({ shallow: false })
   )
-  const { settings, updateSettings, resetSettings } = useSettings()
-  const { user, updateUser, resetStore } = useStore()
+  const { settings, updateSettings, resetSettings, user, updateUser, resetStore } = useStore()
 
   const confirmResetApp = () => {
     if (window.confirm('Delete all symptom logs, cycle data, and health settings? This cannot be undone.')) {
@@ -355,8 +745,6 @@ export function SettingsView({
       window.location.reload()
     }
   }
-
-  const setTheme = (themeMode: ThemeMode) => updateSettings({ themeMode })
 
   const exportBundle = () => {
     const readChatSnapshot = (): unknown => {
@@ -433,314 +821,75 @@ export function SettingsView({
   switch (cat) {
     case 'general':
       panel = (
-        <>
-          {!isGuest && <MfaBanner />}
-          <SelectRow
-            label="Appearance"
-            value={settings.themeMode}
-            onChange={(v) => setTheme(v as ThemeMode)}
-            options={[
-              { value: 'light', label: 'Light' },
-              { value: 'dark', label: 'Dark' },
-              { value: 'system', label: 'System' },
-            ]}
-          />
-          <SelectRow
-            label="Contrast"
-            value={settings.contrastMode}
-            onChange={(v) => updateSettings({ contrastMode: v as ContrastMode })}
-            options={[
-              { value: 'system', label: 'System' },
-              { value: 'standard', label: 'Standard' },
-            ]}
-          />
-          <SelectRow
-            label="Accent color"
-            value={settings.accentPreset}
-            onChange={(v) => updateSettings({ accentPreset: v as AccentPreset })}
-            options={[
-              { value: 'default', label: 'Default' },
-              { value: 'orchid', label: 'Orchid' },
-              { value: 'ocean', label: 'Ocean' },
-            ]}
-          />
-          <SelectRow
-            label="Language"
-            value={settings.languageUi}
-            onChange={(v) =>
-              updateSettings({ languageUi: v as 'auto' | 'en' })
-            }
-            options={[
-              { value: 'auto', label: 'Auto-detect' },
-              { value: 'en', label: 'English' },
-            ]}
-          />
-          <ToggleRow
-            label="Enable dictation"
-            description="Use dictation in the chat composer."
-            checked={settings.enableDictation}
-            onChange={(v) => updateSettings({ enableDictation: v })}
-          />
-          <SelectRow
-            label="Spoken language"
-            value={settings.spokenLanguage}
-            onChange={(v) =>
-              updateSettings({ spokenLanguage: v as 'auto' | 'en-US' })
-            }
-            options={[
-              { value: 'auto', label: 'Auto-detect' },
-              { value: 'en-US', label: 'English (US)' },
-            ]}
-          />
-          <ToggleRow
-            label="Collapsed sidebar (desktop)"
-            description="Use a slim icon rail — expand anytime with the header menu."
-            checked={settings.sidebarCollapsed}
-            onChange={(v) => updateSettings({ sidebarCollapsed: v })}
-          />
-          <ToggleRow
-            label="Enter sends message"
-            description="Off uses ⌘/Ctrl+Enter to send and Enter for a new line."
-            checked={settings.chatEnterToSend}
-            onChange={(v) => updateSettings({ chatEnterToSend: v })}
-          />
-          <ToggleRow
-            label="Remember chats on this device"
-            description="Stores transcripts in your browser when not in a temporary chat."
-            checked={settings.chatPersistLocal}
-            onChange={(v) => updateSettings({ chatPersistLocal: v })}
-          />
-          <ToggleRow
-            label="Show timestamps"
-            checked={settings.chatShowTimestamps}
-            onChange={(v) => updateSettings({ chatShowTimestamps: v })}
-          />
-          <ToggleRow
-            label="New sessions start as temporary chat"
-            description="When on, signing in opens ephemeral chats until you switch to saved chat in the header."
-            checked={settings.privacyDefaultTemporaryChat}
-            onChange={(v) => updateSettings({ privacyDefaultTemporaryChat: v })}
-          />
-        </>
+        <GeneralPanel 
+          isGuest={!!isGuest} 
+          settings={settings} 
+          updateSettings={updateSettings} 
+        />
       )
       break
     case 'notifications':
       panel = (
-        <>
-          <p className="settings-panel-intro">
-            Preferences only — connect push/email providers when your backend is ready.
-          </p>
-          <ToggleRow
-            label="Cycle & wellness reminders"
-            checked={settings.notificationsCycleReminders}
-            onChange={(v) => updateSettings({ notificationsCycleReminders: v })}
-          />
-          <ToggleRow
-            label="Push-style alerts (device)"
-            checked={settings.notificationsPush}
-            onChange={(v) => updateSettings({ notificationsPush: v })}
-          />
-          <ToggleRow
-            label="Email digest"
-            checked={settings.notificationsEmail}
-            onChange={(v) => updateSettings({ notificationsEmail: v })}
-          />
-          <ToggleRow
-            label="Product tips & surveys"
-            checked={settings.notificationsProduct}
-            onChange={(v) => updateSettings({ notificationsProduct: v })}
-          />
-        </>
+        <NotificationsPanel 
+          settings={settings} 
+          updateSettings={updateSettings} 
+        />
       )
       break
     case 'personalization':
       panel = (
-        <>
-          <p className="settings-panel-intro">
-            Cycle modeling used for insights until your tracker has enough history.
-          </p>
-          <div className="settings-slider-row">
-            <label htmlFor="cycle-length" className="settings-field-label">
-              Average cycle length
-            </label>
-            <div className="settings-slider-val">{settings.cycleAvgLengthDays} days</div>
-            <input
-              id="cycle-length"
-              type="range"
-              min={21}
-              max={45}
-              value={settings.cycleAvgLengthDays}
-              onChange={(e) =>
-                updateSettings({ cycleAvgLengthDays: Number(e.target.value) })
-              }
-              className="settings-range"
-            />
-          </div>
-          <ToggleRow
-            label="Show fertile window hints"
-            checked={settings.cycleShowFertileWindow}
-            onChange={(v) => updateSettings({ cycleShowFertileWindow: v })}
-          />
-        </>
+        <PersonalizationPanel 
+          settings={settings} 
+          updateSettings={updateSettings} 
+        />
       )
       break
     case 'apps':
-      panel = (
-        <div className="settings-placeholder-block">
-          <TreeStructure size={40} weight="duotone" aria-hidden />
-          <p className="settings-placeholder-title">Apps & connectors</p>
-          <p className="settings-placeholder-desc">
-            Calendar sync, wearables, and health exports will plug in here — same pattern as ChatGPT&apos;s Apps tab.
-          </p>
-        </div>
-      )
+      panel = <AppsPanel />
       break
     case 'data_controls':
       panel = (
-        <>
-          <ToggleRow
-            label="Share anonymous analytics"
-            description="Help improve MensFlow with crash and usage metrics."
-            checked={settings.privacyShareAnalytics}
-            onChange={(v) => updateSettings({ privacyShareAnalytics: v })}
-          />
-          <p className="settings-panel-intro">
-            Export or delete data stored locally in this browser.
-          </p>
-          <div className="settings-actions settings-actions--stack">
-            <button type="button" className="btn btn-secondary" onClick={exportBundle}>
-              <DownloadSimple size={18} aria-hidden />
-              Export JSON
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={confirmClearChats}
-            >
-              <Trash size={18} aria-hidden />
-              Clear local chats
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={confirmResetSettings}
-            >
-              <ArrowCounterClockwise size={18} aria-hidden />
-              Reset preferences
-            </button>
-            <button
-              type="button"
-              className="btn btn-ghost danger"
-              onClick={confirmResetApp}
-            >
-              Erase all MensFlow health data
-            </button>
-            <button
-              type="button"
-              className="btn btn-ghost danger"
-              onClick={confirmWipeLocalData}
-            >
-              Erase local MensFlow data
-            </button>
-          </div>
-        </>
+        <DataControlsPanel
+          settings={settings}
+          updateSettings={updateSettings}
+          exportBundle={exportBundle}
+          confirmClearChats={confirmClearChats}
+          confirmResetSettings={confirmResetSettings}
+          confirmResetApp={confirmResetApp}
+          confirmWipeLocalData={confirmWipeLocalData}
+        />
       )
       break
     case 'security':
-      panel = (
-        <>
-          <div className="settings-field-row border-b border-border/50 pb-6 mb-6">
-            <div className="settings-field-text">
-              <span className="settings-field-label">Multi-factor authentication (MFA)</span>
-              <p className="settings-field-desc">
-                Require a second step to sign in to your MensFlow account.
-              </p>
-            </div>
-            <MfaSetupModal 
-              trigger={
-                <Button variant="outline" className="rounded-xl">
-                  Set up
-                </Button>
-              }
-            />
-          </div>
-          <div className="settings-placeholder-block opacity-60">
-            <ShieldCheck size={40} weight="duotone" aria-hidden />
-            <p className="settings-placeholder-title">Login history</p>
-            <p className="settings-placeholder-desc">
-              Active sessions and device history will be visible here once your account is connected to the cloud.
-            </p>
-          </div>
-        </>
-      )
+      panel = <SecurityPanel />
       break
     case 'parental':
-      panel = (
-        <div className="settings-placeholder-block">
-          <UsersThree size={40} weight="duotone" aria-hidden />
-          <p className="settings-placeholder-title">Parental controls</p>
-          <p className="settings-placeholder-desc">
-            Age gates and guardian-managed accounts can be enforced here for younger users.
-          </p>
-        </div>
-      )
+      panel = <ParentalPanel />
       break
     case 'account':
       panel = (
-        <>
-          {isGuest ? (
-            <div className="settings-placeholder-block settings-placeholder-block--left">
-              <UserCircle size={40} weight="duotone" aria-hidden />
-              <p className="settings-placeholder-title">You&apos;re signed out</p>
-              <p className="settings-placeholder-desc">
-                Sign in to sync chats and trackers across devices when backend auth ships.
-              </p>
-              {onLogin && (
-                <button type="button" className="btn btn-primary" onClick={onLogin}>
-                  Open sign in
-                </button>
-              )}
-            </div>
-          ) : (
-            <>
-              <div className="settings-account-summary items-start">
-                <UserCircle size={36} weight="duotone" aria-hidden className="mt-2" />
-                <div className="flex-1 w-full max-w-sm space-y-4">
-                  <div className="space-y-1.5">
-                    <label htmlFor="user-name-input" className="text-xs font-medium uppercase tracking-widest text-muted-foreground ml-1">Your Name</label>
-                    <input 
-                      id="user-name-input"
-                      type="text"
-                      value={user?.name ?? ''}
-                      onChange={(e) => updateUser({ name: e.target.value })}
-                      className="w-full h-12 px-4 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-1 focus:ring-[var(--mf-accent)] transition-all outline-none text-base font-medium"
-                      placeholder="Enter your name"
-                    />
-                  </div>
-                  <p className="settings-account-email ml-1">session@mensflow.local</p>
-                </div>
-              </div>
-
-              <section className="settings-logout-card" aria-labelledby="logout-heading">
-                <h3 id="logout-heading" className="settings-logout-title">
-                  Sign out
-                </h3>
-                <p className="settings-logout-desc">
-                  Ends this demo session on this device. Saved chats stay in the browser until you clear them under Data controls.
-                </p>
-                {onLogout && (
-                  <button type="button" className="btn btn-logout" onClick={onLogout}>
-                    Log out
-                  </button>
-                )}
-              </section>
-            </>
-          )}
-        </>
+        <AccountPanel
+          isGuest={!!isGuest}
+          user={user}
+          updateUser={updateUser}
+          onLogin={onLogin}
+          onLogout={onLogout}
+        />
       )
       break
     default:
       panel = null
+  }
+
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 500)
+    return () => clearTimeout(timer)
+  }, [])
+
+  if (isLoading) {
+    return <SettingsSkeleton />
   }
 
   return (

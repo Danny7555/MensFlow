@@ -14,6 +14,27 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+]
+
+function formatPeriodStartDeterministic(dateStr: string) {
+  const parts = dateStr.split("-")
+  if (parts.length !== 3) return dateStr
+  const year = parts[0]
+  const monthIdx = parseInt(parts[1], 10) - 1
+  const day = parseInt(parts[2], 10)
+  if (monthIdx >= 0 && monthIdx < 12) {
+    return `${MONTH_NAMES[monthIdx]} ${day}, ${year}`
+  }
+  return dateStr
+}
+
+function parsePeriodStartDeterministic(dateStr?: string) {
+  return dateStr ? new Date(`${dateStr}T12:00:00`) : undefined
+}
+
 interface SnapshotData {
   lastPeriodStart: string
   typicalCycleDays: number
@@ -35,20 +56,20 @@ export function SnapshotModal({ isOpen, onOpenChange, data, update, isSaving }: 
     cycleNotes: data.cycleNotes || "",
   })
 
-  // Removed useEffect sync in favor of key-based re-mounting in parent
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px] rounded-[32px] p-8 border-none">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-medium">Your Snapshot</DialogTitle>
+          <DialogTitle className="text-2xl font-normal">Your Snapshot</DialogTitle>
           <DialogDescription>
             Update your cycle basics to get more accurate predictions.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-6 py-4">
           <div className="grid gap-2">
-            <label htmlFor="period-start" className="text-sm font-medium ml-1">Last period start</label>
+            <label htmlFor="period-start" className="text-sm font-normal ml-1">Last period start</label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -60,13 +81,13 @@ export function SnapshotModal({ isOpen, onOpenChange, data, update, isSaving }: 
                   )}
                 >
                   <CalendarIcon size={18} className="mr-2 opacity-60" />
-                  {localSnapshot.lastPeriodStart ? format(new Date(`${localSnapshot.lastPeriodStart}T12:00:00`), "PPP") : <span>Pick a date</span>}
+                  {localSnapshot.lastPeriodStart ? formatPeriodStartDeterministic(localSnapshot.lastPeriodStart) : <span>Pick a date</span>}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
-                  selected={localSnapshot.lastPeriodStart ? new Date(`${localSnapshot.lastPeriodStart}T12:00:00`) : undefined}
+                  selected={parsePeriodStartDeterministic(localSnapshot.lastPeriodStart)}
                   onSelect={(day) => {
                     if (day) {
                       setLocalSnapshot(prev => ({ ...prev, lastPeriodStart: format(day, "yyyy-MM-dd") }))
@@ -77,7 +98,7 @@ export function SnapshotModal({ isOpen, onOpenChange, data, update, isSaving }: 
             </Popover>
           </div>
           <div className="grid gap-2">
-            <label htmlFor="cycle-days" className="text-sm font-medium ml-1">Typical cycle length (days)</label>
+            <label htmlFor="cycle-days" className="text-sm font-normal ml-1">Typical cycle length (days)</label>
             <input
               id="cycle-days"
               type="number"
@@ -97,7 +118,7 @@ export function SnapshotModal({ isOpen, onOpenChange, data, update, isSaving }: 
             />
           </div>
           <div className="grid gap-2">
-            <label htmlFor="cycle-notes" className="text-sm font-medium ml-1">Private notes</label>
+            <label htmlFor="cycle-notes" className="text-sm font-normal ml-1">Private notes</label>
             <textarea
               id="cycle-notes"
               className="w-full p-4 rounded-2xl bg-muted/50 border-none outline-none focus:ring-2 ring-[var(--mf-accent)] transition-all resize-none"
@@ -109,7 +130,7 @@ export function SnapshotModal({ isOpen, onOpenChange, data, update, isSaving }: 
           </div>
         </div>
         <DialogFooter>
-          <Button 
+          <Button
             className="w-full h-12 rounded-full bg-[var(--mf-accent)] text-white hover:brightness-110 flex items-center justify-center gap-2"
             disabled={isSaving}
             onClick={async () => {

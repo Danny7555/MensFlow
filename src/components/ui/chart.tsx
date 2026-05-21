@@ -93,7 +93,7 @@ function ChartContainer({
 }
 
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
-  const colorConfig = React.useMemo(() => 
+  const colorConfig = React.useMemo(() =>
     Object.entries(config).filter(([, config]) => config.theme ?? config.color),
     [config]
   )
@@ -106,13 +106,13 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
         ([theme, prefix]) => `
 ${prefix} [data-chart=${id}] {
 ${colorConfig
-  .map(([key, itemConfig]) => {
-    const color =
-      itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ??
-      itemConfig.color
-    return color ? `  --color-${key}: ${color};` : null
-  })
-  .join("\n")}
+            .map(([key, itemConfig]) => {
+              const color =
+                itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ??
+                itemConfig.color
+              return color ? `  --color-${key}: ${color};` : null
+            })
+            .join("\n")}
 }
 `
       )
@@ -163,7 +163,7 @@ const ChartTooltipLabel = React.memo(({
 
   if (labelFormatter) {
     return (
-      <div className={cn("font-medium", labelClassName)}>
+      <div className={cn("font-normal", labelClassName)}>
         {labelFormatter(value, payload ?? [])}
       </div>
     )
@@ -174,7 +174,7 @@ const ChartTooltipLabel = React.memo(({
   }
 
   return (
-    <div className={cn("font-medium", labelClassName)}>{value}</div>
+    <div className={cn("font-normal", labelClassName)}>{value}</div>
   )
 })
 
@@ -300,7 +300,7 @@ function ChartTooltipContent({
                       </span>
                     </div>
                     {item.value != null && (
-                      <span className="font-mono font-medium text-foreground tabular-nums">
+                      <span className="font-mono font-normal text-foreground tabular-nums">
                         {typeof item.value === "number"
                           ? item.value.toLocaleString()
                           : String(item.value)}
@@ -386,8 +386,8 @@ function getPayloadConfigFromPayload(
 
   const payloadPayload =
     "payload" in payload &&
-    typeof payload.payload === "object" &&
-    payload.payload !== null
+      typeof payload.payload === "object" &&
+      payload.payload !== null
       ? payload.payload
       : undefined
 

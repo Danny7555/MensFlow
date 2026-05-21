@@ -56,11 +56,11 @@ export function SymptomTrendsChart() {
     <Card className="border-none shadow-none bg-transparent">
       <CardHeader className="p-4 pb-2">
         <div className="flex items-center gap-2">
-          <CardTitle>Symptom Trends</CardTitle>
+          <CardTitle className="font-normal text-sm sm:text-base">Symptom Trends</CardTitle>
           <Tooltip>
             <TooltipTrigger asChild>
               <button className="p-1 hover:bg-black/5 rounded-full transition-colors inline-flex items-center justify-center cursor-help" aria-label="About symptom trends">
-                <Question size={14} weight="bold" className="opacity-60" />
+                <Question size={14} weight="regular" className="opacity-60" />
               </button>
             </TooltipTrigger>
             <TooltipContent side="right">
@@ -96,7 +96,7 @@ export function SymptomTrendsChart() {
                 tickFormatter={(value) => value.slice(0, 3)}
                 className="text-[10px] text-muted-foreground"
               />
-              <YAxis 
+              <YAxis
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}

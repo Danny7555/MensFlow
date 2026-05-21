@@ -1,8 +1,14 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client"
 
-import { useState, useEffect, useMemo } from 'react'
-import { CaretDown, CaretRight, Info, Lightning, Heart } from '@phosphor-icons/react'
+import {useMemo, useReducer } from 'react'
+
+import { 
+  CaretDown, 
+  CaretRight, 
+  Info, 
+  
+} from '@phosphor-icons/react'
 import { format, addDays, startOfDay } from 'date-fns'
 
 import { 
@@ -20,31 +26,88 @@ import {
 
 import { useStore } from '@/store/useStore'
 import { LogSymptomsModal } from './LogSymptomsModal'
+import { CycleWheel } from './CycleWheel'
 
-export function CycleTrackerHero() {
+interface CycleTrackerHeroProps {
+  showCheckIn?: boolean
+  selectedDay?: number
+  hoveredDay?: number | null
+  onSelectDay?: (day: number) => void
+  onHoverDay?: (day: number | null) => void
+}
+
+interface CycleTrackerState {
+  currentDay: number
+  selectedDay: number
+  hoveredDay: number | null
+  trackingMode: string
+  isLogModalOpen: boolean
+}
+
+type CycleTrackerAction =
+  | { type: 'SET_CURRENT_DAY'; payload: number }
+  | { type: 'SET_SELECTED_DAY'; payload: number }
+  | { type: 'SET_HOVERED_DAY'; payload: number | null }
+  | { type: 'SET_TRACKING_MODE'; payload: string }
+  | { type: 'SET_LOG_MODAL_OPEN'; payload: boolean }
+  | { type: 'INIT_DAYS'; currentDay: number; selectedDay: number }
+
+function cycleTrackerReducer(state: CycleTrackerState, action: CycleTrackerAction): CycleTrackerState {
+  switch (action.type) {
+    case 'SET_CURRENT_DAY':
+      return { ...state, currentDay: action.payload }
+    case 'SET_SELECTED_DAY':
+      return { ...state, selectedDay: action.payload }
+    case 'SET_HOVERED_DAY':
+      return { ...state, hoveredDay: action.payload }
+    case 'SET_TRACKING_MODE':
+      return { ...state, trackingMode: action.payload }
+    case 'SET_LOG_MODAL_OPEN':
+      return { ...state, isLogModalOpen: action.payload }
+    case 'INIT_DAYS':
+      return { ...state, currentDay: action.currentDay, selectedDay: action.selectedDay }
+    default:
+      return state
+  }
+}
+
+export function CycleTrackerHero({ 
+  showCheckIn = false,
+  selectedDay: controlledSelectedDay,
+  hoveredDay: controlledHoveredDay,
+  onSelectDay,
+  onHoverDay
+}: CycleTrackerHeroProps) {
   const { dashboard: data } = useStore()
   
-  const [currentDay, setCurrentDay] = useState(1)
-  const [selectedDay, setSelectedDay] = useState<number>(1);
-  const [hoveredDay, setHoveredDay] = useState<number | null>(null);
-  const [trackingMode, setTrackingMode] = useState<string>('Period');
-  const [isLogModalOpen, setIsLogModalOpen] = useState(false)
+  const [state, dispatch] = useReducer(cycleTrackerReducer, {
+    currentDay: 1,
+    selectedDay: 1,
+    hoveredDay: null,
+    trackingMode: 'Period',
+    isLogModalOpen: false,
+  })
 
-  useEffect(() => {
+  const { trackingMode, isLogModalOpen } = state
+
+  const isControlled = controlledSelectedDay !== undefined
+  const selectedDay = isControlled ? controlledSelectedDay : state.selectedDay
+  const hoveredDay = isControlled ? (controlledHoveredDay ?? null) : state.hoveredDay
+
+  // Compute current day from store data
+  const currentDay = useMemo(() => {
     const start = new Date(`${data.lastPeriodStart}T12:00:00`)
     if (!Number.isNaN(+start)) {
       const days = Math.floor((Date.now() - +start) / 86400000)
       const m = ((days % data.typicalCycleDays) + data.typicalCycleDays) % data.typicalCycleDays
-      const day = m + 1
-      setCurrentDay(day)
-      setSelectedDay(day)
+      return m + 1
     }
+    return 1
   }, [data.lastPeriodStart, data.typicalCycleDays])
 
   const modes = ['Period', 'Conception', 'Pregnancy', 'Perimenopause'];
 
   const cycleLength = data.typicalCycleDays;
-  // currentDay already defined above
 
   const periodLength = 5;
   const predictedPeriodLength = 2; 
@@ -72,76 +135,9 @@ export function CycleTrackerHero() {
     return { label: 'Stable', color: '#aaa', phase: 'Follicular Phase' };
   };
 
-  const radius = 44;
-  const center = 50;
-
-  function polarToCartesian(angleInDegrees: number, r = radius) {
-    const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
-    return {
-      x: center + (r * Math.cos(angleInRadians)),
-      y: center + (r * Math.sin(angleInRadians))
-    };
-  }
-
-  function describeArc(startAngle: number, endAngle: number) {
-    const start = polarToCartesian(endAngle);
-    const end = polarToCartesian(startAngle);
-    const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
-    return `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} 0 ${end.x} ${end.y}`;
-  }
-
-  function getAngle(day: number) {
-    return (day / cycleLength) * 360;
-  }
-
-  const periodPath = describeArc(0, getAngle(periodLength));
-  const predictedPath = describeArc(getAngle(periodLength), getAngle(periodLength + predictedPeriodLength));
-  const fertilePath = describeArc(getAngle(fertileStart - 1), getAngle(fertileEnd));
-  const upcomingPath = describeArc(getAngle(upcomingStart - 1), getAngle(upcomingEnd));
-
   const activeDay = hoveredDay ?? selectedDay;
   const activeInfo = getDayInfo(activeDay);
   const activeDate = getDayDate(activeDay);
-
-  const dots = Array.from({ length: cycleLength }).map((_, i) => {
-    const day = i + 1;
-    const angle = getAngle(day - 0.5); 
-    const r = 37;
-    const pos = polarToCartesian(angle, r);
-    const isSelected = selectedDay === day;
-    const isToday = currentDay === day;
-    
-    let color = 'transparent';
-    if (day <= currentDay) {
-      if (day <= periodLength) color = '#dc2626';
-      else if (day === 7) color = '#2563eb'; 
-      else if (day === 11) color = '#059669'; 
-      else if (day === currentDay) color = '#1a4d57'; 
-    }
-    
-    return (
-      <g 
-        key={i} 
-        style={{ cursor: 'pointer' }}
-        onMouseEnter={() => setHoveredDay(day)}
-        onMouseLeave={() => setHoveredDay(null)}
-        onClick={() => setSelectedDay(day)}
-      >
-        <circle 
-          cx={pos.x} 
-          cy={pos.y} 
-          r={isSelected ? 3 : 2} 
-          fill={isSelected ? '#1a4d57' : (color !== 'transparent' ? color : 'currentColor')} 
-          opacity={isSelected ? 1 : (day <= periodLength ? 0.8 : 0.4)}
-        />
-        {isToday && !isSelected && (
-          <circle cx={pos.x} cy={pos.y} r="4" fill="none" stroke="#1a4d57" strokeWidth="0.5" opacity="0.5" />
-        )}
-      </g>
-    );
-  });
-
-  const currentPos = polarToCartesian(getAngle(selectedDay - 0.5), 44);
 
   return (
     <div className="cycle-tracker-hero relative">
@@ -150,14 +146,14 @@ export function CycleTrackerHero() {
           <DropdownMenuTrigger asChild>
             <button className="mode-chip">
               Mode: MensFlow {trackingMode}
-              <CaretDown size={14} weight="bold" />
+              <CaretDown size={14} weight="regular" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-56 bg-card border-border">
             {modes.map((m) => (
               <DropdownMenuItem 
                 key={m} 
-                onClick={() => setTrackingMode(m)}
+                onClick={() => dispatch({ type: 'SET_TRACKING_MODE', payload: m })}
                 className="text-sm font-regular focus:bg-[var(--mf-accent-soft)] focus:text-[var(--mf-accent)] cursor-pointer"
               >
                 {m}
@@ -169,37 +165,32 @@ export function CycleTrackerHero() {
 
       <div className="cycle-tracker-viz">
         <div className="viz-ring-container">
-          <svg viewBox="0 0 100 100" className="viz-ring" style={{ overflow: 'visible' }}>
-            {/* Background track (dashed) */}
-            <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" strokeWidth="6" className="opacity-10" strokeDasharray="0.1 2.5" strokeLinecap="round" />
-            
-            {/* Inner Dots */}
-            {dots}
-            
-            {/* Segments */}
-            <g className="viz-segments" style={{ pointerEvents: 'none' }}>
-              <path d={periodPath} fill="none" stroke="#dc2626" strokeWidth="6" strokeLinecap="round" opacity="1" />
-              <path d={predictedPath} fill="none" stroke="#ffc7c8" strokeWidth="6" strokeLinecap="round" opacity={activeDay > periodLength && activeDay <= periodLength + predictedPeriodLength ? 1 : 0.8} />
-              <path d={fertilePath} fill="none" stroke="#26899e" strokeWidth="6" strokeLinecap="round" opacity={activeDay >= fertileStart && activeDay <= fertileEnd ? 1 : 0.8} />
-              <path d={upcomingPath} fill="none" stroke="currentColor" strokeWidth="6" className="opacity-20" strokeLinecap="round" />
-            </g>
-
-            {/* Selection Marker */}
-            <circle 
-              cx={currentPos.x} 
-              cy={currentPos.y} 
-              r="4.5" 
-              fill="white" 
-              stroke="#1a4d57" 
-              strokeWidth="2" 
-            />
-          </svg>
+          <CycleWheel
+            cycleLength={cycleLength}
+            currentDay={currentDay}
+            selectedDay={selectedDay}
+            hoveredDay={hoveredDay}
+            periodLength={periodLength}
+            predictedPeriodLength={predictedPeriodLength}
+            fertileStart={fertileStart}
+            fertileEnd={fertileEnd}
+            upcomingStart={upcomingStart}
+            upcomingEnd={upcomingEnd}
+            onSelectDay={(day) => {
+              if (isControlled && onSelectDay) onSelectDay(day)
+              else dispatch({ type: 'SET_SELECTED_DAY', payload: day })
+            }}
+            onHoverDay={(day) => {
+              if (isControlled && onHoverDay) onHoverDay(day)
+              else dispatch({ type: 'SET_HOVERED_DAY', payload: day })
+            }}
+          />
 
           <div className="viz-content">
             {/* Chance of pregnancy indicator - moved to top to avoid overlap */}
             <div className="mb-6 animate-in fade-in zoom-in duration-700">
                 <span 
-                  className="px-5 py-1.5 rounded-full text-[9px] font-medium uppercase tracking-widest transition-colors duration-300"
+                  className="px-5 py-1.5 rounded-full text-[9px] font-normal uppercase tracking-widest transition-colors duration-300"
                   style={{ 
                     color: activeInfo.color,
                   }}
@@ -239,7 +230,7 @@ export function CycleTrackerHero() {
              <div className="badge-inner">
                 <span className="badge-label">{activeDay === currentDay ? 'Today' : 'Day'}</span>
                 <span className="badge-value">{activeDay}</span>
-                <span className="text-[10px] font-medium opacity-40 mt-0.5">{format(activeDate, 'd MMM').toUpperCase()}</span>
+                <span className="text-[10px] font-normal opacity-40 mt-0.5">{format(activeDate, 'd MMM').toUpperCase()}</span>
              </div>
           </div>
         </div>
@@ -249,8 +240,8 @@ export function CycleTrackerHero() {
         <div 
           role="button"
           tabIndex={0}
-          onClick={() => setIsLogModalOpen(true)}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsLogModalOpen(true) }}
+          onClick={() => dispatch({ type: 'SET_LOG_MODAL_OPEN', payload: true })}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') dispatch({ type: 'SET_LOG_MODAL_OPEN', payload: true }) }}
           className="mood-cta-card cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mf-accent)] rounded-2xl"
         >
            <img src="/images/exp.jpg" alt="" className="mood-cta-bg" />
@@ -259,41 +250,16 @@ export function CycleTrackerHero() {
            <CaretRight size={20} className="caret-right group-hover:translate-x-1 transition-transform" />
         </div>
 
-        <div className="mt-8 px-1">
-          <div className="p-6 rounded-[24px] bg-gradient-to-br from-[var(--mf-accent-soft)] to-white dark:to-card border border-[var(--mf-accent-border)] relative overflow-hidden group transition-all duration-500">
-            {/* Background Bloom */}
-            <div className="absolute -top-12 -right-12 size-32 bg-[var(--mf-accent)] opacity-5 blur-3xl rounded-full group-hover:opacity-10 transition-opacity" />
-            
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex flex-col gap-1.5">
-                <span className="w-fit text-[9px] font-bold uppercase tracking-[0.15em] bg-[var(--mf-accent)] text-white px-2.5 py-1 rounded-full">DAILY TIP</span>
-                <span className="text-[10px] font-semibold text-[var(--mf-accent)] opacity-60">PHASE: LUTEAL</span>
-              </div>
-              <div className="size-10 rounded-full bg-white/50 dark:bg-black/20 flex items-center justify-center text-[var(--mf-accent)]">
-                <Lightning size={20} weight="fill" />
-              </div>
-            </div>
-
-            <div className="relative z-10">
-              <h3 className="text-[15px] font-bold text-[var(--mf-text-strong)] mb-2 tracking-tight">Nurture your energy</h3>
-              <p className="text-[13px] text-muted-foreground leading-relaxed opacity-90">
-                Your body is working harder today. Prioritize magnesium-rich foods like dark chocolate or spinach to ease any pre-period tension.
-              </p>
-            </div>
-
-            <div className="mt-5 pt-4 border-t border-[var(--mf-accent-border)] flex items-center justify-between">
-              <button className="text-[11px] font-bold text-[var(--mf-accent)] hover:underline">LEARN MORE</button>
-              <button className="flex items-center gap-1.5 text-[11px] font-bold opacity-40 hover:opacity-100 transition-opacity">
-                <Heart size={14} /> SAVE
-              </button>
-            </div>
+        {showCheckIn && (
+          <div className="mt-8">
+            {/* Daily Tip has been moved to the main Dashboard grid for better visibility */}
           </div>
-        </div>
+        )}
       </div>
 
       <LogSymptomsModal 
         isOpen={isLogModalOpen} 
-        onOpenChange={setIsLogModalOpen} 
+        onOpenChange={(open) => dispatch({ type: 'SET_LOG_MODAL_OPEN', payload: open })} 
         activeDay={activeDay} 
         activeDate={activeDate}
       />

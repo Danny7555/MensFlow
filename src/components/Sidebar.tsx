@@ -1,35 +1,42 @@
 import type { ComponentType } from 'react'
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
+import { m } from 'framer-motion'
 import type { IconProps } from '@phosphor-icons/react'
 import {
   BookOpen,
   CalendarBlank,
   CalendarHeart,
-  ChartLineUp,
   ChatCircle,
   ChatCenteredDots,
   FlowerLotus,
   GearSix,
   Heart,
   House,
-  Lightbulb,
   Pulse,
-  Sparkle,
+  Target,
   X,
   SidebarSimple,
+  SignOut,
+  Users,
 } from '@phosphor-icons/react'
 import type { SectionId } from '../types/nav'
 import { cn } from '../lib/utils'
+import { useAuth } from '../context/useAuth'
+import { useStore } from '../store/useStore'
+import { computeCycleDay, getPhaseFromDay, getPhaseInfo } from '../lib/cycleUtils'
 
 type NavIcon = ComponentType<IconProps>
 
 const guestItems: { id: SectionId; label: string; Icon: NavIcon }[] = [
   { id: 'dashboard', label: 'Home', Icon: House },
   { id: 'ask', label: 'Ask MensFlow', Icon: ChatCenteredDots },
+  { id: 'symptoms', label: 'Symptoms', Icon: Pulse },
+  { id: 'insights', label: 'Health insights', Icon: Target },
+  { id: 'education', label: 'Education', Icon: BookOpen },
   { id: 'calendar', label: 'Calendar', Icon: CalendarBlank },
   { id: 'tracker', label: 'Tracker', Icon: CalendarHeart },
-  { id: 'health-insights', label: 'Health insights', Icon: ChartLineUp },
-  { id: 'wellness-tips', label: 'Wellness Tips', Icon: Heart },
+  { id: 'tips', label: 'Wellness Tips', Icon: Heart },
+  { id: 'sync', label: 'Partner Sync', Icon: Users },
   { id: 'settings', label: 'Settings', Icon: GearSix },
 ]
 
@@ -37,11 +44,12 @@ const authItems: { id: SectionId; label: string; Icon: NavIcon }[] = [
   { id: 'dashboard', label: 'Home', Icon: House },
   { id: 'ask', label: 'Ask MensFlow', Icon: ChatCircle },
   { id: 'symptoms', label: 'Symptoms', Icon: Pulse },
-  { id: 'insights', label: 'Insights', Icon: Sparkle },
+  { id: 'insights', label: 'Health insights', Icon: Target },
   { id: 'education', label: 'Education', Icon: BookOpen },
   { id: 'calendar', label: 'Calendar', Icon: CalendarBlank },
   { id: 'tracker', label: 'Tracker', Icon: CalendarHeart },
-  { id: 'tips', label: 'Tips', Icon: Lightbulb },
+  { id: 'tips', label: 'Wellness Tips', Icon: Heart },
+  { id: 'sync', label: 'Partner Sync', Icon: Users },
   { id: 'settings', label: 'Settings', Icon: GearSix },
 ]
 
@@ -67,18 +75,22 @@ export function Sidebar({
   onToggleDesktopCollapse,
   onToggleSidebar,
 }: SidebarProps) {
-  const location = useLocation()
-  const isDashboard = location.pathname === '/' || location.pathname.startsWith('/dashboard')
+  const { onboardingCompleted, logout } = useAuth()
 
   const rawItems = isAuthenticated ? authItems : guestItems
   const items = rawItems.filter(item => {
-    // Hide Home/Settings only for guests who aren't on the landing page
-    if (!isAuthenticated && (item.id === 'settings' || item.id === 'dashboard') && !isDashboard) return false
+    // If onboarding is not completed, only show the chat assistant
+    if (!onboardingCompleted && item.id !== 'ask') return false
     return true
   })
 
   const collapsed = !isMobile && desktopCollapsed
   const navIconSize = collapsed ? 22 : 20
+
+  const { dashboard: data } = useStore()
+  const cycleDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
+  const phase = getPhaseFromDay(cycleDay)
+  const phaseInfo = getPhaseInfo(phase)
 
   return (
     <>
@@ -113,11 +125,45 @@ export function Sidebar({
           <button
             type="button"
             className={cn("icon-btn sidebar-toggle-btn-top", !collapsed && "ml-auto")}
-            onClick={onToggleDesktopCollapse || onToggleSidebar}
+            onClick={desktopCollapsed ? onToggleDesktopCollapse : (onToggleSidebar || onToggleDesktopCollapse)}
             aria-label="Toggle sidebar"
           >
             {isMobile && mobileOpen ? <X size={20} /> : <SidebarSimple size={22} />}
           </button>
+        </div>
+
+        {/* Empathy Widget */}
+        <div className={cn("px-3 mb-2 mt-4", collapsed && "px-2 text-center")}>
+          <m.div 
+            layout
+            className={cn(
+              "flo-card transition-all duration-500 overflow-hidden !shadow-none !border-[var(--mf-border)] !bg-transparent",
+              collapsed ? "p-1" : "p-3"
+            )}
+          >
+            <div className={cn("flex items-center gap-2.5", collapsed && "justify-center")}>
+              <div 
+                className="size-7 rounded-full flex items-center justify-center shrink-0 border border-border overflow-hidden bg-white/50"
+              >
+                <img src="/images/star.png" alt="" className="size-4 object-contain animate-pulse" />
+              </div>
+              {!collapsed && (
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[9px] font-normal uppercase tracking-[0.1em] text-muted-foreground">Partner</span>
+                  <span className="text-xs font-medium truncate text-[var(--mf-text-strong)]">{phaseInfo.label}</span>
+                </div>
+              )}
+            </div>
+            {!collapsed && (
+              <m.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-[10px] text-muted-foreground mt-2 leading-relaxed border-t pt-2 border-border/30 font-normal"
+              >
+                {phaseInfo.description}
+              </m.p>
+            )}
+          </m.div>
         </div>
 
         <nav className="sidebar-nav">
@@ -138,7 +184,7 @@ export function Sidebar({
           ))}
         </nav>
 
-        {!isAuthenticated && (
+        {!isAuthenticated ? (
           <div className={cn("sidebar-footer", collapsed && "sidebar-footer--compact mt-auto")}>
             {!collapsed && (
               <p className="sidebar-footer-text">
@@ -157,6 +203,21 @@ export function Sidebar({
               ) : (
                 <ChatCircle size={20} weight="bold" aria-hidden />
               )}
+            </button>
+          </div>
+        ) : (
+          <div className={cn("sidebar-footer", collapsed && "sidebar-footer--compact mt-auto")}>
+            <button
+              type="button"
+              className={cn(
+                "btn w-full flex items-center justify-center gap-2 border border-border bg-card text-muted-foreground hover:text-foreground transition-all duration-200 active:scale-95",
+                collapsed ? "sidebar-login-icon" : "h-11 rounded-2xl text-xs font-normal"
+              )}
+              title={collapsed ? 'Sign out' : undefined}
+              onClick={logout}
+            >
+              <SignOut size={collapsed ? 22 : 18} weight="regular" />
+              {!collapsed && <span>Sign out</span>}
             </button>
           </div>
         )}

@@ -1,22 +1,112 @@
+import { useState, useEffect } from 'react'
+import { m } from 'framer-motion'
+import type { Variants } from 'framer-motion'
 import { ChartLineUp, TrendDown, TrendUp } from '@phosphor-icons/react'
 import { INSIGHT_TRENDS_DUMMY } from '../data/insightsData'
 import { InteractiveAreaChart } from '../components/InteractiveAreaChart'
 import { SymptomTrendsChart } from '../components/SymptomTrendsChart'
 import { useAuth } from "@/context/useAuth"
 import { cn } from '../lib/utils'
+import { InsightsSkeleton } from '../components/skeletons/InsightsSkeleton'
+import { HormoneWave } from '../components/dashboard/HormoneWave'
+import { useStore } from '../store/useStore'
+import { SYMPTOM_DEFS } from '../data/symptomsData'
+import { format } from 'date-fns'
+import { toast } from 'sonner'
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.1
+    }
+  }
+}
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 15 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 260,
+      damping: 20
+    }
+  }
+}
 
 export function InsightsView() {
   const { isAuthenticated, openAuthModal } = useAuth()
+  const [isLoading, setIsLoading] = useState(true)
+  const { logs, customSymptoms } = useStore()
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 500)
+    return () => clearTimeout(timer)
+  }, [])
+
+  const handleExportCSV = () => {
+    if (!logs || logs.length === 0) {
+      toast.error("No logs available to export.")
+      return
+    }
+    
+    const allSymptoms = [...SYMPTOM_DEFS, ...customSymptoms]
+    const sorted = logs.toSorted((a, b) => a.date.localeCompare(b.date))
+    
+    let csvContent = "data:text/csv;charset=utf-8,"
+    csvContent += "Date,Logged Symptoms\n"
+    
+    sorted.forEach((log) => {
+      const labels = log.symptoms
+        .map((sId) => allSymptoms.find((s) => s.id === sId)?.label || sId)
+        .join("; ")
+      csvContent += `${log.date},"${labels}"\n`
+    })
+    
+    const encodedUri = encodeURI(csvContent)
+    const link = document.createElement("a")
+    link.setAttribute("href", encodedUri)
+    link.setAttribute("download", `mensflow_cycle_report_${format(new Date(), 'yyyy-MM-dd')}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    toast.success("CSV report downloaded!")
+  }
+
+  const handlePrintPDF = () => {
+    window.print()
+  }
+
+  if (isLoading) {
+    return <InsightsSkeleton />
+  }
 
   return (
-    <div className="insights-page relative">
-      <section className="insights-section" aria-labelledby="trends-title">
+    <m.div 
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      className="insights-page relative"
+    >
+      <m.div variants={itemVariants}>
+        <HormoneWave />
+      </m.div>
+
+      <m.section variants={itemVariants} className="insights-section" aria-labelledby="trends-title">
         <h2 id="trends-title" className="insights-section-title">
           Trend summary
         </h2>
         <div className="insight-trends">
           {INSIGHT_TRENDS_DUMMY.map((t) => (
-            <div key={t.id} className="insight-trend-card">
+            <m.div 
+              key={t.id} 
+              variants={itemVariants}
+              className="insight-trend-card"
+            >
               <div className="flex flex-col h-full">
                 <span className="insight-trend-label">{t.label}</span>
                 <span className="insight-trend-value">{t.value}</span>
@@ -34,80 +124,63 @@ export function InsightsView() {
                   </div>
                 </div>
               </div>
-            </div>
+            </m.div>
           ))}
         </div>
-      </section>
+      </m.section>
 
       <div className="relative">
-        <section className="insights-section" aria-labelledby="charts-title">
+        <m.section variants={itemVariants} className="insights-section" aria-labelledby="charts-title">
           <h2 id="charts-title" className="insights-section-title">
             Patterns over time
           </h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
-            <div className="border rounded-xl overflow-hidden bg-card">
+            <div className="border rounded-3xl overflow-hidden bg-card">
               <SymptomTrendsChart />
             </div>
-            <div className="border rounded-xl overflow-hidden bg-card">
+            <div className="border rounded-3xl overflow-hidden bg-card">
               <InteractiveAreaChart />
             </div>
           </div>
-        </section>
+        </m.section>
 
-        <section className="insight-narrative-container" aria-labelledby="narrative-title">
-          <div className="flex items-center justify-between mb-6">
-            <h2 id="narrative-title" className="text-xl font-medium text-foreground">
-              What this could mean
-            </h2>
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] rounded-full border border-[var(--mf-accent-border)]">
-              <ChartLineUp size={14} weight="bold" />
-              <span className="text-[10px] font-medium uppercase tracking-wider">AI Analysis</span>
+        <m.section variants={itemVariants} className="insights-section no-print" aria-labelledby="reports-title">
+          <h2 id="reports-title" className="insights-section-title">
+            Reports & Export
+          </h2>
+          <div className="bg-card border border-border p-6 rounded-3xl mt-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="max-w-md">
+              <h3 className="text-base font-normal mb-1">Export your cycle summary</h3>
+              <p className="text-xs text-muted-foreground font-normal">Download a complete CSV log of your cycle metrics or print/save a beautifully formatted PDF report for doctor consultations.</p>
+            </div>
+            <div className="flex gap-3">
+              <button 
+                onClick={handleExportCSV}
+                className="px-5 py-2.5 rounded-full border border-border text-xs font-normal hover:bg-muted transition-colors"
+              >
+                Download CSV
+              </button>
+              <button 
+                onClick={handlePrintPDF}
+                className="px-5 py-2.5 rounded-full bg-[var(--mf-accent)] text-white text-xs font-normal hover:brightness-105 transition-all"
+              >
+                Export PDF Report
+              </button>
             </div>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="dash-panel p-5 bg-gradient-to-br from-card to-[var(--mf-accent-soft)]/30 border border-border/50">
-              <div className="flex gap-4">
-                <div className="text-[var(--mf-accent)] shrink-0 h-fit pt-0.5">
-                  <TrendDown size={20} weight="duotone" />
-                </div>
-                <div className="space-y-1">
-                  <h4 className="font-medium text-sm text-foreground">Energy Pattern</h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    Energy dips clustered in the last week of your cycle - consider lighter training loads there.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="dash-panel p-5 bg-gradient-to-br from-card to-[var(--mf-accent-soft)]/30 border border-border/50">
-              <div className="flex gap-4">
-                <div className="text-[var(--mf-accent)] shrink-0 h-fit pt-0.5">
-                  <ChartLineUp size={20} weight="duotone" />
-                </div>
-                <div className="space-y-1">
-                  <h4 className="font-medium text-sm text-foreground">Physical Symptoms</h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    Bloating aligned with late-luteal weeks; salt and sleep hygiene are reasonable experiments.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-6 p-4 bg-muted/30 rounded-xl border border-dashed border-border text-center">
-            <p className="text-xs text-muted-foreground italic">
-              When you connect real logs, we&apos;ll swap these paragraphs for data-grounded narrative specifically tailored to your history.
-            </p>
-          </div>
-        </section>
+        </m.section>
 
         {!isAuthenticated && (
-          <div className="absolute inset-x-0 bottom-0 top-0 bg-gradient-to-t from-background via-background/90 to-transparent pointer-events-none z-20 flex flex-col items-center justify-center pt-24">
+          <m.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+            className="absolute inset-x-0 bottom-0 top-0 bg-gradient-to-t from-background via-background/90 to-transparent pointer-events-none z-20 flex flex-col items-center justify-center pt-24"
+          >
             <div className="w-full h-full backdrop-blur-[6px] opacity-100" />
             <div className="absolute inset-0 flex flex-col items-center justify-center p-8 pointer-events-auto">
                <div className="bg-card border border-border p-8 rounded-3xl text-center max-w-[400px] mx-auto">
-                <h3 className="text-xl font-medium mb-2">Detailed AI Insights</h3>
+                <h3 className="text-xl font-normal mb-2">Detailed AI Insights</h3>
                 <p className="text-muted-foreground text-sm mb-6">Unlock deeper patterns, AI-driven correlations, and symptom history by signing in.</p>
                 <button 
                   onClick={openAuthModal}
@@ -117,9 +190,9 @@ export function InsightsView() {
                 </button>
               </div>
             </div>
-          </div>
+          </m.div>
         )}
       </div>
-    </div>
+    </m.div>
   )
 }
