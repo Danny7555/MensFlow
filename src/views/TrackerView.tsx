@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react"
+import { useEffect, useMemo, useReducer } from "react"
 import { CycleTrackerHero } from "@/components/tracker/CycleTrackerHero"
 import { CycleStatsHero } from "@/components/tracker/CycleStatsHero"
 import { CycleHistory } from "@/components/tracker/CycleHistory"
@@ -16,15 +16,37 @@ import {
 } from "@/components/ui/dialog"
 
 import { useStore } from "@/store/useStore"
-import { cn } from "@/lib/utils"
 import { TrackerSkeleton } from "@/components/skeletons/TrackerSkeleton"
+
+type TrackerState = {
+  isInviteModalOpen: boolean
+  copied: boolean
+  isLoading: boolean
+  selectedDay: number | null
+  hoveredDay: number | null
+}
+
+type TrackerAction =
+  | { type: 'SET_INVITE_MODAL'; payload: boolean }
+  | { type: 'SET_COPIED'; payload: boolean }
+  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'SET_SELECTED_DAY'; payload: number }
+  | { type: 'SET_HOVERED_DAY'; payload: number | null }
+
+function trackerReducer(state: TrackerState, action: TrackerAction): TrackerState {
+  switch (action.type) {
+    case 'SET_INVITE_MODAL': return { ...state, isInviteModalOpen: action.payload }
+    case 'SET_COPIED': return { ...state, copied: action.payload }
+    case 'SET_LOADING': return { ...state, isLoading: action.payload }
+    case 'SET_SELECTED_DAY': return { ...state, selectedDay: action.payload }
+    case 'SET_HOVERED_DAY': return { ...state, hoveredDay: action.payload }
+    default: return state
+  }
+}
 
 export function TrackerView() {
   const { isSaving, dashboard: data } = useStore()
   const { isAuthenticated, openAuthModal } = useAuth()
-  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
-  const [copied, setCopied] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
 
   // Compute initial cycle day based on store last period start
   const initialDay = useMemo(() => {
@@ -37,25 +59,34 @@ export function TrackerView() {
     return 1
   }, [data.lastPeriodStart, data.typicalCycleDays])
 
-  const [selectedDay, setSelectedDay] = useState<number>(initialDay)
-  const [hoveredDay, setHoveredDay] = useState<number | null>(null)
+  const [state, dispatch] = useReducer(trackerReducer, {
+    isInviteModalOpen: false,
+    copied: false,
+    isLoading: true,
+    selectedDay: initialDay,
+    hoveredDay: null,
+  })
+
+  // Derive active selection
+  const selectedDay = state.selectedDay ?? initialDay
 
   useEffect(() => {
-    setSelectedDay(initialDay)
+    // Sync selectedDay if initialDay changes (e.g. data loaded)
+    dispatch({ type: 'SET_SELECTED_DAY', payload: initialDay })
   }, [initialDay])
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 500)
+    const timer = setTimeout(() => dispatch({ type: 'SET_LOADING', payload: false }), 500)
     return () => clearTimeout(timer)
   }, [])
 
   const copyLink = () => {
     navigator.clipboard.writeText("https://mensflow.app/join/u123abc")
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    dispatch({ type: 'SET_COPIED', payload: true })
+    setTimeout(() => dispatch({ type: 'SET_COPIED', payload: false }), 2000)
   }
 
-  if (isLoading) {
+  if (state.isLoading) {
     return <TrackerSkeleton />
   }
 
@@ -76,9 +107,9 @@ export function TrackerView() {
           <div className="space-y-12">
             <CycleTrackerHero 
               selectedDay={selectedDay}
-              hoveredDay={hoveredDay}
-              onSelectDay={setSelectedDay}
-              onHoverDay={setHoveredDay}
+              hoveredDay={state.hoveredDay}
+              onSelectDay={(day) => dispatch({ type: 'SET_SELECTED_DAY', payload: day })}
+              onHoverDay={(day) => dispatch({ type: 'SET_HOVERED_DAY', payload: day })}
             />
             <CycleLogs />
             <HealthMetrics />
@@ -106,7 +137,7 @@ export function TrackerView() {
           {/* Sidebar */}
           <aside className="space-y-10">
             <CycleStatsHero />
-            <CycleTips activeDay={hoveredDay ?? selectedDay} />
+            <CycleTips activeDay={state.hoveredDay ?? selectedDay} />
           </aside>
         </div>
 
@@ -115,8 +146,8 @@ export function TrackerView() {
             <div 
               role="button"
               tabIndex={0}
-              onClick={() => setIsInviteModalOpen(true)}
-              onKeyDown={(e) => e.key === 'Enter' && setIsInviteModalOpen(true)}
+              onClick={() => dispatch({ type: 'SET_INVITE_MODAL', payload: true })}
+              onKeyDown={(e) => e.key === 'Enter' && dispatch({ type: 'SET_INVITE_MODAL', payload: true })}
               className="bg-gradient-to-r from-[var(--mf-accent)] to-[#be185d] rounded-3xl p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative group cursor-pointer border border-white/10"
             >
               <div className="z-10 text-center md:text-left">
@@ -135,7 +166,7 @@ export function TrackerView() {
           </div>
         )}
 
-        <Dialog open={isInviteModalOpen} onOpenChange={setIsInviteModalOpen}>
+        <Dialog open={state.isInviteModalOpen} onOpenChange={(open) => dispatch({ type: 'SET_INVITE_MODAL', payload: open })}>
           <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden border-none rounded-[32px] bg-background">
             <div className="p-6 sm:p-8">
               <DialogHeader className="mb-4">
@@ -187,7 +218,7 @@ export function TrackerView() {
                       onClick={copyLink}
                       className="flex items-center gap-2 px-4 py-2 bg-background border border-border rounded-xl text-xs font-normal hover:bg-muted transition-colors"
                     >
-                      {copied ? (
+                      {state.copied ? (
                         <>
                           <Check size={14} className="text-green-500" weight="bold" />
                           <span>Copied!</span>

@@ -1,4 +1,4 @@
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import type { Variants } from "framer-motion"
 import { Sparkle, CaretRight } from "@phosphor-icons/react"
 
@@ -8,13 +8,13 @@ interface HormoneInsightCardProps {
 
 export function HormoneInsightCard({ variants }: HormoneInsightCardProps) {
   return (
-    <motion.div 
+    <m.div 
       variants={variants}
       className="flo-card flo-card--dark overflow-hidden flex flex-col group"
     >
       <div className="flex-1">
         <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden">
-          <motion.img 
+          <m.img 
             whileHover={{ scale: 1.1 }}
             transition={{ duration: 0.6 }}
             src="/images/brain.png" alt="Insight" className="w-full h-full object-cover object-center scale-[1.3] translate-y-1" 
@@ -35,6 +35,6 @@ export function HormoneInsightCard({ variants }: HormoneInsightCardProps) {
         <span>Read medical research</span>
         <CaretRight size={12} />
       </button>
-    </motion.div>
+    </m.div>
   )
 }

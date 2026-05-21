@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, useMemo } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { m } from 'framer-motion'
 import { Ghost, Question, Sparkle } from '@phosphor-icons/react'
 import { ChatComposer } from '../components/ChatComposer'
 import { useChatSession } from '../context/useChatSession'
@@ -161,20 +162,10 @@ export function ChatView() {
 
   const persistToDisk = chatPersistLocal && !temporaryChat
 
-  const [messages, setMessages] = useState<Msg[]>(() => {
-    if (temporaryChat) return []
-    return loadStoredMessages() ?? []
-  })
-
-  const [draft, setDraft] = useState('')
-  const [isTyping, setIsTyping] = useState(false)
-  const prevTemporary = useRef<boolean | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-
   const threadEndRef = useRef<HTMLDivElement>(null)
 
   // Compute active day and logs in real time
-  const currentDay = useMemo(() => {
+  const currentDay = (() => {
     const start = new Date(`${data.lastPeriodStart}T12:00:00`)
     if (!Number.isNaN(+start)) {
       const days = Math.floor((Date.now() - +start) / 86400000)
@@ -182,58 +173,73 @@ export function ChatView() {
       return m + 1
     }
     return 1
-  }, [data.lastPeriodStart, data.typicalCycleDays])
+  })()
 
-  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], [])
-  const todayLog = useMemo(() => logs.find(l => l.date === todayStr), [logs, todayStr])
+  const welcomeText = `Hi - I'm MensFlow, your personal relationship and cycle support companion. Currently, ${user.name} is on Day ${currentDay} of her cycle (${data.phaseLabel}). Ask me about her active phase, logged symptoms, how you can support her today, or what healthy meals you can cook! 🌸`
 
-  const todaySymptoms = useMemo(() => {
+  const [messages, setMessages] = useState<Msg[]>(() => {
+    if (temporaryChat) return [{
+      id: 'welcome',
+      role: 'assistant',
+      text: welcomeText,
+      createdAt: Date.now(),
+    }]
+    const stored = loadStoredMessages()
+    if (stored && stored.length > 0) return stored
+    return [{
+      id: 'welcome',
+      role: 'assistant',
+      text: welcomeText,
+      createdAt: Date.now(),
+    }]
+  })
+
+  const [draft, setDraft] = useState('')
+  const [isTyping, setIsTyping] = useState(false)
+  const prevTemporary = useRef<boolean | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 600)
+    return () => clearTimeout(timer)
+  }, [])
+
+  const todayStr = new Date().toISOString().split('T')[0]
+  const todayLog = logs.find(l => l.date === todayStr)
+
+  const todaySymptoms = (() => {
     if (!todayLog) return []
     const allSymptomDefs = [...SYMPTOM_DEFS, ...customSymptoms]
     return todayLog.symptoms.map(sId => {
       const def = allSymptomDefs.find(d => d.id === sId)
       return def ? def.label : sId
     })
-  }, [todayLog, customSymptoms])
+  })()
 
-  const welcomeText = useMemo(() => {
-    return `Hi - I'm MensFlow, your personal relationship and cycle support companion. Currently, ${user.name} is on Day ${currentDay} of her cycle (${data.phaseLabel}). Ask me about her active phase, logged symptoms, how you can support her today, or what healthy meals you can cook! 🌸`
-  }, [user.name, currentDay, data.phaseLabel])
-
-  function welcomeMessage(): Msg {
-    return {
-      id: 'welcome',
-      role: 'assistant',
-      text: welcomeText,
-      createdAt: Date.now(),
-    }
-  }
-
-  // Set up welcome message if chat thread is empty
-  useEffect(() => {
-    if (messages.length === 0) {
-      setMessages([welcomeMessage()])
-    }
-  }, [welcomeText])
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 500)
-    return () => clearTimeout(timer)
-  }, [])
-
+  // Set up welcome message if chat thread is empty or temporary chat changes
   useEffect(() => {
     if (prevTemporary.current === null) {
       prevTemporary.current = temporaryChat
       return
     }
-    if (!prevTemporary.current && temporaryChat) {
-      setMessages([welcomeMessage()])
+    if (temporaryChat) {
+      setMessages([{
+        id: 'welcome',
+        role: 'assistant',
+        text: welcomeText,
+        createdAt: Date.now(),
+      }])
     }
     prevTemporary.current = temporaryChat
   }, [temporaryChat, welcomeText])
 
   useEffect(() => {
-    const onClear = () => setMessages([welcomeMessage()])
+    const onClear = () => setMessages([{
+      id: 'welcome',
+      role: 'assistant',
+      text: welcomeText,
+      createdAt: Date.now(),
+    }])
     window.addEventListener(CLEAR_LOCAL_CHATS_EVENT, onClear)
     return () => window.removeEventListener(CLEAR_LOCAL_CHATS_EVENT, onClear)
   }, [welcomeText])
@@ -407,9 +413,20 @@ export function ChatView() {
                   MensFlow
                 </span>
                 <div className="flex items-center gap-1.5 py-3 px-1">
-                  <div className="size-2 rounded-full bg-[var(--mf-accent)] animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <div className="size-2 rounded-full bg-[var(--mf-accent)] animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <div className="size-2 rounded-full bg-[var(--mf-accent)] animate-bounce" style={{ animationDelay: '300ms' }} />
+                  {[0, 150, 300].map((delay) => (
+                    <m.div
+                      key={delay}
+                      initial={{ y: 0 }}
+                      animate={{ y: [0, -6, 0] }}
+                      transition={{
+                        duration: 0.8,
+                        repeat: Infinity,
+                        ease: [0.16, 1, 0.3, 1], // ease-out-expo as requested
+                        delay: delay / 1000
+                      }}
+                      className="size-2 rounded-full bg-[var(--mf-accent)]"
+                    />
+                  ))}
                 </div>
               </div>
             )}

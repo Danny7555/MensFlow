@@ -1,5 +1,6 @@
 import { useCallback, useState, lazy, Suspense } from 'react'
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
+import { LazyMotion, domAnimation } from 'framer-motion'
 import { cn } from './lib/utils'
 import { ThemeSync } from './components/ThemeSync'
 import { Toaster } from 'sonner'
@@ -78,7 +79,8 @@ function MainShell() {
       value={{ temporaryChat, setTemporaryChat }}
     >
       <div className="app-shell">
-        {!location.pathname.startsWith('/onboarding') && (!isMobile || location.pathname !== '/dashboard') && (
+        <LazyMotion features={domAnimation}>
+          {!location.pathname.startsWith('/onboarding') && (!isMobile || location.pathname !== '/dashboard') && (
           <Sidebar
             isAuthenticated={isAuthenticated}
             mobileOpen={sidebarOpen}
@@ -169,6 +171,7 @@ function MainShell() {
             </Suspense>
           </main>
         </div>
+        </LazyMotion>
         {!location.pathname.startsWith('/onboarding') && isAuthenticated && isMobile && (
           <nav className="flo-bottom-nav">
             <button 

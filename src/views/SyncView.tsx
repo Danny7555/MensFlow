@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import type { Variants } from 'framer-motion'
-import { Check, Sparkle, Heart, Users } from '@phosphor-icons/react'
+import { Check, Sparkle, Users } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { SupportActionsLog } from '../components/dashboard/SupportActionsLog'
 import { EmotionTranslator } from '../components/dashboard/EmotionTranslator'
@@ -113,7 +113,7 @@ export function SyncView() {
   }
 
   return (
-    <motion.div 
+    <m.div 
       initial="hidden"
       animate="visible"
       variants={containerVariants}
@@ -121,7 +121,7 @@ export function SyncView() {
     >
       {/* Dynamic Background Glow - Softer and more subtle */}
       <AnimatePresence mode="wait">
-        <motion.div 
+        <m.div 
           key={phase}
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.4 }}
@@ -140,11 +140,11 @@ export function SyncView() {
       <main className="flo-main-container pb-32 relative z-10">
         <div className="flo-content-inner">
           
-          <motion.div variants={itemVariants} className="flo-dashboard-top mb-12">
+          <m.div variants={itemVariants} className="flo-dashboard-top mb-12">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div className="max-w-xl">
                 <div className="flex items-center gap-3 mb-3">
-                  <motion.img 
+                  <m.img 
                     animate={{ rotate: [0, 10, -10, 0] }}
                     transition={{ duration: 4, repeat: Infinity }}
                     src="/images/star.png" alt="Star" className="size-5 object-contain" 
@@ -161,30 +161,30 @@ export function SyncView() {
                   Strengthen your relationship with real-time status pings, hormone decoding translators, and empathetic task sheets aligned with her cycle.
                 </p>
               </div>
-              <motion.div 
+              <m.div 
                 variants={floatVariants}
                 animate="animate"
                 className="hidden md:block shrink-0"
               >
                 <img src="/images/lady.png" alt="Empathy Hub Illustration" className="h-32 object-contain opacity-95" />
-              </motion.div>
+              </m.div>
             </div>
-          </motion.div>
+          </m.div>
 
           <div className="flo-dashboard-grid">
             
             {/* Left Column: Real-Time Ping Card */}
-            <motion.section variants={itemVariants} className="flo-dashboard-left">
+            <m.section variants={itemVariants} className="flo-dashboard-left">
               <div className="flo-card p-8 relative overflow-hidden transition-all duration-300">
                 
                 <div className="flex flex-col items-center text-center">
-                  <motion.div 
+                  <m.div 
                     animate={{ scale: [1, 1.05, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
                     className="mb-4"
                   >
                     <img src="/images/heart.png" alt="Heart" className="size-14 object-contain" />
-                  </motion.div>
+                  </m.div>
 
                   <h2 className="text-xl font-normal tracking-tight text-[var(--mf-text-strong)]">
                     Send Real-Time Check-In
@@ -195,7 +195,7 @@ export function SyncView() {
                 </div>
 
                 {sent ? (
-                  <motion.div 
+                  <m.div 
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     className="mt-8 flex flex-col items-center text-center py-8 bg-[var(--mf-composer-bg)] border border-[var(--mf-border)] rounded-2xl"
@@ -213,7 +213,7 @@ export function SyncView() {
                     >
                       Send another update
                     </button>
-                  </motion.div>
+                  </m.div>
                 ) : (
                   <div className="mt-8 space-y-6">
                     <div className="space-y-3">
@@ -223,7 +223,7 @@ export function SyncView() {
                       
                       <div className="grid grid-cols-2 gap-3">
                         {STATUS_OPTIONS.map((opt) => (
-                          <motion.button
+                          <m.button
                             key={opt.id}
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
@@ -253,12 +253,12 @@ export function SyncView() {
                             <span className="text-white text-[11px] font-normal tracking-wide z-20 mt-auto drop-shadow-sm">
                               {opt.label}
                             </span>
-                          </motion.button>
+                          </m.button>
                         ))}
                       </div>
                     </div>
 
-                    <motion.button
+                    <m.button
                       whileHover={{ scale: 1.01 }}
                       whileTap={{ scale: 0.99 }}
                       onClick={handleSendPing}
@@ -273,21 +273,21 @@ export function SyncView() {
                           <span>Send Instant Ping</span>
                         </>
                       )}
-                    </motion.button>
+                    </m.button>
                   </div>
                 )}
               </div>
-            </motion.section>
+            </m.section>
 
             {/* Right Column: Empathy Log & Emotion Translator */}
-            <motion.section variants={itemVariants} className="flo-dashboard-right space-y-8">
+            <m.section variants={itemVariants} className="flo-dashboard-right space-y-8">
               <SupportActionsLog />
               <EmotionTranslator />
-            </motion.section>
+            </m.section>
 
           </div>
         </div>
       </main>
-    </motion.div>
+    </m.div>
   )
 }

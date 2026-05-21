@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client"
 
-import { useEffect, useMemo, useReducer } from 'react'
+import { useMemo, useReducer } from 'react'
 import { CaretDown, CaretRight, Info, Lightning, Heart, Sparkle, Chat } from '@phosphor-icons/react'
 import { format, addDays, startOfDay } from 'date-fns'
 
@@ -83,24 +83,22 @@ export function CycleTrackerHero({
     isLogModalOpen: false,
   })
 
-  const { currentDay, trackingMode, isLogModalOpen } = state
+  const { trackingMode, isLogModalOpen } = state
 
   const isControlled = controlledSelectedDay !== undefined
   const selectedDay = isControlled ? controlledSelectedDay : state.selectedDay
   const hoveredDay = isControlled ? (controlledHoveredDay ?? null) : state.hoveredDay
 
-  useEffect(() => {
+  // Compute current day from store data
+  const currentDay = useMemo(() => {
     const start = new Date(`${data.lastPeriodStart}T12:00:00`)
     if (!Number.isNaN(+start)) {
       const days = Math.floor((Date.now() - +start) / 86400000)
       const m = ((days % data.typicalCycleDays) + data.typicalCycleDays) % data.typicalCycleDays
-      const day = m + 1
-      dispatch({ type: 'INIT_DAYS', currentDay: day, selectedDay: day })
-      if (isControlled && onSelectDay) {
-        onSelectDay(day)
-      }
+      return m + 1
     }
-  }, [data.lastPeriodStart, data.typicalCycleDays, isControlled, onSelectDay])
+    return 1
+  }, [data.lastPeriodStart, data.typicalCycleDays])
 
   const modes = ['Period', 'Conception', 'Pregnancy', 'Perimenopause'];
 
