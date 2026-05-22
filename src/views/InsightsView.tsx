@@ -153,7 +153,7 @@ export function InsightsView() {
               <h3 className="text-base font-normal mb-1">Export your cycle summary</h3>
               <p className="text-xs text-muted-foreground font-normal">Download a complete CSV log of your cycle metrics or print/save a beautifully formatted PDF report for doctor consultations.</p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               <button 
                 onClick={handleExportCSV}
                 className="px-5 py-2.5 rounded-full border border-border text-xs font-normal hover:bg-muted transition-colors"

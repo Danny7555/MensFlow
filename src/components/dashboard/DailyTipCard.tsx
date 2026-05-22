@@ -12,9 +12,9 @@ export function DailyTipCard({ tipCompleted, setTipCompleted, variants }: DailyT
   return (
     <m.div 
       variants={variants}
-      className="flo-card flo-card--featured overflow-hidden flex flex-col group relative !p-6 md:!p-8"
+      className="flo-card flo-card--featured overflow-hidden flex flex-col group relative !p-6 md:!p-8 min-w-0 w-full"
     >
-      <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-10">
+      <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-10 min-w-0 w-full">
         <div className="-mx-6 -mt-6 md:mt-0 md:mx-0 h-[100px] md:h-[140px] md:w-[180px] relative shrink-0 overflow-hidden rounded-b-3xl md:rounded-2xl">
           <m.img 
             animate={{ 
@@ -30,7 +30,7 @@ export function DailyTipCard({ tipCompleted, setTipCompleted, variants }: DailyT
           />
         </div>
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           <div className="relative z-10 mb-4">
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center gap-2">
@@ -43,8 +43,8 @@ export function DailyTipCard({ tipCompleted, setTipCompleted, variants }: DailyT
             </div>
           </div>
           
-          <div className="relative z-10 ml-8">
-            <h3 className="text-xl md:text-2xl font-normal text-[var(--mf-text-strong)] tracking-tight whitespace-nowrap mb-2.5">Nurture your energy</h3>
+          <div className="relative z-10 ml-8 min-w-0">
+            <h3 className="text-xl md:text-2xl font-normal text-[var(--mf-text-strong)] tracking-tight whitespace-nowrap overflow-hidden text-ellipsis mb-2.5">Nurture your energy</h3>
             <p className="text-[13px] md:text-[15px] leading-relaxed text-[var(--mf-text)] opacity-80 max-w-2xl font-normal">
               Water retention might occur. Drink plenty of fluids.
             </p>
