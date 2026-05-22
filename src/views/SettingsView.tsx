@@ -1,5 +1,5 @@
 import type { ComponentType, ReactNode } from 'react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useStore } from '../store/useStore'
 import { SettingsSkeleton } from '../components/skeletons/SettingsSkeleton'
 import { 
@@ -680,7 +680,58 @@ function AccountPanel({
       ) : (
         <>
           <div className="settings-account-summary items-start">
-            <UserCircle size={36} weight="duotone" aria-hidden className="mt-2" />
+            <div className="flex flex-col items-center gap-2 mr-4">
+              <div className="size-20 rounded-full bg-muted border border-border flex items-center justify-center overflow-hidden shrink-0 relative group">
+                {user?.avatar ? (
+                  <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <UserCircle size={48} weight="duotone" className="text-muted-foreground" aria-hidden />
+                )}
+                <div 
+                  className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity"
+                  onClick={() => document.getElementById('avatar-upload')?.click()}
+                >
+                  <span className="text-white text-xs font-medium">Change</span>
+                </div>
+                <input 
+                  id="avatar-upload" 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      const reader = new FileReader()
+                      reader.onloadend = () => {
+                        updateUser({ avatar: reader.result as string })
+                      }
+                      reader.readAsDataURL(file)
+                    }
+                  }} 
+                />
+              </div>
+              <div className="flex gap-2 mt-1">
+                <button 
+                  type="button" 
+                  onClick={() => document.getElementById('avatar-upload')?.click()}
+                  className="text-xs font-medium text-[var(--mf-accent)] hover:text-[var(--mf-accent-strong)] transition-colors"
+                >
+                  Upload
+                </button>
+                {user?.avatar && (
+                  <>
+                    <span className="text-muted-foreground text-xs">•</span>
+                    <button 
+                      type="button" 
+                      onClick={() => updateUser({ avatar: null })}
+                      className="text-xs font-medium text-destructive hover:text-destructive/80 transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
             <div className="flex-1 w-full max-w-sm space-y-4">
               <div className="space-y-1.5">
                 <label htmlFor="user-name-input" className="text-xs font-medium uppercase tracking-widest text-muted-foreground ml-1">Your Name</label>
@@ -694,6 +745,34 @@ function AccountPanel({
                 />
               </div>
               <p className="settings-account-email ml-1">session@mensflow.local</p>
+            </div>
+          </div>
+
+          <div className="mb-8 pt-6 border-t border-border/50">
+            <span className="text-xs font-semibold text-[var(--mf-text-strong)] uppercase tracking-wider block mb-2">System Avatars</span>
+            <p className="text-xs text-muted-foreground mb-4">
+              Choose a default avatar to represent the partner profile.
+            </p>
+            <div className="flex flex-wrap gap-4">
+              {[
+                { id: 'lotus', src: '/avatars/lotus.svg', label: 'Lotus' },
+                { id: 'moon', src: '/avatars/moon.svg', label: 'Moon' },
+                { id: 'drop', src: '/avatars/drop.svg', label: 'Drop' },
+                { id: 'cat', src: '/avatars/cat.svg', label: 'Cat' },
+                { id: 'coffee', src: '/avatars/coffee.svg', label: 'Coffee' },
+                { id: 'star', src: '/avatars/star.svg', label: 'Star' },
+                { id: 'sun', src: '/avatars/sun.svg', label: 'Sun' },
+              ].map(avatar => (
+                <button
+                  key={avatar.id}
+                  type="button"
+                  onClick={() => updateUser({ avatar: avatar.src })}
+                  className={`size-16 rounded-full border-2 overflow-hidden transition-all hover:scale-105 active:scale-95 ${user?.avatar === avatar.src ? 'border-[var(--mf-accent)] ring-2 ring-[var(--mf-accent-soft)]' : 'border-transparent'}`}
+                  title={avatar.label}
+                >
+                  <img src={avatar.src} alt={avatar.label} className="w-full h-full object-cover" />
+                </button>
+              ))}
             </div>
           </div>
 

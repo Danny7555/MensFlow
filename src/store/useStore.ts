@@ -19,7 +19,7 @@ interface AppState {
   dashboard: DashboardSnapshot
   settings: MensFlowSettings
   logs: SymptomLog[]
-  user: { name: string }
+  user: { name: string; avatar?: string | null }
   customSymptoms: SymptomDef[]
   isSaving: boolean
   completedActions: string[]
@@ -47,7 +47,7 @@ export const useStore = create<AppState>()(
       dashboard: DEFAULT_DASHBOARD,
       settings: DEFAULT_SETTINGS,
       logs: [],
-      user: { name: 'Daniella' },
+      user: { name: 'Daniella', avatar: null },
       customSymptoms: [],
       isSaving: false,
       completedActions: [],
@@ -62,7 +62,7 @@ export const useStore = create<AppState>()(
         dashboard: DEFAULT_DASHBOARD,
         settings: DEFAULT_SETTINGS,
         logs: [],
-        user: { name: 'Daniella' },
+        user: { name: 'Daniella', avatar: null },
         customSymptoms: [],
         isSaving: false,
         completedActions: [],
