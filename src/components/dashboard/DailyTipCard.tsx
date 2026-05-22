@@ -14,8 +14,8 @@ export function DailyTipCard({ tipCompleted, setTipCompleted, variants }: DailyT
       variants={variants}
       className="flo-card flo-card--featured overflow-hidden flex flex-col group relative !p-5 md:!p-6 xl:!p-8"
     >
-      <div className="flex flex-col md:flex-row md:items-center gap-5 md:gap-6 xl:gap-10">
-        <div className="-mx-5 -mt-5 md:mt-0 md:mx-0 h-[100px] md:h-[120px] xl:h-[140px] md:w-[140px] xl:w-[180px] relative shrink-0 overflow-hidden rounded-b-3xl md:rounded-2xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between w-full gap-4 md:gap-5 xl:gap-8">
+        <div className="-mx-5 -mt-5 md:mt-0 md:mx-0 h-[100px] md:h-[120px] xl:h-[140px] md:w-[100px] xl:w-[130px] relative shrink-0 overflow-hidden rounded-b-3xl md:rounded-2xl">
           <m.img 
             animate={{ 
               y: [0, -5, 0],
@@ -30,7 +30,7 @@ export function DailyTipCard({ tipCompleted, setTipCompleted, variants }: DailyT
           />
         </div>
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0 md:pl-4 xl:pl-6">
           <div className="relative z-10 mb-3 xl:mb-4">
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center gap-2">
@@ -43,8 +43,8 @@ export function DailyTipCard({ tipCompleted, setTipCompleted, variants }: DailyT
             </div>
           </div>
           
-          <div className="relative z-10 ml-8">
-            <h3 className="text-xl md:text-xl xl:text-2xl font-normal text-[var(--mf-text-strong)] tracking-tight whitespace-nowrap mb-2">Nurture your energy</h3>
+          <div className="relative z-10 ml-8 min-w-0">
+            <h3 className="text-xl md:text-xl xl:text-2xl font-normal text-[var(--mf-text-strong)] tracking-tight mb-2">Nurture your energy</h3>
             <p className="text-[12px] md:text-[13px] xl:text-[15px] leading-relaxed text-[var(--mf-text)] opacity-80 max-w-2xl font-normal">
               Water retention might occur. Drink plenty of fluids.
             </p>
