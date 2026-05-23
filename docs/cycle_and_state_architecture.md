@@ -18,7 +18,7 @@ This document provides a technical guide to the biological calculations, global 
 
 ## 🧮 Cycle Calculation Engine
 
-MensFlow computes cycle schedules dynamically based on inputs configured in the settings page. The calculation functions are central to the app and reside in [cycleUtils.ts](../src/lib/cycleUtils.ts).
+MensFlow computes cycle schedules dynamically based on inputs configured in the settings page. The calculation functions are central to the app and reside in [cycleUtils.ts](file:///Users/david/Downloads/MensFlow/src/lib/cycleUtils.ts).
 
 ### The Cycle Day Calculation
 
@@ -26,11 +26,11 @@ To find out what cycle day the tracker is on, the app calculates the days elapse
 
 ```typescript
 export function computeCycleDay(startIso: string, cycleLen: number): number {
-  const start = new Date(`${startIso}T12:00:00`);
-  if (Number.isNaN(+start)) return 1;
-  const days = Math.floor((Date.now() - +start) / 86400000);
-  const m = ((days % cycleLen) + cycleLen) % cycleLen;
-  return m + 1;
+  const start = new Date(`${startIso}T12:00:00`)
+  if (Number.isNaN(+start)) return 1
+  const days = Math.floor((Date.now() - +start) / 86400000)
+  const m = ((days % cycleLen) + cycleLen) % cycleLen
+  return m + 1
 }
 ```
 
@@ -55,27 +55,27 @@ stateDiagram-v2
 ### Phase Mapping Logic
 
 ```typescript
-if (cycleDay <= 5) return 'menstrual';
-if (cycleDay <= 7) return 'follicular';
-if (cycleDay >= 10 && cycleDay <= 16) return 'fertile'; // (Ovulatory)
-if (cycleDay >= 23) return 'luteal';
-return 'follicular'; // Fallback state
+if (cycleDay <= 5) return 'menstrual'
+if (cycleDay <= 7) return 'follicular'
+if (cycleDay >= 10 && cycleDay <= 16) return 'fertile' // (Ovulatory)
+if (cycleDay >= 23) return 'luteal'
+return 'follicular' // Fallback state
 ```
 
 ### Phase Metadata Mappings
 
-| Phase ID     | UI Label       | Color Code (Hex)  | Biological Characteristics & Focus                                                      |
-| :----------- | :------------- | :---------------- | :-------------------------------------------------------------------------------------- |
-| `menstrual`  | **Menstrual**  | `#f43f5e` (Rose)  | Estrogen/progesterone low. Focus on physical recovery, warmth, and rest.                |
-| `follicular` | **Follicular** | `#0d9488` (Teal)  | Estrogen rises. Higher cognitive energy, planning, and creative initiatives.            |
-| `fertile`    | **Ovulatory**  | `#0ea5e9` (Sky)   | Peak LH and estrogen. Highest physical stamina and social connection potential.         |
-| `luteal`     | **Luteal**     | `#d97706` (Amber) | Progesterone peaks then drops. Higher body heat, fatigue, needing calming environments. |
+| Phase ID | UI Label | Color Code (Hex) | Biological Characteristics & Focus |
+| :--- | :--- | :--- | :--- |
+| `menstrual` | **Menstrual** | `#f43f5e` (Rose) | Estrogen/progesterone low. focus on physical recovery, warmth, and rest. |
+| `follicular` | **Follicular** | `#0d9488` (Teal) | Estrogen rises. Higher cognitive energy, planning, and creative initiatives. |
+| `fertile` | **Ovulatory** | `#0ea5e9` (Sky) | Peak LH and estrogen. Highest physical stamina and social connection potential. |
+| `luteal` | **Luteal** | `#d97706` (Amber) | Progesterone peaks then drops. Higher body heat, fatigue, needing calming environments. |
 
 ---
 
 ## ⚡ Global State Management (Zustand)
 
-All inputs, preferences, symptom logs, and partnership stats are centralized in a single store file at [useStore.ts](../src/store/useStore.ts).
+All inputs, preferences, symptom logs, and partnership stats are centralized in a single store file at [useStore.ts](file:///Users/david/Downloads/MensFlow/src/store/useStore.ts).
 
 ### 1. LocalStorage Persistence
 
@@ -91,13 +91,13 @@ To create a premium user experience with loading animations (e.g. spinner overla
 
 ```typescript
 updateDashboard: async (patch) => {
-  set({ isSaving: true });
-  await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate network lag
+  set({ isSaving: true })
+  await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate network lag
   set((state) => ({
     dashboard: { ...state.dashboard, ...patch },
-    isSaving: false,
-  }));
-};
+    isSaving: false
+  }))
+}
 ```
 
 ### 3. Support Actions & Streaks
@@ -110,7 +110,7 @@ The partner support checklist tracks consecutive days of support:
 
 ## 🚀 Partner Synchronization (Cross-Tab Messaging)
 
-Since MensFlow is a collaborative partner application, it supports synchronized data transmissions.
+Since MensFlow is a collaborative partner application, it supports synchronized data transmissions. 
 
 To simulate real-time notifications without a backend server, the app uses a **reactive local storage listener system**:
 
@@ -128,14 +128,14 @@ sequenceDiagram
 
 ### Implementation Details:
 
-1.  **Broadcasting Status:** In [SyncView.tsx](../src/views/SyncView.tsx), when sending a check-in, the selected option is stored under the key `mensflow_partner_ping:v1`:
+1.  **Broadcasting Status:** In [SyncView.tsx](file:///Users/david/Downloads/MensFlow/src/views/SyncView.tsx), when sending a check-in, the selected option is stored under the key `mensflow_partner_ping:v1`:
     ```typescript
-    localStorage.setItem('mensflow_partner_ping:v1', JSON.stringify(pingData));
-    window.dispatchEvent(new Event('storage')); // Force listener trigger in the same browser window
+    localStorage.setItem('mensflow_partner_ping:v1', JSON.stringify(pingData))
+    window.dispatchEvent(new Event('storage')) // Force listener trigger in the same browser window
     ```
-2.  **Receiving Status:** In [DashboardView.tsx](../src/views/DashboardView.tsx), an event listener watches for local storage updates:
+2.  **Receiving Status:** In [DashboardView.tsx](file:///Users/david/Downloads/MensFlow/src/views/DashboardView.tsx), an event listener watches for local storage updates:
     ```typescript
-    window.addEventListener('storage', handlePingEvent);
+    window.addEventListener('storage', handlePingEvent)
     ```
     If `mensflow_partner_ping:v1` changes, it checks the timestamp against the last processed ping to prevent duplicate warnings, and fires a `sonner` toast notification containing the partner's status.
 
@@ -152,5 +152,5 @@ For conversations that require extra privacy, the app isolates messages into a l
 
 ### 2. Lockout and Verification Flow
 
-*   **Passcode Lock:** If `privacyLockChats` is true, the user must input their passcode to set `isUnlocked` to true in [LockedChatsView.tsx](../src/views/LockedChatsView.tsx).
+*   **Passcode Lock:** If `privacyLockChats` is true, the user must input their passcode to set `isUnlocked` to true in [LockedChatsView.tsx](file:///Users/david/Downloads/MensFlow/src/views/LockedChatsView.tsx).
 *   **Recovery Safeguard:** If a passcode is forgotten and three incorrect attempts are entered, the view displays the "Security Question" recovery layout, prompting the user for the answer configured in settings.
