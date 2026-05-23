@@ -8,13 +8,8 @@ Welcome to **MensFlow**, a premium, beautifully designed health application tail
 ---
 
 ## 📖 Table of Contents
-<<<<<<< HEAD:frontend/README.md
 
-- [Project Overview & Mission Guide](file:///Users/david/Downloads/MensFlow/docs/project_overview.md) ( Ghanaian adolescent health context, MongoDB backend blueprint, and AI Engines )
-
-=======
-*   [Project Overview & Mission Guide](file:///Users/david/Downloads/MensFlow/docs/project_overview.md) ( Ghanaian adolescent health context, MongoDB backend blueprint, and AI Engines )
->>>>>>> 86655d3 (docs: add navigation links and project overview reference to documentation and README):README.md
+- [Project Overview & Mission Guide](../docs/project_overview.md) ( Ghanaian adolescent health context, MongoDB backend blueprint, and AI Engines )
 1. [Core Features](#-core-features)
 2. [MensFlow vs. Flo: What Makes It Unique?](#-mensflow-vs-flo-what-makes-it-unique)
 3. [Tech Stack & Architecture](#-tech-stack--architecture)
@@ -94,7 +89,7 @@ MensFlow is constructed with performance, stability, and pixel-perfection in min
 
 ## 📺 Detailed View & Page Documentation
 
-The MensFlow application consists of several highly specialized, responsive page views located in [src/views](file:///Users/david/Downloads/MensFlow/src/views):
+The MensFlow application consists of several highly specialized, responsive page views located in [src/views](src/views):
 
 ### 1. Dashboard View (`DashboardView.tsx`)
 
@@ -118,7 +113,7 @@ Provides a highly custom calendar grid displaying historical cycle details, symp
 An AI-like messaging interface designed to discuss hormone cycles, diet suggestions, physical recovery, and relationship tips.
 
 - **Message Stream:** Premium layout with bubble styling, avatars, and bounce animations.
-- **Temporary Mode:** Optional setting to chat in an unsaved sandbox that leaves no trail in storage history.
+- **Temporary Mode:** Optional setting to chat in an ephemeral sandbox that leaves no trail in storage history.
 - **Locked Chats Sandbox:** Uses the exact same component structure but directs message array states to a distinct, passcode-locked localStorage entry (`mensflow_locked_chats`).
 
 ### 4. Locked Chats Security (`LockedChatsView.tsx`)
@@ -263,7 +258,7 @@ To simulate mobile haptics and keep the app feeling incredibly responsive, inter
 
 ### Zustand Global Store
 
-Global states (logs, dashboard statistics, user parameters, and persistent storage bindings) are centralized in [useStore.ts](file:///Users/david/Downloads/MensFlow/src/store/useStore.ts).
+Global states (logs, dashboard statistics, user parameters, and persistent storage bindings) are centralized in [useStore.ts](src/store/useStore.ts).
 
 > [!TIP]
 > The store uses the Zustand `persist` middleware to automatically serialize/deserialize key states to local storage under the key `mensflow-storage`. It also simulates network latency (`1s` and `800ms`) on database saves to display premium loading overlays seamlessly across pages.
@@ -298,7 +293,7 @@ interface AppState {
 
 ### React Providers & Contexts
 
-Additional configurations and session metrics are isolated inside specialized Context providers found under [src/context/](file:///Users/david/Downloads/MensFlow/src/context/):
+Additional configurations and session metrics are isolated inside specialized Context providers found under [src/context/](src/context/):
 
 - `AuthProvider.tsx` — Handles auth states, registration modes, and onboarding checks.
 - `SettingsProvider.tsx` — Manages preferences like theme (light vs dark), mobile navigation settings, and desktop sidebar states.
@@ -336,32 +331,14 @@ Follow these steps to set up your local development environment:
    ```
    _The local server will run on [http://localhost:5173/](http://localhost:5173/)_
 
-<<<<<<< HEAD:frontend/README.md
-<<<<<<< HEAD:frontend/README.md
-<<<<<<< HEAD:frontend/README.md
-=======
-
-> > > > > > > 62e37b9 (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.):README.md 4. **Verify TypeScript type safety (without compiling files):**
-
-````bash
-npm run typecheck
-# or with bun
-bun run typecheck
-<<<<<<< HEAD:frontend/README.md
-=======
-4. **Verify TypeScript build compilation:**
-=======
-=======
-4. **Verify TypeScript build compilation:**
-```bash
-npm run build
-# or with bun
-bun run build
->>>>>>> 1d4910a (docs: update README with detailed view documentation and add collaboration guide):README.md
-````
+4. **Verify TypeScript type safety (without compiling files):**
+   ```bash
+   npm run typecheck
+   # or with bun
+   bun run typecheck
+   ```
 
 5. **Lint checks:**
-
    ```bash
    npm run lint
    # or with bun
@@ -369,32 +346,6 @@ bun run build
    ```
 
 6. **React quality diagnostics (React Doctor):**
-
-   ```bash
-   npm run doctor
-   # or with bun
-   bun run doctor
-   ```
-
-7. **Compile and build for production:**
-   > > > > > > > 62e37b9 (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.):README.md
-   ```bash
-   npm run build
-   # or with bun
-   bun run build
-   >>>>>>> 1d4910a (docs: update README with detailed view documentation and add collaboration guide):README.md
-   ```
-
-<<<<<<< HEAD:frontend/README.md 5. **Lint checks:**
-
-```bash
-npm run lint
-# or with bun
-bun run lint
-```
-
-6. **React quality diagnostics (React Doctor):**
-
    ```bash
    npm run doctor
    # or with bun
@@ -408,10 +359,6 @@ bun run lint
    bun run build
    ```
    _Compiles code and builds the production artifact into the `dist/` directory._
-
-=======
-
-> > > > > > > 62e37b9 (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.):README.md
 
 ---
 
@@ -484,4 +431,4 @@ To maintain code quality and structural integrity across multiple developers:
 
 - We use a standardized branch naming convention (`type/short-description`).
 - All code changes must go through pull request review before merging.
-- For detailed instructions on branching protocols, commit conventions, and review procedures, refer to the [Collaboration and Branching Guide](file:///Users/david/Downloads/MensFlow/docs/collaboration_guide.md).
+- For detailed instructions on branching protocols, commit conventions, and review procedures, refer to the [Collaboration and Branching Guide](docs/collaboration_guide.md).
