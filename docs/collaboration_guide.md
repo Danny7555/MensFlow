@@ -5,6 +5,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 [← Back to README](file:///Users/david/Downloads/MensFlow/README.md) | [← Back to Project Overview](file:///Users/david/Downloads/MensFlow/docs/project_overview.md)
 
 =======
@@ -18,6 +19,8 @@
 > > > > > > > 1d4910a (docs: update README with detailed view documentation and add collaboration guide)
 > > > > > > > Welcome to the MensFlow development team! This document outlines our team's engineering standards, branching strategy, commit guidelines, code review protocols, and collaboration workflows. Following these policies ensures a clean, stable, and highly auditable codebase.
 =======
+=======
+>>>>>>> 86655d3 (docs: add navigation links and project overview reference to documentation and README)
 [← Back to README](file:///Users/david/Downloads/MensFlow/README.md) | [← Back to Project Overview](file:///Users/david/Downloads/MensFlow/docs/project_overview.md)
 
 Welcome to the MensFlow development team! This document outlines our team's engineering standards, branching strategy, commit guidelines, code review protocols, and collaboration workflows. Following these policies ensures a clean, stable, and highly auditable codebase.
