@@ -16,9 +16,9 @@ type Msg = {
   createdAt: number
 }
 
-function loadStoredMessages(): Msg[] | null {
+function loadStoredMessages(storageKey: string): Msg[] | null {
   try {
-    const raw = localStorage.getItem(CHAT_STORAGE_KEY)
+    const raw = localStorage.getItem(storageKey)
     if (!raw) return null
     const data = JSON.parse(raw) as { messages?: Msg[] }
     if (!Array.isArray(data.messages) || data.messages.length === 0)
@@ -155,7 +155,7 @@ const SUGGESTIONS = [
   { text: "Why is she feeling tired/low energy? 🛌", query: "Why is she feeling tired/low energy?" },
 ]
 
-export function ChatView() {
+export function ChatView({ storageKey = CHAT_STORAGE_KEY }: { storageKey?: string }) {
   const { temporaryChat } = useChatSession()
   const { chatPersistLocal, chatShowTimestamps } = useStore((state) => state.settings)
   const { dashboard: data, user, logs, customSymptoms } = useStore()
@@ -184,7 +184,7 @@ export function ChatView() {
       text: welcomeText,
       createdAt: Date.now(),
     }]
-    const stored = loadStoredMessages()
+    const stored = loadStoredMessages(storageKey)
     if (stored && stored.length > 0) return stored
     return [{
       id: 'welcome',
@@ -247,7 +247,7 @@ export function ChatView() {
   useEffect(() => {
     if (!persistToDisk) return
     try {
-      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify({ messages }))
+      localStorage.setItem(storageKey, JSON.stringify({ messages }))
     } catch {
       /* quota */
     }

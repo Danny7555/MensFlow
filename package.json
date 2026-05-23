@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "typecheck": "tsc -b --noEmit",
     "lint": "eslint .",
+    "doctor": "npx react-doctor@latest",
     "preview": "vite preview"
   },
   "dependencies": {

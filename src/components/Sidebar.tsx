@@ -19,6 +19,7 @@ import {
   SignOut,
   Users,
   Sparkle,
+  Lock,
 } from '@phosphor-icons/react'
 import type { SectionId } from '../types/nav'
 import { cn } from '../lib/utils'
@@ -78,7 +79,13 @@ export function Sidebar({
 }: SidebarProps) {
   const { onboardingCompleted, logout } = useAuth()
 
-  const rawItems = isAuthenticated ? authItems : guestItems
+  const { dashboard: data, settings, user } = useStore()
+
+  const rawItems = isAuthenticated ? [...authItems] : [...guestItems]
+  if (settings.privacyLockChats) {
+    rawItems.splice(rawItems.length - 1, 0, { id: 'locked-chats', label: 'Locked Chats', Icon: Lock })
+  }
+
   const items = rawItems.filter(item => {
     // If onboarding is not completed, only show the chat assistant
     if (!onboardingCompleted && item.id !== 'ask') return false
@@ -88,7 +95,6 @@ export function Sidebar({
   const collapsed = !isMobile && desktopCollapsed
   const navIconSize = collapsed ? 22 : 20
 
-  const { dashboard: data, user } = useStore()
   const cycleDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
   const phase = getPhaseFromDay(cycleDay)
   const phaseInfo = getPhaseInfo(phase)
