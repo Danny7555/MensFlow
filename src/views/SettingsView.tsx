@@ -1,5 +1,5 @@
 import type { ComponentType, ReactNode } from 'react'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useStore } from '../store/useStore'
 import { SettingsSkeleton } from '../components/skeletons/SettingsSkeleton'
 import {
