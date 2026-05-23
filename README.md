@@ -11,28 +11,30 @@ Welcome to **MensFlow**, a premium, beautifully designed health application tail
 1. [Core Features](#-core-features)
 2. [MensFlow vs. Flo: What Makes It Unique?](#-mensflow-vs-flo-what-makes-it-unique)
 3. [Tech Stack & Architecture](#-tech-stack--architecture)
-4. [Directory Layout](#-directory-layout)
-5. [Bespoke Design System](#%EF%B8%8F-bespoke-design-system)
+4. [Detailed View & Page Documentation](#-detailed-view--page-documentation)
+5. [Directory Layout](#-directory-layout)
+6. [Bespoke Design System](#%EF%B8%8F-bespoke-design-system)
    - [CSS Custom Properties](#css-custom-properties)
    - [Glassmorphism & Backdrop Blurs](#glassmorphism--backdrop-blurs)
    - [Animations & Page Transitions](#animations--page-transitions)
-   - [Micro-interactions & tactile squish](#micro-interactions--tactile-squish)
-6. [State Management & Contexts](#-state-management--contexts)
+   - [Micro-interactions & Tactile Squish](#micro-interactions--tactile-squish)
+7. [State Management & Contexts](#-state-management--contexts)
    - [Zustand Global Store](#zustand-global-store)
    - [React Providers & Contexts](#react-providers--contexts)
-7. [Getting Started (Developer Guide)](#-getting-started-developer-guide)
-8. [Adding New Features (Developer Walkthrough)](#-adding-new-features-developer-walkthrough)
-9. [Git & Branch Guidelines](#-git--branch-guidelines)
+8. [Getting Started (Developer Guide)](#-getting-started-developer-guide)
+9. [Adding New Features (Developer Walkthrough)](#-adding-new-features-developer-walkthrough)
+10. [Collaboration & Git Workflow](#-collaboration--git-workflow)
 
 ---
 
 ## ✨ Core Features
 
-*   **Daily Symptom Logging:** Intuitive physical, mood, and flow symptom trackers with high-quality visual states.
+*   **Daily Symptom Logging:** Intuitive physical, mood, and flow symptom trackers with high-quality visual states. Supports custom symptom creation.
 *   **Analytical Cycle Graphs:** Custom data visualizations powered by `Recharts` showcasing 6-month cycle variations and long-term symptom correlations.
 *   **Personalized Insights & Wellness Tips:** Daily science-backed advice tailored to the active cycle phase (Menstrual, Follicular, Ovulatory, or Luteal).
 *   **Interactive Calendar & Phase Predictor:** An elegant calendar grid detailing flow predictions, phase splits, and cycle histories.
 *   **Interactive AI-like Support:** Premium, seamless chat companion (`ChatView`) facilitating private questions regarding hormone trends, mood swings, and wellness routines.
+*   **Partner Sync & Empathy Hub:** Dual-user integration enabling partners to receive instant care instructions and check-ins.
 *   **Premium iOS-style Aesthetics:** Organic corner curves (`rounded-3xl` equivalent), frosted-glass mobile tabs, fluid fade-and-slide motion profiles, and a warm dark-plum color system.
 
 ---
@@ -52,7 +54,7 @@ MensFlow automatically translates complex biological fluctuations into helpful, 
 *   **Follicular & Ovulatory Phases:** Suggests date configurations, creative projects, and communication prompts that match active energy curves.
 
 ### 3. 🚀 Frictionless Syncing
-Includes a native, integrated **Partner Invitation portal** powered by dynamic React hooks. It generates real-time secure access states without complex setups, syncing log changes instantly.
+Includes a native, integrated **Partner Invitation portal** powered by dynamic React hooks. It generates real-time secure access states without complex setups, syncing log changes instantly using cross-tab storage synchronizations.
 
 ### 4. 💎 Distraction-Free iOS Aesthetics
 Avoids subscription paywalls, heavy advertisements, and clinical interfaces in favor of:
@@ -61,7 +63,6 @@ Avoids subscription paywalls, heavy advertisements, and clinical interfaces in f
 *   A premium dark mode designed with comforting warm-plum highlights.
 
 ---
-
 
 ## 🛠️ Tech Stack & Architecture
 
@@ -74,6 +75,54 @@ MensFlow is constructed with performance, stability, and pixel-perfection in min
 *   **Data Vis:** [Recharts](https://recharts.org/) for beautiful, responsive charts.
 *   **Iconography:** [Phosphor Icons](https://phosphoricons.com/) and [Lucide React](https://lucide.dev/).
 *   **Animations:** Built-in transition utilities using [Tailwindcss Animate](https://github.com/jamiebuilds/tailwindcss-animate) and custom hardware-accelerated CSS transforms.
+*   **Tour System:** [React Joyride](https://react-joyride.com/) for step-by-step introduction overlays.
+
+---
+
+## 📺 Detailed View & Page Documentation
+
+The MensFlow application consists of several highly specialized, responsive page views located in [src/views](file:///Users/david/Downloads/MensFlow/src/views):
+
+### 1. Dashboard View (`DashboardView.tsx`)
+The home dashboard acts as the primary feed for tracking wellness scores, checking cycle progress, and accessing care recommendation lists.
+*   **Ambient Background:** Dynamically shifts colors based on the current active phase (e.g., warm rose for menstrual, teal for follicular, sky-blue for fertile/ovulatory, amber for luteal).
+*   **Stories Section:** Circular navigation hubs inspired by mobile social feeds to preview daily insights, chats, or wellness tips.
+*   **Today's Plan Feed:** Renders active cards including `WellnessScoreCard`, `PrimaryInsightCard`, `BodySignalsCard`, `DailyTipCard`, and the `HormoneInsightCard`.
+*   **Interactive Guided Tour:** Leverages `react-joyride` to showcase primary visual elements (Cycle Tracker, Story buttons, Today's Plan, and log triggers) for first-time users.
+*   **Partner Pings:** Automatically listens for cross-browser storage pings to display live toast notifications if a partner logs an update.
+
+### 2. Calendar View (`CalendarView.tsx`)
+Provides a highly custom calendar grid displaying historical cycle details, symptom summaries, and future predictions.
+*   **Visual Indicators:** Period days, predicted period days, follicular segments, and fertile segments are rendered with custom border highlights and pastel circles.
+*   **Day Selection:** Selecting a day loads logged symptoms, cycle details, and partner care suggestions for that calendar date.
+
+### 3. Ask MensFlow Companion (`ChatView.tsx`)
+An AI-like messaging interface designed to discuss hormone cycles, diet suggestions, physical recovery, and relationship tips.
+*   **Message Stream:** Premium layout with bubble styling, avatars, and bounce animations.
+*   **Temporary Mode:** Optional setting to chat in an unsaved sandbox that leaves no trail in storage history.
+*   **Locked Chats Sandbox:** Uses the exact same component structure but directs message array states to a distinct, passcode-locked localStorage entry (`mensflow_locked_chats`).
+
+### 4. Locked Chats Security (`LockedChatsView.tsx`)
+Restricts chat access behind a password-lock.
+*   **Password Setup:** Formulates password guidelines (requiring mixed-case letters, symbols, numbers, and minimum lengths).
+*   **Security Question Recovery:** If three incorrect password attempts are detected, the user can reset their password by answering a security question defined in settings.
+
+### 5. Partner Sync Hub (`SyncView.tsx`)
+Handles relationship-first collaboration functions.
+*   **Real-Time Ping Sender:** Allows a user to instantly broadcast their active status (e.g., *"Crampy"*, *"Exhausted"*, *"Feeling Great!"*) to their partner. Uses a custom event listener that catches changes to `mensflow_partner_ping:v1`.
+*   **Emotion Translator:** A helper widget that translates emotional outbursts or low-energy moments into biological context (e.g., high progesterone levels) for partner empathy.
+*   **Support Actions Log:** Keeps track of support actions completed by the partner, computing streaks and rewarding collaborative behavior.
+
+### 6. Symptoms View & Log Modal (`SymptomsView.tsx` & `LogSymptomsModal.tsx`)
+Provides a grid to log flows, mood fluctuations, physical symptoms, and lifestyle markers.
+*   **Log Symptoms Modal:** Allows selecting symptom buttons categorized into Flow, Mood, Physical, and Lifestyle. Includes a dynamic "Add Custom Symptom" control.
+*   **Symptom Trends:** Detailed analytics visualizing symptom counts over time using custom AreaCharts and BarCharts.
+
+### 7. Settings View (`SettingsView.tsx`)
+Manages configuration models.
+*   **Cycle Customizer:** Edit typical cycle lengths, typical period durations, and the date of the last period start.
+*   **Privacy & Security:** Controls passcode encryption flags, security questions, custom passwords, and database clear procedures.
+*   **Layout Tweaks:** Set dark/light modes, sidebar collapse behaviors, and mobile navigation overrides.
 
 ---
 
@@ -85,13 +134,13 @@ MensFlow/
 ├── src/
 │   ├── assets/             # Bundled visual assets & images
 │   ├── components/         # Reusable presentation & layout elements
-│   │   ├── dashboard/      # Daily logs, feed progress banners, quick tips
-│   │   ├── tracker/        # Hero grids, custom Recharts graphs
-│   │   └── ui/             # Core UI atoms (cards, modals, dropdowns)
-│   ├── context/            # React global providers (Auth, Theme Settings, Dashboard Data)
-│   ├── data/               # Static mock records & medical correlation maps
+│   │   ├── dashboard/      # Daily logs, feed progress banners, quick tips, Emotion Translator
+│   │   ├── tracker/        # Hero grids, CycleWheel, custom Recharts graphs
+│   │   └── ui/             # Core UI atoms (cards, modals, dropdowns, buttons, inputs)
+│   ├── context/            # React global providers (Auth, Chat Session settings)
+│   ├── data/               # Static mock records & medical correlation maps (symptoms, education, tips)
 │   ├── hooks/              # Global custom hooks (e.g., useMediaQuery for responsive views)
-│   ├── lib/                # Shared utilities, constants, storage abstractions, and dark-mode controllers
+│   ├── lib/                # Shared utilities, constants, cycle formulas, theme solvers, and storage helpers
 │   ├── store/              # Zustand state manager (useStore.ts)
 │   ├── types/              # Type definitions and interfaces
 │   ├── views/              # Page-level route views (Dashboard, Insights, Tracker, Calendar, Onboarding)
@@ -181,36 +230,44 @@ To simulate mobile haptics and keep the app feeling incredibly responsive, inter
 ## ⚡ State Management & Contexts
 
 ### Zustand Global Store
-Global states (logs, dashboard statistics, user parameters, and persistent storage bindings) are centralized in `src/store/useStore.ts`. 
+Global states (logs, dashboard statistics, user parameters, and persistent storage bindings) are centralized in [useStore.ts](file:///Users/david/Downloads/MensFlow/src/store/useStore.ts). 
 
 > [!TIP]
 > The store uses the Zustand `persist` middleware to automatically serialize/deserialize key states to local storage under the key `mensflow-storage`. It also simulates network latency (`1s` and `800ms`) on database saves to display premium loading overlays seamlessly across pages.
 
 ```typescript
-export type SymptomLog = {
-  date: string; // YYYY-MM-DD
-  symptoms: string[];
-}
-
 interface AppState {
   dashboard: DashboardSnapshot
+  settings: MensFlowSettings
   logs: SymptomLog[]
   user: { name: string }
+  customSymptoms: SymptomDef[]
   isSaving: boolean
+  completedActions: string[]
+  supportStreak: number
+  lastActionDate: string
   
+  // Actions
   updateDashboard: (patch: Partial<DashboardSnapshot>) => Promise<void>
+  updateUser: (patch: Partial<{ name: string }>) => void
+  updateSettings: (patch: Partial<MensFlowSettings>) => void
+  resetSettings: () => void
   addLog: (date: string, symptoms: string[]) => Promise<void>
   getLogForDate: (date: string) => SymptomLog | undefined
   clearLogs: () => void
+  addCustomSymptom: (label: string, category: SymptomCategory) => void
+  removeCustomSymptom: (id: string) => void
   resetStore: () => void
+  toggleSupportAction: (actionId: string) => void
+  checkAndResetDailyActions: () => void
 }
 ```
 
 ### React Providers & Contexts
-Additional configurations and session metrics are isolated inside specialized Context providers found under `src/context/`:
+Additional configurations and session metrics are isolated inside specialized Context providers found under [src/context/](file:///Users/david/Downloads/MensFlow/src/context/):
 *   `AuthProvider.tsx` — Handles auth states, registration modes, and onboarding checks.
 *   `SettingsProvider.tsx` — Manages preferences like theme (light vs dark), mobile navigation settings, and desktop sidebar states.
-*   `DashboardDataProvider.tsx` — Distributes dynamic wellness values and phase metadata down the component hierarchy.
+*   `ChatSessionContext` — Shared in `App.tsx` to handle ephemeral chat sessions and routing setups.
 
 ---
 
@@ -220,7 +277,7 @@ Follow these steps to set up your local development environment:
 
 ### Prerequisites
 *   [Node.js](https://nodejs.org/) (v18.0.0 or higher)
-*   `npm` (v9.0.0 or higher)
+*   `npm` (v9.0.0 or higher) or `bun` (v1.0.0 or higher)
 
 ### Setup Commands
 1. **Clone the repository:**
@@ -231,22 +288,30 @@ Follow these steps to set up your local development environment:
 2. **Install all dependencies:**
    ```bash
    npm install
+   # or with bun
+   bun install
    ```
 3. **Spin up the development environment:**
    ```bash
    npm run dev
+   # or with bun
+   bun dev
    ```
    *The local server will run on [http://localhost:5173/](http://localhost:5173/)*
 
-4. **Run TypeScript compiler & verify types:**
+4. **Verify TypeScript build compilation:**
    ```bash
    npm run build
+   # or with bun
+   bun run build
    ```
    *Compiles code and builds the production artifact into the `dist/` directory.*
 
-5. **Lint and format checks:**
+5. **Lint checks:**
    ```bash
    npm run lint
+   # or with bun
+   bun run lint
    ```
 
 ---
@@ -299,39 +364,13 @@ import { HydrationView } from './views/HydrationView';
 // inside MainShell Route mapping:
 <Route path="/hydration" element={<HydrationView />} />
 ```
-Then, update `Sidebar.tsx` and the mobile navigation container in `App.tsx` (using Phosphor Icons) to give users a entrypoint to your new dashboard section.
+Then, update `Sidebar.tsx` and the mobile navigation container in `App.tsx` (using Phosphor Icons) to give users an entrypoint to your new dashboard section.
 
 ---
 
-## 🌿 Git & Branch Guidelines
+## 🌿 Collaboration & Git Workflow
 
-To keep the development history clean, readable, and highly auditable, all developers must strictly adhere to the following branch naming standards:
-
-### Standard Branch Name Format
-`type/short-description`
-
-*   Use lowercase lettering exclusively.
-*   Separate terms using hyphens.
-*   Avoid generic names (e.g., `test` or `wip`). Keep descriptors specific and short.
-
-### Allowed Prefix Types
-
-| Branch Type | Purpose / Description |
-| :--- | :--- |
-| `feature/` | Introduction of new modules or UI templates |
-| `fix/` / `bugfix/` | Resolving an active issue or bug |
-| `hotfix/` | Immediate patch directed to production systems |
-| `chore/` | Structural dependencies, configurations, or cleanup work |
-| `docs/` | Editing or adding developer/medical documentation |
-| `test/` | Constructing or restructuring test suites |
-| `refactor/` | Rearranging components or styling elements with zero functional difference |
-| `release/` | Final staging checks before rolling out |
-
----
-
-## 💖 Contributing Code
-
-*   Always design **mobile-first**! Resize your viewport and verify responsiveness on elements.
-*   Always ensure proper semantic HTML tags (`<header>`, `<main>`, `<nav>`, `<footer>`) are used to protect accessibility options.
-*   Avoid stark colors. Use theme values such as `var(--mf-text)` or `var(--mf-accent)` to maintain the premium dark mode capabilities.
-*   Leverage `.active-squish` on any new interactive elements to maintain the tactile delight of the interface.
+To maintain code quality and structural integrity across multiple developers:
+*   We use a standardized branch naming convention (`type/short-description`).
+*   All code changes must go through pull request review before merging.
+*   For detailed instructions on branching protocols, commit conventions, and review procedures, refer to the [Collaboration and Branching Guide](file:///Users/david/Downloads/MensFlow/docs/collaboration_guide.md).
