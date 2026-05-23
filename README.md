@@ -299,20 +299,34 @@ Follow these steps to set up your local development environment:
    ```
    *The local server will run on [http://localhost:5173/](http://localhost:5173/)*
 
-4. **Verify TypeScript build compilation:**
+4. **Verify TypeScript type safety (without compiling files):**
+   ```bash
+   npm run typecheck
+   # or with bun
+   bun run typecheck
+   ```
+
+5. **Lint and format checks:**
+   ```bash
+   npm run lint
+   # or with bun
+   bun run lint
+   ```
+
+6. **React quality diagnostics (React Doctor):**
+   ```bash
+   npm run doctor
+   # or with bun
+   bun run doctor
+   ```
+
+7. **Compile and build for production:**
    ```bash
    npm run build
    # or with bun
    bun run build
    ```
    *Compiles code and builds the production artifact into the `dist/` directory.*
-
-5. **Lint checks:**
-   ```bash
-   npm run lint
-   # or with bun
-   bun run lint
-   ```
 
 ---
 
