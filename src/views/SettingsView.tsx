@@ -2,7 +2,7 @@ import type { ComponentType, ReactNode } from 'react'
 import { useState, useEffect } from 'react'
 import { useStore } from '../store/useStore'
 import { SettingsSkeleton } from '../components/skeletons/SettingsSkeleton'
-import { 
+import {
   ArrowCounterClockwise,
   Bell,
   Database,
@@ -22,11 +22,11 @@ import {
   Info
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
   DialogDescription,
   DialogTrigger,
   DialogFooter
@@ -62,15 +62,15 @@ const NAV: {
   label: string
   Icon: ComponentType<{ size?: number; className?: string }>
 }[] = [
-  { id: 'general', label: 'General', Icon: GearSix },
-  { id: 'notifications', label: 'Notifications', Icon: Bell },
-  { id: 'personalization', label: 'Personalization', Icon: Sparkle },
-  { id: 'apps', label: 'Apps', Icon: SquaresFour },
-  { id: 'data_controls', label: 'Data controls', Icon: Database },
-  { id: 'security', label: 'Security', Icon: ShieldCheck },
-  { id: 'parental', label: 'Parental controls', Icon: UsersThree },
-  { id: 'account', label: 'Account', Icon: UserCircle },
-]
+    { id: 'general', label: 'General', Icon: GearSix },
+    { id: 'notifications', label: 'Notifications', Icon: Bell },
+    { id: 'personalization', label: 'Personalization', Icon: Sparkle },
+    { id: 'apps', label: 'Apps', Icon: SquaresFour },
+    { id: 'data_controls', label: 'Data controls', Icon: Database },
+    { id: 'security', label: 'Security', Icon: ShieldCheck },
+    { id: 'parental', label: 'Parental controls', Icon: UsersThree },
+    { id: 'account', label: 'Account', Icon: UserCircle },
+  ]
 
 function SelectRow({
   label,
@@ -170,8 +170,8 @@ function MfaSetupModal({ trigger }: { trigger: ReactNode }) {
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
               {step === 'choice' && 'Add an extra layer of security to your MensFlow account.'}
-              {step === 'setup' && (method === 'app' 
-                ? 'Open your authenticator app (like Google Authenticator or Authy) and scan the code below.' 
+              {step === 'setup' && (method === 'app'
+                ? 'Open your authenticator app (like Google Authenticator or Authy) and scan the code below.'
                 : 'We will send a 6-digit code to your mobile device.')}
               {step === 'verify' && 'We sent a code to your device. Please enter it below to confirm.'}
               {step === 'success' && 'Your account is now protected with two-step verification.'}
@@ -180,7 +180,7 @@ function MfaSetupModal({ trigger }: { trigger: ReactNode }) {
 
           {step === 'choice' && (
             <div className="grid gap-3">
-              <button 
+              <button
                 onClick={() => { setMethod('app'); setStep('setup'); }}
                 className="flex items-center gap-4 p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors text-left group"
               >
@@ -193,7 +193,7 @@ function MfaSetupModal({ trigger }: { trigger: ReactNode }) {
                 </div>
                 <CaretRight size={16} className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </button>
-              <button 
+              <button
                 onClick={() => { setMethod('sms'); setStep('setup'); }}
                 className="flex items-center gap-4 p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors text-left group"
               >
@@ -213,9 +213,9 @@ function MfaSetupModal({ trigger }: { trigger: ReactNode }) {
             <div className="flex flex-col items-center gap-6 py-4">
               {method === 'app' ? (
                 <div className="size-48 bg-white p-3 rounded-xl border border-border flex items-center justify-center relative group">
-                  <img 
-                    src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=MensFlowDemo&bgcolor=ffffff&color=1a4d57&margin=10" 
-                    alt="MFA QR Code" 
+                  <img
+                    src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=MensFlowDemo&bgcolor=ffffff&color=1a4d57&margin=10"
+                    alt="MFA QR Code"
                     className="w-full h-full object-contain"
                   />
                 </div>
@@ -223,9 +223,9 @@ function MfaSetupModal({ trigger }: { trigger: ReactNode }) {
                 <div className="w-full space-y-4">
                   <div className="space-y-2">
                     <label htmlFor="mfa-phone" className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Phone number</label>
-                    <input 
+                    <input
                       id="mfa-phone"
-                      type="tel" 
+                      type="tel"
                       placeholder="+1 (555) 000-0000"
                       className="w-full bg-muted border-border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[var(--mf-accent)] outline-none"
                     />
@@ -248,14 +248,14 @@ function MfaSetupModal({ trigger }: { trigger: ReactNode }) {
                 ))}
               </div>
               <div className="w-full space-y-2">
-                <input 
+                <input
                   maxLength={6}
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                   className="sr-only"
                 />
-                <Button 
-                  className="w-full rounded-xl py-6" 
+                <Button
+                  className="w-full rounded-xl py-6"
                   disabled={code.length < 6}
                   onClick={() => setStep('success')}
                 >
@@ -306,7 +306,7 @@ function MfaBanner() {
           <p className="settings-mfa-text">
             Add multi-factor authentication (MFA) to protect your health data and sign-in history.
           </p>
-          <MfaSetupModal 
+          <MfaSetupModal
             trigger={
               <button type="button" className="btn btn-mfa mt-3">
                 Set up MFA
@@ -830,7 +830,7 @@ function SecurityPanel({
             Require a second step to sign in to your MensFlow account.
           </p>
         </div>
-        <MfaSetupModal 
+        <MfaSetupModal
           trigger={
             <Button variant="outline" className="rounded-xl">
               Set up
@@ -936,11 +936,62 @@ function AccountPanel({
       ) : (
         <>
           <div className="settings-account-summary items-start">
-            <UserCircle size={36} weight="duotone" aria-hidden className="mt-2" />
+            <div className="flex flex-col items-center gap-2 mr-4">
+              <div className="size-20 rounded-full bg-muted border border-border flex items-center justify-center overflow-hidden shrink-0 relative group">
+                {user?.avatar ? (
+                  <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <UserCircle size={48} weight="duotone" className="text-muted-foreground" aria-hidden />
+                )}
+                <div 
+                  className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity"
+                  onClick={() => document.getElementById('avatar-upload')?.click()}
+                >
+                  <span className="text-white text-xs font-medium">Change</span>
+                </div>
+                <input 
+                  id="avatar-upload" 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      const reader = new FileReader()
+                      reader.onloadend = () => {
+                        updateUser({ avatar: reader.result as string })
+                      }
+                      reader.readAsDataURL(file)
+                    }
+                  }} 
+                />
+              </div>
+              <div className="flex gap-2 mt-1">
+                <button 
+                  type="button" 
+                  onClick={() => document.getElementById('avatar-upload')?.click()}
+                  className="text-xs font-medium text-[var(--mf-accent)] hover:text-[var(--mf-accent-strong)] transition-colors"
+                >
+                  Upload
+                </button>
+                {user?.avatar && (
+                  <>
+                    <span className="text-muted-foreground text-xs">•</span>
+                    <button 
+                      type="button" 
+                      onClick={() => updateUser({ avatar: null })}
+                      className="text-xs font-medium text-destructive hover:text-destructive/80 transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
             <div className="flex-1 w-full max-w-sm space-y-4">
               <div className="space-y-1.5">
                 <label htmlFor="user-name-input" className="text-xs font-medium uppercase tracking-widest text-muted-foreground ml-1">Your Name</label>
-                <input 
+                <input
                   id="user-name-input"
                   type="text"
                   value={user?.name ?? ''}
@@ -950,6 +1001,34 @@ function AccountPanel({
                 />
               </div>
               <p className="settings-account-email ml-1">session@mensflow.local</p>
+            </div>
+          </div>
+
+          <div className="mb-8 pt-6 border-t border-border/50">
+            <span className="text-xs font-semibold text-[var(--mf-text-strong)] uppercase tracking-wider block mb-2">System Avatars</span>
+            <p className="text-xs text-muted-foreground mb-4">
+              Choose a default avatar to represent the partner profile.
+            </p>
+            <div className="flex flex-wrap gap-4">
+              {[
+                { id: 'lotus', src: '/avatars/lotus.svg', label: 'Lotus' },
+                { id: 'moon', src: '/avatars/moon.svg', label: 'Moon' },
+                { id: 'drop', src: '/avatars/drop.svg', label: 'Drop' },
+                { id: 'cat', src: '/avatars/cat.svg', label: 'Cat' },
+                { id: 'coffee', src: '/avatars/coffee.svg', label: 'Coffee' },
+                { id: 'star', src: '/avatars/star.svg', label: 'Star' },
+                { id: 'sun', src: '/avatars/sun.svg', label: 'Sun' },
+              ].map(avatar => (
+                <button
+                  key={avatar.id}
+                  type="button"
+                  onClick={() => updateUser({ avatar: avatar.src })}
+                  className={`size-16 rounded-full border-2 overflow-hidden transition-all hover:scale-105 active:scale-95 ${user?.avatar === avatar.src ? 'border-[var(--mf-accent)] ring-2 ring-[var(--mf-accent-soft)]' : 'border-transparent'}`}
+                  title={avatar.label}
+                >
+                  <img src={avatar.src} alt={avatar.label} className="w-full h-full object-cover" />
+                </button>
+              ))}
             </div>
           </div>
 
@@ -1077,26 +1156,26 @@ export function SettingsView({
   switch (cat) {
     case 'general':
       panel = (
-        <GeneralPanel 
-          isGuest={!!isGuest} 
-          settings={settings} 
-          updateSettings={updateSettings} 
+        <GeneralPanel
+          isGuest={!!isGuest}
+          settings={settings}
+          updateSettings={updateSettings}
         />
       )
       break
     case 'notifications':
       panel = (
-        <NotificationsPanel 
-          settings={settings} 
-          updateSettings={updateSettings} 
+        <NotificationsPanel
+          settings={settings}
+          updateSettings={updateSettings}
         />
       )
       break
     case 'personalization':
       panel = (
-        <PersonalizationPanel 
-          settings={settings} 
-          updateSettings={updateSettings} 
+        <PersonalizationPanel
+          settings={settings}
+          updateSettings={updateSettings}
         />
       )
       break

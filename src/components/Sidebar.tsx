@@ -94,6 +94,8 @@ export function Sidebar({
 
   const collapsed = !isMobile && desktopCollapsed
   const navIconSize = collapsed ? 22 : 20
+
+  const { dashboard: data, user } = useStore()
   const cycleDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
   const phase = getPhaseFromDay(cycleDay)
   const phaseInfo = getPhaseInfo(phase)
@@ -149,9 +151,15 @@ export function Sidebar({
           >
             <div className={cn("flex items-center gap-4", collapsed && "justify-center")}>
               <div 
-                className="size-12 rounded-full flex items-center justify-center shrink-0 border border-[var(--mf-border)] bg-white dark:bg-transparent shadow-sm"
+                className={cn("size-12 rounded-full flex items-center justify-center shrink-0 border border-[var(--mf-border)] shadow-sm overflow-hidden",
+                  user?.avatar ? "bg-transparent" : "bg-white dark:bg-transparent"
+                )}
               >
-                <Sparkle size={20} weight="fill" className="text-yellow-400" />
+                {user?.avatar ? (
+                  <img src={user.avatar} alt="Partner" className="w-full h-full object-cover" />
+                ) : (
+                  <Sparkle size={20} weight="fill" className="text-yellow-400" />
+                )}
               </div>
               {!collapsed && (
                 <div className="flex flex-col min-w-0">

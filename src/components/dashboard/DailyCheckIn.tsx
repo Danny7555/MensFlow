@@ -93,7 +93,7 @@ function QuizOption({ text, selected, showResult, correct, onClick }: QuizOption
       disabled={showResult}
       onClick={onClick}
       className={cn(
-        "w-full text-left p-3 rounded-xl border text-xs font-normal transition-all duration-200 outline-none",
+        "w-full text-left p-4 rounded-xl border text-[13px] md:text-sm font-normal transition-all duration-200 outline-none",
         selected
           ? correct
             ? "bg-green-50/70 dark:bg-green-950/20 border-green-500 text-green-700 dark:text-green-400"
@@ -148,14 +148,15 @@ export function SymptomLogger() {
         </div>
         <p className="text-xs text-muted-foreground mb-5">Tap to record your current symptoms or moods instantly. Your daily trends will update automatically.</p>
 
-        <div className="flex items-center gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-2 px-2">
+        <div className="flex flex-wrap justify-start gap-3 pb-4">
           {checkInSymptoms.map((sym) => (
-            <SymptomBubble
-              key={sym.id}
-              sym={sym}
-              active={currentSymptoms.includes(sym.id)}
-              onClick={() => toggleSymptom(sym.id, sym.label)}
-            />
+            <div key={sym.id} className="flex-none">
+              <SymptomBubble
+                sym={sym}
+                active={currentSymptoms.includes(sym.id)}
+                onClick={() => toggleSymptom(sym.id, sym.label)}
+              />
+            </div>
           ))}
         </div>
       </div>
@@ -182,16 +183,16 @@ export function DailyQuiz() {
 
   return (
     <div className="flo-card border border-[var(--mf-border)] bg-gradient-to-br from-card to-[var(--mf-accent-soft)]/10 flex flex-col justify-between overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 !shadow-none">
-      <div className="p-5 md:p-6">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="size-8 rounded-xl bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)]">
-            <Question size={18} weight="bold" />
+      <div className="p-6 md:p-8">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="size-10 rounded-xl bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)]">
+            <Question size={22} weight="bold" />
           </div>
-          <h3 className="text-lg font-medium text-[var(--mf-text-strong)] tracking-tight">Daily Quiz</h3>
+          <h3 className="text-xl font-medium text-[var(--mf-text-strong)] tracking-tight">Daily Quiz</h3>
         </div>
-        <p className="text-xs text-muted-foreground mb-4">Learn about your body. Tapping your answer updates your check-in score.</p>
+        <p className="text-sm text-muted-foreground mb-5">Learn about your body. Tapping your answer updates your check-in score.</p>
 
-        <p className="text-[13px] font-normal text-[var(--mf-text-strong)] leading-relaxed mb-5">{quiz.question}</p>
+        <p className="text-[15px] font-normal text-[var(--mf-text-strong)] leading-relaxed mb-6">{quiz.question}</p>
 
         <div className="flex flex-col gap-2.5">
           {quiz.options.map((opt) => (
@@ -219,20 +220,20 @@ export function DailyQuiz() {
         </div>
 
         {selectedQuizAnswer !== null && (
-          <div className="mt-5 p-3.5 bg-white/50 dark:bg-black/20 border border-border/30 rounded-xl animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <p className="text-[11px] leading-relaxed text-[var(--mf-text-strong)]">
+          <div className="mt-6 p-4 bg-white/50 dark:bg-black/20 border border-border/30 rounded-xl animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <p className="text-[13px] leading-relaxed text-[var(--mf-text-strong)]">
               {selectedQuizAnswer === 1 ? quiz.explanation : "Progesterone is a natural relaxant. High levels after ovulation promote restorative rest and calm GABA receptors."}
             </p>
           </div>
         )}
       </div>
 
-      <div className="px-5 md:px-6 py-4 bg-muted/20 border-t border-[var(--mf-border)] flex items-center justify-between text-[11px] text-muted-foreground">
+      <div className="px-6 md:px-8 py-4 bg-muted/20 border-t border-[var(--mf-border)] flex items-center justify-between text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5">
           Weekly Streak: <span className="font-medium text-[var(--mf-text-strong)]">5 Days</span>
         </span>
-        <span className="text-[var(--mf-accent)] font-medium flex items-center gap-1">
-          <Trophy size={12} weight="fill" /> +50 pts
+        <span className="text-[var(--mf-accent)] font-medium flex items-center gap-1.5">
+          <Trophy size={14} weight="fill" /> +50 pts
         </span>
       </div>
     </div>
