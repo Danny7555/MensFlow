@@ -331,13 +331,71 @@ Follow these steps to set up your local development environment:
    ```
    _The local server will run on [http://localhost:5173/](http://localhost:5173/)_
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 26be10f (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.)
+=======
+<<<<<<< HEAD:frontend/README.md
+<<<<<<< HEAD
+>>>>>>> 5f2fc9a (docs: update README with detailed view documentation and add collaboration guide)
+=======
+<<<<<<< HEAD:frontend/README.md
+=======
+>>>>>>> 62e37b9 (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.):README.md
+>>>>>>> eb85cf2 (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.)
+>>>>>>> ed2de6f (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.)
 4. **Verify TypeScript type safety (without compiling files):**
    ```bash
    npm run typecheck
    # or with bun
    bun run typecheck
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+4. **Verify TypeScript build compilation:**
+=======
+=======
+=======
+<<<<<<< HEAD:frontend/README.md
+>>>>>>> eb85cf2 (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.)
+=======
+4. **Verify TypeScript build compilation:**
+=======
    ```
 
+5. **Lint and format checks:**
+   ```bash
+   npm run lint
+   # or with bun
+   bun run lint
+   ```
+
+6. **React quality diagnostics (React Doctor):**
+   ```bash
+   npm run doctor
+   # or with bun
+   bun run doctor
+   ```
+
+7. **Compile and build for production:**
+>>>>>>> 62e37b9 (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.):README.md
+   ```bash
+   npm run build
+   # or with bun
+   bun run build
+>>>>>>> 1d4910a (docs: update README with detailed view documentation and add collaboration guide):README.md
+>>>>>>> 5f2fc9a (docs: update README with detailed view documentation and add collaboration guide)
+>>>>>>> ed2de6f (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.)
+   ```
+
+<<<<<<< HEAD:frontend/README.md
 5. **Lint checks:**
    ```bash
    npm run lint
@@ -360,6 +418,15 @@ Follow these steps to set up your local development environment:
    ```
    _Compiles code and builds the production artifact into the `dist/` directory._
 
+<<<<<<< HEAD
+=======
+=======
+<<<<<<< HEAD
+>>>>>>> 26be10f (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.)
+=======
+>>>>>>> 62e37b9 (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.):README.md
+>>>>>>> eb85cf2 (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.)
+>>>>>>> ed2de6f (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.)
 ---
 
 ## 🛠️ Adding New Features (Developer Walkthrough)
