@@ -328,21 +328,21 @@ export function DashboardView() {
             <StoriesSection />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 md:gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 md:gap-8 w-full min-w-0">
             {/* Left Main Content */}
-            <div className="flex flex-col gap-6 md:gap-8">
-              <section className="flo-hero-panel" aria-label="Cycle overview">
+            <div className="flex flex-col gap-6 md:gap-8 min-w-0">
+              <section className="flo-hero-panel min-w-0" aria-label="Cycle overview">
                 <CycleTrackerHero showCheckIn={true} />
               </section>
 
-              <div className="w-full">
+              <div className="w-full min-w-0">
                 <DailyTipCard
                   tipCompleted={tipCompleted}
                   setTipCompleted={setTipCompleted}
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 min-w-0">
                 <PrimaryInsightCard 
                   label={phase}
                   currentDay={currentDay}
@@ -354,15 +354,15 @@ export function DashboardView() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 min-w-0">
                 <HormoneInsightCard />
                 <ConnectionChecklistCard />
               </div>
             </div>
 
             {/* Right Sidebar Stack */}
-            <div className="flex flex-col gap-6 md:gap-8">
-              <section aria-label="Partner support">
+            <div className="flex flex-col gap-6 md:gap-8 min-w-0">
+              <section aria-label="Partner support" className="min-w-0">
                 <PartnerTranslationCard 
                   label={phase}
                   desc={partnerTranslation.desc}
@@ -372,11 +372,15 @@ export function DashboardView() {
                 />
               </section>
 
-              <WellnessScoreCard />
+              <div className="min-w-0">
+                <WellnessScoreCard />
+              </div>
 
-              <QuickLogCard onViewAll={() => dispatch({ type: 'TOGGLE_LOG', payload: true })} />
+              <div className="min-w-0">
+                <QuickLogCard onViewAll={() => dispatch({ type: 'TOGGLE_LOG', payload: true })} />
+              </div>
 
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <SymptomLogger />
               </div>
             </div>

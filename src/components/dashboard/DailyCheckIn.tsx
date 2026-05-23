@@ -148,14 +148,15 @@ export function SymptomLogger() {
         </div>
         <p className="text-xs text-muted-foreground mb-5">Tap to record your current symptoms or moods instantly. Your daily trends will update automatically.</p>
 
-        <div className="flex items-center gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-2 px-2">
+        <div className="flex flex-wrap justify-start gap-3 pb-4">
           {checkInSymptoms.map((sym) => (
-            <SymptomBubble
-              key={sym.id}
-              sym={sym}
-              active={currentSymptoms.includes(sym.id)}
-              onClick={() => toggleSymptom(sym.id, sym.label)}
-            />
+            <div key={sym.id} className="flex-none">
+              <SymptomBubble
+                sym={sym}
+                active={currentSymptoms.includes(sym.id)}
+                onClick={() => toggleSymptom(sym.id, sym.label)}
+              />
+            </div>
           ))}
         </div>
       </div>

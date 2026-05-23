@@ -92,7 +92,7 @@ export function DashboardHeader({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="flo-user-name"
+            className="flo-user-name truncate max-w-[200px] sm:max-w-[400px]"
           >
             {mounted ? getGreeting() : 'Welcome'}, {user.name}
           </m.h1>
