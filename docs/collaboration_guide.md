@@ -2,6 +2,7 @@
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 [← Back to README](file:///Users/david/Downloads/MensFlow/README.md) | [← Back to Project Overview](file:///Users/david/Downloads/MensFlow/docs/project_overview.md)
 
 =======
@@ -10,6 +11,8 @@
 [← Back to README](file:///Users/david/Downloads/MensFlow/README.md) | [← Back to Project Overview](file:///Users/david/Downloads/MensFlow/docs/project_overview.md)
 
 >>>>>>> 86655d3 (docs: add navigation links and project overview reference to documentation and README)
+=======
+>>>>>>> 1d4910a (docs: update README with detailed view documentation and add collaboration guide)
 Welcome to the MensFlow development team! This document outlines our team's engineering standards, branching strategy, commit guidelines, code review protocols, and collaboration workflows. Following these policies ensures a clean, stable, and highly auditable codebase.
 
 ---
@@ -138,6 +141,7 @@ When opening a PR, populate the description with the following outline:
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 ## 🛠️ Vibecoder Safety Guards & Local QA
 
 Since a lot of code is updated via prompt-based flows ("vibecoding"), it is easy for small structural issues or incorrect typings to slip through. We maintain **three automated safety guards** to keep the workspace healthy. Run these before you commit, push, or request a review:
@@ -187,11 +191,24 @@ npm run lint
 *   **Why it matters:** Vibecoders often leave unused variables or minor syntax discrepancies. ESLint catches these instantly before staging.
 
 <<<<<<< HEAD
+=======
+## 🛠️ Local Quality Assurance & Linting
+
+We maintain a strict quality barrier. Before committing, run these validation scripts locally:
+
+*   **Linter Checks:**
+    ```bash
+    npm run lint
+    ```
+    This triggers ESLint to check syntax, code quality, and formatting rules. Resolving warnings is highly recommended; resolving errors is mandatory.
+
+>>>>>>> 1d4910a (docs: update README with detailed view documentation and add collaboration guide)
 *   **TypeScript Compilation:**
     ```bash
     npm run build
     ```
     This invokes `tsc -b` and compiles Vite modules. Ensure there are no type exceptions, implicit `any` fallbacks, or structural path mismatches.
+<<<<<<< HEAD
 >>>>>>> 1d4910a (docs: update README with detailed view documentation and add collaboration guide)
 =======
 ### Guard 2: Strict Type Check (`npm run typecheck`)
@@ -217,6 +234,8 @@ npm run build
 ```
 This runs the full build sequence (`tsc -b && vite build`) to create optimized static assets in the `dist/` directory. If this step succeeds, your feature is safe to deploy!
 >>>>>>> 62e37b9 (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.)
+=======
+>>>>>>> 1d4910a (docs: update README with detailed view documentation and add collaboration guide)
 
 ---
 

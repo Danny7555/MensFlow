@@ -302,6 +302,7 @@ Follow these steps to set up your local development environment:
 
 <<<<<<< HEAD:frontend/README.md
 <<<<<<< HEAD:frontend/README.md
+<<<<<<< HEAD:frontend/README.md
 =======
 >>>>>>> 62e37b9 (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.):README.md
 4. **Verify TypeScript type safety (without compiling files):**
@@ -313,9 +314,16 @@ Follow these steps to set up your local development environment:
 =======
 4. **Verify TypeScript build compilation:**
 =======
+=======
+4. **Verify TypeScript build compilation:**
+   ```bash
+   npm run build
+   # or with bun
+   bun run build
+>>>>>>> 1d4910a (docs: update README with detailed view documentation and add collaboration guide):README.md
    ```
 
-5. **Lint and format checks:**
+5. **Lint checks:**
    ```bash
    npm run lint
    # or with bun
