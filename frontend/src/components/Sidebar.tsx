@@ -84,7 +84,6 @@ export function Sidebar({
   const collapsed = !isMobile && desktopCollapsed
   const navIconSize = collapsed ? 22 : 20
 
-  const { dashboard: data, user } = useStore()
   const cycleDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
   const phase = getPhaseFromDay(cycleDay)
   const phaseInfo = getPhaseInfo(phase)
