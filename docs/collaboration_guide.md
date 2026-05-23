@@ -1,5 +1,7 @@
 # MensFlow Developer Collaboration & Branching Guide 🌿
 
+[← Back to README](file:///Users/david/Downloads/MensFlow/README.md) | [← Back to Project Overview](file:///Users/david/Downloads/MensFlow/docs/project_overview.md)
+
 Welcome to the MensFlow development team! This document outlines our team's engineering standards, branching strategy, commit guidelines, code review protocols, and collaboration workflows. Following these policies ensures a clean, stable, and highly auditable codebase.
 
 ---
