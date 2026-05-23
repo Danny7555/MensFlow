@@ -132,6 +132,7 @@ When opening a PR, populate the description with the following outline:
 ---
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 ## 🛠️ Vibecoder Safety Guards & Local QA
 
 Since a lot of code is updated via prompt-based flows ("vibecoding"), it is easy for small structural issues or incorrect typings to slip through. We maintain **three automated safety guards** to keep the workspace healthy. Run these before you commit, push, or request a review:
@@ -167,21 +168,50 @@ npm run build
 This runs the full build sequence (`tsc -b && vite build`) to create optimized static assets in the `dist/` directory. If this step succeeds, your feature is safe to deploy!
 =======
 ## 🛠️ Local Quality Assurance & Linting
+=======
+## 🛠️ Vibecoder Safety Guards & Local QA
+>>>>>>> 62e37b9 (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.)
 
-We maintain a strict quality barrier. Before committing, run these validation scripts locally:
+Since a lot of code is updated via prompt-based flows ("vibecoding"), it is easy for small structural issues or incorrect typings to slip through. We maintain **three automated safety guards** to keep the workspace healthy. Run these before you commit, push, or request a review:
 
-*   **Linter Checks:**
-    ```bash
-    npm run lint
-    ```
-    This triggers ESLint to check syntax, code quality, and formatting rules. Resolving warnings is highly recommended; resolving errors is mandatory.
+### Guard 1: Syntax & Code Style (`npm run lint`)
+```bash
+npm run lint
+```
+*   **What it does:** Runs ESLint to check syntax, formatting errors, unused imports, or code style violations.
+*   **Why it matters:** Vibecoders often leave unused variables or minor syntax discrepancies. ESLint catches these instantly before staging.
 
+<<<<<<< HEAD
 *   **TypeScript Compilation:**
     ```bash
     npm run build
     ```
     This invokes `tsc -b` and compiles Vite modules. Ensure there are no type exceptions, implicit `any` fallbacks, or structural path mismatches.
 >>>>>>> 1d4910a (docs: update README with detailed view documentation and add collaboration guide)
+=======
+### Guard 2: Strict Type Check (`npm run typecheck`)
+```bash
+npm run typecheck
+```
+*   **What it does:** Compiles the TypeScript project (`tsc -b --noEmit`) without writing any build artifacts to disk.
+*   **Why it matters:** IDE type checkers can sometimes miss deeper type misalignments. Running this ensures that all components, store states, and routes conform to strict TypeScript interfaces.
+
+### Guard 3: React Best Practices (`npm run doctor`)
+```bash
+npm run doctor
+```
+*   **What it does:** Runs `npx react-doctor@latest` to scan the codebase for React-specific anti-patterns, React 19 compatibility concerns, inefficient rendering traps, or duplicate dependencies.
+*   **Why it matters:** Ensures custom hooks and component lifecycles remain highly performant and follow React's architectural principles.
+
+---
+
+### Final Compilation Check
+Before pushing to production, execute:
+```bash
+npm run build
+```
+This runs the full build sequence (`tsc -b && vite build`) to create optimized static assets in the `dist/` directory. If this step succeeds, your feature is safe to deploy!
+>>>>>>> 62e37b9 (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.)
 
 ---
 

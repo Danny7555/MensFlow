@@ -301,13 +301,36 @@ Follow these steps to set up your local development environment:
    *The local server will run on [http://localhost:5173/](http://localhost:5173/)*
 
 <<<<<<< HEAD:frontend/README.md
+<<<<<<< HEAD:frontend/README.md
+=======
+>>>>>>> 62e37b9 (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.):README.md
 4. **Verify TypeScript type safety (without compiling files):**
    ```bash
    npm run typecheck
    # or with bun
    bun run typecheck
+<<<<<<< HEAD:frontend/README.md
 =======
 4. **Verify TypeScript build compilation:**
+=======
+   ```
+
+5. **Lint and format checks:**
+   ```bash
+   npm run lint
+   # or with bun
+   bun run lint
+   ```
+
+6. **React quality diagnostics (React Doctor):**
+   ```bash
+   npm run doctor
+   # or with bun
+   bun run doctor
+   ```
+
+7. **Compile and build for production:**
+>>>>>>> 62e37b9 (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.):README.md
    ```bash
    npm run build
    # or with bun
@@ -315,6 +338,7 @@ Follow these steps to set up your local development environment:
 >>>>>>> 1d4910a (docs: update README with detailed view documentation and add collaboration guide):README.md
    ```
 
+<<<<<<< HEAD:frontend/README.md
 5. **Lint checks:**
    ```bash
    npm run lint
@@ -337,6 +361,8 @@ Follow these steps to set up your local development environment:
    ```
    *Compiles code and builds the production artifact into the `dist/` directory.*
 
+=======
+>>>>>>> 62e37b9 (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.):README.md
 ---
 
 ## 🛠️ Adding New Features (Developer Walkthrough)

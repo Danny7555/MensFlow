@@ -79,7 +79,22 @@ export function Sidebar({
 }: SidebarProps) {
   const { logout } = useAuth()
 
+<<<<<<< HEAD:frontend/src/components/Sidebar.tsx
   const items = isAuthenticated ? authItems : guestItems
+=======
+  const { dashboard: data, settings, user } = useStore()
+
+  const rawItems = isAuthenticated ? [...authItems] : [...guestItems]
+  if (settings.privacyLockChats) {
+    rawItems.splice(rawItems.length - 1, 0, { id: 'locked-chats', label: 'Locked Chats', Icon: Lock })
+  }
+
+  const items = rawItems.filter(item => {
+    // If onboarding is not completed, only show the chat assistant
+    if (!onboardingCompleted && item.id !== 'ask') return false
+    return true
+  })
+>>>>>>> 62e37b9 (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.):src/components/Sidebar.tsx
 
   const collapsed = !isMobile && desktopCollapsed
   const navIconSize = collapsed ? 22 : 20
