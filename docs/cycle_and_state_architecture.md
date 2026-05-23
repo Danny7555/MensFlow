@@ -1,6 +1,6 @@
 # MensFlow Cycle Calculations & State Architecture 🌸
 
-[← Back to README](../README.md) | [← Back to Project Overview](project_overview.md)
+[← Back to README](file:///Users/david/Downloads/MensFlow/README.md) | [← Back to Project Overview](file:///Users/david/Downloads/MensFlow/docs/project_overview.md)
 
 This document provides a technical guide to the biological calculations, global state store, and real-time syncing mechanisms that drive the MensFlow application.
 
