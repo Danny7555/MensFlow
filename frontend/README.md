@@ -8,9 +8,13 @@ Welcome to **MensFlow**, a premium, beautifully designed health application tail
 ---
 
 ## 📖 Table of Contents
+<<<<<<< HEAD:frontend/README.md
 
 - [Project Overview & Mission Guide](file:///Users/david/Downloads/MensFlow/docs/project_overview.md) ( Ghanaian adolescent health context, MongoDB backend blueprint, and AI Engines )
 
+=======
+*   [Project Overview & Mission Guide](file:///Users/david/Downloads/MensFlow/docs/project_overview.md) ( Ghanaian adolescent health context, MongoDB backend blueprint, and AI Engines )
+>>>>>>> 86655d3 (docs: add navigation links and project overview reference to documentation and README):README.md
 1. [Core Features](#-core-features)
 2. [MensFlow vs. Flo: What Makes It Unique?](#-mensflow-vs-flo-what-makes-it-unique)
 3. [Tech Stack & Architecture](#-tech-stack--architecture)

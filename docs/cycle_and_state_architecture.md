@@ -2,6 +2,7 @@
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 [← Back to README](file:///Users/david/Downloads/MensFlow/README.md) | [← Back to Project Overview](file:///Users/david/Downloads/MensFlow/docs/project_overview.md)
 
 =======
@@ -12,6 +13,11 @@
 
 > > > > > > > 86655d3 (docs: add navigation links and project overview reference to documentation and README)
 > > > > > > > This document provides a technical guide to the biological calculations, global state store, and real-time syncing mechanisms that drive the MensFlow application.
+=======
+[← Back to README](file:///Users/david/Downloads/MensFlow/README.md) | [← Back to Project Overview](file:///Users/david/Downloads/MensFlow/docs/project_overview.md)
+
+This document provides a technical guide to the biological calculations, global state store, and real-time syncing mechanisms that drive the MensFlow application. 
+>>>>>>> 86655d3 (docs: add navigation links and project overview reference to documentation and README)
 
 ---
 
