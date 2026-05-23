@@ -300,14 +300,22 @@ Follow these steps to set up your local development environment:
    ```
    *The local server will run on [http://localhost:5173/](http://localhost:5173/)*
 
+<<<<<<< HEAD:frontend/README.md
 4. **Verify TypeScript type safety (without compiling files):**
    ```bash
    npm run typecheck
    # or with bun
    bun run typecheck
+=======
+4. **Verify TypeScript build compilation:**
+   ```bash
+   npm run build
+   # or with bun
+   bun run build
+>>>>>>> 1d4910a (docs: update README with detailed view documentation and add collaboration guide):README.md
    ```
 
-5. **Lint and format checks:**
+5. **Lint checks:**
    ```bash
    npm run lint
    # or with bun
