@@ -1268,6 +1268,37 @@
   border-color: var(--primary);
 }
 
+.password-input-wrapper {
+  position: relative;
+  width: 100%;
+  margin-bottom: 0.65rem;
+}
+
+.password-input-wrapper .auth-modal-email {
+  margin-bottom: 0;
+  padding-right: 2.8rem;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 1.1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--muted-foreground);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
+}
+
+.password-toggle-btn:hover {
+  color: var(--foreground);
+}
+
 .auth-modal-continue-main {
   width: 100%;
   padding: 0.72rem 1rem;

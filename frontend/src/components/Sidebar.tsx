@@ -76,14 +76,9 @@ export function Sidebar({
   onToggleDesktopCollapse,
   onToggleSidebar,
 }: SidebarProps) {
-  const { onboardingCompleted, logout } = useAuth()
+  const { logout } = useAuth()
 
-  const rawItems = isAuthenticated ? authItems : guestItems
-  const items = rawItems.filter(item => {
-    // If onboarding is not completed, only show the chat assistant
-    if (!onboardingCompleted && item.id !== 'ask') return false
-    return true
-  })
+  const items = isAuthenticated ? authItems : guestItems
 
   const collapsed = !isMobile && desktopCollapsed
   const navIconSize = collapsed ? 22 : 20

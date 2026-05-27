@@ -18,7 +18,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const [isAuthenticated, setAuthenticated] = useState(isLoggedIn)
   const [onboardingCompleted, setOnboardingCompleted] = useState(
-    () => localStorage.getItem('mf_onboarding') === 'true'
+    () => sessionStorage.getItem('mf_onboarding') === 'true'
   )
   const [user, setUser] = useState<ApiUser | null>(null)
   const [isLoading, setLoading] = useState(false)
@@ -31,6 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     userApi.getProfile()
       .then(({ user: u, settings, dashboard }) => {
         setUser(u)
+        setOnboardingCompleted(u.isOnboarded)
         hydrate({ user: u, settings, dashboard })
       })
       .catch(() => {
@@ -47,6 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { token, user: u } = await authApi.login(username, password)
       setToken(token)
       setUser(u)
+      setOnboardingCompleted(u.isOnboarded)
       setAuthenticated(true)
       setAuthModalOpen(false)
 
@@ -67,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { token, user: u } = await authApi.register(username, password, name)
       setToken(token)
       setUser(u)
+      setOnboardingCompleted(u.isOnboarded)
       setAuthenticated(true)
       setAuthModalOpen(false)
 
@@ -82,7 +85,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ── Logout ─────────────────────────────────────────────────────────────────
   const logout = useCallback(() => {
     clearToken()
-    localStorage.removeItem('mf_onboarding')
+    setOnboardingCompleted(false)
+    sessionStorage.removeItem('mf_onboarding')
     setAuthenticated(false)
     setUser(null)
     resetStore()
@@ -92,7 +96,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ── Onboarding ─────────────────────────────────────────────────────────────
   const completeOnboarding = useCallback(() => {
     setOnboardingCompleted(true)
-    localStorage.setItem('mf_onboarding', 'true')
+    sessionStorage.setItem('mf_onboarding', 'true')
+    if (isLoggedIn()) {
+      userApi.updateProfile({ isOnboarded: true }).catch((err) => {
+        console.error('Failed to update onboarding state in backend', err)
+      })
+    }
   }, [])
 
   const openAuthModal = useCallback(() => setAuthModalOpen(true), [])

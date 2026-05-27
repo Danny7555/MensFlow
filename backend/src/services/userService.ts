@@ -21,6 +21,7 @@ export async function getUserProfile(
       name: user.name,
       avatar: user.avatar,
       accessLevel: user.accessLevel,
+      isOnboarded: !!user.isOnboarded,
       partnerCode: user.partnerCode,
       partnerId: user.partnerId ? String(user.partnerId) : null,
     },
@@ -64,7 +65,7 @@ export async function getUserProfile(
 
 export async function updateUserProfile(
   userId: string,
-  updates: { name?: string; avatar?: string | null; accessLevel?: 'full' | 'educational' }
+  updates: { name?: string; avatar?: string | null; accessLevel?: 'full' | 'educational'; isOnboarded?: boolean }
 ): Promise<Partial<IUser>> {
   const user = await User.findByIdAndUpdate(userId, updates, { new: true, lean: true });
   if (!user) {
@@ -77,6 +78,7 @@ export async function updateUserProfile(
     name: user.name,
     avatar: user.avatar,
     accessLevel: user.accessLevel,
+    isOnboarded: !!user.isOnboarded,
     partnerCode: user.partnerCode,
     partnerId: user.partnerId ? String(user.partnerId) : null,
   };

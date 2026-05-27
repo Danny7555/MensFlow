@@ -13,7 +13,7 @@ interface AppState {
   dashboard: DashboardSnapshot
   settings: MensFlowSettings
   logs: SymptomLog[]
-  user: { name: string; avatar?: string | null; accessLevel?: 'full' | 'educational' }
+  user: { name: string; avatar?: string | null; accessLevel?: 'full' | 'educational'; isOnboarded?: boolean }
   customSymptoms: SymptomDef[]
   isSaving: boolean
   completedActions: string[]
@@ -28,7 +28,7 @@ interface AppState {
   updateDashboard: (patch: Partial<DashboardSnapshot>) => Promise<void>
 
   // User / Settings
-  updateUser: (patch: Partial<{ name: string; avatar: string | null; accessLevel: 'full' | 'educational' }>) => Promise<void>
+  updateUser: (patch: Partial<{ name: string; avatar: string | null; accessLevel: 'full' | 'educational'; isOnboarded: boolean }>) => Promise<void>
   updateSettings: (patch: Partial<MensFlowSettings>) => Promise<void>
   resetSettings: () => void
 
@@ -48,7 +48,7 @@ interface AppState {
   checkAndResetDailyActions: () => void
 }
 
-const DEFAULT_USER = { name: '', avatar: null, accessLevel: 'full' as const }
+const DEFAULT_USER = { name: '', avatar: null, accessLevel: 'full' as const, isOnboarded: false }
 
 export const useStore = create<AppState>()((set, get) => ({
   dashboard: DEFAULT_DASHBOARD,
@@ -68,6 +68,7 @@ export const useStore = create<AppState>()((set, get) => ({
         name: user.name,
         avatar: user.avatar,
         accessLevel: user.accessLevel,
+        isOnboarded: user.isOnboarded,
       },
       settings: {
         ...DEFAULT_SETTINGS,
@@ -132,6 +133,7 @@ export const useStore = create<AppState>()((set, get) => ({
           name: updated.name,
           avatar: updated.avatar,
           accessLevel: updated.accessLevel,
+          isOnboarded: updated.isOnboarded,
         },
       }))
     } finally {

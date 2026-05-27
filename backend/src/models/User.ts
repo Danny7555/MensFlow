@@ -6,6 +6,7 @@ export interface UserDocument extends Document {
   name: string;
   avatar: string | null;
   accessLevel: 'full' | 'educational';
+  isOnboarded: boolean;
   partnerCode: string;
   partnerId: Schema.Types.ObjectId | null;
   createdAt: Date;
@@ -18,6 +19,7 @@ const UserSchema = new Schema<UserDocument>(
     name: { type: String, required: true, trim: true },
     avatar: { type: String, default: null },
     accessLevel: { type: String, enum: ['full', 'educational'], default: 'full' },
+    isOnboarded: { type: Boolean, default: false },
     partnerCode: { type: String, required: true, unique: true, uppercase: true },
     partnerId: { type: Schema.Types.ObjectId, ref: 'User', default: null },
   },

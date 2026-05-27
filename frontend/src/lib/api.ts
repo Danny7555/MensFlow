@@ -54,6 +54,7 @@ export type ApiUser = {
   name: string
   avatar: string | null
   accessLevel: 'full' | 'educational'
+  isOnboarded: boolean
   partnerCode: string
   partnerId: string | null
 }
@@ -130,7 +131,7 @@ export const userApi = {
   getProfile: () =>
     get<{ user: ApiUser; settings: ApiSettings; dashboard: ApiDashboard }>('/user/profile'),
 
-  updateProfile: (patch: Partial<Pick<ApiUser, 'name' | 'avatar' | 'accessLevel'>>) =>
+  updateProfile: (patch: Partial<Pick<ApiUser, 'name' | 'avatar' | 'accessLevel' | 'isOnboarded'>>) =>
     put<{ user: ApiUser }>('/user/profile', patch),
 
   updateSettings: (patch: Partial<ApiSettings>) =>

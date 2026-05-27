@@ -155,9 +155,9 @@ export function DashboardView() {
         .then((ping) => {
           if (!active) return
           if (ping) {
-            const lastProcessed = localStorage.getItem('mensflow_last_ping_processed:v1')
+            const lastProcessed = sessionStorage.getItem('mensflow_last_ping_processed:v1')
             if (lastProcessed !== String(ping.timestamp)) {
-              localStorage.setItem('mensflow_last_ping_processed:v1', String(ping.timestamp))
+              sessionStorage.setItem('mensflow_last_ping_processed:v1', String(ping.timestamp))
               toast.info("Partner Update received!", {
                 icon: "👋",
                 description: `She is: "${ping.label}" (${ping.message})`,
@@ -179,7 +179,7 @@ export function DashboardView() {
   }, [])
 
   useEffect(() => {
-    const hasSeenTour = localStorage.getItem('mensflow_tour_completed')
+    const hasSeenTour = sessionStorage.getItem('mensflow_tour_completed')
     dispatch({
       type: 'MOUNT',
       payload: {
@@ -197,7 +197,7 @@ export function DashboardView() {
   const handleJoyrideCallback = (data: any) => {
     const { status } = data;
     if (([STATUS.FINISHED, STATUS.SKIPPED] as string[]).includes(status)) {
-      localStorage.setItem('mensflow_tour_completed', 'true')
+      sessionStorage.setItem('mensflow_tour_completed', 'true')
       dispatch({ type: 'SET_TOUR_RUN', payload: false })
     }
   }

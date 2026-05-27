@@ -20,6 +20,7 @@ export interface IUser {
   name: string;
   avatar: string | null;
   accessLevel: 'full' | 'educational';
+  isOnboarded: boolean;
   partnerCode: string;
   partnerId: string | null;
   createdAt: Date;
