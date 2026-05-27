@@ -3,6 +3,7 @@ import { m } from 'framer-motion'
 import { 
   Ghost, 
   Question, 
+
   Lock, 
   Trash, 
   SidebarSimple, 
@@ -317,6 +318,7 @@ export function ChatView() {
     window.addEventListener(CLEAR_LOCAL_CHATS_EVENT, onClear)
     return () => window.removeEventListener(CLEAR_LOCAL_CHATS_EVENT, onClear)
   }, [welcomeText, temporaryChat])
+
 
   // Auto scroll effect
   useEffect(() => {
