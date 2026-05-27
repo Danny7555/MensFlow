@@ -337,6 +337,7 @@ export function DashboardView() {
 
               <div className="w-full min-w-0">
                 <DailyTipCard
+                  phaseLabel={phase}
                   tipCompleted={tipCompleted}
                   setTipCompleted={setTipCompleted}
                 />
@@ -351,6 +352,7 @@ export function DashboardView() {
                 <BodySignalsCard 
                   signals={data.bodySignals}
                   currentDay={currentDay}
+                  phaseLabel={phase}
                 />
               </div>
 

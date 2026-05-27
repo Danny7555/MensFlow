@@ -20,6 +20,9 @@ import {
   Flower
 } from "@phosphor-icons/react"
 import { cn } from "@/lib/utils"
+import { useStore } from "../../store/useStore"
+import { getPhaseTasks } from "../../lib/cycleUtils"
+import { toast } from "sonner"
 
 const itemVariants: Variants = {
   hidden: { opacity: 0, y: 15 },
@@ -30,7 +33,27 @@ const itemVariants: Variants = {
   }
 }
 
+const INSIGHTS_BY_PHASE: Record<string, string> = {
+  menstrual: "Estrogen and progesterone are at their lowest. The body is shedding the uterine lining, requiring higher iron intake and rest.",
+  follicular: "Estrogen levels are steadily rising, boosting physical stamina, mental clarity, and social confidence.",
+  ovulatory: "Estrogen and luteinizing hormone peak. This is the optimal window for energy, social connection, and collaboration.",
+  fertile: "Estrogen and luteinizing hormone peak. This is the optimal window for energy, social connection, and collaboration.",
+  luteal: "Progesterone is dominant, naturally increasing your metabolic rate and nesting behaviors. You might experience lower energy or cravings."
+}
+
+const METRICS_BY_PHASE: Record<string, string> = {
+  menstrual: "ESTROGEN & PROGESTERONE LOW",
+  follicular: "ESTROGEN RISING",
+  ovulatory: "LH & ESTROGEN PEAK",
+  fertile: "LH & ESTROGEN PEAK",
+  luteal: "PROGESTERONE ACTIVE"
+}
+
 export function PrimaryInsightCard({ label, currentDay, trend }: { label: string; currentDay: number; trend: string }) {
+  const normalized = (label || 'luteal').toLowerCase()
+  const description = INSIGHTS_BY_PHASE[normalized] || INSIGHTS_BY_PHASE.luteal
+  const metric = METRICS_BY_PHASE[normalized] || METRICS_BY_PHASE.luteal
+
   return (
     <m.div variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
       <div className="flex flex-col h-full">
@@ -54,17 +77,17 @@ export function PrimaryInsightCard({ label, currentDay, trend }: { label: string
           <div className="flex-1">
             <h3 className="flo-card-desc text-xl tracking-tight">{trend}</h3>
             <p className="text-[0.85rem] text-[var(--mf-muted)] mt-2 leading-relaxed">
-              Progesterone is dominant, naturally increasing your metabolic rate. You might feel more hungry today.
+              {description}
             </p>
           </div>
           <div className="mt-4 pt-3 border-t border-[var(--mf-border)] flex items-center justify-between">
-            <span className="text-xs font-normal opacity-60">PROGESTERONE PEAK</span>
+            <span className="text-xs font-normal opacity-60">{metric}</span>
             <div className="flex gap-2">
               {['m1', 'm2', 'm3'].map(id => (
                 <m.div 
-                  key={id} 
-                  whileHover={{ scale: 1.1 }}
-                  className="size-6 rounded-full border border-[var(--mf-card)] bg-[var(--mf-accent-soft)]" 
+                   key={id} 
+                   whileHover={{ scale: 1.1 }}
+                   className="size-6 rounded-full border border-[var(--mf-card)] bg-[var(--mf-accent-soft)]" 
                 />
               ))}
             </div>
@@ -75,7 +98,18 @@ export function PrimaryInsightCard({ label, currentDay, trend }: { label: string
   )
 }
 
-export function BodySignalsCard({ signals, currentDay }: { signals: string; currentDay: number }) {
+const FOCUS_BY_PHASE: Record<string, string[]> = {
+  menstrual: ['Rest Comfort', 'Heat Therapy'],
+  follicular: ['Strength Train', 'Goal Setting'],
+  ovulatory: ['HIIT Workout', 'Socialize'],
+  fertile: ['HIIT Workout', 'Socialize'],
+  luteal: ['Hydrate Extra', 'Light Stretch']
+}
+
+export function BodySignalsCard({ signals, currentDay, phaseLabel }: { signals: string; currentDay: number; phaseLabel: string }) {
+  const normalized = (phaseLabel || 'luteal').toLowerCase()
+  const focusAreas = FOCUS_BY_PHASE[normalized] || FOCUS_BY_PHASE.luteal
+
   return (
     <m.div variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
       <div className="flex flex-col h-full">
@@ -100,8 +134,14 @@ export function BodySignalsCard({ signals, currentDay }: { signals: string; curr
           <div className="mt-4 pt-3 border-t border-[var(--mf-border)] relative z-10">
             <span className="text-[9px] font-normal text-muted-foreground uppercase tracking-wider block mb-1.5">Focus Areas</span>
             <div className="flex flex-wrap gap-1">
-              <span className="text-[10px] bg-[var(--mf-accent-soft)] px-2 py-0.5 rounded-md font-normal text-[var(--mf-accent)]">Hydrate Extra</span>
-              <span className="text-[10px] bg-muted px-2 py-0.5 rounded-md font-normal text-[var(--mf-text-strong)]">Light Stretch</span>
+              {focusAreas.map((area, idx) => (
+                <span key={area} className={cn(
+                  "text-[10px] px-2 py-0.5 rounded-md font-normal",
+                  idx === 0 ? "bg-[var(--mf-accent-soft)] text-[var(--mf-accent)]" : "bg-muted text-[var(--mf-text-strong)]"
+                )}>
+                  {area}
+                </span>
+              ))}
             </div>
           </div>
         </div>
@@ -111,6 +151,25 @@ export function BodySignalsCard({ signals, currentDay }: { signals: string; curr
 }
 
 export function WellnessScoreCard() {
+  const { logs } = useStore()
+  const todayStr = new Date().toISOString().split('T')[0]
+  const todayLog = logs.find(l => l.date === todayStr)
+  const symptoms = todayLog?.symptoms ?? []
+  
+  const score = Math.max(50, 100 - symptoms.length * 10)
+  
+  let stressText = "Low (Stable)"
+  let stressColor = "text-green-500"
+  if (symptoms.includes('mood-anxious') || symptoms.includes('mood-irritable')) {
+    stressText = "High"
+    stressColor = "text-rose-500"
+  } else if (symptoms.includes('mood-sad')) {
+    stressText = "Moderate"
+    stressColor = "text-amber-500"
+  }
+  
+  const sleepText = symptoms.includes('phys-fatigue') ? "75% Restless" : "96% Optimal"
+
   return (
     <m.div variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
       <div className="flex flex-col h-full">
@@ -130,14 +189,14 @@ export function WellnessScoreCard() {
           <div className="flex-1">
             <p className="flo-card-title">Wellness Score</p>
             <div className="flex items-end gap-1">
-              <h3 className="flo-card-desc text-2xl font-normal text-[var(--mf-accent)]">84</h3>
+              <h3 className="flo-card-desc text-2xl font-normal text-[var(--mf-accent)]">{score}</h3>
               <span className="text-xs mb-1.5 font-normal text-[var(--mf-accent)] opacity-60">/100</span>
             </div>
             <div className="w-full h-1.5 bg-[var(--mf-border)] rounded-full mt-3 overflow-hidden">
               <m.div 
                 className="h-full bg-[var(--mf-accent)] rounded-full" 
                 initial={{ width: 0 }}
-                animate={{ width: '84%' }}
+                animate={{ width: `${score}%` }}
                 transition={{ duration: 1.2, delay: 0.5, ease: "easeOut" }}
               />
             </div>
@@ -145,11 +204,11 @@ export function WellnessScoreCard() {
           <div className="mt-4 pt-3 border-t border-[var(--mf-border)] relative z-10 grid grid-cols-2 gap-2 text-[10px]">
             <div>
               <span className="opacity-80 block uppercase tracking-wider text-[8px] font-normal">Sleep Rating</span>
-              <span className="font-normal text-[var(--mf-text-strong)]">92% Optimal</span>
+              <span className="font-normal text-[var(--mf-text-strong)]">{sleepText}</span>
             </div>
             <div>
               <span className="opacity-80 block uppercase tracking-wider text-[8px] font-normal">Stress level</span>
-              <span className="font-normal text-green-500">Low (Stable)</span>
+              <span className={`font-normal ${stressColor}`}>{stressText}</span>
             </div>
           </div>
         </div>
@@ -314,11 +373,21 @@ function getPartnerTranslation(phaseLabel: string) {
 }
 
 export function ConnectionChecklistCard() {
-  const checklist = [
-    { id: 1, text: "Shared a meaningful conversation", checked: true },
-    { id: 2, text: "Planned a future activity together", checked: false },
-    { id: 3, text: "Acknowledged a small effort", checked: false },
-  ]
+  const { dashboard, completedActions, toggleSupportAction } = useStore()
+  const tasks = getPhaseTasks(dashboard.phaseLabel)
+  const completedCount = tasks.filter(t => completedActions.includes(t.id)).length
+  const progressPercent = tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0
+
+  const handleToggle = (id: string, label: string) => {
+    const wasCompleted = completedActions.includes(id)
+    toggleSupportAction(id)
+    if (!wasCompleted) {
+      toast.success(`Completed: "${label}"!`, {
+        icon: '❤️',
+        duration: 3005
+      })
+    }
+  }
 
   return (
     <m.div 
@@ -337,27 +406,35 @@ export function ConnectionChecklistCard() {
         </p>
         
         <div className="space-y-3">
-          {checklist.map((item) => (
-            <div key={item.id} className="flex items-center gap-3 p-2.5 rounded-xl bg-muted/30 border border-border/20 transition-all hover:bg-muted/50">
-              <div className={cn(
-                "size-5 rounded-full border-2 flex items-center justify-center transition-all",
-                item.checked ? "bg-teal-500 border-teal-500 text-white" : "border-muted-foreground/30"
-              )}>
-                {item.checked && <Check size={12} weight="bold" />}
-              </div>
-              <span className={cn(
-                "text-[13px] transition-all",
-                item.checked ? "text-[var(--mf-text-strong)] opacity-60 line-through" : "text-[var(--mf-text-strong)]"
-              )}>
-                {item.text}
-              </span>
-            </div>
-          ))}
+          {tasks.map((item) => {
+            const isChecked = completedActions.includes(item.id)
+            return (
+              <button 
+                key={item.id} 
+                type="button"
+                onClick={() => handleToggle(item.id, item.label)}
+                className="w-full text-left flex items-center gap-3 p-2.5 rounded-xl bg-muted/30 border border-border/20 transition-all hover:bg-muted/50 focus:outline-none"
+              >
+                <div className={cn(
+                  "size-5 rounded-full border-2 flex items-center justify-center transition-all shrink-0",
+                  isChecked ? "bg-teal-500 border-teal-500 text-white" : "border-muted-foreground/30"
+                )}>
+                  {isChecked && <Check size={12} weight="bold" />}
+                </div>
+                <span className={cn(
+                  "text-[13px] transition-all leading-snug",
+                  isChecked ? "text-[var(--mf-text-strong)] opacity-60 line-through" : "text-[var(--mf-text-strong)]"
+                )}>
+                  {item.label}
+                </span>
+              </button>
+            )
+          })}
         </div>
 
         <div className="mt-auto pt-4 flex items-center justify-between text-[10px] text-muted-foreground border-t border-[var(--mf-border)]">
           <span>Relationship resonance</span>
-          <span className="text-teal-500 font-medium">80% Optimal</span>
+          <span className="text-teal-500 font-medium">{progressPercent}% Optimal</span>
         </div>
       </div>
     </m.div>

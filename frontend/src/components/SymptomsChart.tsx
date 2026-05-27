@@ -17,7 +17,7 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from "@/components/ui/chart"
-import { SYMPTOM_HISTORY_DUMMY, SYMPTOM_HISTORY_6M } from "../data/symptomsData"
+import { useStore } from "../store/useStore"
 import { cn } from "@/lib/utils"
 
 const Area = React.lazy(() => import("recharts").then(m => ({ default: m.Area })))
@@ -49,7 +49,62 @@ const chartConfig6Months = {
 } satisfies ChartConfig
 
 export function SymptomsChart() {
+  const { logs } = useStore()
   const [viewMode, setViewMode] = useState<'7days' | '6months'>('6months')
+
+  const dynamic7DaysData = React.useMemo(() => {
+    const dataList = []
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date()
+      d.setDate(d.getDate() - i)
+      const dateStr = d.toISOString().split('T')[0]
+      const dayName = dayNames[d.getDay()]
+      
+      const dayLog = logs.find(l => l.date === dateStr)
+      const severity = dayLog ? Math.min(10, dayLog.symptoms.length * 2) : 0
+      dataList.push({ day: dayName, severity })
+    }
+    return dataList
+  }, [logs])
+
+  const dynamic6MonthsData = React.useMemo(() => {
+    const dataList = []
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date()
+      d.setMonth(d.getMonth() - i)
+      const year = d.getFullYear()
+      const monthIdx = d.getMonth()
+      const monthLabel = monthNames[monthIdx]
+
+      const monthLogs = logs.filter(l => {
+        const logDate = new Date(l.date)
+        return logDate.getFullYear() === year && logDate.getMonth() === monthIdx
+      })
+
+      let cramps = 0
+      let moodSwings = 0
+      let fatigue = 0
+
+      monthLogs.forEach(l => {
+        l.symptoms.forEach(sym => {
+          const s = sym.toLowerCase()
+          if (s.includes('cramp')) cramps++
+          if (s.includes('mood') || s.includes('anxious') || s.includes('sad') || s.includes('irritable')) moodSwings++
+          if (s.includes('fatigue') || s.includes('sleep')) fatigue++
+        })
+      })
+
+      dataList.push({
+        month: monthLabel,
+        cramps: Math.min(10, cramps),
+        moodSwings: Math.min(10, moodSwings),
+        fatigue: Math.min(10, fatigue)
+      })
+    }
+    return dataList
+  }, [logs])
 
   return (
     <Card className="border-none shadow-none ring-0 bg-transparent">
@@ -91,7 +146,7 @@ export function SymptomsChart() {
           <React.Suspense fallback={<div className="h-full w-full bg-muted/5 animate-pulse rounded-xl" />}>
             <AreaChart
               accessibilityLayer
-              data={viewMode === '7days' ? SYMPTOM_HISTORY_DUMMY : SYMPTOM_HISTORY_6M}
+              data={viewMode === '7days' ? dynamic7DaysData : dynamic6MonthsData}
               margin={{
                 top: 10,
                 left: -20,

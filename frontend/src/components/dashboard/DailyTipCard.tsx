@@ -3,12 +3,39 @@ import type { Variants } from "framer-motion"
 import { Check, Plus, Heart } from "@phosphor-icons/react"
 
 interface DailyTipCardProps {
+  phaseLabel: string
   tipCompleted: boolean
   setTipCompleted: (completed: boolean) => void
   variants?: Variants
 }
 
-export function DailyTipCard({ tipCompleted, setTipCompleted, variants }: DailyTipCardProps) {
+const TIPS_BY_PHASE: Record<string, { title: string; desc: string }> = {
+  menstrual: {
+    title: "Prioritize warm comfort",
+    desc: "Focus on iron-rich warm meals like soups and teas. Encourage rest and light walking to ease uterine cramps."
+  },
+  follicular: {
+    title: "Embrace rising energy",
+    desc: "Suggest starting a new creative project or outdoor activity together. Her body is highly responsive to learning and planning."
+  },
+  ovulatory: {
+    title: "Match peak connection",
+    desc: "Plan a fun date night or social gathering. Estrogen is at its peak, boosting confidence, communication, and libido."
+  },
+  fertile: {
+    title: "Match peak connection",
+    desc: "Plan a fun date night or social gathering. Estrogen is at its peak, boosting confidence, communication, and libido."
+  },
+  luteal: {
+    title: "Nurture her energy",
+    desc: "Water retention might occur. Support her with cool environments, magnesium-rich snacks, and quiet nesting time."
+  }
+}
+
+export function DailyTipCard({ phaseLabel, tipCompleted, setTipCompleted, variants }: DailyTipCardProps) {
+  const normalized = (phaseLabel || 'luteal').toLowerCase()
+  const tip = TIPS_BY_PHASE[normalized] || TIPS_BY_PHASE.luteal
+
   return (
     <m.div 
       variants={variants}
@@ -39,14 +66,14 @@ export function DailyTipCard({ tipCompleted, setTipCompleted, variants }: DailyT
                 </div>
                 <span className="text-[10px] md:text-[11px] font-medium text-pink-500 uppercase tracking-[0.2em]">Daily Tip</span>
               </div>
-              <span className="text-[9px] md:text-[10px] font-normal text-[var(--mf-muted)] uppercase tracking-[0.15em] ml-8">Phase: Luteal</span>
+              <span className="text-[9px] md:text-[10px] font-normal text-[var(--mf-muted)] uppercase tracking-[0.15em] ml-8">Phase: {phaseLabel}</span>
             </div>
           </div>
           
           <div className="relative z-10 ml-8 min-w-0">
-            <h3 className="text-xl md:text-xl xl:text-2xl font-normal text-[var(--mf-text-strong)] tracking-tight mb-2">Nurture your energy</h3>
+            <h3 className="text-xl md:text-xl xl:text-2xl font-normal text-[var(--mf-text-strong)] tracking-tight mb-2">{tip.title}</h3>
             <p className="text-[12px] md:text-[13px] xl:text-[15px] leading-relaxed text-[var(--mf-text)] opacity-80 max-w-2xl font-normal">
-              Water retention might occur. Drink plenty of fluids.
+              {tip.desc}
             </p>
           </div>
         </div>
