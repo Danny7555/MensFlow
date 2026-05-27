@@ -98,6 +98,7 @@
   color: var(--mf-text-strong);
   white-space: nowrap;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .sidebar.sidebar--collapsed .sidebar-brand-text {
@@ -282,6 +283,12 @@
   color: var(--mf-text-strong);
   cursor: pointer;
   padding: 0.35rem 0.25rem;
+}
+
+@media (min-width: 768px) {
+  .top-header-logo {
+    display: none !important;
+  }
 }
 
 .top-header-actions {
