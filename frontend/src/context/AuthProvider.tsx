@@ -33,6 +33,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(u)
         setOnboardingCompleted(u.isOnboarded)
         hydrate({ user: u, settings, dashboard })
+        
+        // Fetch logs and custom symptoms from backend database
+        const store = useStore.getState()
+        store.fetchLogs().catch((err) => console.error('Failed to load logs', err))
+        store.fetchCustomSymptoms().catch((err) => console.error('Failed to load custom symptoms', err))
       })
       .catch(() => {
         // Token expired or invalid — clear it
@@ -56,6 +61,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const profile = await userApi.getProfile()
       hydrate({ user: u, settings: profile.settings, dashboard: profile.dashboard })
 
+      // Fetch logs and custom symptoms from backend database
+      const store = useStore.getState()
+      await Promise.all([
+        store.fetchLogs(),
+        store.fetchCustomSymptoms()
+      ]).catch((err) => console.error('Failed to load user logs', err))
+
       navigate('/dashboard')
     } finally {
       setLoading(false)
@@ -75,6 +87,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const profile = await userApi.getProfile()
       hydrate({ user: u, settings: profile.settings, dashboard: profile.dashboard })
+
+      // Fetch logs and custom symptoms from backend database
+      const store = useStore.getState()
+      await Promise.all([
+        store.fetchLogs(),
+        store.fetchCustomSymptoms()
+      ]).catch((err) => console.error('Failed to load user logs', err))
 
       navigate('/onboarding')
     } finally {
