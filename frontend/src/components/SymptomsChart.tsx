@@ -52,6 +52,27 @@ export function SymptomsChart() {
   const { logs } = useStore()
   const [viewMode, setViewMode] = useState<'7days' | '6months'>('6months')
 
+  const logsByDate = React.useMemo(() => {
+    const map = new Map<string, string[]>()
+    logs.forEach(l => {
+      map.set(l.date, l.symptoms)
+    })
+    return map
+  }, [logs])
+
+  const logsByMonth = React.useMemo(() => {
+    const map = new Map<string, string[][]>()
+    logs.forEach(l => {
+      const parts = l.date.split('-')
+      if (parts.length >= 2) {
+        const key = `${parts[0]}-${String(parts[1]).padStart(2, '0')}`
+        if (!map.has(key)) map.set(key, [])
+        map.get(key)!.push(l.symptoms)
+      }
+    })
+    return map
+  }, [logs])
+
   const dynamic7DaysData = React.useMemo(() => {
     const dataList = []
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -61,12 +82,12 @@ export function SymptomsChart() {
       const dateStr = d.toISOString().split('T')[0]
       const dayName = dayNames[d.getDay()]
       
-      const dayLog = logs.find(l => l.date === dateStr)
-      const severity = dayLog ? Math.min(10, dayLog.symptoms.length * 2) : 0
+      const daySymptoms = logsByDate.get(dateStr)
+      const severity = daySymptoms ? Math.min(10, daySymptoms.length * 2) : 0
       dataList.push({ day: dayName, severity })
     }
     return dataList
-  }, [logs])
+  }, [logsByDate])
 
   const dynamic6MonthsData = React.useMemo(() => {
     const dataList = []
@@ -77,18 +98,16 @@ export function SymptomsChart() {
       const year = d.getFullYear()
       const monthIdx = d.getMonth()
       const monthLabel = monthNames[monthIdx]
+      const monthKey = `${year}-${String(monthIdx + 1).padStart(2, '0')}`
 
-      const monthLogs = logs.filter(l => {
-        const logDate = new Date(l.date)
-        return logDate.getFullYear() === year && logDate.getMonth() === monthIdx
-      })
+      const monthSymptomsList = logsByMonth.get(monthKey) || []
 
       let cramps = 0
       let moodSwings = 0
       let fatigue = 0
 
-      monthLogs.forEach(l => {
-        l.symptoms.forEach(sym => {
+      monthSymptomsList.forEach(symptoms => {
+        symptoms.forEach(sym => {
           const s = sym.toLowerCase()
           if (s.includes('cramp')) cramps++
           if (s.includes('mood') || s.includes('anxious') || s.includes('sad') || s.includes('irritable')) moodSwings++
@@ -104,7 +123,7 @@ export function SymptomsChart() {
       })
     }
     return dataList
-  }, [logs])
+  }, [logsByMonth])
 
   return (
     <Card className="border-none shadow-none ring-0 bg-transparent">

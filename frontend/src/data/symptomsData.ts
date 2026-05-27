@@ -32,7 +32,7 @@ export const SYMPTOM_DEFS: SymptomDef[] = [
 
 // Dummy data for the Recharts AreaChart
 // 'severity' could represent the aggregate intensity of symptoms logged that day (0-10 scale)
-export const SYMPTOM_HISTORY_DUMMY = [
+const SYMPTOM_HISTORY_DUMMY = [
   { day: 'Mon', severity: 2 },
   { day: 'Tue', severity: 4 },
   { day: 'Wed', severity: 7 },
@@ -51,7 +51,7 @@ export const CYCLE_LENGTH_HISTORY_6M = [
   { month: 'Jun', length: 30, average: 29 },
 ]
 
-export const SYMPTOM_HISTORY_6M = [
+const SYMPTOM_HISTORY_6M = [
   { month: 'Jan', cramps: 7, moodSwings: 4, fatigue: 6 },
   { month: 'Feb', cramps: 8, moodSwings: 5, fatigue: 5 },
   { month: 'Mar', cramps: 5, moodSwings: 3, fatigue: 4 },
