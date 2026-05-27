@@ -74,6 +74,9 @@ export async function sendMessage(
     );
   }
 
+  const history = await ChatMessage.find({ userId, sessionId }).sort({ createdAt: 1 }).lean();
+  const historyMessages = history.map(toMessageInterface);
+
   const now = Date.now();
 
   const userMsg = await ChatMessage.create({
@@ -88,7 +91,7 @@ export async function sendMessage(
     createdAt: now,
   });
 
-  const aiText = await buildAIResponse(userId, text);
+  const aiText = await buildOpenRouterAIResponse(userId, text, historyMessages);
 
   const assistantMsg = await ChatMessage.create({
     userId,
@@ -162,9 +165,16 @@ export async function unlockSession(
   throw Object.assign(new Error('Provide passcode or securityAnswer'), { status: 400 });
 }
 
-// ─── AI Response Generator ───────────────────────────────────────────────────
+async function buildOpenRouterAIResponse(
+  userId: string,
+  promptText: string,
+  history: IChatMessage[]
+): Promise<string> {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) {
+    return "MensFlow AI requires the OpenRouter API key to be set. Please add `OPENROUTER_API_KEY` to the `.env` file on the backend and restart the server to enable chat.";
+  }
 
-async function buildAIResponse(userId: string, promptText: string): Promise<string> {
   const user = await User.findById(userId).lean();
   let targetId: string = userId;
   let targetName: string = user?.name ?? 'Partner';
@@ -194,84 +204,71 @@ async function buildAIResponse(userId: string, promptText: string): Promise<stri
   const today = new Date().toISOString().split('T')[0];
   const logDoc = await SymptomLog.findOne({ userId: targetId, date: today }).lean();
   const symptomsList: string[] = logDoc?.symptoms ?? [];
+  const symptomsText = symptomsList.length > 0
+    ? `Symptoms logged today: ${symptomsList.join(', ')}`
+    : `No symptoms logged today.`;
 
-  return generateResponse(promptText, targetName, currentDay, phaseLabel, symptomsList);
-}
+  const systemMessage = `You are MensFlow, a warm, highly empathetic, and supportive relationship assistant.
+You help a partner support their loved one (named ${targetName}) during their menstrual cycle.
 
-function generateResponse(
-  promptText: string,
-  partnerName: string,
-  currentDay: number,
-  phase: string,
-  symptomsList: string[]
-): string {
-  const p = promptText.toLowerCase();
-  const has = (...words: string[]) => words.some((w) => p.includes(w));
+Current context for ${targetName}:
+- Cycle Phase: ${phaseLabel}
+- Cycle Day: Day ${currentDay}
+- ${symptomsText}
 
-  const phase_ = phase.toLowerCase();
-  const isLuteal = phase_.includes('luteal');
-  const isMenstrual = phase_.includes('menstrual');
-  const isFertile = phase_.includes('ovulatory') || phase_.includes('fertile');
+Instructions:
+1. Provide actionable, highly practical, and compassionate suggestions tailored to ${targetName}'s current cycle phase and symptoms.
+2. Keep your answers concise, engaging, and easy to read (use markdown bullet points, bold text, or short paragraphs).
+3. Do not sound clinical or overly robotic. Speak like a supportive relationship coach who understands cycle physiology.
+4. Keep context in mind (e.g. if energy is low in Luteal/Menstrual, suggest taking over chores, preparing hot water bottles, run baths, or bringing comfort food; if in Follicular/Ovulatory, suggest active dates, walking, or creative initiatives).
+5. If the user asks general relationship or support questions, address them while relating it back to cycle dynamics if relevant.`;
 
-  if (has('cramp', 'pain', 'hurt')) {
-    if (isMenstrual) {
-      return `Physical cramps on Day ${currentDay} are common in the **Menstrual Phase**. Prepare a warm water bottle or heating pad for ${partnerName}. Herbal teas (raspberry leaf, ginger) and foods rich in magnesium (dark chocolate, bananas) will help ease the spasms. Quietly taking over chores so she can rest without asking will mean the world to her. ❤️`;
+  const recentHistory = history.slice(-15);
+  const apiMessages = [
+    { role: 'system', content: systemMessage },
+    ...recentHistory.map(msg => ({
+      role: msg.role === 'assistant' ? 'assistant' : 'user',
+      content: msg.text
+    })),
+    { role: 'user', content: promptText }
+  ];
+
+  const model = process.env.OPENROUTER_MODEL || 'google/gemini-2.5-flash';
+
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'http://localhost:5001',
+        'X-Title': 'MensFlow'
+      },
+      body: JSON.stringify({
+        model,
+        messages: apiMessages,
+        temperature: 0.7
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[OpenRouter API Error] Status: ${response.status} - ${errorText}`);
+      return "An error occurred while connecting to the OpenRouter API. Please make sure your API key is valid and has sufficient credits.";
     }
-    if (isLuteal) {
-      return `In the **Luteal Phase**, rising prostaglandins can cause premenstrual cramping for ${partnerName}. A warm magnesium bath, gentle stretching, or cozy rest will help soothe her nervous system. Quietly taking over chores tonight will make an immense difference. ❤️`;
+
+    const data = await response.json() as any;
+    const content = data?.choices?.[0]?.message?.content;
+    if (!content) {
+      console.warn('[OpenRouter API Warning] Empty response choices');
+      return "Received empty response from the AI service. Please try asking again.";
     }
-    return `Since ${partnerName} is not near her period, these could be minor ovulation cramps (mittelschmerz). Gentle warmth and hydration are great first steps. Check in softly and let her guide you. 🌸`;
+
+    return content.trim();
+  } catch (error) {
+    console.error('[OpenRouter API Exception]', error);
+    return "Failed to connect to the AI model. Please check the backend server logs for more details.";
   }
-
-  if (has('food', 'eat', 'cook', 'dinner', 'crave', 'chocolate')) {
-    if (isMenstrual) return `For the **Menstrual Phase**, ${partnerName} needs iron-rich, warm foods — bone broth, beef, spinach pasta, or dark chocolate (70%+). Avoid cold or carbonated drinks which can worsen bloating. 🍲`;
-    if (isLuteal) return `In the **Luteal Phase** metabolism rises 100–300 calories and serotonin drops. Cook comforting complex carbs — sweet potatoes, brown rice, oats — and offer avocado or nut butter to prevent blood sugar crashes for ${partnerName}. 🥑`;
-    if (isFertile) return `In the **Ovulatory Phase**, ${partnerName} thrives on light, fibre-rich foods — broccoli, sprouts, lean proteins, quinoa. Support her liver as it processes peak estrogen. 🥗`;
-    return `In the **Follicular Phase**, keep it light and vibrant for ${partnerName} — stir-fries, salads, and citrus fruits match her rising energy perfectly. 🍊`;
-  }
-
-  if (has('tired', 'exhaust', 'energy', 'sleep', 'lazy')) {
-    if (isLuteal) return `Progesterone in the **Luteal Phase** has a sedative effect and raises body temperature, disrupting sleep for ${partnerName}. Keep the bedroom cool, dim lights early, and reassure her that rest is exactly what her body needs. 🛌`;
-    if (isMenstrual) return `The hormone drop in the **Menstrual Phase** drains ${partnerName}'s energy. Let her rest completely — take over meals, dishes, and laundry today. 🕯️`;
-    return `Fatigue outside luteal/menstrual phases could be sleep debt or stress for ${partnerName}. Suggest a gentle evening walk to reset serotonin together. 🌳`;
-  }
-
-  if (has('mood', 'sad', 'angry', 'cry', 'irritable', 'pms', 'space')) {
-    if (isLuteal) return `On Day ${currentDay} of the **Luteal Phase**, dropping estrogen and progesterone reduce serotonin — this is a physical shift, not personal. Give ${partnerName} space and say: *"Take all the time you need, I've got things handled. I love you."* 🤍`;
-    if (isMenstrual) return `In the **Menstrual Phase**, ${partnerName} may feel vulnerable. Offer validation rather than solutions — a warm hug, soft tones, and listening go further than advice. 🌸`;
-    return `Hormones are rising right now, so sudden drops may be external stress for ${partnerName}. Listen actively and let her vent without jumping to advice unless she asks. ☕`;
-  }
-
-  if (has('support', 'help', 'what', 'do', 'care', 'how')) {
-    const tips = isMenstrual
-      ? ['Keep a heating pad ready and prepare chamomile or ginger tea', 'Handle meals, dishes and laundry without being asked', 'Validate her discomfort — reassure her she is safe and loved']
-      : isLuteal
-      ? ['Dim lights, keep the house quiet, cool the bedroom (progesterone raises body temp)', 'Bring a comforting snack — avocado, dark chocolate, or sweet potato fries', "Don't take irritability personally — give her space to nest and recharge"]
-      : isFertile
-      ? ['Plan a meaningful date night — she is at peak social energy', 'Share deep conversations and match her outgoing momentum', 'Great time for new adventures or starting new projects together']
-      : ['Suggest an evening stroll or light activity', 'Try cooking a new recipe together', 'Brainstorm future plans or travel ideas'];
-
-    return `The best way to support ${partnerName} right now (**${phase}**, Day ${currentDay}):\n\n${tips.map((t, i) => `${i + 1}. ${t}`).join('\n')}`;
-  }
-
-  if (has('phase', 'cycle', 'current')) {
-    const desc = isMenstrual
-      ? 'The uterine lining is shedding, hormones are at their lowest, and physical rest and warmth are the priority.'
-      : isLuteal
-      ? 'High progesterone is slowing her digestion and reducing serotonin — expect nesting behaviours, sleepiness, and cravings.'
-      : isFertile
-      ? 'Peak estrogen and testosterone are driving high confidence, communication, and social energy.'
-      : 'Rising estrogen is steadily lifting fatigue and increasing mental focus and physical energy.';
-
-    return `${partnerName} is on **Day ${currentDay}** of her cycle — currently in the **${phase}**. ${desc}`;
-  }
-
-  const symptomsText =
-    symptomsList.length > 0
-      ? `She has logged: **${symptomsList.join(', ')}** today. These are strong cues to focus on gentle comfort and support.`
-      : `She hasn't logged symptoms yet today — a soft check-in goes a long way.`;
-
-  return `Hi! I'm MensFlow — your empathetic relationship guide. ${partnerName} is on **Day ${currentDay}** (${phase}). ${symptomsText} Ask me about cramps, food, fatigue, moods, or how to support her today. 🌸`;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
