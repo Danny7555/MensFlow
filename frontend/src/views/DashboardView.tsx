@@ -9,6 +9,7 @@ import { useStore } from '../store/useStore'
 import { useAuth } from '../context/useAuth'
 import { ChatSessionContext } from '../context/chat-session-context'
 import { cn } from '../lib/utils'
+import { partnerApi } from '../lib/api'
 import { computeCycleDay, getPhaseFromDay, getGreeting, type CyclePhase } from '../lib/cycleUtils'
 import { CycleTrackerHero } from '../components/tracker/CycleTrackerHero'
 import { LogSymptomsModal } from '../components/tracker/LogSymptomsModal'
@@ -148,32 +149,33 @@ export function DashboardView() {
   }
 
   useEffect(() => {
-    const handlePingEvent = () => {
-      const pingStr = localStorage.getItem('mensflow_partner_ping:v1')
-      if (pingStr) {
-        try {
-          const ping = JSON.parse(pingStr)
-          const lastProcessed = localStorage.getItem('mensflow_last_ping_processed:v1')
-          if (lastProcessed !== String(ping.timestamp)) {
-            localStorage.setItem('mensflow_last_ping_processed:v1', String(ping.timestamp))
-            toast.info("Partner Update received!", {
-              icon: "👋",
-              description: `She is: "${ping.label}" (${ping.message})`,
-              duration: 8000,
-            })
+    let active = true
+
+    const checkLatestPing = () => {
+      partnerApi.getLatestPing()
+        .then((ping) => {
+          if (!active) return
+          if (ping) {
+            const lastProcessed = localStorage.getItem('mensflow_last_ping_processed:v1')
+            if (lastProcessed !== String(ping.timestamp)) {
+              localStorage.setItem('mensflow_last_ping_processed:v1', String(ping.timestamp))
+              toast.info("Partner Update received!", {
+                icon: "👋",
+                description: `She is: "${ping.label}" (${ping.message})`,
+                duration: 8000,
+              })
+            }
           }
-        } catch (e) {
-          console.error("Failed to parse partner ping", e)
-        }
-      }
+        })
+        .catch((e) => console.error("Failed to fetch latest partner ping", e))
     }
 
-    window.addEventListener('storage', handlePingEvent)
-    // Run once on mount in case a ping was sent while the dashboard was closed
-    handlePingEvent()
+    checkLatestPing()
+    const interval = setInterval(checkLatestPing, 10000)
 
     return () => {
-      window.removeEventListener('storage', handlePingEvent)
+      active = false
+      clearInterval(interval)
     }
   }, [])
 
