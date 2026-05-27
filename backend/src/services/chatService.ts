@@ -91,7 +91,7 @@ export async function sendMessage(
     createdAt: now,
   });
 
-  const aiText = await buildOpenRouterAIResponse(userId, text, historyMessages);
+  const aiText = await buildAIResponse(userId, text, historyMessages);
 
   const assistantMsg = await ChatMessage.create({
     userId,
@@ -165,14 +165,15 @@ export async function unlockSession(
   throw Object.assign(new Error('Provide passcode or securityAnswer'), { status: 400 });
 }
 
-async function buildOpenRouterAIResponse(
+async function buildAIResponse(
   userId: string,
   promptText: string,
   history: IChatMessage[]
 ): Promise<string> {
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) {
-    return "MensFlow AI requires the OpenRouter API key to be set. Please add `OPENROUTER_API_KEY` to the `.env` file on the backend and restart the server to enable chat.";
+  const groqApiKey = process.env.GROQ_API_KEY;
+
+  if (!groqApiKey) {
+    return "MensFlow AI requires the Groq API key to be set. Please add `GROQ_API_KEY` to the `.env` file on the backend and restart the server to enable chat.";
   }
 
   const user = await User.findById(userId).lean();
@@ -233,16 +234,13 @@ Instructions:
     { role: 'user', content: promptText }
   ];
 
-  const model = process.env.OPENROUTER_MODEL || 'google/gemini-2.5-flash';
-
+  const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
   try {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'http://localhost:5001',
-        'X-Title': 'MensFlow'
+        'Authorization': `Bearer ${groqApiKey}`,
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         model,
@@ -253,21 +251,21 @@ Instructions:
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`[OpenRouter API Error] Status: ${response.status} - ${errorText}`);
-      return "An error occurred while connecting to the OpenRouter API. Please make sure your API key is valid and has sufficient credits.";
+      console.error(`[Groq API Error] Status: ${response.status} - ${errorText}`);
+      return "An error occurred while connecting to the Groq API. Please make sure your API key is valid and has sufficient credits.";
     }
 
     const data = await response.json() as any;
     const content = data?.choices?.[0]?.message?.content;
     if (!content) {
-      console.warn('[OpenRouter API Warning] Empty response choices');
-      return "Received empty response from the AI service. Please try asking again.";
+      console.warn('[Groq API Warning] Empty response choices');
+      return "Received empty response from the Groq AI service. Please try asking again.";
     }
 
     return content.trim();
   } catch (error) {
-    console.error('[OpenRouter API Exception]', error);
-    return "Failed to connect to the AI model. Please check the backend server logs for more details.";
+    console.error('[Groq API Exception]', error);
+    return "Failed to connect to the Groq AI model. Please check the backend server logs for more details.";
   }
 }
 
