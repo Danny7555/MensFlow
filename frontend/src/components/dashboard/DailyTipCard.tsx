@@ -33,8 +33,13 @@ const TIPS_BY_PHASE: Record<string, { title: string; desc: string }> = {
 }
 
 export function DailyTipCard({ phaseLabel, tipCompleted, setTipCompleted, variants }: DailyTipCardProps) {
-  const normalized = (phaseLabel || 'luteal').toLowerCase()
-  const tip = TIPS_BY_PHASE[normalized] || TIPS_BY_PHASE.luteal
+  const normalized = (phaseLabel || '').toLowerCase()
+  const tip = normalized
+    ? (TIPS_BY_PHASE[normalized] || TIPS_BY_PHASE.luteal)
+    : {
+        title: "Setup Cycle Tracking",
+        desc: "Please enter your partner's last period date in Settings or Tracker to compute cycle phases and receive tailored daily recommendations."
+      }
 
   return (
     <m.div 

@@ -30,18 +30,6 @@ export const SYMPTOM_DEFS: SymptomDef[] = [
   { id: 'life-pill', label: 'Pill Taken', category: 'Lifestyle' },
 ]
 
-// Dummy data for the Recharts AreaChart
-// 'severity' could represent the aggregate intensity of symptoms logged that day (0-10 scale)
-const SYMPTOM_HISTORY_DUMMY = [
-  { day: 'Mon', severity: 2 },
-  { day: 'Tue', severity: 4 },
-  { day: 'Wed', severity: 7 },
-  { day: 'Thu', severity: 5 },
-  { day: 'Fri', severity: 3 },
-  { day: 'Sat', severity: 1 },
-  { day: 'Sun', severity: 0 },
-]
-
 export const CYCLE_LENGTH_HISTORY_6M = [
   { month: 'Jan', length: 28, average: 29 },
   { month: 'Feb', length: 27, average: 29 },
@@ -49,13 +37,4 @@ export const CYCLE_LENGTH_HISTORY_6M = [
   { month: 'Apr', length: 31, average: 29 },
   { month: 'May', length: 28, average: 29 },
   { month: 'Jun', length: 30, average: 29 },
-]
-
-const SYMPTOM_HISTORY_6M = [
-  { month: 'Jan', cramps: 7, moodSwings: 4, fatigue: 6 },
-  { month: 'Feb', cramps: 8, moodSwings: 5, fatigue: 5 },
-  { month: 'Mar', cramps: 5, moodSwings: 3, fatigue: 4 },
-  { month: 'Apr', cramps: 6, moodSwings: 6, fatigue: 7 },
-  { month: 'May', cramps: 4, moodSwings: 4, fatigue: 5 },
-  { month: 'Jun', cramps: 5, moodSwings: 3, fatigue: 4 },
 ]

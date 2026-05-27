@@ -50,9 +50,13 @@ const METRICS_BY_PHASE: Record<string, string> = {
 }
 
 export function PrimaryInsightCard({ label, currentDay, trend }: { label: string; currentDay: number; trend: string }) {
-  const normalized = (label || 'luteal').toLowerCase()
-  const description = INSIGHTS_BY_PHASE[normalized] || INSIGHTS_BY_PHASE.luteal
-  const metric = METRICS_BY_PHASE[normalized] || METRICS_BY_PHASE.luteal
+  const normalized = (label || '').toLowerCase()
+  const description = normalized
+    ? (INSIGHTS_BY_PHASE[normalized] || INSIGHTS_BY_PHASE.luteal)
+    : "No cycle tracking setup found. Set your partner's period details to display hormonal peak indicators and phase descriptions."
+  const metric = normalized
+    ? (METRICS_BY_PHASE[normalized] || METRICS_BY_PHASE.luteal)
+    : "NO CYCLE DATA SET"
 
   return (
     <m.div variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
@@ -107,8 +111,10 @@ const FOCUS_BY_PHASE: Record<string, string[]> = {
 }
 
 export function BodySignalsCard({ signals, currentDay, phaseLabel }: { signals: string; currentDay: number; phaseLabel: string }) {
-  const normalized = (phaseLabel || 'luteal').toLowerCase()
-  const focusAreas = FOCUS_BY_PHASE[normalized] || FOCUS_BY_PHASE.luteal
+  const normalized = (phaseLabel || '').toLowerCase()
+  const focusAreas = normalized
+    ? (FOCUS_BY_PHASE[normalized] || FOCUS_BY_PHASE.luteal)
+    : ['Setup Tracking', 'Log Cycle']
 
   return (
     <m.div variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">

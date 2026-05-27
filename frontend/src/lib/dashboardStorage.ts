@@ -13,19 +13,13 @@ export type DashboardSnapshot = {
 
 export const DEFAULT_DASHBOARD: DashboardSnapshot = {
   version: 1,
-  lastPeriodStart: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000)
-    .toISOString()
-    .slice(0, 10),
+  lastPeriodStart: '',
   typicalCycleDays: 28,
-  phaseLabel: 'Luteal',
-  hormoneTrend: 'Progesterone rising',
-  bodySignals: 'Fatigue, appetite changes',
-  guidanceLines: [
-    'Prioritize sleep (8+ hours)',
-    'Increase healthy fats',
-    'Focus on grounding exercises',
-  ],
-  cycleNotes: 'Luteal phase started. Monitoring fatigue and appetite changes.',
+  phaseLabel: '',
+  hormoneTrend: 'No cycle data set',
+  bodySignals: 'No symptoms logged today',
+  guidanceLines: [],
+  cycleNotes: '',
 }
 
 export function loadDashboard(): DashboardSnapshot {
