@@ -128,4 +128,5 @@ export interface ISessionSummary {
   securityQuestion: string | null;
   createdAt: number;
   messageCount: number;
+  title?: string;
 }

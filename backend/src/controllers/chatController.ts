@@ -83,3 +83,13 @@ export async function unlockSession(req: AuthRequest, res: Response, next: NextF
     next(err);
   }
 }
+
+export async function deleteSession(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const { sessionId } = req.params;
+    await chatService.deleteSession(req.user!.id, sessionId);
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+}

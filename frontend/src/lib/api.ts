@@ -115,6 +115,15 @@ export type ApiChatMessage = {
   createdAt: number
 }
 
+export type ApiChatSession = {
+  sessionId: string
+  isLocked: boolean
+  securityQuestion: string | null
+  createdAt: number
+  messageCount: number
+  title: string
+}
+
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
 export const authApi = {
@@ -192,7 +201,7 @@ export const partnerApi = {
 
 export const chatApi = {
   getSessions: () =>
-    get<object[]>('/chat/sessions'),
+    get<ApiChatSession[]>('/chat/sessions'),
 
   getMessages: (sessionId: string, passcode?: string) =>
     get<ApiChatMessage[]>(`/chat/sessions/${sessionId}${passcode ? `?passcode=${passcode}` : ''}`),
@@ -215,4 +224,7 @@ export const chatApi = {
       ...(passcode ? { passcode } : {}),
       ...(securityAnswer ? { securityAnswer } : {}),
     }),
+
+  deleteSession: (sessionId: string) =>
+    del<{ success: boolean }>(`/chat/sessions/${sessionId}`),
 }

@@ -10,16 +10,19 @@ import { IChatMessage, ISessionSummary } from '../interfaces';
 export async function getSessions(userId: string): Promise<ISessionSummary[]> {
   const sessions = await ChatMessage.aggregate([
     { $match: { userId: userId } },
+    { $sort: { createdAt: 1 } },
     {
       $group: {
         _id: '$sessionId',
-        isLocked: { $first: '$isLocked' },
-        securityQuestion: { $first: '$securityQuestion' },
-        createdAt: { $min: '$createdAt' },
+        isLocked: { $last: '$isLocked' },
+        securityQuestion: { $last: '$securityQuestion' },
+        createdAt: { $first: '$createdAt' },
+        lastActiveAt: { $last: '$createdAt' },
         messageCount: { $sum: 1 },
+        title: { $first: '$text' },
       },
     },
-    { $sort: { createdAt: -1 } },
+    { $sort: { lastActiveAt: -1 } },
   ]);
 
   return sessions.map((s) => ({
@@ -28,6 +31,7 @@ export async function getSessions(userId: string): Promise<ISessionSummary[]> {
     securityQuestion: s.securityQuestion,
     createdAt: s.createdAt,
     messageCount: s.messageCount,
+    title: s.title || 'New Conversation',
   }));
 }
 
@@ -163,6 +167,10 @@ export async function unlockSession(
   }
 
   throw Object.assign(new Error('Provide passcode or securityAnswer'), { status: 400 });
+}
+
+export async function deleteSession(userId: string, sessionId: string): Promise<void> {
+  await ChatMessage.deleteMany({ userId, sessionId });
 }
 
 async function buildAIResponse(

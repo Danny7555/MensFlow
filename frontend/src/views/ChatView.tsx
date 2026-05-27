@@ -1,6 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { m } from 'framer-motion'
-import { Ghost, Question, Sparkle } from '@phosphor-icons/react'
+import { 
+  Ghost, 
+  Question, 
+  Sparkle, 
+  Lock, 
+  Trash, 
+  SidebarSimple, 
+  X, 
+  ChatCircle, 
+  Plus 
+} from '@phosphor-icons/react'
 import { ChatComposer } from '../components/ChatComposer'
 import { useChatSession } from '../context/useChatSession'
 import { useStore } from '../store/useStore'
@@ -8,8 +18,9 @@ import { CLEAR_LOCAL_CHATS_EVENT } from '../lib/constants'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../components/ui/tooltip'
 import { ChatSkeleton } from '../components/skeletons/ChatSkeleton'
 import { SYMPTOM_DEFS } from '../data/symptomsData'
-import { chatApi } from '../lib/api'
+import { chatApi, type ApiChatSession } from '../lib/api'
 import { toast } from 'sonner'
+import { cn } from '../lib/utils'
 
 type Msg = {
   id: string
@@ -140,7 +151,7 @@ const SUGGESTIONS = [
 ]
 
 export function ChatView() {
-  const { temporaryChat } = useChatSession()
+  const { temporaryChat, setTemporaryChat } = useChatSession()
   const { chatShowTimestamps } = useStore((state) => state.settings)
   const { dashboard: data, user, logs, customSymptoms } = useStore()
 
@@ -159,12 +170,74 @@ export function ChatView() {
 
   const welcomeText = `Hi - I'm MensFlow, your personal relationship and cycle support companion. Currently, ${user.name} is on Day ${currentDay} of her cycle (${data.phaseLabel}). Ask me about her active phase, logged symptoms, how you can support her today, or what healthy meals you can cook! 🌸`
 
+  const [sessions, setSessions] = useState<ApiChatSession[]>([])
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+
   const [messages, setMessages] = useState<Msg[]>([])
   const [draft, setDraft] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Load chat messages
+  // Lock & Unlock States
+  const [unlockedPasscodes, setUnlockedPasscodes] = useState<Record<string, string>>({})
+  const [lockedSessionToUnlock, setLockedSessionToUnlock] = useState<{
+    sessionId: string
+    securityQuestion: string | null
+    error?: string
+  } | null>(null)
+  const [unlockPasscodeVal, setUnlockPasscodeVal] = useState('')
+  const [unlockSecurityAnsVal, setUnlockSecurityAnsVal] = useState('')
+  const [showSecurityQuestionReset, setShowSecurityQuestionReset] = useState(false)
+
+  const [lockModalSessionId, setLockModalSessionId] = useState<string | null>(null)
+  const [lockPasscodeVal, setLockPasscodeVal] = useState('')
+  const [lockSecurityQVal, setLockSecurityQVal] = useState('')
+  const [lockSecurityAVal, setLockSecurityAVal] = useState('')
+
+  const generateNewSessionId = () => `chat-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+
+  // Fetch session history list on mount
+  const fetchSessions = async () => {
+    if (temporaryChat) return
+    try {
+      const data = await chatApi.getSessions()
+      setSessions(data)
+      return data
+    } catch (err: any) {
+      toast.error(err.message ?? 'Failed to load chat history list')
+    }
+  }
+
+  // 1. Initial Load of Sessions
+  useEffect(() => {
+    if (temporaryChat) {
+      setActiveSessionId(null)
+      setMessages([{
+        id: 'welcome',
+        role: 'assistant',
+        text: welcomeText,
+        createdAt: Date.now(),
+      }])
+      setIsLoading(false)
+      return
+    }
+
+    setIsLoading(true)
+    fetchSessions()
+      .then((data) => {
+        if (data && data.length > 0) {
+          setActiveSessionId(data[0].sessionId)
+        } else {
+          setActiveSessionId(generateNewSessionId())
+        }
+      })
+      .finally(() => {
+        setIsLoading(false)
+      })
+  }, [temporaryChat])
+
+  // 2. Load messages for activeSessionId
   useEffect(() => {
     if (temporaryChat) {
       setMessages([{
@@ -177,8 +250,23 @@ export function ChatView() {
       return
     }
 
+    if (!activeSessionId) return
+
+    const existingSession = sessions.find((s) => s.sessionId === activeSessionId)
+    if (!existingSession || existingSession.messageCount === 0) {
+      setMessages([{
+        id: 'welcome',
+        role: 'assistant',
+        text: welcomeText,
+        createdAt: Date.now(),
+      }])
+      setIsLoading(false)
+      return
+    }
+
     setIsLoading(true)
-    chatApi.getMessages('default')
+    const passcode = unlockedPasscodes[activeSessionId]
+    chatApi.getMessages(activeSessionId, passcode)
       .then((history) => {
         if (history.length > 0) {
           setMessages(history)
@@ -190,14 +278,22 @@ export function ChatView() {
             createdAt: Date.now(),
           }])
         }
+        setLockedSessionToUnlock(null)
       })
-      .catch((err) => {
-        toast.error(err.message ?? 'Failed to load chat history')
+      .catch((err: any) => {
+        if (err.message && err.message.toLowerCase().includes('locked')) {
+          setLockedSessionToUnlock({
+            sessionId: activeSessionId,
+            securityQuestion: existingSession.securityQuestion,
+          })
+        } else {
+          toast.error(err.message ?? 'Failed to load chat history')
+        }
       })
       .finally(() => {
         setIsLoading(false)
       })
-  }, [temporaryChat, welcomeText])
+  }, [activeSessionId, temporaryChat, welcomeText])
 
   const todayStr = new Date().toISOString().split('T')[0]
   const todayLog = logs.find(l => l.date === todayStr)
@@ -211,16 +307,22 @@ export function ChatView() {
     })
   })()
 
+  // Handle setting clear local chats
   useEffect(() => {
-    const onClear = () => setMessages([{
-      id: 'welcome',
-      role: 'assistant',
-      text: welcomeText,
-      createdAt: Date.now(),
-    }])
+    const onClear = () => {
+      setMessages([{
+        id: 'welcome',
+        role: 'assistant',
+        text: welcomeText,
+        createdAt: Date.now(),
+      }])
+      if (!temporaryChat) {
+        fetchSessions()
+      }
+    }
     window.addEventListener(CLEAR_LOCAL_CHATS_EVENT, onClear)
     return () => window.removeEventListener(CLEAR_LOCAL_CHATS_EVENT, onClear)
-  }, [welcomeText])
+  }, [welcomeText, temporaryChat])
 
   // Auto scroll effect
   useEffect(() => {
@@ -257,7 +359,6 @@ export function ChatView() {
     setIsTyping(true)
 
     if (temporaryChat) {
-      // Simulate bouncy AI loading and context decoding for temporary chat
       setTimeout(() => {
         const aid = `a-${Date.now()}`
         const aiResponse = generateAIResponse(text, user.name, currentDay, data.phaseLabel, todaySymptoms)
@@ -274,8 +375,15 @@ export function ChatView() {
         setIsTyping(false)
       }, 1500)
     } else {
+      let sid = activeSessionId
+      if (!sid) {
+        sid = generateNewSessionId()
+        setActiveSessionId(sid)
+      }
+
       try {
-        const result = await chatApi.send('default', text)
+        const passcode = unlockedPasscodes[sid]
+        const result = await chatApi.send(sid, text, passcode)
         setMessages((m) => [
           ...m,
           {
@@ -285,12 +393,146 @@ export function ChatView() {
             createdAt: result.assistantMessage.createdAt,
           }
         ])
+        // Refresh recent session list
+        fetchSessions()
       } catch (err: any) {
         toast.error(err.message ?? 'Failed to send message')
       } finally {
         setIsTyping(false)
       }
     }
+  }
+
+  // Session Actions
+  const handleSessionClick = (sessionId: string) => {
+    if (temporaryChat) {
+      setTemporaryChat(false)
+    }
+    if (activeSessionId === sessionId) return
+    setActiveSessionId(sessionId)
+    setLockedSessionToUnlock(null)
+    setShowSecurityQuestionReset(false)
+    setUnlockPasscodeVal('')
+    setUnlockSecurityAnsVal('')
+  }
+
+  const startNewChat = () => {
+    if (temporaryChat) {
+      setTemporaryChat(false)
+    }
+    const newId = generateNewSessionId()
+    setActiveSessionId(newId)
+    setMessages([{
+      id: 'welcome',
+      role: 'assistant',
+      text: welcomeText,
+      createdAt: Date.now(),
+    }])
+    setLockedSessionToUnlock(null)
+    setShowSecurityQuestionReset(false)
+    setUnlockPasscodeVal('')
+    setUnlockSecurityAnsVal('')
+  }
+
+  const deleteSession = async (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!window.confirm('Delete this conversation? This action cannot be undone.')) return
+    
+    try {
+      await chatApi.deleteSession(sessionId)
+      toast.success('Chat deleted')
+      
+      if (activeSessionId === sessionId) {
+        const remaining = sessions.filter((s) => s.sessionId !== sessionId)
+        if (remaining.length > 0) {
+          setActiveSessionId(remaining[0].sessionId)
+        } else {
+          setActiveSessionId(generateNewSessionId())
+        }
+      }
+      
+      fetchSessions()
+    } catch (err: any) {
+      toast.error(err.message ?? 'Failed to delete chat')
+    }
+  }
+
+  // Lock Actions
+  const openLockModal = (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setLockModalSessionId(sessionId)
+  }
+
+  const handleLockSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!lockModalSessionId) return
+    if (!lockPasscodeVal.trim() || !lockSecurityQVal.trim() || !lockSecurityAVal.trim()) {
+      toast.error('All fields are required')
+      return
+    }
+
+    try {
+      await chatApi.lock(lockModalSessionId, lockPasscodeVal, lockSecurityQVal, lockSecurityAVal)
+      toast.success('Chat session locked!')
+      
+      // Store verified passcode locally
+      setUnlockedPasscodes((prev) => ({ ...prev, [lockModalSessionId]: lockPasscodeVal }))
+
+      setLockModalSessionId(null)
+      setLockPasscodeVal('')
+      setLockSecurityQVal('')
+      setLockSecurityAVal('')
+      
+      fetchSessions()
+    } catch (err: any) {
+      toast.error(err.message ?? 'Failed to lock session')
+    }
+  }
+
+  const handleUnlockSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!lockedSessionToUnlock) return
+    const sid = lockedSessionToUnlock.sessionId
+
+    try {
+      if (showSecurityQuestionReset) {
+        if (!unlockSecurityAnsVal.trim()) {
+          toast.error('Security answer is required')
+          return
+        }
+        const res = await chatApi.unlock(sid, undefined, unlockSecurityAnsVal)
+        if (res.success && res.passcode) {
+          toast.success(`Success! Your passcode was retrieved.`)
+          setUnlockedPasscodes((prev) => ({ ...prev, [sid]: res.passcode! }))
+          setLockedSessionToUnlock(null)
+          setUnlockPasscodeVal('')
+          setUnlockSecurityAnsVal('')
+          setShowSecurityQuestionReset(false)
+        }
+      } else {
+        if (!unlockPasscodeVal.trim()) {
+          toast.error('Passcode is required')
+          return
+        }
+        const res = await chatApi.unlock(sid, unlockPasscodeVal)
+        if (res.success) {
+          toast.success('Chat unlocked')
+          setUnlockedPasscodes((prev) => ({ ...prev, [sid]: unlockPasscodeVal }))
+          setLockedSessionToUnlock(null)
+          setUnlockPasscodeVal('')
+          setUnlockSecurityAnsVal('')
+        }
+      }
+    } catch (err: any) {
+      toast.error(err.message ?? 'Verification failed')
+    }
+  }
+
+  const getCurrentChatTitle = () => {
+    if (temporaryChat) return 'Temporary Chat'
+    if (!activeSessionId) return 'New Chat'
+    const active = sessions.find((s) => s.sessionId === activeSessionId)
+    return active ? active.title : 'New Conversation'
   }
 
   const isInitialState = messages.length <= 1 && messages[0]?.id === 'welcome'
@@ -300,140 +542,374 @@ export function ChatView() {
   }
 
   return (
-    <div className={isInitialState ? "landing" : "chat-view"}>
-      {isInitialState ? (
-        <div className="landing-center animate-in fade-in zoom-in duration-700 max-w-[800px] w-full px-4 mx-auto">
-          <div className="landing-hero-image-wrap">
-            <img src="/images/lady.png" alt="" className="landing-hero-image" />
-          </div>
-          <h1 className="landing-title">Ask MensFlow about your cycle?</h1>
-          <p className="landing-sub flex items-center gap-1 justify-center max-w-[500px] mx-auto text-center leading-relaxed">
-            Education, tracking context, and supportive guidance; not a substitute for medical care.
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button className="p-1 hover:bg-black/5 rounded-full transition-colors inline-flex items-center justify-center cursor-help" aria-label="Medical disclaimer information">
-                  <Question size={14} weight="bold" className="opacity-40" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="text-center">
-                <p className="max-w-[240px]">
-                  MensFlow is an educational tool. Always consult a healthcare professional for medical advice, diagnosis, or treatment.
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </p>
+    <div className="chat-layout-container">
+      {/* 1. Left Sidebar for Chat History */}
+      <aside className={cn("chat-sidebar-wrapper", !isSidebarOpen && "collapsed")}>
+        <div className="chat-sidebar-header">
+          <button
+            type="button"
+            className="chat-new-btn active-squish"
+            onClick={startNewChat}
+          >
+            <Plus size={16} weight="bold" />
+            <span>New Chat</span>
+          </button>
+        </div>
 
-          {/* Dynamic suggestion tags */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-8 mb-6 text-left">
-            {SUGGESTIONS.map((sug) => (
-              <button
-                key={sug.query}
-                type="button"
-                onClick={() => send(sug.query)}
-                className="p-4 rounded-2xl border border-[var(--mf-border)] bg-[var(--mf-card)] hover:border-[var(--mf-accent-border)] hover:bg-[var(--mf-accent-soft)]/20 active-squish transition-all flex items-start gap-3 cursor-pointer group text-xs text-[var(--mf-text)] font-medium leading-relaxed !shadow-none"
+        <div className="chat-sessions-list scrollbar-hide">
+          <div className="text-[10px] text-muted-foreground uppercase font-semibold px-2 mb-2 tracking-wider">
+            Recent Chats
+          </div>
+          {sessions.length === 0 ? (
+            <div className="text-xs text-muted-foreground px-2 py-4 italic">
+              No recent chats
+            </div>
+          ) : (
+            sessions.map((s) => (
+              <div
+                key={s.sessionId}
+                className={cn(
+                  "chat-session-item",
+                  activeSessionId === s.sessionId && "active"
+                )}
+                onClick={() => handleSessionClick(s.sessionId)}
               >
-                <div className="size-6 rounded-lg bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
-                  <Sparkle size={12} weight="fill" />
+                <div className="chat-session-left">
+                  {s.isLocked ? (
+                    <Lock size={16} className="text-amber-500 shrink-0" />
+                  ) : (
+                    <ChatCircle size={16} className="opacity-70 shrink-0" />
+                  )}
+                  <span className="chat-session-title">
+                    {s.title}
+                  </span>
                 </div>
-                <span>{sug.text}</span>
-              </button>
-            ))}
+                
+                <div className="chat-session-actions">
+                  {!s.isLocked && (
+                    <button
+                      type="button"
+                      className="chat-session-action-btn"
+                      title="Lock Chat"
+                      onClick={(e) => openLockModal(s.sessionId, e)}
+                    >
+                      <Lock size={14} />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="chat-session-action-btn hover:text-rose-500"
+                    title="Delete Chat"
+                    onClick={(e) => deleteSession(s.sessionId, e)}
+                  >
+                    <Trash size={14} />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </aside>
+
+      {/* 2. Main Chat Area */}
+      <div className="chat-main-content">
+        {/* Chat Header Bar */}
+        <div className="chat-header-bar">
+          <div className="chat-header-left">
+            <button
+              type="button"
+              className="chat-toggle-sidebar-btn active-squish"
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              title={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+            >
+              <SidebarSimple size={20} />
+            </button>
+            <span className="chat-header-title">
+              {getCurrentChatTitle()}
+            </span>
           </div>
 
-          <div className="landing-composer-wrap mt-2">
-            <ChatComposer
-              value={draft}
-              onChange={setDraft}
-              onSubmit={() => send()}
-              placeholder="Ask MensFlow"
-            />
+          <div className="flex items-center gap-2">
+            {activeSessionId && !sessions.find((s) => s.sessionId === activeSessionId)?.isLocked && (
+              <button
+                type="button"
+                className="text-xs text-muted-foreground flex items-center gap-1 hover:text-[var(--mf-accent)] px-2 py-1.5 rounded-lg border border-border bg-card transition-colors cursor-pointer"
+                onClick={(e) => openLockModal(activeSessionId, e)}
+              >
+                <Lock size={14} />
+                <span>Lock Chat</span>
+              </button>
+            )}
+            {activeSessionId && sessions.find((s) => s.sessionId === activeSessionId)?.isLocked && (
+              <span className="text-[10px] bg-amber-500/10 text-amber-500 px-2.5 py-1 rounded-full font-medium flex items-center gap-1">
+                <Lock size={10} weight="fill" />
+                Locked
+              </span>
+            )}
           </div>
         </div>
-      ) : (
-        <>
-          {temporaryChat && (
-            <div className="chat-temporary-banner chat-thread-spacing" role="status">
-              <Ghost size={18} weight="duotone" aria-hidden />
-              <span>
-                Temporary chat - this conversation won&apos;t be saved to history or used to
-                improve Ai models.
-              </span>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button className="ml-1 p-0.5 hover:bg-black/10 rounded-full transition-colors flex items-center justify-center" aria-label="More information">
-                    <Question size={14} weight="bold" className="opacity-60" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="top">
-                  <p className="max-w-[200px]">
-                    Temporary chats are private sessions that aren&apos;t saved to your history or used for training.
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-          )}
 
-          <div className="chat-thread" role="log" aria-live="polite">
-            {messages.map((m) => (
-              <div
-                key={m.id}
-                className={`chat-bubble chat-bubble--${m.role}`}
-              >
-                <span className="chat-role flex items-center gap-1.5">
-                  {m.role === 'user' ? 'You' : 'MensFlow'}
-                  {chatShowTimestamps && (
-                    <time
-                      className="chat-time"
-                      dateTime={getIsoString(m.createdAt)}
-                      suppressHydrationWarning
-                    >
-                      {fmtTime(m.createdAt)}
-                    </time>
-                  )}
-                </span>
-                <p className="chat-text whitespace-pre-line">{m.text}</p>
+        {/* Chat Content Body */}
+        {lockedSessionToUnlock ? (
+          /* Render Lock Screen */
+          <div className="chat-lock-screen">
+            <form className="chat-lock-card animate-in fade-in zoom-in-95 duration-300" onSubmit={handleUnlockSubmit}>
+              <div className="chat-lock-icon-wrap">
+                <Lock size={28} weight="fill" />
               </div>
-            ))}
+              <h2 className="font-semibold text-lg text-[var(--mf-text-strong)]">
+                {showSecurityQuestionReset ? "Unlock via Question" : "This chat is locked"}
+              </h2>
+              <p className="text-xs text-muted-foreground -mt-2 max-w-[280px]">
+                {showSecurityQuestionReset 
+                  ? "Answer the security question configured for this chat to retrieve your passcode."
+                  : "Enter the passcode to view and continue this conversation."}
+              </p>
 
-            {isTyping && (
-              <div className="chat-bubble chat-bubble--assistant animate-pulse duration-1000">
-                <span className="chat-role flex items-center gap-1.5">
-                  MensFlow
-                </span>
-                <div className="flex items-center gap-1.5 py-3 px-1">
-                  {[0, 150, 300].map((delay) => (
-                    <m.div
-                      key={delay}
-                      initial={{ y: 0 }}
-                      animate={{ y: [0, -6, 0] }}
-                      transition={{
-                        duration: 0.8,
-                        repeat: Infinity,
-                        ease: [0.16, 1, 0.3, 1], // ease-out-expo as requested
-                        delay: delay / 1000
-                      }}
-                      className="size-2 rounded-full bg-[var(--mf-accent)]"
+              <div className="chat-lock-inputs">
+                {showSecurityQuestionReset ? (
+                  <>
+                    <div className="text-xs font-semibold text-[var(--mf-text)] mb-1">
+                      Question: <span className="text-muted-foreground font-normal italic">{lockedSessionToUnlock.securityQuestion}</span>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Enter security answer"
+                      className="chat-lock-input"
+                      value={unlockSecurityAnsVal}
+                      onChange={(e) => setUnlockSecurityAnsVal(e.target.value)}
+                      required
+                      autoFocus
                     />
-                  ))}
-                </div>
+                  </>
+                ) : (
+                  <input
+                    type="password"
+                    placeholder="Enter passcode"
+                    className="chat-lock-input"
+                    value={unlockPasscodeVal}
+                    onChange={(e) => setUnlockPasscodeVal(e.target.value)}
+                    required
+                    autoFocus
+                  />
+                )}
+              </div>
+
+              <button type="submit" className="chat-lock-btn mt-2">
+                {showSecurityQuestionReset ? "Retrieve Passcode" : "Unlock Chat"}
+              </button>
+
+              <button
+                type="button"
+                className="chat-lock-forgot"
+                onClick={() => setShowSecurityQuestionReset(!showSecurityQuestionReset)}
+              >
+                {showSecurityQuestionReset ? "Back to Passcode Input" : "Forgot passcode? Answer security question"}
+              </button>
+            </form>
+          </div>
+        ) : isInitialState ? (
+          /* Render Landing view */
+          <div className="flex-1 overflow-y-auto flex items-center justify-center p-4">
+            <div className="landing-center animate-in fade-in zoom-in duration-700 max-w-[800px] w-full px-4 mx-auto">
+              <div className="landing-hero-image-wrap">
+                <img src="/images/lady.png" alt="" className="landing-hero-image" />
+              </div>
+              <h1 className="landing-title">Ask MensFlow about your cycle?</h1>
+              <p className="landing-sub flex items-center gap-1 justify-center max-w-[500px] mx-auto text-center leading-relaxed">
+                Education, tracking context, and supportive guidance; not a substitute for medical care.
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button className="p-1 hover:bg-black/5 rounded-full transition-colors inline-flex items-center justify-center cursor-help" aria-label="Medical disclaimer information">
+                      <Question size={14} weight="bold" className="opacity-40" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-center">
+                    <p className="max-w-[240px]">
+                      MensFlow is an educational tool. Always consult a healthcare professional for medical advice, diagnosis, or treatment.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </p>
+
+              {/* Dynamic suggestion tags */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-8 mb-6 text-left">
+                {SUGGESTIONS.map((sug) => (
+                  <button
+                    key={sug.query}
+                    type="button"
+                    onClick={() => send(sug.query)}
+                    className="p-4 rounded-2xl border border-[var(--mf-border)] bg-[var(--mf-card)] hover:border-[var(--mf-accent-border)] hover:bg-[var(--mf-accent-soft)]/20 active-squish transition-all flex items-start gap-3 cursor-pointer group text-xs text-[var(--mf-text)] font-medium leading-relaxed !shadow-none"
+                  >
+                    <div className="size-6 rounded-lg bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
+                      <Sparkle size={12} weight="fill" />
+                    </div>
+                    <span>{sug.text}</span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="landing-composer-wrap mt-2">
+                <ChatComposer
+                  value={draft}
+                  onChange={setDraft}
+                  onSubmit={() => send()}
+                  placeholder="Ask MensFlow"
+                />
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Render Active Chat Thread */
+          <div className="chat-view">
+            {temporaryChat && (
+              <div className="chat-temporary-banner chat-thread-spacing" role="status">
+                <Ghost size={18} weight="duotone" aria-hidden />
+                <span>
+                  Temporary chat - this conversation won&apos;t be saved to history or used to
+                  improve Ai models.
+                </span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button className="ml-1 p-0.5 hover:bg-black/10 rounded-full transition-colors flex items-center justify-center" aria-label="More information">
+                      <Question size={14} weight="bold" className="opacity-60" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    <p className="max-w-[200px]">
+                      Temporary chats are private sessions that aren&apos;t saved to your history or used for training.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
             )}
-            <div ref={threadEndRef} />
-          </div>
 
-          <div className="chat-composer-dock p-3 bg-background/80 backdrop-blur-md border-t border-border">
-            <div className="max-w-[800px] mx-auto w-full">
-              <ChatComposer
-                value={draft}
-                onChange={setDraft}
-                onSubmit={() => send()}
-                placeholder="Ask MensFlow"
-                minimal
-                showKeyboardHint
-              />
+            <div className="chat-thread" role="log" aria-live="polite">
+              {messages.map((m) => (
+                <div
+                  key={m.id}
+                  className={`chat-bubble chat-bubble--${m.role}`}
+                >
+                  <span className="chat-role flex items-center gap-1.5">
+                    {m.role === 'user' ? 'You' : 'MensFlow'}
+                    {chatShowTimestamps && (
+                      <time
+                        className="chat-time"
+                        dateTime={getIsoString(m.createdAt)}
+                        suppressHydrationWarning
+                      >
+                        {fmtTime(m.createdAt)}
+                      </time>
+                    )}
+                  </span>
+                  <p className="chat-text whitespace-pre-line">{m.text}</p>
+                </div>
+              ))}
+
+              {isTyping && (
+                <div className="chat-bubble chat-bubble--assistant animate-pulse duration-1000">
+                  <span className="chat-role flex items-center gap-1.5">
+                    MensFlow
+                  </span>
+                  <div className="flex items-center gap-1.5 py-3 px-1">
+                    {[0, 150, 300].map((delay) => (
+                      <m.div
+                        key={delay}
+                        initial={{ y: 0 }}
+                        animate={{ y: [0, -6, 0] }}
+                        transition={{
+                          duration: 0.8,
+                          repeat: Infinity,
+                          ease: [0.16, 1, 0.3, 1],
+                          delay: delay / 1000
+                        }}
+                        className="size-2 rounded-full bg-[var(--mf-accent)]"
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div ref={threadEndRef} />
+            </div>
+
+            <div className="chat-composer-dock p-3 bg-background/80 backdrop-blur-md border-t border-border">
+              <div className="max-w-[800px] mx-auto w-full">
+                <ChatComposer
+                  value={draft}
+                  onChange={setDraft}
+                  onSubmit={() => send()}
+                  placeholder="Ask MensFlow"
+                  minimal
+                  showKeyboardHint
+                />
+              </div>
             </div>
           </div>
-        </>
+        )}
+      </div>
+
+      {/* Lock Setup Modal Overlay */}
+      {lockModalSessionId && (
+        <div className="chat-modal-overlay">
+          <form className="chat-modal-card animate-in zoom-in-95 duration-200" onSubmit={handleLockSubmit}>
+            <div className="chat-modal-header">
+              <h3 className="chat-modal-title">Lock Chat Conversation</h3>
+              <button
+                type="button"
+                className="chat-modal-close"
+                onClick={() => setLockModalSessionId(null)}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            
+            <p className="text-xs text-muted-foreground">
+              Add passcode protection to this conversation. You will also need to configure a security question in case you forget the passcode.
+            </p>
+
+            <div className="flex flex-col gap-3 text-left">
+              <div>
+                <label className="text-xs font-semibold text-[var(--mf-text)] mb-1 block">Passcode / Password</label>
+                <input
+                  type="password"
+                  placeholder="Set passcode"
+                  className="chat-lock-input"
+                  value={lockPasscodeVal}
+                  onChange={(e) => setLockPasscodeVal(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-[var(--mf-text)] mb-1 block">Security Question</label>
+                <input
+                  type="text"
+                  placeholder="e.g., What was your first pet's name?"
+                  className="chat-lock-input"
+                  value={lockSecurityQVal}
+                  onChange={(e) => setLockSecurityQVal(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-[var(--mf-text)] mb-1 block">Security Answer</label>
+                <input
+                  type="text"
+                  placeholder="Enter answer"
+                  className="chat-lock-input"
+                  value={lockSecurityAVal}
+                  onChange={(e) => setLockSecurityAVal(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <button type="submit" className="chat-lock-btn mt-2">
+              Secure Chat
+            </button>
+          </form>
+        </div>
       )}
     </div>
   )
