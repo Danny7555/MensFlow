@@ -1,9 +1,11 @@
-import { useMemo } from 'react'
-import { Bell, CaretLeft, CheckCircle, Info, WarningCircle } from "@phosphor-icons/react"
+import { useMemo, useState } from 'react'
+import { Bell, CaretLeft, CheckCircle, Info, WarningCircle, EnvelopeSimple } from "@phosphor-icons/react"
 import { useNavigate } from "react-router-dom"
 import { format } from "date-fns"
 import { useStore } from "../store/useStore"
+import { useAuth } from "../context/useAuth"
 import { computeCycleDay } from "../lib/cycleUtils"
+import { sendEmailReminder } from "../lib/emailService"
 
 interface Notification {
   id: string
@@ -16,7 +18,9 @@ interface Notification {
 
 export function NotificationsView() {
   const navigate = useNavigate()
+  const { user: authUser } = useAuth()
   const { dashboard: data, settings, logs, supportStreak } = useStore()
+  const [sendingId, setSendingId] = useState<string | null>(null)
 
   const notifications = useMemo(() => {
     const list: Notification[] = []
@@ -80,7 +84,7 @@ export function NotificationsView() {
     if (!todayLogged && settings.notificationsCycleReminders) {
       list.push({
         id: 'log-remainder',
-        title: "Daily symptom check-in",
+        title: "Daily check-in alert",
         message: "No symptoms or flow levels have been logged for today yet. Take a moment to log body signals to maintain prediction accuracy.",
         time: new Date(new Date().setHours(18, 0, 0, 0)),
         type: 'info',
@@ -103,6 +107,17 @@ export function NotificationsView() {
     // Sort by time descending
     return list.sort((a, b) => b.time.getTime() - a.time.getTime())
   }, [data.lastPeriodStart, data.typicalCycleDays, settings.notificationsCycleReminders, settings.notificationsProduct, logs, supportStreak])
+
+  const handleEmailReminder = async (notif: Notification) => {
+    const emailTo = authUser?.username || 'user@example.com'
+    const nameTo = authUser?.name || 'Partner'
+    setSendingId(notif.id)
+    try {
+      await sendEmailReminder(emailTo, nameTo, notif.title, notif.message)
+    } finally {
+      setSendingId(null)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[var(--mf-main-bg)] pb-20">
@@ -127,8 +142,8 @@ export function NotificationsView() {
                   : 'bg-card border-[var(--mf-accent-border)] shadow-sm'
               }`}
             >
-              <div className="flex gap-4">
-                <div className={`size-10 rounded-full flex items-center justify-center shrink-0 ${
+              <div className="flex gap-4 items-start">
+                <div className={`size-10 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
                   notification.type === 'success' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' :
                   notification.type === 'warning' ? 'bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400' :
                   'bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400'
@@ -145,14 +160,29 @@ export function NotificationsView() {
                       {format(notification.time, 'HH:mm')}
                     </span>
                   </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+                  <p className="text-sm text-muted-foreground leading-relaxed pr-2">
                     {notification.message}
                   </p>
                 </div>
 
-                {!notification.read && (
-                  <div className="size-2 rounded-full bg-[var(--mf-accent)] mt-2" />
-                )}
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => handleEmailReminder(notification)}
+                    disabled={sendingId !== null}
+                    className="size-8 rounded-full border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer disabled:opacity-50"
+                    title="Send as email reminder"
+                  >
+                    {sendingId === notification.id ? (
+                      <div className="size-4 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin" />
+                    ) : (
+                      <EnvelopeSimple size={16} />
+                    )}
+                  </button>
+
+                  {!notification.read && (
+                    <div className="size-2 rounded-full bg-[var(--mf-accent)] mt-1" />
+                  )}
+                </div>
               </div>
             </div>
           ))}
