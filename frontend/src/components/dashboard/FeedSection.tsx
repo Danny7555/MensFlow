@@ -30,14 +30,6 @@ const itemVariants: Variants = {
   }
 }
 
-export const CYCLE_DAILY_TIPS = [
-  "Focus on restorative sleep tonight.",
-  "Magnesium-rich foods can help ease tension.",
-  "Keep your bedroom cool for optimal rest.",
-  "Light movement like yoga might feel good today.",
-  "Drink extra water to stay hydrated."
-]
-
 export function PrimaryInsightCard({ label, currentDay, trend }: { label: string; currentDay: number; trend: string }) {
   return (
     <m.div variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
@@ -166,13 +158,11 @@ export function WellnessScoreCard() {
   )
 }
 
-export function PartnerTranslationCard({ label, desc, tips, gestures, onCopy }: { 
+export function PartnerTranslationCard({ label, onCopy }: { 
   label: string; 
-  desc: string; 
-  tips: string[]; 
-  gestures: any[]; 
   onCopy: (text: string, title: string) => void; 
 }) {
+  const { desc, tips, gestures } = getPartnerTranslation(label)
   return (
     <m.div 
       variants={itemVariants}
@@ -276,7 +266,7 @@ export function QuickLogCard({ onViewAll }: { onViewAll: () => void }) {
   )
 }
 
-export function usePartnerTranslation(phaseLabel: string) {
+function getPartnerTranslation(phaseLabel: string) {
   const normalizedPhase = phaseLabel.toLowerCase()
   switch(normalizedPhase) {
     case 'menstrual':

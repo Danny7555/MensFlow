@@ -3,12 +3,12 @@ import { m, AnimatePresence } from 'framer-motion'
 import type { Variants } from 'framer-motion'
 import { Check, Sparkle,  PaperPlaneTilt } from '@phosphor-icons/react'
 import { toast } from 'sonner'
-import { SupportActionsLog, getPhaseTasks } from '../components/dashboard/SupportActionsLog'
+import { SupportActionsLog } from '../components/dashboard/SupportActionsLog'
 import { EmotionTranslator } from '../components/dashboard/EmotionTranslator'
 import { useStore } from '../store/useStore'
 import { partnerApi } from '../lib/api'
 import { cn } from '../lib/utils'
-import { computeCycleDay, getPhaseFromDay } from '../lib/cycleUtils'
+import { computeCycleDay, getPhaseFromDay, getPhaseTasks } from '../lib/cycleUtils'
 
 interface StatusOption {
   id: string

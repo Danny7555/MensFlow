@@ -3,10 +3,7 @@ import { Check } from '@phosphor-icons/react'
 import { useStore } from '../../store/useStore'
 import { toast } from 'sonner'
 
-export interface SupportTask {
-  id: string
-  label: string
-}
+import { getPhaseTasks } from '../../lib/cycleUtils'
 
 interface PhaseStyle {
   accentColor: string
@@ -14,37 +11,6 @@ interface PhaseStyle {
   borderColor: string
   badgeText: string
   progressBarColor: string
-}
-
-export const getPhaseTasks = (phase: string): SupportTask[] => {
-  const normalized = (phase || '').toLowerCase()
-  if (normalized.includes('menstrual')) {
-    return [
-      { id: 'm-heating-pad', label: 'Prepare heating pad' },
-      { id: 'm-ginger-tea', label: 'Offer warm ginger tea' },
-      { id: 'm-physical-chores', label: 'Handle physical chores' }
-    ]
-  }
-  if (normalized.includes('follicular')) {
-    return [
-      { id: 'f-outdoor', label: 'Plan outdoor activity' },
-      { id: 'f-social', label: "Encourage a girl's night out / social space" },
-      { id: 'f-surprise', label: 'Surprise with a small thoughtful gesture' }
-    ]
-  }
-  if (normalized.includes('ovulatory') || normalized.includes('fertile') || normalized.includes('window')) {
-    return [
-      { id: 'o-date-night', label: 'Schedule special date night' },
-      { id: 'o-post-it', label: 'Leave a handwritten post-it note' },
-      { id: 'o-conversation', label: 'Initiate a creative connection' }
-    ]
-  }
-  // Default to Luteal/PMS
-  return [
-    { id: 'l-comfort-snack', label: 'Pick up favorite comfort snack' },
-    { id: 'l-heavy-discussions', label: 'Hold off on heavy/stressful debates' },
-    { id: 'l-foot-massage', label: 'Run a soothing foot or back massage' }
-  ]
 }
 
 const getPhaseStyle = (phase: string): PhaseStyle => {

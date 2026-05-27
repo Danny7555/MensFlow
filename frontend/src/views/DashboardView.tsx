@@ -22,7 +22,6 @@ import { StoriesSection } from '../components/dashboard/StoriesSection'
 import { 
   PartnerTranslationCard, 
   QuickLogCard, 
-  usePartnerTranslation,
   PrimaryInsightCard,
   BodySignalsCard,
   WellnessScoreCard,
@@ -208,7 +207,6 @@ export function DashboardView() {
     return getPhaseFromDay(cycleDay)
   }, [data.lastPeriodStart, data.typicalCycleDays])
 
-  const partnerTranslation = usePartnerTranslation(phase)
   const currentDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
   const [tipCompleted, setTipCompleted] = useState(false)
 
@@ -367,9 +365,6 @@ export function DashboardView() {
               <section aria-label="Partner support" className="min-w-0">
                 <PartnerTranslationCard 
                   label={phase}
-                  desc={partnerTranslation.desc}
-                  tips={partnerTranslation.tips}
-                  gestures={partnerTranslation.gestures}
                   onCopy={handleCopyGesture}
                 />
               </section>
