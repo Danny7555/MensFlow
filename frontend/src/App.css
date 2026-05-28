@@ -646,6 +646,7 @@
   text-align: center;
   color: var(--foreground);
   line-height: 1.15;
+  white-space: nowrap;
 }
 
 .landing-sub {

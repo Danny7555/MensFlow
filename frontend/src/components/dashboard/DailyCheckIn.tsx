@@ -163,7 +163,6 @@ export function SymptomLogger() {
 
       <div className="mt-4 pt-3 border-t border-[var(--mf-border)] flex items-center justify-between text-[11px] text-muted-foreground">
         <span>Logged today: <span className="font-normal text-[var(--mf-text-strong)]">{currentSymptoms.length}</span> symptoms</span>
-        <span className="opacity-50">Flo App Sync Active</span>
       </div>
     </div>
   )
