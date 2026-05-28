@@ -3,7 +3,7 @@ import { useStore } from '../store/useStore'
 import { Lock, LockKey, ShieldCheck } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import { ChatView } from './ChatView'
-import { SECURITY_QUESTIONS } from './SettingsView'
+import { SECURITY_QUESTIONS } from '../lib/constants'
 import { Info } from '@phosphor-icons/react'
 
 export function LockedChatsView() {

@@ -41,6 +41,7 @@ import {
   CHAT_STORAGE_KEY,
   CLEAR_LOCAL_CHATS_EVENT,
   SETTINGS_STORAGE_KEY,
+  SECURITY_QUESTIONS,
 } from '../lib/constants'
 
 const SETTINGS_CATS = [
@@ -698,12 +699,7 @@ function DataControlsPanel({
   )
 }
 
-export const SECURITY_QUESTIONS = [
-  { id: 'q1', label: 'What was the name of your first pet?', type: 'text' },
-  { id: 'q2', label: 'What is your favorite color?', type: 'select', options: ['Red', 'Blue', 'Green', 'Yellow', 'Black', 'White', 'Purple', 'Orange'] },
-  { id: 'q3', label: 'In what city were you born?', type: 'text' },
-  { id: 'q4', label: 'What is your favorite season?', type: 'select', options: ['Spring', 'Summer', 'Autumn', 'Winter'] },
-]
+
 
 function LockChatSetupModal({
   trigger,

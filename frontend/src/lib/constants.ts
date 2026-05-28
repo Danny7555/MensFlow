@@ -4,3 +4,10 @@ export const DASHBOARD_STORAGE_KEY = 'mensflow-dashboard-v1'
 
 /** Dispatched when user clears local chat from Settings */
 export const CLEAR_LOCAL_CHATS_EVENT = 'mensflow:clear-local-chats'
+
+export const SECURITY_QUESTIONS = [
+  { id: 'q1', label: 'What was the name of your first pet?', type: 'text' },
+  { id: 'q2', label: 'What is your favorite color?', type: 'select', options: ['Red', 'Blue', 'Green', 'Yellow', 'Black', 'White', 'Purple', 'Orange'] },
+  { id: 'q3', label: 'In what city were you born?', type: 'text' },
+  { id: 'q4', label: 'What is your favorite season?', type: 'select', options: ['Spring', 'Summer', 'Autumn', 'Winter'] },
+]
