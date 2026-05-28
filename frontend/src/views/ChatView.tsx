@@ -284,14 +284,15 @@ export function ChatView() {
           }
           setLockedSessionToUnlock(null)
         })
-        .catch((err: any) => {
-          if (err.message && err.message.toLowerCase().includes('locked')) {
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : 'Failed to load chat history'
+          if (msg.toLowerCase().includes('locked')) {
             setLockedSessionToUnlock({
               sessionId: activeSessionId,
               securityQuestion: existingSession.securityQuestion,
             })
           } else {
-            toast.error(err.message ?? 'Failed to load chat history')
+            toast.error(msg)
           }
         })
         .finally(() => {
@@ -332,7 +333,6 @@ export function ChatView() {
 
 
   // Auto scroll effect
-  // eslint-disable-next-line react-doctor/no-effect-chain
   useEffect(() => {
     threadEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isTyping])
@@ -403,8 +403,8 @@ export function ChatView() {
         ])
         // Refresh recent session list
         fetchSessions()
-      } catch (err: any) {
-        toast.error(err.message ?? 'Failed to send message')
+      } catch (err: unknown) {
+        toast.error(err instanceof Error ? err.message : 'Failed to send message')
       } finally {
         setIsTyping(false)
       }
@@ -460,8 +460,8 @@ export function ChatView() {
       }
       
       fetchSessions()
-    } catch (err: any) {
-      toast.error(err.message ?? 'Failed to delete chat')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete chat')
     }
   }
 
@@ -492,8 +492,8 @@ export function ChatView() {
       setLockSecurityAVal('')
       
       fetchSessions()
-    } catch (err: any) {
-      toast.error(err.message ?? 'Failed to lock session')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to lock session')
     }
   }
 
@@ -531,8 +531,8 @@ export function ChatView() {
           setUnlockSecurityAnsVal('')
         }
       }
-    } catch (err: any) {
-      toast.error(err.message ?? 'Verification failed')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Verification failed')
     }
   }
 
