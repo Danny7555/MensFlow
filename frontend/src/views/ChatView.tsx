@@ -3,7 +3,6 @@ import { m } from 'framer-motion'
 import { 
   Ghost, 
   Question, 
-  Sparkle, 
   Lock, 
   Trash, 
   SidebarSimple, 
@@ -143,12 +142,7 @@ function generateAIResponse(
   return response
 }
 
-const SUGGESTIONS = [
-  { text: "How can I support her today? 💖", query: "How can I support her today?" },
-  { text: "What should I cook for dinner? 🍲", query: "What should I cook for dinner?" },
-  { text: "Explain her current cycle phase 🔮", query: "Explain her current cycle phase" },
-  { text: "Why is she feeling tired/low energy? 🛌", query: "Why is she feeling tired/low energy?" },
-]
+
 
 export function ChatView() {
   const { temporaryChat, setTemporaryChat } = useChatSession()
@@ -732,24 +726,7 @@ export function ChatView() {
                 </Tooltip>
               </p>
 
-              {/* Dynamic suggestion tags */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-8 mb-6 text-left">
-                {SUGGESTIONS.map((sug) => (
-                  <button
-                    key={sug.query}
-                    type="button"
-                    onClick={() => send(sug.query)}
-                    className="p-4 rounded-2xl border border-[var(--mf-border)] bg-[var(--mf-card)] hover:border-[var(--mf-accent-border)] hover:bg-[var(--mf-accent-soft)]/20 active-squish transition-all flex items-start gap-3 cursor-pointer group text-xs text-[var(--mf-text)] font-medium leading-relaxed !shadow-none"
-                  >
-                    <div className="size-6 rounded-lg bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
-                      <Sparkle size={12} weight="fill" />
-                    </div>
-                    <span>{sug.text}</span>
-                  </button>
-                ))}
-              </div>
-
-              <div className="landing-composer-wrap mt-2">
+              <div className="landing-composer-wrap mt-8">
                 <ChatComposer
                   value={draft}
                   onChange={setDraft}
