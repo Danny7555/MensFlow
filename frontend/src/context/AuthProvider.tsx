@@ -61,6 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { token, user: u } = await authApi.login(username, password)
       setToken(token)
       setUser(u)
+      
       const localOnboarding = sessionStorage.getItem('mf_onboarding') === 'true'
       const isOnboarded = u.isOnboarded || localOnboarding
       setOnboardingCompleted(isOnboarded)
@@ -114,6 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { token, user: u } = await authApi.register(username, password, name)
       setToken(token)
       setUser(u)
+      
       const localOnboarding = sessionStorage.getItem('mf_onboarding') === 'true'
       const isOnboarded = u.isOnboarded || localOnboarding
       setOnboardingCompleted(isOnboarded)
