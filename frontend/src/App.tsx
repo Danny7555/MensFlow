@@ -44,22 +44,20 @@ function MainShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [temporaryChat, setTemporaryChat] = useState(false)
 
-  if (isRehydrating) {
-    return <PageLoader />
-  }
-
   const handleLogout = useCallback(() => {
     logout()
     setTemporaryChat(false)
     navigate('/')
   }, [logout, navigate])
 
-  // goHome removed since NavLink manages it
-
   const toggleSidebar = useCallback(() => {
     if (isMobile) setSidebarOpen((o) => !o)
     else updateSettings({ sidebarCollapsed: !settings.sidebarCollapsed })
   }, [isMobile, settings.sidebarCollapsed, updateSettings])
+
+  if (isRehydrating) {
+    return <PageLoader />
+  }
 
   const sidebarExpanded = isMobile ? sidebarOpen : !settings.sidebarCollapsed
 
