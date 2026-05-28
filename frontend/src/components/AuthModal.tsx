@@ -57,8 +57,8 @@ export function AuthModal({ open, onClose, onLogin, onRegister, isLoading }: Aut
         await onRegister(u, p, n)
       }
       reset()
-    } catch (err: any) {
-      toast.error(err.message ?? 'Something went wrong')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Something went wrong')
     }
   }
 

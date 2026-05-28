@@ -157,9 +157,9 @@ export function SyncView() {
       setIsSending(false)
       setSent(true)
       toast.success(user?.role === 'partner' ? 'Support ping sent to partner!' : 'Ping sent to partner!', { icon: '💬' })
-    } catch (err: any) {
+    } catch (err: unknown) {
       setIsSending(false)
-      toast.error(err.message ?? 'Failed to send ping')
+      toast.error(err instanceof Error ? err.message : 'Failed to send ping')
     }
   }
 

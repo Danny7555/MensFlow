@@ -96,14 +96,17 @@ export function CycleTrackerHero({
   const [currentDay, setCurrentDay] = useState(1)
 
   useEffect(() => {
-    const start = new Date(`${data.lastPeriodStart}T12:00:00`)
-    if (!Number.isNaN(+start)) {
-      const days = Math.floor((Date.now() - +start) / 86400000)
-      const m = ((days % data.typicalCycleDays) + data.typicalCycleDays) % data.typicalCycleDays
-      setCurrentDay(m + 1)
-    } else {
-      setCurrentDay(1)
-    }
+    const timer = setTimeout(() => {
+      const start = new Date(`${data.lastPeriodStart}T12:00:00`)
+      if (!Number.isNaN(+start)) {
+        const days = Math.floor((Date.now() - +start) / 86400000)
+        const m = ((days % data.typicalCycleDays) + data.typicalCycleDays) % data.typicalCycleDays
+        setCurrentDay(m + 1)
+      } else {
+        setCurrentDay(1)
+      }
+    }, 0)
+    return () => clearTimeout(timer)
   }, [data.lastPeriodStart, data.typicalCycleDays])
 
   const modes = ['Period', 'Conception', 'Pregnancy', 'Perimenopause'];

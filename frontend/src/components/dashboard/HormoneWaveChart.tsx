@@ -38,7 +38,7 @@ export function HormoneWaveChart({ activeDay, setActiveDay, accentColor }: Hormo
             }
           }
           return pathEl.getPointAtLength((start + end) / 2).y
-        } catch (e) {
+        } catch (_) {
           return 0
         }
       }

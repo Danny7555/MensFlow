@@ -39,10 +39,11 @@ export async function sendEmailReminder(
       return true
     }
     throw new Error(`EmailJS responded with status: ${result.status}`)
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to send email via EmailJS:', error)
+    const msg = error instanceof Error ? error.message : 'Please check your EmailJS configurations.'
     toast.error('Failed to send email reminder', {
-      description: error.message || 'Please check your EmailJS configurations.'
+      description: msg
     })
     return false
   }

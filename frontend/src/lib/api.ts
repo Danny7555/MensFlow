@@ -104,6 +104,28 @@ export type ApiCustomSymptom = {
   category: string
 }
 
+export type ApiPartnerStatus = {
+  paired: boolean
+  partner?: {
+    name: string
+    avatar: string | null
+    accessLevel: 'full' | 'educational'
+  }
+  cycle?: {
+    lastPeriodStart: string
+    typicalCycleDays: number
+    phaseLabel: string
+    hormoneTrend: string
+    bodySignals: string
+    symptoms?: string[]
+  } | null
+  support?: {
+    completedActions: string[]
+    supportStreak: number
+    lastActionDate: string
+  }
+}
+
 export type ApiPing = {
   pingId: string
   label: string
@@ -179,7 +201,7 @@ export const logsApi = {
 
 export const partnerApi = {
   getStatus: () =>
-    get<object>('/partner/status'),
+    get<ApiPartnerStatus>('/partner/status'),
 
   pair: (partnerCode: string) =>
     post<{ success: boolean; partner: { id: string; name: string } }>('/partner/pair', { partnerCode }),

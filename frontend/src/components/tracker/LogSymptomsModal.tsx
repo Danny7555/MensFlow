@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { format } from "date-fns"
 import {
   Dialog,
@@ -175,7 +175,7 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
                 />
                 <select
                   value={newSymptomCat}
-                  onChange={(e) => setNewSymptomCat(e.target.value as any)}
+                  onChange={(e) => setNewSymptomCat(e.target.value as SymptomCategory)}
                   className="h-10 px-3 rounded-xl bg-muted/50 border-none outline-none text-sm text-muted-foreground focus:ring-1 ring-[var(--mf-accent)]"
                 >
                   <option value="Physical">Physical</option>

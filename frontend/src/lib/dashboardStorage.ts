@@ -28,6 +28,6 @@ export function loadDashboard(): DashboardSnapshot {
   return DEFAULT_DASHBOARD
 }
 
-export function saveDashboard(_s: DashboardSnapshot) {
+export function saveDashboard(_dashboard: DashboardSnapshot) {
   // Stateless, dashboard values are loaded and stored directly on the backend
 }

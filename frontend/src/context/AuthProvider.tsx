@@ -31,8 +31,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ── Rehydrate store from API on mount if token exists ──────────────────────
   useEffect(() => {
     if (!isLoggedIn()) {
-      setState(prev => ({ ...prev, isRehydrating: false }))
-      return
+      const t = setTimeout(() => setState(prev => ({ ...prev, isRehydrating: false })), 0)
+      return () => clearTimeout(t)
     }
 
     userApi.getProfile()
@@ -80,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (localOnboarding && !u.isOnboarded) {
         const storeUser = useStore.getState().user
-        const patch: any = { isOnboarded: true }
+        const patch: Partial<ApiUser> = { isOnboarded: true }
         if (storeUser.name) patch.name = storeUser.name
         if (storeUser.role) patch.role = storeUser.role
         if (storeUser.accessLevel) patch.accessLevel = storeUser.accessLevel
@@ -142,7 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (localOnboarding && !u.isOnboarded) {
         const storeUser = useStore.getState().user
-        const patch: any = { isOnboarded: true }
+        const patch: Partial<ApiUser> = { isOnboarded: true }
         if (storeUser.name) patch.name = storeUser.name
         if (storeUser.role) patch.role = storeUser.role
         if (storeUser.accessLevel) patch.accessLevel = storeUser.accessLevel

@@ -18,6 +18,7 @@ import { Input } from '../components/ui/input'
 import { cn } from '../lib/utils'
 
 import { type DashboardSnapshot } from '../lib/dashboardStorage'
+import type { ApiUser } from '../lib/api'
 
 export function OnboardingView() {
   const [currentStep, setCurrentStep] = useState(0)
@@ -73,14 +74,14 @@ export function OnboardingView() {
   }
 
   const finishOnboarding = useCallback(() => {
-    const patch: any = {}
+    const patch: Partial<ApiUser> = {}
     if (typeof answers.name === 'string' && answers.name) {
       patch.name = answers.name
     }
-    if (typeof answers.access_level === 'string' && answers.access_level) {
+    if (answers.access_level === 'full' || answers.access_level === 'educational') {
       patch.accessLevel = answers.access_level
     }
-    if (typeof answers.role === 'string' && answers.role) {
+    if (answers.role === 'lady' || answers.role === 'partner') {
       patch.role = answers.role
     }
     if (Object.keys(patch).length > 0) {

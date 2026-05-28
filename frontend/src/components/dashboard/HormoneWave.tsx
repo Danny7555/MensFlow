@@ -63,14 +63,17 @@ export function HormoneWave() {
   const [activeDay, setActiveDay] = useState(14)
 
   useEffect(() => {
-    const start = new Date(`${data.lastPeriodStart}T12:00:00`)
-    if (!Number.isNaN(+start)) {
-      const days = Math.floor((Date.now() - +start) / 86400000)
-      const m = ((days % data.typicalCycleDays) + data.typicalCycleDays) % data.typicalCycleDays
-      setActiveDay(m + 1)
-    } else {
-      setActiveDay(1)
-    }
+    const timer = setTimeout(() => {
+      const start = new Date(`${data.lastPeriodStart}T12:00:00`)
+      if (!Number.isNaN(+start)) {
+        const days = Math.floor((Date.now() - +start) / 86400000)
+        const m = ((days % data.typicalCycleDays) + data.typicalCycleDays) % data.typicalCycleDays
+        setActiveDay(m + 1)
+      } else {
+        setActiveDay(1)
+      }
+    }, 0)
+    return () => clearTimeout(timer)
   }, [data.lastPeriodStart, data.typicalCycleDays])
 
   // Phase & Insight information

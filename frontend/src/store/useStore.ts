@@ -10,6 +10,16 @@ export type SymptomLog = {
   symptoms: string[]
 }
 
+export type AppUser = {
+  name: string
+  avatar?: string | null
+  accessLevel?: 'full' | 'educational'
+  isOnboarded?: boolean
+  role?: 'lady' | 'partner'
+  partnerCode?: string
+  partnerId?: string | null
+}
+
 interface AppState {
   dashboard: DashboardSnapshot
   settings: MensFlowSettings
@@ -276,10 +286,10 @@ export const useStore = create<AppState>()((set, get) => ({
     try {
       const status = await partnerApi.getStatus()
       set({ 
-        partnerStatus: status as any,
-        completedActions: (status as any).support?.completedActions ?? [],
-        supportStreak: (status as any).support?.supportStreak ?? 0,
-        lastActionDate: (status as any).support?.lastActionDate ?? '',
+        partnerStatus: status,
+        completedActions: status.support?.completedActions ?? [],
+        supportStreak: status.support?.supportStreak ?? 0,
+        lastActionDate: status.support?.lastActionDate ?? '',
       })
     } catch (err) {
       console.error('Failed to fetch partner status:', err)
@@ -294,8 +304,8 @@ export const useStore = create<AppState>()((set, get) => ({
       get().hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
       await get().fetchPartnerStatus()
       toast.success(`Successfully paired with ${result.partner.name}!`, { icon: '❤️' })
-    } catch (err: any) {
-      toast.error(err.message ?? 'Failed to pair with partner')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to pair with partner')
     } finally {
       set({ isSaving: false })
     }
@@ -309,8 +319,8 @@ export const useStore = create<AppState>()((set, get) => ({
       get().hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
       set({ partnerStatus: null })
       toast.success('Successfully disconnected from partner')
-    } catch (err: any) {
-      toast.error(err.message ?? 'Failed to disconnect from partner')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to disconnect from partner')
     } finally {
       set({ isSaving: false })
     }

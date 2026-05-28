@@ -22,6 +22,7 @@ import { SYMPTOM_DEFS } from '../data/symptomsData'
 import { chatApi, type ApiChatSession } from '../lib/api'
 import { toast } from 'sonner'
 import { cn } from '../lib/utils'
+import { computeCycleDay } from '../lib/cycleUtils'
 
 type Msg = {
   id: string
@@ -154,16 +155,8 @@ export function ChatView() {
 
   const threadEndRef = useRef<HTMLDivElement>(null)
 
-  // Compute active day and logs in real time
-  const currentDay = (() => {
-    const start = new Date(`${data.lastPeriodStart}T12:00:00`)
-    if (!Number.isNaN(+start)) {
-      const days = Math.floor((Date.now() - +start) / 86400000)
-      const m = ((days % data.typicalCycleDays) + data.typicalCycleDays) % data.typicalCycleDays
-      return m + 1
-    }
-    return 1
-  })()
+  // Compute active cycle day from store data (computeCycleDay handles Date.now internally)
+  const currentDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
 
   const welcomeText = `Hi - I'm MensFlow, your personal relationship and cycle support companion. Currently, ${user.name} is on Day ${currentDay} of her cycle (${data.phaseLabel}). Ask me about her active phase, logged symptoms, how you can support her today, or what healthy meals you can cook! 🌸`
 
@@ -201,8 +194,8 @@ export function ChatView() {
       const data = await chatApi.getSessions()
       setSessions(data)
       return data
-    } catch (err: any) {
-      toast.error(err.message ?? 'Failed to load chat history list')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to load chat history list')
     }
   }, [temporaryChat])
 
@@ -222,7 +215,8 @@ export function ChatView() {
       return () => clearTimeout(timer)
     }
 
-    setIsLoading(true)
+    const loadingTimer = setTimeout(() => setIsLoading(true), 0)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchSessions()
       .then((data) => {
         if (data && data.length > 0) {
@@ -232,6 +226,7 @@ export function ChatView() {
         }
       })
       .finally(() => {
+        clearTimeout(loadingTimer)
         setIsLoading(false)
       })
   }, [temporaryChat, fetchSessions, welcomeText])

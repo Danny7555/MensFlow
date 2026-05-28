@@ -1,6 +1,6 @@
 import { use, useReducer, useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Joyride, STATUS, type TooltipRenderProps } from 'react-joyride'
+import { Joyride, STATUS, type EventData, type TooltipRenderProps } from 'react-joyride'
 import { m } from 'framer-motion'
 import { Plus, LinkSimple, Users, ArrowRight, Sparkle } from '@phosphor-icons/react'
 import { toast } from 'sonner'
@@ -330,8 +330,7 @@ export function DashboardView() {
     return () => clearTimeout(timer)
   }, [])
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleJoyrideCallback = (data: any) => {
+  const handleJoyrideCallback = (data: EventData) => {
     const { status } = data;
     if (([STATUS.FINISHED, STATUS.SKIPPED] as string[]).includes(status)) {
       sessionStorage.setItem('mensflow_tour_completed', 'true')
@@ -511,6 +510,31 @@ export function DashboardView() {
     )
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const joyrideProps: any = {
+    steps: tourSteps,
+    run: state.tourRun,
+    continuous: true,
+    showSkipButton: true,
+    showProgress: true,
+    disableOverlayClose: true,
+    scrollToFirstStep: true,
+    scrollOffset: 100,
+    onEvent: handleJoyrideCallback,
+    tooltipComponent: TourTooltip,
+    styles: {
+      options: {
+        overlayColor: 'rgba(0, 0, 0, 0.6)',
+        zIndex: 10000,
+      },
+      spotlight: {
+        borderRadius: '24px',
+        border: '2px dashed var(--mf-accent)',
+        boxShadow: '0 0 15px var(--mf-accent)',
+      }
+    }
+  }
+
   return (
     <div className="dashboard-flo-theme relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
       <AmbientBackground phase={phase} />
@@ -526,33 +550,7 @@ export function DashboardView() {
           </button>
         </div>
       )}
-      {state.mounted && (
-        <Joyride
-          {...{
-            steps: tourSteps,
-            run: state.tourRun,
-            continuous: true,
-            showSkipButton: true,
-            showProgress: true,
-            disableOverlayClose: true,
-            scrollToFirstStep: true,
-            scrollOffset: 100,
-            onEvent: handleJoyrideCallback,
-            tooltipComponent: TourTooltip,
-            styles: {
-              options: {
-                overlayColor: 'rgba(0, 0, 0, 0.6)',
-                zIndex: 10000,
-              },
-              spotlight: {
-                borderRadius: '24px',
-                border: '2px dashed var(--mf-accent)',
-                boxShadow: '0 0 15px var(--mf-accent)',
-              }
-            }
-          } as any}
-        />
-      )}
+      {state.mounted && <Joyride {...joyrideProps} />}
       <DashboardHeader 
         user={user}
         mounted={state.mounted}

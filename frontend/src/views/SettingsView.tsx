@@ -35,8 +35,10 @@ import { useQueryState, parseAsStringLiteral } from 'nuqs'
 import type {
   AccentPreset,
   ContrastMode,
+  MensFlowSettings,
   ThemeMode,
 } from '../context/settings-types'
+import type { AppUser } from '../store/useStore'
 import {
   CHAT_STORAGE_KEY,
   CLEAR_LOCAL_CHATS_EVENT,
@@ -336,8 +338,8 @@ function GeneralPanel({
   updateSettings,
 }: {
   isGuest: boolean
-  settings: any
-  updateSettings: (s: any) => void
+  settings: MensFlowSettings
+  updateSettings: (patch: Partial<MensFlowSettings>) => void
 }) {
   const setTheme = (themeMode: ThemeMode) => updateSettings({ themeMode })
   const { user, partnerStatus, pairPartner, disconnectPartnerAction } = useStore()
@@ -549,8 +551,8 @@ function NotificationsPanel({
   settings,
   updateSettings,
 }: {
-  settings: any
-  updateSettings: (s: any) => void
+  settings: MensFlowSettings
+  updateSettings: (patch: Partial<MensFlowSettings>) => void
 }) {
   return (
     <>
@@ -585,8 +587,8 @@ function PersonalizationPanel({
   settings,
   updateSettings,
 }: {
-  settings: any
-  updateSettings: (s: any) => void
+  settings: MensFlowSettings
+  updateSettings: (patch: Partial<MensFlowSettings>) => void
 }) {
   return (
     <>
@@ -640,8 +642,8 @@ function DataControlsPanel({
   confirmResetApp,
   confirmWipeLocalData,
 }: {
-  settings: any
-  updateSettings: (s: any) => void
+  settings: MensFlowSettings
+  updateSettings: (patch: Partial<MensFlowSettings>) => void
   exportBundle: () => void
   confirmClearChats: () => void
   confirmResetSettings: () => void
@@ -706,7 +708,7 @@ function LockChatSetupModal({
   updateSettings,
 }: {
   trigger: ReactNode
-  updateSettings: (s: any) => void
+  updateSettings: (patch: Partial<MensFlowSettings>) => void
 }) {
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState<1 | 2>(1)
@@ -862,7 +864,7 @@ function DeleteLockChatModal({
   updateSettings,
 }: {
   trigger: ReactNode
-  updateSettings: (s: any) => void
+  updateSettings: (patch: Partial<MensFlowSettings>) => void
 }) {
   const [open, setOpen] = useState(false)
 
@@ -901,8 +903,8 @@ function SecurityPanel({
   settings,
   updateSettings,
 }: {
-  settings: any
-  updateSettings: (s: any) => void
+  settings: MensFlowSettings
+  updateSettings: (patch: Partial<MensFlowSettings>) => void
 }) {
   return (
     <>
@@ -996,8 +998,8 @@ function AccountPanel({
   onLogout,
 }: {
   isGuest: boolean
-  user: any
-  updateUser: (u: any) => void
+  user: AppUser
+  updateUser: (patch: Partial<AppUser>) => void
   onLogin?: () => void
   onLogout?: () => void
 }) {
