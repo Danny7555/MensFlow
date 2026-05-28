@@ -114,6 +114,8 @@ export const useStore = create<AppState>()((set, get) => ({
             bodySignals: dashboard.bodySignals,
             guidanceLines: dashboard.guidanceLines ?? [],
             cycleNotes: dashboard.cycleNotes ?? '',
+            cycleVariationDays: dashboard.cycleVariationDays ?? 36,
+            isAtypical: dashboard.isAtypical ?? true,
           }
         : DEFAULT_DASHBOARD,
     })

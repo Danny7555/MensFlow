@@ -59,6 +59,8 @@ export async function getUserProfile(
           bodySignals: dashboard.bodySignals,
           guidanceLines: dashboard.guidanceLines,
           cycleNotes: dashboard.cycleNotes,
+          cycleVariationDays: dashboard.cycleVariationDays,
+          isAtypical: dashboard.isAtypical,
         }
       : null,
   };
@@ -142,5 +144,7 @@ export async function updateDashboard(
     bodySignals: dashboard.bodySignals,
     guidanceLines: dashboard.guidanceLines,
     cycleNotes: dashboard.cycleNotes,
+    cycleVariationDays: dashboard.cycleVariationDays,
+    isAtypical: dashboard.isAtypical,
   };
 }

@@ -39,6 +39,8 @@ interface SnapshotData {
   lastPeriodStart: string
   typicalCycleDays: number
   cycleNotes?: string
+  cycleVariationDays?: number
+  isAtypical?: boolean
 }
 
 interface SnapshotModalProps {
@@ -54,6 +56,8 @@ export function SnapshotModal({ isOpen, onOpenChange, data, update, isSaving }: 
     lastPeriodStart: data.lastPeriodStart,
     typicalCycleDays: data.typicalCycleDays,
     cycleNotes: data.cycleNotes || "",
+    cycleVariationDays: data.cycleVariationDays ?? 36,
+    isAtypical: data.isAtypical ?? true,
   })
 
 
@@ -113,6 +117,44 @@ export function SnapshotModal({ isOpen, onOpenChange, data, update, isSaving }: 
                     45,
                     Math.max(21, Number(e.target.value) || 28),
                   ),
+                }))
+              }
+            />
+          </div>
+          <div className="grid gap-2">
+            <label htmlFor="variation-days" className="text-sm font-normal ml-1">Cycle variation (days)</label>
+            <input
+              id="variation-days"
+              type="number"
+              min={0}
+              max={60}
+              className="w-full h-12 px-4 rounded-2xl bg-muted/50 border-none outline-none focus:ring-2 ring-[var(--mf-accent)] transition-all"
+              value={localSnapshot.cycleVariationDays}
+              onChange={(e) =>
+                setLocalSnapshot(prev => ({
+                  ...prev,
+                  cycleVariationDays: Math.min(
+                    60,
+                    Math.max(0, Number(e.target.value) || 0),
+                  ),
+                }))
+              }
+            />
+          </div>
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-muted/30 border border-[var(--mf-border)]">
+            <div className="space-y-0.5 text-left">
+              <label htmlFor="atypical-pattern" className="text-sm font-normal cursor-pointer">Atypical cycle pattern</label>
+              <p className="text-xs text-muted-foreground">Toggle if your cycle length varies significantly</p>
+            </div>
+            <input
+              id="atypical-pattern"
+              type="checkbox"
+              className="accent-[var(--mf-accent)] size-5 rounded-lg cursor-pointer"
+              checked={localSnapshot.isAtypical}
+              onChange={(e) =>
+                setLocalSnapshot(prev => ({
+                  ...prev,
+                  isAtypical: e.target.checked
                 }))
               }
             />

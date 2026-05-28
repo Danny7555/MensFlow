@@ -2975,7 +2975,8 @@
   letter-spacing: -0.03em;
 }
 
-.stats-more-btn--atypical {
+.stats-more-btn--atypical,
+.stats-more-btn--regular {
   color: var(--foreground);
 }
 

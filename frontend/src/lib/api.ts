@@ -89,6 +89,8 @@ export type ApiDashboard = {
   bodySignals: string
   guidanceLines: string[]
   cycleNotes: string
+  cycleVariationDays: number
+  isAtypical: boolean
 }
 
 export type ApiSymptomLog = {

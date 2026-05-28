@@ -87,6 +87,8 @@ export async function getPartnerStatus(userId: string): Promise<object> {
           phaseLabel: partnerDash.phaseLabel,
           hormoneTrend: partnerDash.hormoneTrend,
           bodySignals: partnerDash.bodySignals,
+          cycleVariationDays: partnerDash.cycleVariationDays,
+          isAtypical: partnerDash.isAtypical,
           symptoms,
         }
       : null,

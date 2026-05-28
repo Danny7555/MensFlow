@@ -1,4 +1,4 @@
-import { Info, Warning, CaretRight } from '@phosphor-icons/react'
+import { Info, Warning, CaretRight, ShieldCheck } from '@phosphor-icons/react'
 import { 
   Tooltip,
   TooltipContent,
@@ -65,25 +65,42 @@ export function CycleStatsHero() {
             </div>
             <div className="stats-card-info">
               <span className="stats-label">Cycle variation</span>
-              <span className="stats-value">36 days</span>
+              <span className="stats-value">{data.cycleVariationDays ?? 36} days</span>
             </div>
           </div>
           <div className="stats-card-action">
              <div className="stats-divider" />
-             <Tooltip>
-               <TooltipTrigger asChild>
-                 <button className="stats-more-btn stats-more-btn--atypical">
-                    <div className="flex items-center gap-2">
-                      <Warning size={18} weight="fill" className="text-[#e25c00]" />
-                      <span>Atypical</span>
-                    </div>
-                    <CaretRight size={16} />
-                 </button>
-               </TooltipTrigger>
-               <TooltipContent side="top" className="text-xs">
-                 Your cycle length varies more than usual. This can be normal but worth monitoring.
-               </TooltipContent>
-             </Tooltip>
+             {data.isAtypical ? (
+               <Tooltip>
+                 <TooltipTrigger asChild>
+                   <button className="stats-more-btn stats-more-btn--atypical">
+                      <div className="flex items-center gap-2">
+                        <Warning size={18} weight="fill" className="text-[#e25c00]" />
+                        <span>Atypical</span>
+                      </div>
+                      <CaretRight size={16} />
+                   </button>
+                 </TooltipTrigger>
+                 <TooltipContent side="top" className="text-xs">
+                   Your cycle length varies more than usual. This can be normal but worth monitoring.
+                 </TooltipContent>
+               </Tooltip>
+             ) : (
+               <Tooltip>
+                 <TooltipTrigger asChild>
+                   <button className="stats-more-btn stats-more-btn--regular">
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck size={18} weight="fill" className="text-teal-600" />
+                        <span>Regular</span>
+                      </div>
+                      <CaretRight size={16} />
+                   </button>
+                 </TooltipTrigger>
+                 <TooltipContent side="top" className="text-xs">
+                   Your cycle length is consistent and regular.
+                 </TooltipContent>
+               </Tooltip>
+             )}
           </div>
         </div>
 

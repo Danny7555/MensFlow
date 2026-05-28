@@ -7,6 +7,8 @@ export type DashboardSnapshot = {
   bodySignals: string
   guidanceLines: string[]
   cycleNotes: string
+  cycleVariationDays?: number
+  isAtypical?: boolean
 }
 
 export const DEFAULT_DASHBOARD: DashboardSnapshot = {
@@ -18,6 +20,8 @@ export const DEFAULT_DASHBOARD: DashboardSnapshot = {
   bodySignals: 'No symptoms logged today',
   guidanceLines: [],
   cycleNotes: '',
+  cycleVariationDays: 36,
+  isAtypical: true,
 }
 
 export function loadDashboard(): DashboardSnapshot {

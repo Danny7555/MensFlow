@@ -9,6 +9,8 @@ export interface DashboardDocument extends Document {
   bodySignals: string;
   guidanceLines: string[];
   cycleNotes: string;
+  cycleVariationDays: number;
+  isAtypical: boolean;
 }
 
 const DashboardSchema = new Schema<DashboardDocument>({
@@ -20,6 +22,8 @@ const DashboardSchema = new Schema<DashboardDocument>({
   bodySignals: { type: String, default: 'Fatigue, appetite changes' },
   guidanceLines: { type: [String], default: [] },
   cycleNotes: { type: String, default: '' },
+  cycleVariationDays: { type: Number, default: 36 },
+  isAtypical: { type: Boolean, default: true },
 });
 
 export const Dashboard = model<DashboardDocument>('Dashboard', DashboardSchema);

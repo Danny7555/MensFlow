@@ -62,6 +62,8 @@ export interface IDashboard {
   bodySignals: string;
   guidanceLines: string[];
   cycleNotes: string;
+  cycleVariationDays: number;
+  isAtypical: boolean;
 }
 
 // ─── Symptom Log ─────────────────────────────────────────────────────────────
