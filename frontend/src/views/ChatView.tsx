@@ -4,6 +4,7 @@ import {
   Ghost, 
   Question, 
 
+
   Lock, 
   Trash, 
   SidebarSimple, 
@@ -143,6 +144,10 @@ function generateAIResponse(
   return response
 }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> dc7e4a8 (refactor: remove dynamic suggestion tags from ChatView component)
 
 
 export function ChatView() {
