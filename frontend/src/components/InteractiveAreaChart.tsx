@@ -145,7 +145,6 @@ function parseAndFormatDate(dateStr: string) {
   return dateStr
 }
 
-/* eslint-disable react-hooks/set-state-in-effect */
 export function InteractiveAreaChart() {
   const [timeRange, setTimeRange] = React.useState("90d")
 

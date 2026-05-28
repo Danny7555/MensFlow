@@ -233,7 +233,7 @@ export function PartnerTranslationCard({ label, onCopy }: {
   return (
     <m.div 
       variants={itemVariants}
-      className="flo-card flo-card--prominent overflow-hidden h-full flex flex-col border-[var(--mf-border-strong)] bg-white dark:bg-[var(--mf-card)]"
+      className="flo-card flo-card--prominent overflow-hidden h-full flex flex-col border-[var(--mf-border-strong)] bg-white dark:bg-[var(--mf-card)] partner-translation-card"
     >
       <div className="flo-card-top relative z-10 mb-2">
         <div className="flex flex-col gap-0.5">
@@ -400,7 +400,7 @@ export function ConnectionChecklistCard() {
   return (
     <m.div 
       variants={itemVariants}
-      className="flo-card flo-card--prominent overflow-hidden h-full flex flex-col bg-gradient-to-br from-card to-teal-50/5"
+      className="flo-card flo-card--prominent overflow-hidden h-full flex flex-col bg-gradient-to-br from-card to-teal-50/5 connection-checklist-card"
     >
       <div className="flo-card-top relative z-10">
         <p className="flo-card-title">Daily Connection</p>

@@ -60,22 +60,18 @@ const getDayInsight = (activeDay: number) => {
 export function HormoneWave() {
   const { dashboard: data } = useStore()
 
-  // Compute current day from store data
-  const currentDay = useMemo(() => {
+  const [activeDay, setActiveDay] = useState(14)
+
+  useEffect(() => {
     const start = new Date(`${data.lastPeriodStart}T12:00:00`)
     if (!Number.isNaN(+start)) {
       const days = Math.floor((Date.now() - +start) / 86400000)
       const m = ((days % data.typicalCycleDays) + data.typicalCycleDays) % data.typicalCycleDays
-      return m + 1
+      setActiveDay(m + 1)
+    } else {
+      setActiveDay(1)
     }
-    return 1
   }, [data.lastPeriodStart, data.typicalCycleDays])
-
-  const [activeDay, setActiveDay] = useState(14)
-
-  useEffect(() => {
-    setActiveDay(currentDay)
-  }, [currentDay])
 
   // Phase & Insight information
   const dayInsight = useMemo(() => getDayInsight(activeDay), [activeDay])

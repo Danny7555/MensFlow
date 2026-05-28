@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer } from "react"
+import { useEffect, useReducer, useState } from "react"
 import { CycleTrackerHero } from "@/components/tracker/CycleTrackerHero"
 import { CycleStatsHero } from "@/components/tracker/CycleStatsHero"
 import { CycleHistory } from "@/components/tracker/CycleHistory"
@@ -48,22 +48,31 @@ export function TrackerView() {
   const { isSaving, dashboard: data } = useStore()
   const { isAuthenticated, openAuthModal } = useAuth()
 
-  // Compute initial cycle day based on store last period start
-  const initialDay = useMemo(() => {
+  const [initialDay, setInitialDay] = useState(1)
+
+  // Compute initial cycle day inside useEffect to avoid impurity in render
+  useEffect(() => {
     const start = new Date(`${data.lastPeriodStart}T12:00:00`)
     if (!Number.isNaN(+start)) {
       const days = Math.floor((Date.now() - +start) / 86400000)
       const m = ((days % data.typicalCycleDays) + data.typicalCycleDays) % data.typicalCycleDays
-      return m + 1
+      const timer = setTimeout(() => {
+        setInitialDay(m + 1)
+      }, 0)
+      return () => clearTimeout(timer)
+    } else {
+      const timer = setTimeout(() => {
+        setInitialDay(1)
+      }, 0)
+      return () => clearTimeout(timer)
     }
-    return 1
   }, [data.lastPeriodStart, data.typicalCycleDays])
 
   const [state, dispatch] = useReducer(trackerReducer, {
     isInviteModalOpen: false,
     copied: false,
     isLoading: true,
-    selectedDay: initialDay,
+    selectedDay: 1,
     hoveredDay: null,
   })
 

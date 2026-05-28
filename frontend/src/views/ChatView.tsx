@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { m } from 'framer-motion'
 import { 
   Ghost, 
@@ -195,7 +195,7 @@ export function ChatView() {
   const generateNewSessionId = () => `chat-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
 
   // Fetch session history list on mount
-  const fetchSessions = async () => {
+  const fetchSessions = useCallback(async () => {
     if (temporaryChat) return
     try {
       const data = await chatApi.getSessions()
@@ -204,7 +204,7 @@ export function ChatView() {
     } catch (err: any) {
       toast.error(err.message ?? 'Failed to load chat history list')
     }
-  }
+  }, [temporaryChat])
 
   // 1. Initial Load of Sessions
   useEffect(() => {
@@ -232,65 +232,72 @@ export function ChatView() {
       .finally(() => {
         setIsLoading(false)
       })
-  }, [temporaryChat])
+  }, [temporaryChat, fetchSessions, welcomeText])
 
   // 2. Load messages for activeSessionId
   useEffect(() => {
     if (temporaryChat) {
-      setMessages([{
-        id: 'welcome',
-        role: 'assistant',
-        text: welcomeText,
-        createdAt: Date.now(),
-      }])
-      setIsLoading(false)
-      return
+      const timer = setTimeout(() => {
+        setMessages([{
+          id: 'welcome',
+          role: 'assistant',
+          text: welcomeText,
+          createdAt: Date.now(),
+        }])
+        setIsLoading(false)
+      }, 0)
+      return () => clearTimeout(timer)
     }
 
     if (!activeSessionId) return
 
     const existingSession = sessions.find((s) => s.sessionId === activeSessionId)
     if (!existingSession || existingSession.messageCount === 0) {
-      setMessages([{
-        id: 'welcome',
-        role: 'assistant',
-        text: welcomeText,
-        createdAt: Date.now(),
-      }])
-      setIsLoading(false)
-      return
+      const timer = setTimeout(() => {
+        setMessages([{
+          id: 'welcome',
+          role: 'assistant',
+          text: welcomeText,
+          createdAt: Date.now(),
+        }])
+        setIsLoading(false)
+      }, 0)
+      return () => clearTimeout(timer)
     }
 
-    setIsLoading(true)
-    const passcode = unlockedPasscodes[activeSessionId]
-    chatApi.getMessages(activeSessionId, passcode)
-      .then((history) => {
-        if (history.length > 0) {
-          setMessages(history)
-        } else {
-          setMessages([{
-            id: 'welcome',
-            role: 'assistant',
-            text: welcomeText,
-            createdAt: Date.now(),
-          }])
-        }
-        setLockedSessionToUnlock(null)
-      })
-      .catch((err: any) => {
-        if (err.message && err.message.toLowerCase().includes('locked')) {
-          setLockedSessionToUnlock({
-            sessionId: activeSessionId,
-            securityQuestion: existingSession.securityQuestion,
-          })
-        } else {
-          toast.error(err.message ?? 'Failed to load chat history')
-        }
-      })
-      .finally(() => {
-        setIsLoading(false)
-      })
-  }, [activeSessionId, temporaryChat, welcomeText])
+    const timer = setTimeout(() => {
+      setIsLoading(true)
+      const passcode = unlockedPasscodes[activeSessionId]
+      chatApi.getMessages(activeSessionId, passcode)
+        .then((history) => {
+          if (history.length > 0) {
+            setMessages(history)
+          } else {
+            setMessages([{
+              id: 'welcome',
+              role: 'assistant',
+              text: welcomeText,
+              createdAt: Date.now(),
+            }])
+          }
+          setLockedSessionToUnlock(null)
+        })
+        .catch((err: any) => {
+          if (err.message && err.message.toLowerCase().includes('locked')) {
+            setLockedSessionToUnlock({
+              sessionId: activeSessionId,
+              securityQuestion: existingSession.securityQuestion,
+            })
+          } else {
+            toast.error(err.message ?? 'Failed to load chat history')
+          }
+        })
+        .finally(() => {
+          setIsLoading(false)
+        })
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [activeSessionId, temporaryChat, welcomeText, sessions, unlockedPasscodes])
 
   const todayStr = new Date().toISOString().split('T')[0]
   const todayLog = logs.find(l => l.date === todayStr)
@@ -319,7 +326,7 @@ export function ChatView() {
     }
     window.addEventListener(CLEAR_LOCAL_CHATS_EVENT, onClear)
     return () => window.removeEventListener(CLEAR_LOCAL_CHATS_EVENT, onClear)
-  }, [welcomeText, temporaryChat])
+  }, [welcomeText, temporaryChat, fetchSessions])
 
 
   // Auto scroll effect

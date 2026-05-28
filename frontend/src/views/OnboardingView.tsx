@@ -147,7 +147,7 @@ export function OnboardingView() {
       openAuthModal()
       navigate('/')
     }
-  }, [answers.name, answers.role, answers.partner_code, answers.symptoms, answers.goal, answers.energy_consistency, updateDashboard, completeOnboarding, isAuthenticated, navigate, openAuthModal, updateUser])
+  }, [answers.name, answers.role, answers.partner_code, answers.symptoms, answers.goal, answers.energy_consistency, answers.access_level, updateDashboard, completeOnboarding, isAuthenticated, navigate, openAuthModal, updateUser])
 
   const handleNext = useCallback(() => {
     if (currentStep < ONBOARDING_QUESTIONS.length - 1) {

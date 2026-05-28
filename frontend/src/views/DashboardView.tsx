@@ -1,7 +1,6 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import { use, useReducer, useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Joyride, STATUS } from 'react-joyride'
+import { Joyride, STATUS, type TooltipRenderProps } from 'react-joyride'
 import { m } from 'framer-motion'
 import { Plus, LinkSimple, Users, ArrowRight, Sparkle } from '@phosphor-icons/react'
 import { toast } from 'sonner'
@@ -89,32 +88,79 @@ function dashboardReducer(state: DashboardState, action: DashboardAction): Dashb
   }
 }
 
-const TOUR_STEPS = [
-  {
-    target: '.cycle-tracker-hero',
-    content: "This is your partner's Cycle Tracker. See their current phase and predictions at a glance.",
-    placement: 'bottom',
-    disableBeacon: true,
-  },
-  {
-    target: '.flo-story-circle',
-    content: "Tap these stories to quickly jump to insights, secret chats, or wellness tips.",
-    placement: 'bottom',
-    disableBeacon: true,
-  },
-  {
-    target: '.flo-feed-row .flo-card',
-    content: "Today's Plan gives you phase-specific insights, body signals, and daily tips.",
-    placement: 'bottom',
-    disableBeacon: true,
-  },
-  {
-    target: '.flo-fab',
-    content: "Use this to quickly log new symptoms or notes for the current day.",
-    placement: 'top',
-    disableBeacon: true,
-  }
-]
+function TourTooltip({
+  index,
+  size,
+  step,
+  backProps,
+  isLastStep,
+  primaryProps,
+  skipProps,
+  tooltipProps,
+}: TooltipRenderProps) {
+  return (
+    <div 
+      {...tooltipProps} 
+      className="bg-card border border-border shadow-2xl rounded-3xl p-5 max-w-[340px] w-[calc(100vw-32px)] text-left focus:outline-none relative z-50 animate-in fade-in zoom-in-95 duration-200"
+    >
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--mf-accent)]">
+          Tour • Step {index + 1} of {size}
+        </span>
+        {!isLastStep && (
+          <button 
+            {...skipProps} 
+            className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          >
+            Skip
+          </button>
+        )}
+      </div>
+
+      {step.title && (
+        <h4 className="text-base font-semibold text-[var(--mf-text-strong)] mb-1">
+          {step.title}
+        </h4>
+      )}
+
+      <div className="text-xs text-[var(--mf-text)] leading-relaxed mb-5">
+        {step.content}
+      </div>
+
+      <div className="flex items-center justify-between border-t border-border pt-4">
+        {/* Progress Dots */}
+        <div className="flex gap-1.5">
+          {Array.from({ length: size }).map((_, i) => (
+            <div 
+              key={i} 
+              className={cn(
+                "size-1.5 rounded-full transition-all duration-300",
+                i === index ? "bg-[var(--mf-accent)] w-3" : "bg-muted-foreground/30"
+              )}
+            />
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2">
+          {index > 0 && (
+            <button 
+              {...backProps} 
+              className="px-3.5 py-1.5 rounded-xl border border-border text-xs font-medium text-[var(--mf-text-strong)] hover:bg-muted transition-colors cursor-pointer active-squish"
+            >
+              Back
+            </button>
+          )}
+          <button 
+            {...primaryProps} 
+            className="px-4 py-1.5 rounded-xl bg-[var(--mf-accent)] text-white text-xs font-semibold hover:brightness-105 transition-all cursor-pointer active-squish"
+          >
+            {isLastStep ? 'Finish' : 'Next'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export function DashboardView() {
   const { dashboard: ownDashboard, partnerStatus, fetchPartnerStatus, updateDashboard: update, isSaving, user, pairPartner } = useStore()
@@ -139,6 +185,56 @@ export function DashboardView() {
     }
     return ownDashboard
   }, [user?.role, partnerStatus, ownDashboard])
+
+  const tourSteps = useMemo(() => {
+    const isPartner = user?.role === 'partner'
+    
+    const steps = [
+      {
+        target: '.cycle-tracker-hero',
+        title: isPartner ? "Partner's Cycle Tracker" : "Your Cycle Tracker",
+        content: isPartner 
+          ? "Keep track of your partner's current cycle day, phase, and upcoming period prediction." 
+          : "See your current cycle day, active phase, and predictions of your next period at a glance.",
+        placement: 'bottom' as const,
+        disableBeacon: true,
+      },
+      {
+        target: '.flo-story-circle',
+        title: "Quick Navigation",
+        content: "Tap these shortcuts to quickly navigate between the dashboard, logs, secret chats, and settings.",
+        placement: 'bottom' as const,
+        disableBeacon: true,
+      },
+      {
+        target: '.flo-today-plan',
+        title: "Daily Plan & Insights",
+        content: "Explore daily phase-specific insights, hormone trends, and customized wellness recommendations.",
+        placement: 'top' as const,
+        disableBeacon: true,
+      }
+    ]
+
+    if (isPartner) {
+      steps.push({
+        target: '.connection-checklist-card',
+        title: "Daily Connection Gestures",
+        content: "Check off customized support actions tailored to her active cycle phase to maintain your support streak.",
+        placement: 'top' as const,
+        disableBeacon: true,
+      })
+    } else {
+      steps.push({
+        target: '.flo-fab',
+        title: "Instant Logging",
+        content: "Tap this floating action button at any time to record symptoms, mood, and flow data.",
+        placement: 'top' as const,
+        disableBeacon: true,
+      })
+    }
+
+    return steps
+  }, [user?.role])
 
   useEffect(() => {
     if (user?.role) {
@@ -204,7 +300,7 @@ export function DashboardView() {
       active = false
       clearInterval(interval)
     }
-  }, [])
+  }, [user?.role])
 
   useEffect(() => {
     const hasSeenTour = sessionStorage.getItem('mensflow_tour_completed')
@@ -418,7 +514,7 @@ export function DashboardView() {
       {state.mounted && (
         <Joyride
           {...{
-            steps: TOUR_STEPS,
+            steps: tourSteps,
             run: state.tourRun,
             continuous: true,
             showSkipButton: true,
@@ -427,55 +523,16 @@ export function DashboardView() {
             scrollToFirstStep: true,
             scrollOffset: 100,
             onEvent: handleJoyrideCallback,
-            locale: {
-              back: 'Back',
-              close: 'Close',
-              last: 'Got it',
-              next: 'Next',
-              skip: 'Skip'
-            },
+            tooltipComponent: TourTooltip,
             styles: {
               options: {
-                arrowColor: 'var(--card)',
-                backgroundColor: 'var(--card)',
                 overlayColor: 'rgba(0, 0, 0, 0.45)',
-                primaryColor: 'var(--mf-accent)',
-                textColor: 'var(--mf-text-strong)',
-                width: 290,
                 zIndex: 10000,
               },
-              tooltip: {
-                borderRadius: '20px',
-                border: '1px solid var(--mf-border)',
-                padding: '20px',
-                boxShadow: 'none',
-              },
-              tooltipContainer: {
-                textAlign: 'left',
-              },
-              buttonNext: {
-                borderRadius: '999px',
-                backgroundColor: 'var(--mf-accent)',
-                color: '#ffffff',
-                padding: '6px 14px',
-                fontSize: '12px',
-                fontWeight: '600',
-                border: 'none',
-                outline: 'none',
-              },
-              buttonBack: {
-                color: 'var(--mf-muted)',
-                marginRight: '12px',
-                fontSize: '12px',
-                fontWeight: '500',
-              },
-              buttonSkip: {
-                color: 'var(--mf-muted)',
-                fontSize: '12px',
-                fontWeight: '500',
+              spotlight: {
+                borderRadius: '24px',
               }
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } as any}
         />
       )}
@@ -544,30 +601,32 @@ export function DashboardView() {
                 <CycleTrackerHero showCheckIn={user?.role !== 'partner'} />
               </section>
 
-              <div className="w-full min-w-0">
-                <DailyTipCard
-                  phaseLabel={phase}
-                  tipCompleted={tipCompleted}
-                  setTipCompleted={setTipCompleted}
-                />
-              </div>
+              <div className="flo-today-plan flex flex-col gap-6 md:gap-8 w-full min-w-0">
+                <div className="w-full min-w-0">
+                  <DailyTipCard
+                    phaseLabel={phase}
+                    tipCompleted={tipCompleted}
+                    setTipCompleted={setTipCompleted}
+                  />
+                </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 min-w-0">
-                <PrimaryInsightCard 
-                  label={phase}
-                  currentDay={currentDay}
-                  trend={data.hormoneTrend}
-                />
-                <BodySignalsCard 
-                  signals={data.bodySignals}
-                  currentDay={currentDay}
-                  phaseLabel={phase}
-                />
-              </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 min-w-0">
+                  <PrimaryInsightCard 
+                    label={phase}
+                    currentDay={currentDay}
+                    trend={data.hormoneTrend}
+                  />
+                  <BodySignalsCard 
+                    signals={data.bodySignals}
+                    currentDay={currentDay}
+                    phaseLabel={phase}
+                  />
+                </div>
 
-              <div className={cn("grid grid-cols-1 gap-6 md:gap-8 min-w-0", user?.role === 'partner' ? "md:grid-cols-2" : "md:grid-cols-1")}>
-                <HormoneInsightCard phaseLabel={phase} />
-                {user?.role === 'partner' && <ConnectionChecklistCard />}
+                <div className={cn("grid grid-cols-1 gap-6 md:gap-8 min-w-0", user?.role === 'partner' ? "md:grid-cols-2" : "md:grid-cols-1")}>
+                  <HormoneInsightCard phaseLabel={phase} />
+                  {user?.role === 'partner' && <ConnectionChecklistCard />}
+                </div>
               </div>
             </div>
 

@@ -1,7 +1,6 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 "use client"
 
-import {useMemo, useReducer } from 'react'
+import { useEffect, useMemo, useReducer, useState } from 'react'
 
 import { 
   CaretDown, 
@@ -94,15 +93,17 @@ export function CycleTrackerHero({
   const selectedDay = isControlled ? controlledSelectedDay : state.selectedDay
   const hoveredDay = isControlled ? (controlledHoveredDay ?? null) : state.hoveredDay
 
-  // Compute current day from store data
-  const currentDay = useMemo(() => {
+  const [currentDay, setCurrentDay] = useState(1)
+
+  useEffect(() => {
     const start = new Date(`${data.lastPeriodStart}T12:00:00`)
     if (!Number.isNaN(+start)) {
       const days = Math.floor((Date.now() - +start) / 86400000)
       const m = ((days % data.typicalCycleDays) + data.typicalCycleDays) % data.typicalCycleDays
-      return m + 1
+      setCurrentDay(m + 1)
+    } else {
+      setCurrentDay(1)
     }
-    return 1
   }, [data.lastPeriodStart, data.typicalCycleDays])
 
   const modes = ['Period', 'Conception', 'Pregnancy', 'Perimenopause'];
