@@ -18,15 +18,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const [isAuthenticated, setAuthenticated] = useState(isLoggedIn)
   const [onboardingCompleted, setOnboardingCompleted] = useState(
-    () => sessionStorage.getItem('mf_onboarding') === 'true'
+    () => localStorage.getItem('mf_onboarding') === 'true'
   )
   const [user, setUser] = useState<ApiUser | null>(null)
   const [isLoading, setLoading] = useState(false)
+  const [isRehydrating, setRehydrating] = useState(() => isLoggedIn())
   const [authModalOpen, setAuthModalOpen] = useState(false)
 
   // ── Rehydrate store from API on mount if token exists ──────────────────────
   useEffect(() => {
-    if (!isLoggedIn()) return
+    if (!isLoggedIn()) {
+      setRehydrating(false)
+      return
+    }
 
     userApi.getProfile()
       .then(({ user: u, settings, dashboard }) => {
@@ -34,15 +38,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setOnboardingCompleted(u.isOnboarded)
         hydrate({ user: u, settings, dashboard })
         
-        // Fetch logs and custom symptoms from backend database
+        // Fetch logs, custom symptoms, and partner status from backend database
         const store = useStore.getState()
         store.fetchLogs().catch((err) => console.error('Failed to load logs', err))
         store.fetchCustomSymptoms().catch((err) => console.error('Failed to load custom symptoms', err))
+        store.fetchPartnerStatus().catch((err) => console.error('Failed to load partner status', err))
       })
       .catch(() => {
         // Token expired or invalid — clear it
         clearToken()
         setAuthenticated(false)
+      })
+      .finally(() => {
+        setRehydrating(false)
       })
   }, [hydrate])
 
@@ -53,22 +61,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { token, user: u } = await authApi.login(username, password)
       setToken(token)
       setUser(u)
-      setOnboardingCompleted(u.isOnboarded)
+      
+      const localOnboarding = sessionStorage.getItem('mf_onboarding') === 'true'
+      const isOnboarded = u.isOnboarded || localOnboarding
+      setOnboardingCompleted(isOnboarded)
       setAuthenticated(true)
       setAuthModalOpen(false)
 
+      if (localOnboarding && !u.isOnboarded) {
+        const storeUser = useStore.getState().user
+        const patch: any = { isOnboarded: true }
+        if (storeUser.name) patch.name = storeUser.name
+        if (storeUser.role) patch.role = storeUser.role
+        if (storeUser.accessLevel) patch.accessLevel = storeUser.accessLevel
+        await userApi.updateProfile(patch).catch((err) => {
+          console.error('Failed to sync guest onboarding to backend during login', err)
+        })
+      }
+
       // Fetch full profile so the store is hydrated
       const profile = await userApi.getProfile()
-      hydrate({ user: u, settings: profile.settings, dashboard: profile.dashboard })
+      setOnboardingCompleted(profile.user.isOnboarded)
+      hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
 
-      // Fetch logs and custom symptoms from backend database
+      // Auto-pair if a partner code was entered during guest onboarding
+      const localPartnerCode = sessionStorage.getItem('mf_partner_code')
+      if (localPartnerCode) {
+        const store = useStore.getState()
+        await store.pairPartner(localPartnerCode).catch((err) => {
+          console.error('Failed to auto-pair partner code during login setup', err)
+        })
+        sessionStorage.removeItem('mf_partner_code')
+      }
+
+      // Fetch logs, custom symptoms, and partner status from backend database
       const store = useStore.getState()
       await Promise.all([
         store.fetchLogs(),
-        store.fetchCustomSymptoms()
-      ]).catch((err) => console.error('Failed to load user logs', err))
+        store.fetchCustomSymptoms(),
+        store.fetchPartnerStatus()
+      ]).catch((err) => console.error('Failed to load user logs/status', err))
 
-      navigate('/dashboard')
+      navigate(profile.user.isOnboarded ? '/dashboard' : '/onboarding')
     } finally {
       setLoading(false)
     }
@@ -81,21 +115,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { token, user: u } = await authApi.register(username, password, name)
       setToken(token)
       setUser(u)
-      setOnboardingCompleted(u.isOnboarded)
+      
+      const localOnboarding = sessionStorage.getItem('mf_onboarding') === 'true'
+      const isOnboarded = u.isOnboarded || localOnboarding
+      setOnboardingCompleted(isOnboarded)
       setAuthenticated(true)
       setAuthModalOpen(false)
 
-      const profile = await userApi.getProfile()
-      hydrate({ user: u, settings: profile.settings, dashboard: profile.dashboard })
+      if (localOnboarding && !u.isOnboarded) {
+        const storeUser = useStore.getState().user
+        const patch: any = { isOnboarded: true }
+        if (storeUser.name) patch.name = storeUser.name
+        if (storeUser.role) patch.role = storeUser.role
+        if (storeUser.accessLevel) patch.accessLevel = storeUser.accessLevel
+        await userApi.updateProfile(patch).catch((err) => {
+          console.error('Failed to sync guest onboarding to backend during registration', err)
+        })
+      }
 
-      // Fetch logs and custom symptoms from backend database
+      const profile = await userApi.getProfile()
+      setOnboardingCompleted(profile.user.isOnboarded)
+      hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
+
+      // Auto-pair if a partner code was entered during guest onboarding
+      const localPartnerCode = sessionStorage.getItem('mf_partner_code')
+      if (localPartnerCode) {
+        const store = useStore.getState()
+        await store.pairPartner(localPartnerCode).catch((err) => {
+          console.error('Failed to auto-pair partner code during registration setup', err)
+        })
+        sessionStorage.removeItem('mf_partner_code')
+      }
+
+      // Fetch logs, custom symptoms, and partner status from backend database
       const store = useStore.getState()
       await Promise.all([
         store.fetchLogs(),
-        store.fetchCustomSymptoms()
-      ]).catch((err) => console.error('Failed to load user logs', err))
+        store.fetchCustomSymptoms(),
+        store.fetchPartnerStatus()
+      ]).catch((err) => console.error('Failed to load user logs/status', err))
 
-      navigate('/onboarding')
+      navigate(profile.user.isOnboarded ? '/dashboard' : '/onboarding')
     } finally {
       setLoading(false)
     }
@@ -105,7 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     clearToken()
     setOnboardingCompleted(false)
-    sessionStorage.removeItem('mf_onboarding')
+    localStorage.removeItem('mf_onboarding')
     setAuthenticated(false)
     setUser(null)
     resetStore()
@@ -115,7 +175,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ── Onboarding ─────────────────────────────────────────────────────────────
   const completeOnboarding = useCallback(() => {
     setOnboardingCompleted(true)
-    sessionStorage.setItem('mf_onboarding', 'true')
+    localStorage.setItem('mf_onboarding', 'true')
     if (isLoggedIn()) {
       userApi.updateProfile({ isOnboarded: true }).catch((err) => {
         console.error('Failed to update onboarding state in backend', err)
@@ -130,6 +190,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated,
       onboardingCompleted,
       isLoading,
+      isRehydrating,
       user,
       login,
       register,
@@ -137,7 +198,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       openAuthModal,
       completeOnboarding,
     }),
-    [isAuthenticated, onboardingCompleted, isLoading, user, login, register, logout, openAuthModal, completeOnboarding]
+    [isAuthenticated, onboardingCompleted, isLoading, isRehydrating, user, login, register, logout, openAuthModal, completeOnboarding]
   )
 
   return (

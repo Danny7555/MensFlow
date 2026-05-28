@@ -51,6 +51,7 @@ export async function registerUser(
       accessLevel: user.accessLevel,
       partnerCode: user.partnerCode,
       partnerId: null,
+      role: user.role,
     },
   };
 }
@@ -81,6 +82,7 @@ export async function loginUser(
       accessLevel: user.accessLevel,
       partnerCode: user.partnerCode,
       partnerId: user.partnerId ? String(user.partnerId) : null,
+      role: user.role,
     },
   };
 }

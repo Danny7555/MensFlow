@@ -1,6 +1,7 @@
 import { User } from '../models/User';
 import { Dashboard } from '../models/Dashboard';
 import { PartnerPing, SupportAction, SupportStreak } from '../models/Partner';
+import { SymptomLog } from '../models/Symptom';
 import { IUser, IPartnerPing, IDashboard } from '../interfaces';
 
 // ─── Pairing ─────────────────────────────────────────────────────────────────
@@ -53,6 +54,9 @@ export async function getPartnerStatus(userId: string): Promise<object> {
   const today = todayString();
   const yesterday = yesterdayString();
 
+  const latestLog = await SymptomLog.findOne({ userId: partner._id, date: today }).lean();
+  const symptoms = latestLog?.symptoms ?? [];
+
   let streakDoc = await SupportStreak.findOne({ userId }).lean();
   if (!streakDoc) {
     await SupportStreak.create({ userId });
@@ -83,6 +87,7 @@ export async function getPartnerStatus(userId: string): Promise<object> {
           phaseLabel: partnerDash.phaseLabel,
           hormoneTrend: partnerDash.hormoneTrend,
           bodySignals: partnerDash.bodySignals,
+          symptoms,
         }
       : null,
     support: {

@@ -24,6 +24,7 @@ export async function getUserProfile(
       isOnboarded: !!user.isOnboarded,
       partnerCode: user.partnerCode,
       partnerId: user.partnerId ? String(user.partnerId) : null,
+      role: user.role,
     },
     settings: settings
       ? {
@@ -65,7 +66,7 @@ export async function getUserProfile(
 
 export async function updateUserProfile(
   userId: string,
-  updates: { name?: string; avatar?: string | null; accessLevel?: 'full' | 'educational'; isOnboarded?: boolean }
+  updates: { name?: string; avatar?: string | null; accessLevel?: 'full' | 'educational'; isOnboarded?: boolean; role?: 'lady' | 'partner' }
 ): Promise<Partial<IUser>> {
   const user = await User.findByIdAndUpdate(userId, updates, { new: true, lean: true });
   if (!user) {
@@ -81,6 +82,7 @@ export async function updateUserProfile(
     isOnboarded: !!user.isOnboarded,
     partnerCode: user.partnerCode,
     partnerId: user.partnerId ? String(user.partnerId) : null,
+    role: user.role,
   };
 }
 

@@ -57,6 +57,7 @@ export type ApiUser = {
   isOnboarded: boolean
   partnerCode: string
   partnerId: string | null
+  role: 'lady' | 'partner'
 }
 
 export type ApiSettings = {
@@ -140,7 +141,7 @@ export const userApi = {
   getProfile: () =>
     get<{ user: ApiUser; settings: ApiSettings; dashboard: ApiDashboard }>('/user/profile'),
 
-  updateProfile: (patch: Partial<Pick<ApiUser, 'name' | 'avatar' | 'accessLevel' | 'isOnboarded'>>) =>
+  updateProfile: (patch: Partial<Pick<ApiUser, 'name' | 'avatar' | 'accessLevel' | 'isOnboarded' | 'role'>>) =>
     put<{ user: ApiUser }>('/user/profile', patch),
 
   updateSettings: (patch: Partial<ApiSettings>) =>

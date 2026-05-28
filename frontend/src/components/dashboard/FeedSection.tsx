@@ -157,10 +157,12 @@ export function BodySignalsCard({ signals, currentDay, phaseLabel }: { signals: 
 }
 
 export function WellnessScoreCard() {
-  const { logs } = useStore()
+  const { logs, user, partnerStatus } = useStore()
   const todayStr = new Date().toISOString().split('T')[0]
   const todayLog = logs.find(l => l.date === todayStr)
-  const symptoms = todayLog?.symptoms ?? []
+  const symptoms = user?.role === 'partner' && partnerStatus?.cycle?.symptoms
+    ? partnerStatus.cycle.symptoms
+    : (todayLog?.symptoms ?? [])
   
   const score = Math.max(50, 100 - symptoms.length * 10)
   

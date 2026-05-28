@@ -35,13 +35,17 @@ const NotFoundView = lazy(() => import('./views/NotFoundView').then(m => ({ defa
 
 
 function MainShell() {
-  const { isAuthenticated, onboardingCompleted, logout, openAuthModal } = useAuth()
+  const { isAuthenticated, onboardingCompleted, logout, openAuthModal, isRehydrating } = useAuth()
   const { settings, updateSettings } = useStore()
   const navigate = useNavigate()
   const location = useLocation()
   const isMobile = useMediaQuery('(max-width: 768px)')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [temporaryChat, setTemporaryChat] = useState(false)
+
+  if (isRehydrating) {
+    return <PageLoader />
+  }
 
   const handleLogout = useCallback(() => {
     logout()

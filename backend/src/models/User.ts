@@ -9,6 +9,7 @@ export interface UserDocument extends Document {
   isOnboarded: boolean;
   partnerCode: string;
   partnerId: Schema.Types.ObjectId | null;
+  role: 'lady' | 'partner';
   createdAt: Date;
 }
 
@@ -22,6 +23,7 @@ const UserSchema = new Schema<UserDocument>(
     isOnboarded: { type: Boolean, default: false },
     partnerCode: { type: String, required: true, unique: true, uppercase: true },
     partnerId: { type: Schema.Types.ObjectId, ref: 'User', default: null },
+    role: { type: String, enum: ['lady', 'partner'], default: 'lady' },
   },
   { timestamps: true }
 );

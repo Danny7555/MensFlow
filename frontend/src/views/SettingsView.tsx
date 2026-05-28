@@ -15,8 +15,7 @@ import {
   TreeStructure,
   UsersThree,
   UserCircle,
-  CaretRight,
-  Link
+  CaretRight
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import {
@@ -337,6 +336,25 @@ function GeneralPanel({
   updateSettings: (s: any) => void
 }) {
   const setTheme = (themeMode: ThemeMode) => updateSettings({ themeMode })
+  const { user, partnerStatus, pairPartner, disconnectPartnerAction } = useStore()
+  const [partnerCodeInput, setPartnerCodeInput] = useState('')
+  const [isPairing, setIsPairing] = useState(false)
+  const [isDisconnecting, setIsDisconnecting] = useState(false)
+
+  const handlePair = async () => {
+    if (!partnerCodeInput.trim()) return
+    setIsPairing(true)
+    await pairPartner(partnerCodeInput.trim())
+    setPartnerCodeInput('')
+    setIsPairing(false)
+  }
+
+  const handleDisconnect = async () => {
+    setIsDisconnecting(true)
+    await disconnectPartnerAction()
+    setIsDisconnecting(false)
+  }
+
   return (
     <>
       {!isGuest && <MfaBanner />}
@@ -428,28 +446,97 @@ function GeneralPanel({
       />
 
       {/* Partner Connection Settings */}
-      <div className="mt-8 pt-6 border-t border-[var(--mf-border)]">
-        <span className="text-xs font-semibold text-[var(--mf-text-strong)] uppercase tracking-wider block mb-1">Partner Connection</span>
-        <p className="text-xs text-muted-foreground mb-4">
-          Copy this secure sync link and send it to your partner. When they open it on their phone, they can report their current energy level or symptoms to update your dashboard in real-time.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3">
-          <button
-            type="button"
-            onClick={() => {
-              const syncUrl = window.location.origin + '/sync'
-              navigator.clipboard.writeText(syncUrl)
-              toast.success("Sync link copied!", {
-                description: "Send this link to your partner so they can sync with your dashboard."
-              })
-            }}
-            className="flex items-center justify-center gap-2 text-xs font-semibold bg-[var(--mf-accent)] text-white hover:opacity-90 py-2.5 px-4 rounded-xl transition-all duration-300 active:scale-95 w-fit"
-          >
-            <Link size={16} weight="bold" />
-            <span>Copy Partner Check-In Link</span>
-          </button>
+      {!isGuest && (
+        <div className="mt-8 pt-6 border-t border-[var(--mf-border)] space-y-6">
+          <div>
+            <span className="text-xs font-semibold text-[var(--mf-text-strong)] uppercase tracking-wider block mb-1">Partner Connection</span>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              MensFlow lets you sync your cycle dashboard with a partner. Share your code to let them see predictions, or enter theirs to pair.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left side: Your pairing code */}
+            <div className="p-4 rounded-2xl bg-[var(--mf-composer-bg)] border border-[var(--mf-border)] space-y-3">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground block">Your Pairing Code</span>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl font-mono font-bold tracking-wider text-[var(--mf-text-strong)] bg-white dark:bg-white/5 px-4 py-2 rounded-xl border border-[var(--mf-border)] select-all">
+                  {user?.partnerCode ?? '------'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (user?.partnerCode) {
+                      navigator.clipboard.writeText(user.partnerCode)
+                      toast.success("Pairing code copied!", {
+                        description: "Send this code to your partner so they can pair with you."
+                      })
+                    }
+                  }}
+                  className="flex items-center justify-center gap-2 text-xs font-medium bg-[var(--mf-accent)] text-white hover:opacity-90 py-2.5 px-4 rounded-xl transition-all duration-300 active:scale-95"
+                >
+                  Copy Code
+                </button>
+              </div>
+            </div>
+
+            {/* Right side: Pair status or input */}
+            <div className="p-4 rounded-2xl bg-[var(--mf-composer-bg)] border border-[var(--mf-border)] flex flex-col justify-between min-h-[120px]">
+              {partnerStatus?.paired ? (
+                <div className="space-y-4">
+                  <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground block">Connected Partner</span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="size-10 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center overflow-hidden border border-[var(--mf-border)]">
+                        {partnerStatus.partner?.avatar ? (
+                          <img src={partnerStatus.partner.avatar} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-base font-semibold text-[var(--mf-accent)]">
+                            {partnerStatus.partner?.name?.charAt(0).toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-semibold text-[var(--mf-text-strong)]">{partnerStatus.partner?.name}</span>
+                        <span className="text-[10px] text-muted-foreground capitalize">{partnerStatus.partner?.accessLevel} access</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={isDisconnecting}
+                      onClick={handleDisconnect}
+                      className="text-xs font-semibold text-rose-500 hover:text-rose-600 hover:underline px-3 py-1.5 rounded-lg border border-rose-500/20 hover:bg-rose-500/5 transition-all"
+                    >
+                      {isDisconnecting ? 'Disconnecting...' : 'Disconnect'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3 flex-1 flex flex-col justify-center">
+                  <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground block">Enter Partner Code</span>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="e.g. XY82HA"
+                      value={partnerCodeInput}
+                      onChange={(e) => setPartnerCodeInput(e.target.value.toUpperCase())}
+                      className="bg-white dark:bg-white/5 border border-[var(--mf-border)] rounded-xl px-4 py-2 text-sm font-mono tracking-wider focus:outline-none focus:ring-1 focus:ring-[var(--mf-accent)] w-full uppercase"
+                    />
+                    <button
+                      type="button"
+                      disabled={isPairing || !partnerCodeInput.trim()}
+                      onClick={handlePair}
+                      className="flex items-center justify-center gap-2 text-xs font-semibold bg-[var(--mf-accent)] text-white hover:opacity-90 py-2 px-4 rounded-xl transition-all duration-300 active:scale-95 disabled:opacity-50 shrink-0"
+                    >
+                      {isPairing ? 'Pairing...' : 'Connect'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </>
   )
 }

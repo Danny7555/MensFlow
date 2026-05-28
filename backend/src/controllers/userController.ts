@@ -13,8 +13,8 @@ export async function getProfile(req: AuthRequest, res: Response, next: NextFunc
 
 export async function updateProfile(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { name, avatar, accessLevel, isOnboarded } = req.body;
-    const user = await userService.updateUserProfile(req.user!.id, { name, avatar, accessLevel, isOnboarded });
+    const { name, avatar, accessLevel, isOnboarded, role } = req.body;
+    const user = await userService.updateUserProfile(req.user!.id, { name, avatar, accessLevel, isOnboarded, role });
     res.json({ user });
   } catch (err) {
     next(err);

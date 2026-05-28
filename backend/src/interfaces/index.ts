@@ -23,6 +23,7 @@ export interface IUser {
   isOnboarded: boolean;
   partnerCode: string;
   partnerId: string | null;
+  role: 'lady' | 'partner';
   createdAt: Date;
 }
 

@@ -3,7 +3,7 @@ import { use, useReducer, useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Joyride, STATUS } from 'react-joyride'
 import { m } from 'framer-motion'
-import { Plus } from '@phosphor-icons/react'
+import { Plus, LinkSimple, Users, ArrowRight, Sparkle } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { useStore } from '../store/useStore'
 import { useAuth } from '../context/useAuth'
@@ -117,7 +117,35 @@ const TOUR_STEPS = [
 ]
 
 export function DashboardView() {
-  const { dashboard: data, updateDashboard: update, isSaving, user } = useStore()
+  const { dashboard: ownDashboard, partnerStatus, fetchPartnerStatus, updateDashboard: update, isSaving, user, pairPartner } = useStore()
+
+  const [dashboardPartnerCodeInput, setDashboardPartnerCodeInput] = useState('')
+  const [isDashboardPairing, setIsDashboardPairing] = useState(false)
+
+  const handleDashboardPair = async () => {
+    if (!dashboardPartnerCodeInput.trim()) return
+    setIsDashboardPairing(true)
+    try {
+      await pairPartner(dashboardPartnerCodeInput.trim())
+      setDashboardPartnerCodeInput('')
+    } finally {
+      setIsDashboardPairing(false)
+    }
+  }
+
+  const data = useMemo(() => {
+    if (user?.role === 'partner' && partnerStatus?.paired && partnerStatus?.cycle) {
+      return partnerStatus.cycle
+    }
+    return ownDashboard
+  }, [user?.role, partnerStatus, ownDashboard])
+
+  useEffect(() => {
+    if (user?.role) {
+      fetchPartnerStatus()
+    }
+  }, [user?.role, fetchPartnerStatus])
+
   const { logout, isAuthenticated, openAuthModal } = useAuth()
   const ctx = use(ChatSessionContext)
   const temporaryChat = ctx?.temporaryChat ?? false
@@ -158,9 +186,9 @@ export function DashboardView() {
             const lastProcessed = sessionStorage.getItem('mensflow_last_ping_processed:v1')
             if (lastProcessed !== String(ping.timestamp)) {
               sessionStorage.setItem('mensflow_last_ping_processed:v1', String(ping.timestamp))
-              toast.info("Partner Update received!", {
+              toast.info(user?.role === 'lady' ? "Support Update received!" : "Partner Update received!", {
                 icon: "👋",
-                description: `She is: "${ping.label}" (${ping.message})`,
+                description: user?.role === 'lady' ? `Partner says: "${ping.message}"` : `She is: "${ping.label}" (${ping.message})`,
                 duration: 8000,
               })
             }
@@ -231,6 +259,146 @@ export function DashboardView() {
 
   if (state.isLoading) {
     return <DashboardSkeleton />
+  }
+
+  if (user?.role === 'partner' && (!partnerStatus || !partnerStatus.paired)) {
+    return (
+      <div className="dashboard-flo-theme relative overflow-hidden min-h-screen animate-in fade-in duration-700">
+        <AmbientBackground phase="follicular" />
+        {!isAuthenticated && (
+          <div className="bg-gradient-to-r from-[var(--mf-accent)] to-[#f472b6] text-white py-2.5 px-4 text-center text-xs font-normal flex items-center justify-center gap-2 relative z-50 animate-in slide-in-from-top duration-500">
+            <span>You are previewing MensFlow as a guest. Your data is stored locally.</span>
+            <button 
+              onClick={openAuthModal}
+              className="bg-white text-[var(--mf-accent)] px-3 py-1 rounded-full text-[11px] font-normal hover:bg-opacity-95 transition-all active:scale-95 cursor-pointer ml-1"
+            >
+              Create account
+            </button>
+          </div>
+        )}
+        <DashboardHeader 
+          user={user}
+          mounted={state.mounted}
+          isSaving={isSaving}
+          getGreeting={getGreeting}
+          temporaryChat={temporaryChat}
+          toggleTempChat={toggleTempChat}
+          handleLogout={handleLogout}
+          onStartTour={startTour}
+        />
+
+        <main className="flo-main-container pb-32 px-4 md:px-0 relative z-10 flex items-center justify-center">
+          <div className="flo-content-inner max-w-2xl w-full mx-auto">
+            
+            <m.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-8 md:p-10 rounded-[2.5rem] bg-gradient-to-br from-pink-500/10 via-[var(--mf-composer-bg)] to-[var(--mf-composer-bg)] border border-[var(--mf-border)] backdrop-blur-lg relative overflow-hidden shadow-xl"
+            >
+              <div className="absolute top-0 right-0 w-48 h-48 bg-pink-500/5 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-10 left-10 w-48 h-48 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
+
+              <div className="flex flex-col items-center text-center space-y-6">
+                <m.div
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                  className="size-20 rounded-full bg-gradient-to-br from-pink-400 to-rose-600 flex items-center justify-center shadow-lg shadow-pink-500/10 relative"
+                >
+                  <Users size={36} weight="duotone" className="text-white" />
+                  <div className="absolute -right-1 -bottom-1 size-6 rounded-full bg-purple-500 flex items-center justify-center border-2 border-white dark:border-gray-900">
+                    <LinkSimple size={12} weight="bold" className="text-white" />
+                  </div>
+                </m.div>
+
+                <div className="space-y-2">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] bg-pink-500/10 text-pink-500 px-3 py-1 rounded-full border border-pink-500/20 inline-block">
+                    Partner Program
+                  </span>
+                  <h1 className="text-2xl md:text-3xl font-normal tracking-tight text-[var(--mf-text-strong)]">
+                    Connect to your partner
+                  </h1>
+                  <p className="text-xs text-[var(--mf-muted)] max-w-md mx-auto leading-relaxed">
+                    Enter your partner's code to see her cycle status, read empathy translators, and get daily checklists to support her.
+                  </p>
+                </div>
+
+                <div className="w-full max-w-sm space-y-4 pt-4">
+                  <div className="space-y-2 text-left">
+                    <label htmlFor="partner-code" className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block">
+                      Enter Partner's Code
+                    </label>
+                    <div className="flex gap-3">
+                      <input
+                        id="partner-code"
+                        type="text"
+                        placeholder="e.g. XY82HA"
+                        value={dashboardPartnerCodeInput}
+                        onChange={(e) => setDashboardPartnerCodeInput(e.target.value.toUpperCase())}
+                        className="flex-grow bg-white dark:bg-white/5 border border-[var(--mf-border)] rounded-2xl px-4 py-3 text-base font-mono tracking-widest text-center font-bold focus:outline-none focus:ring-2 focus:ring-[var(--mf-accent)]/50 uppercase text-[var(--mf-text-strong)] w-full"
+                        maxLength={6}
+                      />
+                      <m.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        type="button"
+                        disabled={isDashboardPairing || !dashboardPartnerCodeInput.trim()}
+                        onClick={handleDashboardPair}
+                        className="bg-[var(--mf-accent)] text-white hover:opacity-95 px-6 rounded-2xl text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md shadow-[var(--mf-accent)]/15 min-w-[100px] cursor-pointer"
+                      >
+                        {isDashboardPairing ? (
+                          <m.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
+                            <Sparkle size={14} weight="bold" />
+                          </m.div>
+                        ) : (
+                          <>
+                            <span>Connect</span>
+                            <ArrowRight size={14} weight="bold" />
+                          </>
+                        )}
+                      </m.button>
+                    </div>
+                  </div>
+
+                  <div className="relative flex py-2 items-center">
+                    <div className="flex-grow border-t border-[var(--mf-border)]"></div>
+                    <span className="flex-shrink mx-4 text-[10px] text-muted-foreground uppercase tracking-widest">or share yours</span>
+                    <div className="flex-grow border-t border-[var(--mf-border)]"></div>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-white/40 dark:bg-white/5 border border-[var(--mf-border)] flex items-center justify-between gap-4">
+                    <div className="text-left">
+                      <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground block">Your Code</span>
+                      <span className="text-sm font-mono font-bold tracking-wider text-[var(--mf-text-strong)]">
+                        {user?.partnerCode ?? '------'}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (user?.partnerCode) {
+                          navigator.clipboard.writeText(user.partnerCode)
+                          toast.success("Pairing code copied!", {
+                            description: "Send this code to your partner so they can pair with you."
+                          })
+                        }
+                      }}
+                      className="text-[11px] font-semibold bg-white dark:bg-white/10 hover:bg-gray-50 dark:hover:bg-white/15 text-[var(--mf-text-strong)] border border-[var(--mf-border)] px-3 py-1.5 rounded-xl transition-all active:scale-95 cursor-pointer shrink-0"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+
+                <p className="text-[10px] text-muted-foreground pt-4">
+                  🔒 Connection is private. Your partner will only see shared empathy updates and checklists.
+                </p>
+              </div>
+            </m.div>
+
+          </div>
+        </main>
+      </div>
+    )
   }
 
   return (
@@ -328,11 +496,52 @@ export function DashboardView() {
             <StoriesSection />
           </div>
 
+          {/* Pairing Alert Banner */}
+          {isAuthenticated && (!partnerStatus || !partnerStatus.paired) && (
+            <m.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-transparent border border-[var(--mf-border)] backdrop-blur-md relative overflow-hidden"
+            >
+              {/* Decorative glows */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/5 rounded-full blur-2xl pointer-events-none" />
+
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
+                <div className="flex items-center gap-3">
+                  <div className="size-8 rounded-xl bg-pink-500/10 text-pink-500 flex items-center justify-center shrink-0">
+                    <LinkSimple size={16} weight="bold" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <h2 className="text-xs font-semibold text-[var(--mf-text-strong)] flex items-center gap-1.5 text-left">
+                      Sync with your partner
+                      <span className="text-[8px] font-semibold uppercase tracking-wider bg-pink-500/10 text-pink-500 px-1.5 py-0.5 rounded">
+                        Unpaired
+                      </span>
+                    </h2>
+                    <p className="text-[11px] text-[var(--mf-muted)] text-left">
+                      {user?.role === 'partner'
+                        ? 'Connect to view cycle updates, wellness logs, and care options in real-time.'
+                        : 'Connect to share your cycle phase, symptoms, and receive supportive tips.'}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => navigate('/sync')}
+                  className="text-xs font-semibold bg-[var(--mf-accent)] text-white hover:opacity-90 px-4 py-2 rounded-xl transition-all active:scale-95 shrink-0 w-full sm:w-auto text-center cursor-pointer shadow-sm shadow-[var(--mf-accent)]/10"
+                >
+                  Pair Now
+                </button>
+              </div>
+            </m.div>
+          )}
+
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 md:gap-8 w-full min-w-0">
             {/* Left Main Content */}
             <div className="flex flex-col gap-6 md:gap-8 min-w-0">
               <section className="flo-hero-panel min-w-0" aria-label="Cycle overview">
-                <CycleTrackerHero showCheckIn={true} />
+                <CycleTrackerHero showCheckIn={user?.role !== 'partner'} />
               </section>
 
               <div className="w-full min-w-0">
@@ -356,47 +565,55 @@ export function DashboardView() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 min-w-0">
+              <div className={cn("grid grid-cols-1 gap-6 md:gap-8 min-w-0", user?.role === 'partner' ? "md:grid-cols-2" : "md:grid-cols-1")}>
                 <HormoneInsightCard />
-                <ConnectionChecklistCard />
+                {user?.role === 'partner' && <ConnectionChecklistCard />}
               </div>
             </div>
 
             {/* Right Sidebar Stack */}
             <div className="flex flex-col gap-6 md:gap-8 min-w-0">
-              <section aria-label="Partner support" className="min-w-0">
-                <PartnerTranslationCard 
-                  label={phase}
-                  onCopy={handleCopyGesture}
-                />
-              </section>
+              {user?.role === 'partner' && (
+                <section aria-label="Partner support" className="min-w-0">
+                  <PartnerTranslationCard 
+                    label={phase}
+                    onCopy={handleCopyGesture}
+                  />
+                </section>
+              )}
 
               <div className="min-w-0">
                 <WellnessScoreCard />
               </div>
 
-              <div className="min-w-0">
-                <QuickLogCard onViewAll={() => dispatch({ type: 'TOGGLE_LOG', payload: true })} />
-              </div>
+              {user?.role !== 'partner' && (
+                <>
+                  <div className="min-w-0">
+                    <QuickLogCard onViewAll={() => dispatch({ type: 'TOGGLE_LOG', payload: true })} />
+                  </div>
 
-              <div className="flex-1 min-w-0">
-                <SymptomLogger />
-              </div>
+                  <div className="flex-1 min-w-0">
+                    <SymptomLogger />
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
       </main>
 
       {/* Persistent Interaction Trigger */}
-      <m.button 
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        className="flo-fab"
-        onClick={() => dispatch({ type: 'TOGGLE_LOG', payload: true })}
-      >
-        <div className="flo-fab-ripple" />
-        <Plus size={28} weight="bold" />
-      </m.button>
+      {user?.role !== 'partner' && (
+        <m.button 
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          className="flo-fab"
+          onClick={() => dispatch({ type: 'TOGGLE_LOG', payload: true })}
+        >
+          <div className="flo-fab-ripple" />
+          <Plus size={28} weight="bold" />
+        </m.button>
+      )}
 
        <SnapshotModal 
         key={`snap-${state.isSnapshotOpen}`}

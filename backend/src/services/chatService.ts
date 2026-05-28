@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import { Types } from 'mongoose';
 import { ChatMessage } from '../models/Chat';
 import { User } from '../models/User';
 import { Dashboard } from '../models/Dashboard';
@@ -9,7 +10,7 @@ import { IChatMessage, ISessionSummary } from '../interfaces';
 
 export async function getSessions(userId: string): Promise<ISessionSummary[]> {
   const sessions = await ChatMessage.aggregate([
-    { $match: { userId: userId } },
+    { $match: { userId: new Types.ObjectId(userId) } },
     { $sort: { createdAt: 1 } },
     {
       $group: {

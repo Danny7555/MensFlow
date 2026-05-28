@@ -16,6 +16,23 @@ export const ONBOARDING_QUESTIONS: OnboardingQuestion[] = [
     type: 'intro',
   },
   {
+    id: 'role',
+    question: 'Choose your role',
+    description: 'Are you tracking your own cycle or supporting a partner?',
+    type: 'single-choice',
+    options: [
+      { label: "I'm tracking my own cycle", value: 'lady', img: '/images/heart.png' },
+      { label: "I'm supporting my partner", value: 'partner', img: '/images/calm.jpg' },
+    ],
+  },
+  {
+    id: 'partner_code',
+    question: "Enter your partner's code",
+    description: "Got a pairing code from your partner? Enter it here to pair instantly, or leave blank to connect later.",
+    type: 'input',
+    placeholder: 'e.g. XY82HA',
+  },
+  {
     id: 'goal',
     question: 'Your main goal?',
     description: 'We will personalize your experience.',

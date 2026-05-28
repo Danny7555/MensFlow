@@ -3,6 +3,7 @@ import { type DashboardSnapshot, DEFAULT_DASHBOARD } from '../lib/dashboardStora
 import { DEFAULT_SETTINGS, type MensFlowSettings } from '../context/settings-types'
 import { type SymptomDef, type SymptomCategory } from '../data/symptomsData'
 import { logsApi, userApi, partnerApi, type ApiUser, type ApiSettings, type ApiDashboard } from '../lib/api'
+import { toast } from 'sonner'
 
 export type SymptomLog = {
   date: string
@@ -13,12 +14,33 @@ interface AppState {
   dashboard: DashboardSnapshot
   settings: MensFlowSettings
   logs: SymptomLog[]
-  user: { name: string; avatar?: string | null; accessLevel?: 'full' | 'educational'; isOnboarded?: boolean }
+  user: { name: string; avatar?: string | null; accessLevel?: 'full' | 'educational'; isOnboarded?: boolean; role?: 'lady' | 'partner'; partnerCode?: string; partnerId?: string | null }
   customSymptoms: SymptomDef[]
   isSaving: boolean
   completedActions: string[]
   supportStreak: number
   lastActionDate: string
+  partnerStatus: {
+    paired: boolean
+    partner?: {
+      name: string
+      avatar: string | null
+      accessLevel: 'full' | 'educational'
+    }
+    cycle?: {
+      lastPeriodStart: string
+      typicalCycleDays: number
+      phaseLabel: string
+      hormoneTrend: string
+      bodySignals: string
+      symptoms?: string[]
+    } | null
+    support?: {
+      completedActions: string[]
+      supportStreak: number
+      lastActionDate: string
+    }
+  } | null
 
   // Lifecycle
   hydrate: (data: { user: ApiUser; settings: ApiSettings; dashboard: ApiDashboard }) => void
@@ -28,7 +50,7 @@ interface AppState {
   updateDashboard: (patch: Partial<DashboardSnapshot>) => Promise<void>
 
   // User / Settings
-  updateUser: (patch: Partial<{ name: string; avatar: string | null; accessLevel: 'full' | 'educational'; isOnboarded: boolean }>) => Promise<void>
+  updateUser: (patch: Partial<{ name: string; avatar: string | null; accessLevel: 'full' | 'educational'; isOnboarded: boolean; role: 'lady' | 'partner' }>) => Promise<void>
   updateSettings: (patch: Partial<MensFlowSettings>) => Promise<void>
   resetSettings: () => void
 
@@ -46,9 +68,12 @@ interface AppState {
   // Partner support
   toggleSupportAction: (actionId: string) => Promise<void>
   checkAndResetDailyActions: () => void
+  fetchPartnerStatus: () => Promise<void>
+  pairPartner: (partnerCode: string) => Promise<void>
+  disconnectPartnerAction: () => Promise<void>
 }
 
-const DEFAULT_USER = { name: '', avatar: null, accessLevel: 'full' as const, isOnboarded: false }
+const DEFAULT_USER = { name: '', avatar: null, accessLevel: 'full' as const, isOnboarded: false, role: 'lady' as const, partnerCode: '', partnerId: null }
 
 export const useStore = create<AppState>()((set, get) => ({
   dashboard: DEFAULT_DASHBOARD,
@@ -60,6 +85,7 @@ export const useStore = create<AppState>()((set, get) => ({
   completedActions: [],
   supportStreak: 0,
   lastActionDate: '',
+  partnerStatus: null,
 
   // ── Hydrate from API response on login ──────────────────────────────────────
   hydrate: ({ user, settings, dashboard }) => {
@@ -69,6 +95,9 @@ export const useStore = create<AppState>()((set, get) => ({
         avatar: user.avatar,
         accessLevel: user.accessLevel,
         isOnboarded: user.isOnboarded,
+        role: user.role,
+        partnerCode: user.partnerCode,
+        partnerId: user.partnerId,
       },
       settings: {
         ...DEFAULT_SETTINGS,
@@ -102,6 +131,7 @@ export const useStore = create<AppState>()((set, get) => ({
       completedActions: [],
       supportStreak: 0,
       lastActionDate: '',
+      partnerStatus: null,
     }),
 
   // ── Dashboard ───────────────────────────────────────────────────────────────
@@ -134,6 +164,9 @@ export const useStore = create<AppState>()((set, get) => ({
           avatar: updated.avatar,
           accessLevel: updated.accessLevel,
           isOnboarded: updated.isOnboarded,
+          role: updated.role,
+          partnerCode: updated.partnerCode,
+          partnerId: updated.partnerId,
         },
       }))
     } finally {
@@ -234,6 +267,50 @@ export const useStore = create<AppState>()((set, get) => ({
         patch.supportStreak = 0
       }
       set(patch)
+    }
+  },
+
+  fetchPartnerStatus: async () => {
+    try {
+      const status = await partnerApi.getStatus()
+      set({ 
+        partnerStatus: status as any,
+        completedActions: (status as any).support?.completedActions ?? [],
+        supportStreak: (status as any).support?.supportStreak ?? 0,
+        lastActionDate: (status as any).support?.lastActionDate ?? '',
+      })
+    } catch (err) {
+      console.error('Failed to fetch partner status:', err)
+    }
+  },
+
+  pairPartner: async (partnerCode) => {
+    set({ isSaving: true })
+    try {
+      const result = await partnerApi.pair(partnerCode)
+      const profile = await userApi.getProfile()
+      get().hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
+      await get().fetchPartnerStatus()
+      toast.success(`Successfully paired with ${result.partner.name}!`, { icon: '❤️' })
+    } catch (err: any) {
+      toast.error(err.message ?? 'Failed to pair with partner')
+    } finally {
+      set({ isSaving: false })
+    }
+  },
+
+  disconnectPartnerAction: async () => {
+    set({ isSaving: true })
+    try {
+      await partnerApi.disconnect()
+      const profile = await userApi.getProfile()
+      get().hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
+      set({ partnerStatus: null })
+      toast.success('Successfully disconnected from partner')
+    } catch (err: any) {
+      toast.error(err.message ?? 'Failed to disconnect from partner')
+    } finally {
+      set({ isSaving: false })
     }
   },
 }))

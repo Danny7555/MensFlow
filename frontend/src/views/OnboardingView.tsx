@@ -1,4 +1,4 @@
-import { useState, useCallback, useTransition } from 'react' 
+import { useState, useCallback, useTransition, useMemo } from 'react' 
 import { useNavigate } from 'react-router-dom'
 import { m, AnimatePresence, LazyMotion, domAnimation } from 'framer-motion'
 import { useAuth } from '../context/useAuth'
@@ -29,7 +29,33 @@ export function OnboardingView() {
   const navigate = useNavigate()
 
   const question = ONBOARDING_QUESTIONS[currentStep]
-  const progress = ((currentStep + 1) / ONBOARDING_QUESTIONS.length) * 100
+
+  const activeQuestions = useMemo(() => {
+    const selectedRole = answers.role || '';
+    return ONBOARDING_QUESTIONS.filter((q) => {
+      if (q.id === 'intro') return false;
+      if (selectedRole === 'partner') {
+        if (['goal', 'energy_consistency', 'symptoms', 'activity_level'].includes(q.id)) {
+          return false;
+        }
+      } else {
+        if (q.id === 'partner_code') {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [answers.role]);
+
+  const activeStepIndex = useMemo(() => {
+    const currentQuestion = ONBOARDING_QUESTIONS[currentStep];
+    const idx = activeQuestions.findIndex((q) => q.id === currentQuestion.id);
+    return idx >= 0 ? idx + 1 : 1;
+  }, [currentStep, activeQuestions]);
+
+  const progress = useMemo(() => {
+    return (activeStepIndex / activeQuestions.length) * 100;
+  }, [activeStepIndex, activeQuestions.length]);
 
   const getIcon = (iconName?: string) => {
     switch (iconName) {
@@ -54,54 +80,66 @@ export function OnboardingView() {
     if (typeof answers.access_level === 'string' && answers.access_level) {
       patch.accessLevel = answers.access_level
     }
+    if (typeof answers.role === 'string' && answers.role) {
+      patch.role = answers.role
+    }
     if (Object.keys(patch).length > 0) {
       updateUser(patch)
     }
+
+    if (answers.role === 'partner' && typeof answers.partner_code === 'string' && answers.partner_code.trim()) {
+      sessionStorage.setItem('mf_partner_code', answers.partner_code.trim())
+    } else {
+      sessionStorage.removeItem('mf_partner_code')
+    }
     
-    // Map onboarding answers to dashboard state
-    const newDashboard: Partial<DashboardSnapshot> = {
-      // Start their tracking cycle from today
-      lastPeriodStart: new Date().toISOString().slice(0, 10)
-    }
+    // Map onboarding answers to dashboard state if the user is a lady
+    if (answers.role !== 'partner') {
+      const newDashboard: Partial<DashboardSnapshot> = {
+        // Start their tracking cycle from today
+        lastPeriodStart: new Date().toISOString().slice(0, 10)
+      }
 
-    if (Array.isArray(answers.symptoms) && answers.symptoms.length > 0) {
-       const labels = answers.symptoms.reduce<string[]>((acc, s) => {
-         if (s !== 'none') {
-           if (s === 'fatigue') acc.push('Fatigue')
-           else if (s === 'fog') acc.push('Brain fog')
-           else if (s === 'stress') acc.push('High stress')
-           else if (s === 'mood') acc.push('Mood swings')
-           else if (s === 'sleep') acc.push('Poor sleep')
-           else acc.push(s)
+      if (Array.isArray(answers.symptoms) && answers.symptoms.length > 0) {
+         const labels = answers.symptoms.reduce<string[]>((acc, s) => {
+           if (s !== 'none') {
+             if (s === 'fatigue') acc.push('Fatigue')
+             else if (s === 'fog') acc.push('Brain fog')
+             else if (s === 'stress') acc.push('High stress')
+             else if (s === 'mood') acc.push('Mood swings')
+             else if (s === 'sleep') acc.push('Poor sleep')
+             else acc.push(s)
+           }
+           return acc
+         }, [])
+         if (labels.length > 0) {
+           newDashboard.bodySignals = labels.join(', ')
+         } else {
+           newDashboard.bodySignals = 'Balanced'
          }
-         return acc
-       }, [])
-       if (labels.length > 0) {
-         newDashboard.bodySignals = labels.join(', ')
-       } else {
-         newDashboard.bodySignals = 'Balanced'
-       }
+      }
+
+      if (answers.goal === 'track') {
+         newDashboard.guidanceLines = ['Focus on energy tracking', 'Monitor your sleep cycle', 'Keep a daily journal']
+      } else if (answers.goal === 'health') {
+         newDashboard.guidanceLines = ['Prioritize hydration', 'Aim for 30m exercise daily', 'Establish a morning routine']
+      } else if (answers.goal === 'symptoms') {
+         newDashboard.guidanceLines = ['Track your triggers', 'Practice mindfulness', 'Maintain a regular schedule']
+      } else if (answers.goal === 'learn') {
+         newDashboard.guidanceLines = ['Read the daily insights', 'Listen to your body', 'Focus on holistic wellness']
+      }
+
+      if (answers.energy_consistency === 'irregular') {
+          newDashboard.hormoneTrend = 'Fluctuating energy'
+      } else if (answers.energy_consistency === 'regular') {
+          newDashboard.hormoneTrend = 'Stable energy'
+      } else if (answers.energy_consistency === 'mostly') {
+          newDashboard.hormoneTrend = 'Consistent rhythm'
+      }
+
+      updateDashboard(newDashboard)
     }
 
-    if (answers.goal === 'track') {
-       newDashboard.guidanceLines = ['Focus on energy tracking', 'Monitor your sleep cycle', 'Keep a daily journal']
-    } else if (answers.goal === 'health') {
-       newDashboard.guidanceLines = ['Prioritize hydration', 'Aim for 30m exercise daily', 'Establish a morning routine']
-    } else if (answers.goal === 'symptoms') {
-       newDashboard.guidanceLines = ['Track your triggers', 'Practice mindfulness', 'Maintain a regular schedule']
-    } else if (answers.goal === 'learn') {
-       newDashboard.guidanceLines = ['Read the daily insights', 'Listen to your body', 'Focus on holistic wellness']
-    }
-
-    if (answers.energy_consistency === 'irregular') {
-        newDashboard.hormoneTrend = 'Fluctuating energy'
-    } else if (answers.energy_consistency === 'regular') {
-        newDashboard.hormoneTrend = 'Stable energy'
-    } else if (answers.energy_consistency === 'mostly') {
-        newDashboard.hormoneTrend = 'Consistent rhythm'
-    }
-
-    updateDashboard(newDashboard)
     completeOnboarding()
     if (isAuthenticated) {
       navigate('/dashboard')
@@ -109,11 +147,26 @@ export function OnboardingView() {
       openAuthModal()
       navigate('/')
     }
-  }, [answers.name, answers.symptoms, answers.goal, answers.energy_consistency, updateDashboard, completeOnboarding, isAuthenticated, navigate, openAuthModal, updateUser])
+  }, [answers.name, answers.role, answers.partner_code, answers.symptoms, answers.goal, answers.energy_consistency, updateDashboard, completeOnboarding, isAuthenticated, navigate, openAuthModal, updateUser])
 
   const handleNext = useCallback(() => {
     if (currentStep < ONBOARDING_QUESTIONS.length - 1) {
-      setCurrentStep((s) => s + 1)
+      let nextStep = currentStep + 1;
+      const selectedRole = answers.role || '';
+      
+      if (selectedRole === 'partner') {
+        // Skip cycle tracking questions: goal, energy_consistency, symptoms, activity_level
+        if (ONBOARDING_QUESTIONS[nextStep] && ['goal', 'energy_consistency', 'symptoms', 'activity_level'].includes(ONBOARDING_QUESTIONS[nextStep].id)) {
+          nextStep = ONBOARDING_QUESTIONS.findIndex(q => q.id === 'name');
+        }
+      } else if (selectedRole === 'lady') {
+        // Skip partner code
+        if (ONBOARDING_QUESTIONS[nextStep] && ONBOARDING_QUESTIONS[nextStep].id === 'partner_code') {
+          nextStep = ONBOARDING_QUESTIONS.findIndex(q => q.id === 'goal');
+        }
+      }
+      
+      setCurrentStep(nextStep >= 0 ? nextStep : currentStep + 1);
     } else {
       startTransition(() => {
         setIsAnalyzing(true)
@@ -122,13 +175,28 @@ export function OnboardingView() {
         }, 2500)
       })
     }
-  }, [currentStep, finishOnboarding, startTransition])
+  }, [currentStep, answers.role, finishOnboarding, startTransition])
 
   const handleBack = useCallback(() => {
     if (currentStep > 0) {
-      setCurrentStep((s) => s - 1)
+      let prevStep = currentStep - 1;
+      const selectedRole = answers.role || '';
+      
+      if (selectedRole === 'partner') {
+        // From name, go back to partner_code
+        if (ONBOARDING_QUESTIONS[currentStep].id === 'name') {
+          prevStep = ONBOARDING_QUESTIONS.findIndex(q => q.id === 'partner_code');
+        }
+      } else if (selectedRole === 'lady') {
+        // From goal, go back to role
+        if (ONBOARDING_QUESTIONS[currentStep].id === 'goal') {
+          prevStep = ONBOARDING_QUESTIONS.findIndex(q => q.id === 'role');
+        }
+      }
+      
+      setCurrentStep(prevStep >= 0 ? prevStep : currentStep - 1);
     }
-  }, [currentStep])
+  }, [currentStep, answers.role])
 
   const handleNoThanks = useCallback(() => {
     completeOnboarding()
@@ -155,6 +223,7 @@ export function OnboardingView() {
 
   const isStepValid = () => {
     const answer = answers[question.id]
+    if (question.id === 'partner_code') return true // Partner code is optional
     if (question.type === 'single-choice') return !!answer
     if (question.type === 'multi-choice') return Array.isArray(answer) && answer.length > 0
     if (question.type === 'input') return typeof answer === 'string' && answer.trim().length > 0
@@ -176,11 +245,13 @@ export function OnboardingView() {
           >
             <div className="onboarding-inner onboarding-inner--mobile-responsive">
               <OnboardingHeader
-                currentStep={currentStep}
-                totalSteps={ONBOARDING_QUESTIONS.length - 1}
+                rawStep={currentStep}
+                displayStep={activeStepIndex}
+                totalSteps={activeQuestions.length}
                 progress={progress}
                 handleBack={handleBack}
                 handleNext={handleNext}
+                onOpenAuth={openAuthModal}
               />
 
               <main className="onboarding-main">
@@ -284,59 +355,81 @@ export function OnboardingView() {
 }
 
 interface OnboardingHeaderProps {
-  currentStep: number
+  rawStep: number
+  displayStep: number
   totalSteps: number
   progress: number
   handleBack: () => void
   handleNext: () => void
+  onOpenAuth: () => void
 }
 
 function OnboardingHeader({
-  currentStep,
+  rawStep,
+  displayStep,
   totalSteps,
   progress,
   handleBack,
   handleNext,
+  onOpenAuth,
 }: OnboardingHeaderProps) {
   return (
     <div className="onboarding-header">
-      {currentStep > 0 && (
-        <div className="onboarding-nav-top">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleBack}
-            className="rounded-full"
-          >
-            <CaretLeft size={24} weight="bold" />
-          </Button>
-          
-          <div className="onboarding-brand">
-            <FlowerLotus size={28} weight="duotone" className="text-primary" />
-            <span className="onboarding-brand-text">MensFlow</span>
+      {rawStep > 0 ? (
+        <div className="onboarding-nav-top flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleBack}
+              className="rounded-full"
+            >
+              <CaretLeft size={24} weight="bold" />
+            </Button>
+            
+            <div className="onboarding-brand hidden sm:flex">
+              <FlowerLotus size={28} weight="duotone" className="text-primary" />
+              <span className="onboarding-brand-text">MensFlow</span>
+            </div>
           </div>
 
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              onClick={onOpenAuth}
+              className="text-xs font-semibold text-primary hover:text-primary/90"
+            >
+              Log in
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={handleNext}
+              className="onboarding-skip-btn"
+            >
+              Skip
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="onboarding-nav-top flex items-center justify-between w-full">
+          <div className="onboarding-brand-centered !m-0 !p-0 flex items-center gap-2">
+            <FlowerLotus size={32} weight="duotone" className="text-primary" />
+            <span className="onboarding-brand-text-lg">MensFlow</span>
+          </div>
           <Button
             variant="ghost"
-            onClick={handleNext}
-            className="onboarding-skip-btn"
+            onClick={onOpenAuth}
+            className="text-xs font-semibold text-primary hover:text-primary/90 bg-primary/5 hover:bg-primary/10 px-4 py-2 rounded-full cursor-pointer transition-all"
           >
-            Skip
+            Log in
           </Button>
-        </div>
-      )}
-
-      {currentStep === 0 && (
-        <div className="onboarding-brand-centered">
-          <FlowerLotus size={32} weight="duotone" className="text-primary" />
-          <span className="onboarding-brand-text-lg">MensFlow</span>
         </div>
       )}
       
-      {currentStep > 0 && (
+      {rawStep > 0 && (
         <div className="flex flex-col gap-2 w-full mt-4">
           <div className="flex justify-center text-sm font-medium text-muted-foreground tracking-wide">
-            {currentStep} / {totalSteps}
+            {displayStep} / {totalSteps}
           </div>
           <div className="onboarding-progress-wrap !mt-0">
             <div 
