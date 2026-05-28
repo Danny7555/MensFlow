@@ -566,7 +566,7 @@ export function DashboardView() {
               </div>
 
               <div className={cn("grid grid-cols-1 gap-6 md:gap-8 min-w-0", user?.role === 'partner' ? "md:grid-cols-2" : "md:grid-cols-1")}>
-                <HormoneInsightCard />
+                <HormoneInsightCard phaseLabel={phase} />
                 {user?.role === 'partner' && <ConnectionChecklistCard />}
               </div>
             </div>

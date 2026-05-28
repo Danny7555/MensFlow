@@ -4,9 +4,23 @@ import { Sparkle, CaretRight } from "@phosphor-icons/react"
 
 interface HormoneInsightCardProps {
   variants?: Variants
+  phaseLabel?: string
 }
 
-export function HormoneInsightCard({ variants }: HormoneInsightCardProps) {
+const INSIGHTS_BY_PHASE: Record<string, string> = {
+  menstrual: "Did you know? Estrogen and progesterone drop to their lowest levels. This triggers the shedding of the uterine lining, naturally lowering your body temperature and resting heart rate.",
+  follicular: "Did you know? Estrogen levels rise, which stimulates the growth of follicles in your ovaries and can increase your cognitive clarity, mood, and physical stamina.",
+  ovulatory: "Did you know? Luteinizing hormone peaks, triggering ovulation. This is typically when your physical energy, libido, and communication skills are at their highest.",
+  fertile: "Did you know? Estrogen peaks to help prepare for potential fertilization. You might notice higher energy and increased social motivation during this time.",
+  luteal: "Did you know? Progesterone rises, raising your resting heart rate by 2-5 beats per minute and slightly increasing basal body temperature. Don't be alarmed if your tracker shows higher exertion today."
+}
+
+export function HormoneInsightCard({ variants, phaseLabel }: HormoneInsightCardProps) {
+  const normalized = (phaseLabel || '').toLowerCase()
+  const insightText = normalized 
+    ? (INSIGHTS_BY_PHASE[normalized] || INSIGHTS_BY_PHASE.luteal)
+    : INSIGHTS_BY_PHASE.luteal
+
   return (
     <m.div 
       variants={variants}
@@ -26,7 +40,7 @@ export function HormoneInsightCard({ variants }: HormoneInsightCardProps) {
         </div>
         <div className="mt-2 relative z-10">
           <p className="text-[0.95rem] text-[var(--mf-text)] opacity-90 leading-relaxed">
-            Did you know? Progesterone can raise your resting heart rate by <span className="text-[var(--mf-accent)] font-normal">2-5 beats per minute</span> during this phase. Don't be alarmed if your tracker shows slightly higher exertion today.
+            {insightText}
           </p>
         </div>
       </div>
