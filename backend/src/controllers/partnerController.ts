@@ -1,15 +1,12 @@
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../interfaces';
 import * as partnerService from '../services/partnerService';
+import { objectRecord, requiredString } from '../utils/validation';
 
 export async function pairPartner(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { partnerCode } = req.body;
-
-    if (!partnerCode) {
-      res.status(400).json({ error: 'partnerCode is required' });
-      return;
-    }
+    const body = objectRecord(req.body);
+    const partnerCode = requiredString(body.partnerCode, 'partnerCode', { min: 6, max: 12 }).toUpperCase();
 
     const partner = await partnerService.pairWithPartner(req.user!.id, partnerCode);
     res.json({ success: true, partner });
@@ -38,12 +35,10 @@ export async function disconnectPartner(req: AuthRequest, res: Response, next: N
 
 export async function sendPing(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { pingId, label, message } = req.body;
-
-    if (!pingId || !label || !message) {
-      res.status(400).json({ error: 'pingId, label, and message are required' });
-      return;
-    }
+    const body = objectRecord(req.body);
+    const pingId = requiredString(body.pingId, 'pingId', { max: 80 });
+    const label = requiredString(body.label, 'label', { max: 80 });
+    const message = requiredString(body.message, 'message', { max: 500 });
 
     const ping = await partnerService.sendPing(req.user!.id, pingId, label, message);
     res.json({ success: true, ping });
@@ -63,12 +58,8 @@ export async function getLatestPing(req: AuthRequest, res: Response, next: NextF
 
 export async function toggleAction(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { actionId } = req.body;
-
-    if (!actionId) {
-      res.status(400).json({ error: 'actionId is required' });
-      return;
-    }
+    const body = objectRecord(req.body);
+    const actionId = requiredString(body.actionId, 'actionId', { max: 120 });
 
     const result = await partnerService.toggleSupportAction(req.user!.id, actionId);
     res.json(result);

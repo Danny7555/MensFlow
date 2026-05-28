@@ -40,7 +40,7 @@ const SettingsSchema = new Schema<SettingsDocument>({
   chatPersistLocal: { type: Boolean, default: true },
   chatEnterToSend: { type: Boolean, default: true },
   chatShowTimestamps: { type: Boolean, default: false },
-  cycleAvgLengthDays: { type: Number, default: 28 },
+  cycleAvgLengthDays: { type: Number, default: 28, min: 15, max: 60 },
   cycleShowFertileWindow: { type: Boolean, default: true },
 });
 

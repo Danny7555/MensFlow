@@ -6,6 +6,8 @@ import { Settings } from '../models/Settings';
 import { Dashboard } from '../models/Dashboard';
 import { SupportStreak } from '../models/Partner';
 import { IUser } from '../interfaces';
+import { getJwtSecret } from '../config/env';
+import { httpError } from '../utils/http';
 
 export async function generateUniquePartnerCode(): Promise<string> {
   for (let attempt = 0; attempt < 100; attempt++) {
@@ -21,15 +23,16 @@ export async function registerUser(
   password: string,
   name: string
 ): Promise<{ token: string; user: Partial<IUser> }> {
-  const existingUser = await User.findOne({ username: username.toLowerCase() });
+  const normalizedUsername = username.toLowerCase();
+  const existingUser = await User.findOne({ username: normalizedUsername });
   if (existingUser) {
-    throw Object.assign(new Error('Username is already taken'), { status: 400 });
+    throw httpError('Username is already taken', 409);
   }
 
   const partnerCode = await generateUniquePartnerCode();
   const passwordHash = await bcrypt.hash(password, 10);
 
-  const user = await User.create({ username, passwordHash, name, partnerCode });
+  const user = await User.create({ username: normalizedUsername, passwordHash, name, partnerCode });
 
   const defaultLastPeriodStart = new Date(Date.now() - 20 * 24 * 60 * 60 * 1000)
     .toISOString()
@@ -49,6 +52,7 @@ export async function registerUser(
       name: user.name,
       avatar: user.avatar,
       accessLevel: user.accessLevel,
+      isOnboarded: user.isOnboarded,
       partnerCode: user.partnerCode,
       partnerId: null,
       role: user.role,
@@ -62,12 +66,12 @@ export async function loginUser(
 ): Promise<{ token: string; user: Partial<IUser> }> {
   const user = await User.findOne({ username: username.toLowerCase() });
   if (!user) {
-    throw Object.assign(new Error('Invalid credentials'), { status: 400 });
+    throw httpError('Invalid credentials', 400);
   }
 
   const isMatch = await bcrypt.compare(password, user.passwordHash);
   if (!isMatch) {
-    throw Object.assign(new Error('Invalid credentials'), { status: 400 });
+    throw httpError('Invalid credentials', 400);
   }
 
   const token = signToken(String(user._id), user.username);
@@ -80,6 +84,7 @@ export async function loginUser(
       name: user.name,
       avatar: user.avatar,
       accessLevel: user.accessLevel,
+      isOnboarded: user.isOnboarded,
       partnerCode: user.partnerCode,
       partnerId: user.partnerId ? String(user.partnerId) : null,
       role: user.role,
@@ -88,7 +93,7 @@ export async function loginUser(
 }
 
 function signToken(id: string, username: string): string {
-  const secret = process.env.JWT_SECRET as string;
+  const secret = getJwtSecret();
   const expiresIn = process.env.JWT_EXPIRES_IN || '30d';
   return jwt.sign({ id, username }, secret, { expiresIn } as jwt.SignOptions);
 }

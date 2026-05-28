@@ -12,11 +12,13 @@ export interface PartnerPingDocument extends Document {
 const PartnerPingSchema = new Schema<PartnerPingDocument>({
   senderId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   receiverId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  pingId: { type: String, required: true },
-  label: { type: String, required: true },
-  message: { type: String, required: true },
+  pingId: { type: String, required: true, maxlength: 80 },
+  label: { type: String, required: true, maxlength: 80 },
+  message: { type: String, required: true, maxlength: 500 },
   timestamp: { type: Number, required: true },
 });
+
+PartnerPingSchema.index({ receiverId: 1, timestamp: -1 });
 
 export const PartnerPing = model<PartnerPingDocument>('PartnerPing', PartnerPingSchema);
 
@@ -30,9 +32,11 @@ export interface SupportActionDocument extends Document {
 
 const SupportActionSchema = new Schema<SupportActionDocument>({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  actionId: { type: String, required: true },
-  completedAt: { type: String, required: true },
+  actionId: { type: String, required: true, maxlength: 120 },
+  completedAt: { type: String, required: true, match: /^\d{4}-\d{2}-\d{2}$/ },
 });
+
+SupportActionSchema.index({ userId: 1, actionId: 1, completedAt: 1 }, { unique: true });
 
 export const SupportAction = model<SupportActionDocument>('SupportAction', SupportActionSchema);
 

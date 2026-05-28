@@ -8,7 +8,7 @@ export interface SymptomLogDocument extends Document {
 
 const SymptomLogSchema = new Schema<SymptomLogDocument>({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  date: { type: String, required: true },
+  date: { type: String, required: true, match: /^\d{4}-\d{2}-\d{2}$/ },
   symptoms: { type: [String], default: [] },
 });
 
@@ -26,8 +26,8 @@ export interface CustomSymptomDocument extends Document {
 
 const CustomSymptomSchema = new Schema<CustomSymptomDocument>({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  label: { type: String, required: true, trim: true },
-  category: { type: String, required: true, trim: true },
+  label: { type: String, required: true, trim: true, maxlength: 80 },
+  category: { type: String, required: true, trim: true, maxlength: 80 },
 });
 
 export const CustomSymptom = model<CustomSymptomDocument>('CustomSymptom', CustomSymptomSchema);

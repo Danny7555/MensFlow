@@ -15,10 +15,10 @@ export interface UserDocument extends Document {
 
 const UserSchema = new Schema<UserDocument>(
   {
-    username: { type: String, required: true, unique: true, trim: true, lowercase: true },
+    username: { type: String, required: true, unique: true, trim: true, lowercase: true, maxlength: 120 },
     passwordHash: { type: String, required: true },
-    name: { type: String, required: true, trim: true },
-    avatar: { type: String, default: null },
+    name: { type: String, required: true, trim: true, maxlength: 80 },
+    avatar: { type: String, default: null, maxlength: 500 },
     accessLevel: { type: String, enum: ['full', 'educational'], default: 'full' },
     isOnboarded: { type: Boolean, default: false },
     partnerCode: { type: String, required: true, unique: true, uppercase: true },

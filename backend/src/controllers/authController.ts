@@ -1,14 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import * as authService from '../services/authService';
+import { objectRecord, requiredString } from '../utils/validation';
 
 export async function register(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { username, password, name } = req.body;
-
-    if (!username || !password || !name) {
-      res.status(400).json({ error: 'username, password, and name are required' });
-      return;
-    }
+    const body = objectRecord(req.body);
+    const username = requiredString(body.username, 'username', { max: 120 }).toLowerCase();
+    const password = requiredString(body.password, 'password', { min: 8, max: 128 });
+    const name = requiredString(body.name, 'name', { max: 80 });
 
     const result = await authService.registerUser(username, password, name);
     res.status(201).json(result);
@@ -19,12 +18,9 @@ export async function register(req: Request, res: Response, next: NextFunction):
 
 export async function login(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { username, password } = req.body;
-
-    if (!username || !password) {
-      res.status(400).json({ error: 'username and password are required' });
-      return;
-    }
+    const body = objectRecord(req.body);
+    const username = requiredString(body.username, 'username', { max: 120 }).toLowerCase();
+    const password = requiredString(body.password, 'password', { max: 128 });
 
     const result = await authService.loginUser(username, password);
     res.json(result);

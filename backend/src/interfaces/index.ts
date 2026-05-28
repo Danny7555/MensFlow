@@ -119,9 +119,7 @@ export interface IChatMessage {
   role: ChatRole;
   text: string;
   isLocked: boolean;
-  passcode: string | null;
   securityQuestion: string | null;
-  securityAnswerHash: string | null;
   createdAt: number;
 }
 

@@ -18,7 +18,7 @@ export async function upsertSymptomLog(
   const log = await SymptomLog.findOneAndUpdate(
     { userId, date },
     { symptoms },
-    { upsert: true, new: true, lean: true }
+    { upsert: true, new: true, lean: true, runValidators: true }
   );
   // findOneAndUpdate with upsert:true and new:true always returns a document
   const saved = log!;

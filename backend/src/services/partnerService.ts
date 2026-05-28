@@ -2,7 +2,8 @@ import { User } from '../models/User';
 import { Dashboard } from '../models/Dashboard';
 import { PartnerPing, SupportAction, SupportStreak } from '../models/Partner';
 import { SymptomLog } from '../models/Symptom';
-import { IUser, IPartnerPing, IDashboard } from '../interfaces';
+import { IPartnerPing } from '../interfaces';
+import { httpError } from '../utils/http';
 
 // ─── Pairing ─────────────────────────────────────────────────────────────────
 
@@ -13,13 +14,13 @@ export async function pairWithPartner(
   const partner = await User.findOne({ partnerCode: partnerCode.toUpperCase() });
 
   if (!partner) {
-    throw Object.assign(new Error('Invalid partner code — partner not found'), { status: 404 });
+    throw httpError('Invalid partner code — partner not found', 404);
   }
   if (String(partner._id) === userId) {
-    throw Object.assign(new Error('You cannot pair with yourself'), { status: 400 });
+    throw httpError('You cannot pair with yourself', 400);
   }
   if (partner.partnerId && String(partner.partnerId) !== userId) {
-    throw Object.assign(new Error('This partner is already paired with someone else'), { status: 400 });
+    throw httpError('This partner is already paired with someone else', 400);
   }
 
   await User.findByIdAndUpdate(userId, { partnerId: partner._id });
@@ -110,7 +111,7 @@ export async function sendPing(
 ): Promise<IPartnerPing> {
   const sender = await User.findById(senderId).lean();
   if (!sender?.partnerId) {
-    throw Object.assign(new Error('You must pair with a partner before sending a ping'), { status: 400 });
+    throw httpError('You must pair with a partner before sending a ping', 400);
   }
 
   const timestamp = Date.now();

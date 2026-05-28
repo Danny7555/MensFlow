@@ -5,6 +5,7 @@ import { User } from '../models/User';
 import { Dashboard } from '../models/Dashboard';
 import { SymptomLog } from '../models/Symptom';
 import { IChatMessage, ISessionSummary } from '../interfaces';
+import { httpError } from '../utils/http';
 
 // ─── Session List ─────────────────────────────────────────────────────────────
 
@@ -47,10 +48,10 @@ export async function getMessages(
   if (!meta) return [];
 
   if (meta.isLocked && passcode !== meta.passcode) {
-    throw Object.assign(
-      new Error('Chat is locked — provide the correct passcode'),
-      { status: 403, securityQuestion: meta.securityQuestion, locked: true }
-    );
+    throw httpError('Chat is locked — provide the correct passcode', 403, {
+      securityQuestion: meta.securityQuestion,
+      locked: true,
+    });
   }
 
   const messages = await ChatMessage.find({ userId, sessionId }).sort({ createdAt: 1 }).lean();
@@ -73,10 +74,10 @@ export async function sendMessage(
   const securityAnswerHash = meta?.securityAnswerHash ?? null;
 
   if (isLocked && passcode !== storedPasscode) {
-    throw Object.assign(
-      new Error('Chat is locked — passcode verification failed'),
-      { status: 403, securityQuestion, locked: true }
-    );
+    throw httpError('Chat is locked — passcode verification failed', 403, {
+      securityQuestion,
+      locked: true,
+    });
   }
 
   const history = await ChatMessage.find({ userId, sessionId }).sort({ createdAt: 1 }).lean();
@@ -127,7 +128,7 @@ export async function lockSession(
 ): Promise<void> {
   const exists = await ChatMessage.exists({ userId, sessionId });
   if (!exists) {
-    throw Object.assign(new Error('Chat session not found'), { status: 404 });
+    throw httpError('Chat session not found', 404);
   }
 
   const securityAnswerHash = await bcrypt.hash(securityAnswer.toLowerCase().trim(), 10);
@@ -146,28 +147,28 @@ export async function unlockSession(
 ): Promise<{ passcode?: string }> {
   const meta = await ChatMessage.findOne({ userId, sessionId }).lean();
   if (!meta) {
-    throw Object.assign(new Error('Chat session not found'), { status: 404 });
+    throw httpError('Chat session not found', 404);
   }
 
   if (passcode) {
     if (passcode !== meta.passcode) {
-      throw Object.assign(new Error('Invalid passcode'), { status: 400 });
+      throw httpError('Invalid passcode', 400);
     }
     return {};
   }
 
   if (securityAnswer) {
     if (!meta.securityAnswerHash) {
-      throw Object.assign(new Error('No security question configured'), { status: 400 });
+      throw httpError('No security question configured', 400);
     }
     const isMatch = await bcrypt.compare(securityAnswer.toLowerCase().trim(), meta.securityAnswerHash);
     if (!isMatch) {
-      throw Object.assign(new Error('Security answer is incorrect'), { status: 400 });
+      throw httpError('Security answer is incorrect', 400);
     }
     return { passcode: meta.passcode ?? undefined };
   }
 
-  throw Object.assign(new Error('Provide passcode or securityAnswer'), { status: 400 });
+  throw httpError('Provide passcode or securityAnswer', 400);
 }
 
 export async function deleteSession(userId: string, sessionId: string): Promise<void> {
@@ -288,9 +289,7 @@ function toMessageInterface(doc: any): IChatMessage {
     role: doc.role,
     text: doc.text,
     isLocked: doc.isLocked,
-    passcode: doc.passcode,
     securityQuestion: doc.securityQuestion,
-    securityAnswerHash: doc.securityAnswerHash,
     createdAt: doc.createdAt,
   };
 }

@@ -1,6 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../interfaces';
 import * as chatService from '../services/chatService';
+import { objectRecord, optionalString, requiredString } from '../utils/validation';
 
 export async function getSessions(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   try {
@@ -13,8 +14,8 @@ export async function getSessions(req: AuthRequest, res: Response, next: NextFun
 
 export async function getMessages(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { sessionId } = req.params;
-    const passcode = req.query.passcode as string | undefined;
+    const sessionId = requiredString(req.params.sessionId, 'sessionId', { max: 120 });
+    const passcode = typeof req.query.passcode === 'string' ? requiredString(req.query.passcode, 'passcode', { max: 80 }) : undefined;
 
     const messages = await chatService.getMessages(req.user!.id, sessionId, passcode);
     res.json(messages);
@@ -33,12 +34,10 @@ export async function getMessages(req: AuthRequest, res: Response, next: NextFun
 
 export async function sendMessage(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { sessionId, text, passcode } = req.body;
-
-    if (!sessionId || !text) {
-      res.status(400).json({ error: 'sessionId and text are required' });
-      return;
-    }
+    const body = objectRecord(req.body);
+    const sessionId = requiredString(body.sessionId, 'sessionId', { max: 120 });
+    const text = requiredString(body.text, 'text', { max: 4_000 });
+    const passcode = optionalString(body, 'passcode', { max: 80 });
 
     const result = await chatService.sendMessage(req.user!.id, sessionId, text, passcode);
     res.json(result);
@@ -57,13 +56,11 @@ export async function sendMessage(req: AuthRequest, res: Response, next: NextFun
 
 export async function lockSession(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { sessionId } = req.params;
-    const { passcode, securityQuestion, securityAnswer } = req.body;
-
-    if (!passcode || !securityQuestion || !securityAnswer) {
-      res.status(400).json({ error: 'passcode, securityQuestion, and securityAnswer are required' });
-      return;
-    }
+    const sessionId = requiredString(req.params.sessionId, 'sessionId', { max: 120 });
+    const body = objectRecord(req.body);
+    const passcode = requiredString(body.passcode, 'passcode', { min: 4, max: 80 });
+    const securityQuestion = requiredString(body.securityQuestion, 'securityQuestion', { max: 200 });
+    const securityAnswer = requiredString(body.securityAnswer, 'securityAnswer', { max: 200 });
 
     await chatService.lockSession(req.user!.id, sessionId, passcode, securityQuestion, securityAnswer);
     res.json({ success: true });
@@ -74,8 +71,10 @@ export async function lockSession(req: AuthRequest, res: Response, next: NextFun
 
 export async function unlockSession(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { sessionId } = req.params;
-    const { passcode, securityAnswer } = req.body;
+    const sessionId = requiredString(req.params.sessionId, 'sessionId', { max: 120 });
+    const body = objectRecord(req.body);
+    const passcode = optionalString(body, 'passcode', { max: 80 });
+    const securityAnswer = optionalString(body, 'securityAnswer', { max: 200 });
 
     const result = await chatService.unlockSession(req.user!.id, sessionId, passcode, securityAnswer);
     res.json({ success: true, ...result });
@@ -86,7 +85,7 @@ export async function unlockSession(req: AuthRequest, res: Response, next: NextF
 
 export async function deleteSession(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { sessionId } = req.params;
+    const sessionId = requiredString(req.params.sessionId, 'sessionId', { max: 120 });
     await chatService.deleteSession(req.user!.id, sessionId);
     res.json({ success: true });
   } catch (err) {

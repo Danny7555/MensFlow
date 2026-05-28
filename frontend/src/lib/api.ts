@@ -7,7 +7,19 @@
 
 import { getToken } from './auth-token'
 
-const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5001/api'
+const BASE_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5001/api').replace(/\/+$/, '')
+
+export class ApiError extends Error {
+  status: number
+  payload: unknown
+
+  constructor(message: string, status: number, payload: unknown) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+    this.payload = payload
+  }
+}
 
 // ─── Core fetch wrapper ───────────────────────────────────────────────────────
 
@@ -32,10 +44,20 @@ async function request<T>(
     body: body !== undefined ? JSON.stringify(body) : undefined,
   })
 
-  const data = await res.json().catch(() => ({}))
+  const contentType = res.headers.get('content-type') ?? ''
+  const data = contentType.includes('application/json')
+    ? await res.json().catch(() => ({}))
+    : await res.text().catch(() => '')
 
   if (!res.ok) {
-    throw new Error(data.error ?? `Request failed (${res.status})`)
+    const message = typeof data === 'object' && data !== null && 'error' in data && typeof data.error === 'string'
+      ? data.error
+      : `Request failed (${res.status})`
+    throw new ApiError(message, res.status, data)
+  }
+
+  if (res.status === 204) {
+    return undefined as T
   }
 
   return data as T
@@ -229,7 +251,9 @@ export const chatApi = {
     get<ApiChatSession[]>('/chat/sessions'),
 
   getMessages: (sessionId: string, passcode?: string) =>
-    get<ApiChatMessage[]>(`/chat/sessions/${sessionId}${passcode ? `?passcode=${passcode}` : ''}`),
+    get<ApiChatMessage[]>(
+      `/chat/sessions/${encodeURIComponent(sessionId)}${passcode ? `?passcode=${encodeURIComponent(passcode)}` : ''}`
+    ),
 
   send: (sessionId: string, text: string, passcode?: string) =>
     post<{ userMessage: ApiChatMessage; assistantMessage: ApiChatMessage }>(
@@ -238,18 +262,18 @@ export const chatApi = {
     ),
 
   lock: (sessionId: string, passcode: string, securityQuestion: string, securityAnswer: string) =>
-    put<{ success: boolean }>(`/chat/sessions/${sessionId}/lock`, {
+    put<{ success: boolean }>(`/chat/sessions/${encodeURIComponent(sessionId)}/lock`, {
       passcode,
       securityQuestion,
       securityAnswer,
     }),
 
   unlock: (sessionId: string, passcode?: string, securityAnswer?: string) =>
-    post<{ success: boolean; passcode?: string }>(`/chat/sessions/${sessionId}/unlock`, {
+    post<{ success: boolean; passcode?: string }>(`/chat/sessions/${encodeURIComponent(sessionId)}/unlock`, {
       ...(passcode ? { passcode } : {}),
       ...(securityAnswer ? { securityAnswer } : {}),
     }),
 
   deleteSession: (sessionId: string) =>
-    del<{ success: boolean }>(`/chat/sessions/${sessionId}`),
+    del<{ success: boolean }>(`/chat/sessions/${encodeURIComponent(sessionId)}`),
 }

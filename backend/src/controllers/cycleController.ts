@@ -1,6 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../interfaces';
 import * as cycleService from '../services/cycleService';
+import { assertObjectId, isoDate, objectRecord, requiredString, stringArray } from '../utils/validation';
 
 export async function getLogs(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   try {
@@ -13,12 +14,9 @@ export async function getLogs(req: AuthRequest, res: Response, next: NextFunctio
 
 export async function addLog(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { date, symptoms } = req.body;
-
-    if (!date || !Array.isArray(symptoms)) {
-      res.status(400).json({ error: 'date (string) and symptoms (array) are required' });
-      return;
-    }
+    const body = objectRecord(req.body);
+    const date = isoDate(body.date);
+    const symptoms = stringArray(body.symptoms, 'symptoms', { maxItems: 40, maxItemLength: 80 });
 
     const log = await cycleService.upsertSymptomLog(req.user!.id, date, symptoms);
     res.json(log);
@@ -47,12 +45,9 @@ export async function getCustomSymptoms(req: AuthRequest, res: Response, next: N
 
 export async function addCustomSymptom(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { label, category } = req.body;
-
-    if (!label || !category) {
-      res.status(400).json({ error: 'label and category are required' });
-      return;
-    }
+    const body = objectRecord(req.body);
+    const label = requiredString(body.label, 'label', { max: 80 });
+    const category = requiredString(body.category, 'category', { max: 80 });
 
     const item = await cycleService.addCustomSymptom(req.user!.id, label, category);
     res.status(201).json(item);
@@ -63,6 +58,7 @@ export async function addCustomSymptom(req: AuthRequest, res: Response, next: Ne
 
 export async function removeCustomSymptom(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   try {
+    assertObjectId(req.params.id, 'id');
     const removed = await cycleService.removeCustomSymptom(req.user!.id, req.params.id);
 
     if (!removed) {
