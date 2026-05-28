@@ -101,7 +101,7 @@ function TourTooltip({
   return (
     <div 
       {...tooltipProps} 
-      className="bg-card border border-border shadow-2xl rounded-3xl p-5 max-w-[340px] w-[calc(100vw-32px)] text-left focus:outline-none relative z-50 animate-in fade-in zoom-in-95 duration-200"
+      className="bg-[var(--mf-card)] border border-[var(--mf-border)] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] rounded-3xl p-5 max-w-[340px] w-[calc(100vw-32px)] text-left focus:outline-none relative z-50 animate-in fade-in zoom-in-95 duration-200"
     >
       <div className="flex items-center justify-between mb-3">
         <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--mf-accent)]">
@@ -110,7 +110,8 @@ function TourTooltip({
         {!isLastStep && (
           <button 
             {...skipProps} 
-            className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            type="button"
+            className="text-[10px] font-semibold uppercase tracking-wider text-[var(--mf-muted)] hover:text-[var(--mf-text-strong)] transition-colors cursor-pointer"
           >
             Skip
           </button>
@@ -127,7 +128,7 @@ function TourTooltip({
         {step.content}
       </div>
 
-      <div className="flex items-center justify-between border-t border-border pt-4">
+      <div className="flex items-center justify-between border-t border-[var(--mf-border)] pt-4">
         {/* Progress Dots */}
         <div className="flex gap-1.5">
           {Array.from({ length: size }).map((_, i) => (
@@ -135,7 +136,7 @@ function TourTooltip({
               key={i} 
               className={cn(
                 "size-1.5 rounded-full transition-all duration-300",
-                i === index ? "bg-[var(--mf-accent)] w-3" : "bg-muted-foreground/30"
+                i === index ? "bg-[var(--mf-accent)] w-3" : "bg-[var(--mf-muted)]/30"
               )}
             />
           ))}
@@ -145,13 +146,15 @@ function TourTooltip({
           {index > 0 && (
             <button 
               {...backProps} 
-              className="px-3.5 py-1.5 rounded-xl border border-border text-xs font-medium text-[var(--mf-text-strong)] hover:bg-muted transition-colors cursor-pointer active-squish"
+              type="button"
+              className="px-3.5 py-1.5 rounded-xl border border-[var(--mf-border)] text-xs font-medium text-[var(--mf-text-strong)] hover:bg-[var(--mf-hover)] transition-colors cursor-pointer active-squish"
             >
               Back
             </button>
           )}
           <button 
             {...primaryProps} 
+            type="button"
             className="px-4 py-1.5 rounded-xl bg-[var(--mf-accent)] text-white text-xs font-semibold hover:brightness-105 transition-all cursor-pointer active-squish"
           >
             {isLastStep ? 'Finish' : 'Next'}
@@ -167,6 +170,14 @@ export function DashboardView() {
 
   const [dashboardPartnerCodeInput, setDashboardPartnerCodeInput] = useState('')
   const [isDashboardPairing, setIsDashboardPairing] = useState(false)
+
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768)
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   const handleDashboardPair = async () => {
     if (!dashboardPartnerCodeInput.trim()) return
@@ -225,16 +236,18 @@ export function DashboardView() {
       })
     } else {
       steps.push({
-        target: '.flo-fab',
+        target: isMobile ? '.flo-fab' : '.quick-log-card',
         title: "Instant Logging",
-        content: "Tap this floating action button at any time to record symptoms, mood, and flow data.",
+        content: isMobile 
+          ? "Tap this floating action button at any time to record symptoms, mood, and flow data."
+          : "Use this panel to quickly log your daily symptoms, mood, and lifestyle metrics.",
         placement: 'top' as const,
         disableBeacon: true,
       })
     }
 
     return steps
-  }, [user?.role])
+  }, [user?.role, isMobile])
 
   useEffect(() => {
     if (user?.role) {
@@ -365,6 +378,7 @@ export function DashboardView() {
           <div className="bg-gradient-to-r from-[var(--mf-accent)] to-[#f472b6] text-white py-2.5 px-4 text-center text-xs font-normal flex items-center justify-center gap-2 relative z-50 animate-in slide-in-from-top duration-500">
             <span>You are previewing MensFlow as a guest. Your data is stored locally.</span>
             <button 
+              type="button"
               onClick={openAuthModal}
               className="bg-white text-[var(--mf-accent)] px-3 py-1 rounded-full text-[11px] font-normal hover:bg-opacity-95 transition-all active:scale-95 cursor-pointer ml-1"
             >
@@ -391,10 +405,10 @@ export function DashboardView() {
               animate={{ opacity: 1, y: 0 }}
               className="p-8 md:p-10 rounded-[2.5rem] bg-gradient-to-br from-pink-500/10 via-[var(--mf-composer-bg)] to-[var(--mf-composer-bg)] border border-[var(--mf-border)] backdrop-blur-lg relative overflow-hidden shadow-xl"
             >
-              <div className="absolute top-0 right-0 w-48 h-48 bg-pink-500/5 rounded-full blur-3xl pointer-events-none" />
-              <div className="absolute -bottom-10 left-10 w-48 h-48 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute top-0 right-0 size-48 bg-pink-500/5 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-10 left-10 size-48 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
 
-              <div className="flex flex-col items-center text-center space-y-6">
+              <div className="flex flex-col items-center text-center gap-y-6">
                 <m.div
                   animate={{ y: [0, -8, 0] }}
                   transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
@@ -504,6 +518,7 @@ export function DashboardView() {
         <div className="bg-gradient-to-r from-[var(--mf-accent)] to-[#f472b6] text-white py-2.5 px-4 text-center text-xs font-normal flex items-center justify-center gap-2 relative z-50 animate-in slide-in-from-top duration-500">
           <span>You are previewing MensFlow as a guest. Your data is stored locally.</span>
           <button 
+            type="button"
             onClick={openAuthModal}
             className="bg-white text-[var(--mf-accent)] px-3 py-1 rounded-full text-[11px] font-normal hover:bg-opacity-95 transition-all active:scale-95 cursor-pointer ml-1"
           >
@@ -526,11 +541,13 @@ export function DashboardView() {
             tooltipComponent: TourTooltip,
             styles: {
               options: {
-                overlayColor: 'rgba(0, 0, 0, 0.45)',
+                overlayColor: 'rgba(0, 0, 0, 0.6)',
                 zIndex: 10000,
               },
               spotlight: {
                 borderRadius: '24px',
+                border: '2px dashed var(--mf-accent)',
+                boxShadow: '0 0 15px var(--mf-accent)',
               }
             }
           } as any}
@@ -561,7 +578,7 @@ export function DashboardView() {
               className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-transparent border border-[var(--mf-border)] backdrop-blur-md relative overflow-hidden"
             >
               {/* Decorative glows */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/5 rounded-full blur-2xl pointer-events-none" />
+              <div className="absolute top-0 right-0 size-32 bg-pink-500/5 rounded-full blur-2xl pointer-events-none" />
 
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
                 <div className="flex items-center gap-3">
@@ -700,7 +717,7 @@ export function DashboardView() {
 
       {state.mounted && state.now && (
         <LogSymptomsModal 
-          key={`log-${state.isLogOpen}`}
+          key={`log-${state.isLogOpen}-${computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)}`}
           isOpen={state.isLogOpen} 
           onOpenChange={(val) => dispatch({ type: 'TOGGLE_LOG', payload: val })}
           activeDay={computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)}

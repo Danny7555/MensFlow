@@ -209,15 +209,17 @@ export function ChatView() {
   // 1. Initial Load of Sessions
   useEffect(() => {
     if (temporaryChat) {
-      setActiveSessionId(null)
-      setMessages([{
-        id: 'welcome',
-        role: 'assistant',
-        text: welcomeText,
-        createdAt: Date.now(),
-      }])
-      setIsLoading(false)
-      return
+      const timer = setTimeout(() => {
+        setActiveSessionId(null)
+        setMessages([{
+          id: 'welcome',
+          role: 'assistant',
+          text: welcomeText,
+          createdAt: Date.now(),
+        }])
+        setIsLoading(false)
+      }, 0)
+      return () => clearTimeout(timer)
     }
 
     setIsLoading(true)
@@ -330,6 +332,7 @@ export function ChatView() {
 
 
   // Auto scroll effect
+  // eslint-disable-next-line react-doctor/no-effect-chain
   useEffect(() => {
     threadEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isTyping])

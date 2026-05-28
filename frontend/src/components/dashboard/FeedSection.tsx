@@ -289,7 +289,7 @@ export function PartnerTranslationCard({ label, onCopy }: {
 
 export function QuickLogCard({ onViewAll }: { onViewAll: () => void }) {
   return (
-    <m.div variants={itemVariants} className="flo-card flo-card--prominent h-full">
+    <m.div variants={itemVariants} className="flo-card flo-card--prominent h-full quick-log-card">
       <div className="flo-card-top mb-6">
         <p className="flo-card-title">Quick Log</p>
         <button 

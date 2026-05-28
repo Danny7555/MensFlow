@@ -12,30 +12,36 @@ import { authApi, userApi, type ApiUser } from '../lib/api'
 import { setToken, clearToken, isLoggedIn } from '../lib/auth-token'
 import { useStore } from '../store/useStore'
 
+const getLocalOnboarding = () => sessionStorage.getItem('mf_onboarding') === 'true'
+const getLocalPartnerCode = () => sessionStorage.getItem('mf_partner_code')
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
   const { hydrate, resetStore } = useStore()
 
-  const [isAuthenticated, setAuthenticated] = useState(isLoggedIn)
-  const [onboardingCompleted, setOnboardingCompleted] = useState(
-    () => sessionStorage.getItem('mf_onboarding') === 'true'
-  )
-  const [user, setUser] = useState<ApiUser | null>(null)
-  const [isLoading, setLoading] = useState(false)
-  const [isRehydrating, setRehydrating] = useState(() => isLoggedIn())
+  const [state, setState] = useState({
+    isAuthenticated: isLoggedIn(),
+    onboardingCompleted: getLocalOnboarding(),
+    user: null as ApiUser | null,
+    isLoading: false,
+    isRehydrating: isLoggedIn(),
+  })
   const [authModalOpen, setAuthModalOpen] = useState(false)
 
   // ── Rehydrate store from API on mount if token exists ──────────────────────
   useEffect(() => {
     if (!isLoggedIn()) {
-      setRehydrating(false)
+      setState(prev => ({ ...prev, isRehydrating: false }))
       return
     }
 
     userApi.getProfile()
       .then(({ user: u, settings, dashboard }) => {
-        setUser(u)
-        setOnboardingCompleted(u.isOnboarded)
+        setState(prev => ({
+          ...prev,
+          user: u,
+          onboardingCompleted: u.isOnboarded,
+        }))
         hydrate({ user: u, settings, dashboard })
         
         // Fetch logs, custom symptoms, and partner status from backend database
@@ -47,25 +53,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .catch(() => {
         // Token expired or invalid — clear it
         clearToken()
-        setAuthenticated(false)
+        setState(prev => ({ ...prev, isAuthenticated: false }))
       })
       .finally(() => {
-        setRehydrating(false)
+        setState(prev => ({ ...prev, isRehydrating: false }))
       })
   }, [hydrate])
 
   // ── Login ──────────────────────────────────────────────────────────────────
   const login = useCallback(async (username: string, password: string) => {
-    setLoading(true)
+    setState(prev => ({ ...prev, isLoading: true }))
     try {
       const { token, user: u } = await authApi.login(username, password)
       setToken(token)
-      setUser(u)
       
-      const localOnboarding = sessionStorage.getItem('mf_onboarding') === 'true'
+      const localOnboarding = getLocalOnboarding()
       const isOnboarded = u.isOnboarded || localOnboarding
-      setOnboardingCompleted(isOnboarded)
-      setAuthenticated(true)
+      
+      setState(prev => ({
+        ...prev,
+        user: u,
+        onboardingCompleted: isOnboarded,
+        isAuthenticated: true,
+      }))
       setAuthModalOpen(false)
 
       if (localOnboarding && !u.isOnboarded) {
@@ -81,11 +91,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Fetch full profile so the store is hydrated
       const profile = await userApi.getProfile()
-      setOnboardingCompleted(profile.user.isOnboarded)
+      
+      setState(prev => ({
+        ...prev,
+        onboardingCompleted: profile.user.isOnboarded,
+      }))
       hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
 
       // Auto-pair if a partner code was entered during guest onboarding
-      const localPartnerCode = sessionStorage.getItem('mf_partner_code')
+      const localPartnerCode = getLocalPartnerCode()
       if (localPartnerCode) {
         const store = useStore.getState()
         await store.pairPartner(localPartnerCode).catch((err) => {
@@ -104,22 +118,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       navigate(profile.user.isOnboarded ? '/dashboard' : '/onboarding')
     } finally {
-      setLoading(false)
+      setState(prev => ({ ...prev, isLoading: false }))
     }
   }, [navigate, hydrate])
 
   // ── Register ───────────────────────────────────────────────────────────────
   const register = useCallback(async (username: string, password: string, name: string) => {
-    setLoading(true)
+    setState(prev => ({ ...prev, isLoading: true }))
     try {
       const { token, user: u } = await authApi.register(username, password, name)
       setToken(token)
-      setUser(u)
       
-      const localOnboarding = sessionStorage.getItem('mf_onboarding') === 'true'
+      const localOnboarding = getLocalOnboarding()
       const isOnboarded = u.isOnboarded || localOnboarding
-      setOnboardingCompleted(isOnboarded)
-      setAuthenticated(true)
+      
+      setState(prev => ({
+        ...prev,
+        user: u,
+        onboardingCompleted: isOnboarded,
+        isAuthenticated: true,
+      }))
       setAuthModalOpen(false)
 
       if (localOnboarding && !u.isOnboarded) {
@@ -134,11 +152,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const profile = await userApi.getProfile()
-      setOnboardingCompleted(profile.user.isOnboarded)
+      
+      setState(prev => ({
+        ...prev,
+        onboardingCompleted: profile.user.isOnboarded,
+      }))
       hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
 
       // Auto-pair if a partner code was entered during guest onboarding
-      const localPartnerCode = sessionStorage.getItem('mf_partner_code')
+      const localPartnerCode = getLocalPartnerCode()
       if (localPartnerCode) {
         const store = useStore.getState()
         await store.pairPartner(localPartnerCode).catch((err) => {
@@ -157,25 +179,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       navigate(profile.user.isOnboarded ? '/dashboard' : '/onboarding')
     } finally {
-      setLoading(false)
+      setState(prev => ({ ...prev, isLoading: false }))
     }
   }, [navigate, hydrate])
 
   // ── Logout ─────────────────────────────────────────────────────────────────
   const logout = useCallback(() => {
     clearToken()
-    setOnboardingCompleted(false)
     sessionStorage.removeItem('mf_onboarding')
-    setAuthenticated(false)
-    setUser(null)
+    setState(prev => ({
+      ...prev,
+      onboardingCompleted: false,
+      isAuthenticated: false,
+      user: null,
+    }))
     resetStore()
     navigate('/')
   }, [navigate, resetStore])
 
   // ── Onboarding ─────────────────────────────────────────────────────────────
   const completeOnboarding = useCallback(() => {
-    setOnboardingCompleted(true)
     sessionStorage.setItem('mf_onboarding', 'true')
+    setState(prev => ({
+      ...prev,
+      onboardingCompleted: true,
+    }))
     if (isLoggedIn()) {
       userApi.updateProfile({ isOnboarded: true }).catch((err) => {
         console.error('Failed to update onboarding state in backend', err)
@@ -187,18 +215,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(
     () => ({
-      isAuthenticated,
-      onboardingCompleted,
-      isLoading,
-      isRehydrating,
-      user,
+      isAuthenticated: state.isAuthenticated,
+      onboardingCompleted: state.onboardingCompleted,
+      isLoading: state.isLoading,
+      isRehydrating: state.isRehydrating,
+      user: state.user,
       login,
       register,
       logout,
       openAuthModal,
       completeOnboarding,
     }),
-    [isAuthenticated, onboardingCompleted, isLoading, isRehydrating, user, login, register, logout, openAuthModal, completeOnboarding]
+    [state.isAuthenticated, state.onboardingCompleted, state.isLoading, state.isRehydrating, state.user, login, register, logout, openAuthModal, completeOnboarding]
   )
 
   return (
@@ -206,7 +234,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
       <AuthModal
         open={authModalOpen}
-        isLoading={isLoading}
+        isLoading={state.isLoading}
         onClose={() => setAuthModalOpen(false)}
         onLogin={login}
         onRegister={register}

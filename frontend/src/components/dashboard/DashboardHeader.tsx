@@ -40,12 +40,11 @@ export function DashboardHeader({
   const [now, setNow] = useState(new Date())
 
   useEffect(() => {
-    if (!mounted) return
     const interval = setInterval(() => {
       setNow(new Date())
     }, 60000) 
     return () => clearInterval(interval)
-  }, [mounted])
+  }, [])
 
   return (
     <m.header 

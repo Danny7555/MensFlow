@@ -32,13 +32,6 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
   const [newSymptomName, setNewSymptomName] = useState("")
   const [newSymptomCat, setNewSymptomCat] = useState<SymptomCategory>("Physical")
 
-  useEffect(() => {
-    if (isOpen) {
-      const existing = getLogForDate(dateKey)
-      setSelectedSymptoms(existing ? new Set(existing.symptoms) : new Set())
-    }
-  }, [isOpen, dateKey, getLogForDate])
-
   const toggleSymptom = (id: string) => {
     if (isSaving) return
     const next = new Set(selectedSymptoms)
@@ -136,6 +129,7 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
                       return (
                         <button
                           key={s.id}
+                          type="button"
                           onClick={() => toggleSymptom(s.id)}
                           disabled={isSaving}
                           className={cn(

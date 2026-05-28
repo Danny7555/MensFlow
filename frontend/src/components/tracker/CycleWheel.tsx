@@ -17,6 +17,24 @@ interface CycleWheelProps {
   onHoverDay: (day: number | null) => void;
 }
 
+const radius = 44;
+const center = 50;
+
+function polarToCartesian(angleInDegrees: number, r = radius) {
+  const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
+  return {
+    x: center + r * Math.cos(angleInRadians),
+    y: center + r * Math.sin(angleInRadians),
+  };
+}
+
+function describeArc(startAngle: number, endAngle: number) {
+  const start = polarToCartesian(endAngle);
+  const end = polarToCartesian(startAngle);
+  const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1';
+  return `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} 0 ${end.x} ${end.y}`;
+}
+
 export function CycleWheel({
   cycleLength,
   currentDay,
@@ -31,27 +49,6 @@ export function CycleWheel({
   onSelectDay,
   onHoverDay,
 }: CycleWheelProps) {
-  const radius = 44;
-  const center = 50;
-
-  const polarToCartesian = useMemo(() => {
-    return (angleInDegrees: number, r = radius) => {
-      const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
-      return {
-        x: center + r * Math.cos(angleInRadians),
-        y: center + r * Math.sin(angleInRadians),
-      };
-    };
-  }, [radius, center]);
-
-  const describeArc = useMemo(() => {
-    return (startAngle: number, endAngle: number) => {
-      const start = polarToCartesian(endAngle);
-      const end = polarToCartesian(startAngle);
-      const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1';
-      return `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} 0 ${end.x} ${end.y}`;
-    };
-  }, [polarToCartesian, radius]);
 
   const getAngle = useMemo(() => {
     return (day: number) => {
@@ -59,19 +56,19 @@ export function CycleWheel({
     };
   }, [cycleLength]);
 
-  const periodPath = useMemo(() => describeArc(0, getAngle(periodLength)), [describeArc, getAngle, periodLength]);
+  const periodPath = useMemo(() => describeArc(0, getAngle(periodLength)), [getAngle, periodLength]);
   
   const predictedPath = useMemo(() => {
     return describeArc(getAngle(periodLength), getAngle(periodLength + predictedPeriodLength));
-  }, [describeArc, getAngle, periodLength, predictedPeriodLength]);
+  }, [getAngle, periodLength, predictedPeriodLength]);
 
   const fertilePath = useMemo(() => {
     return describeArc(getAngle(fertileStart - 1), getAngle(fertileEnd));
-  }, [describeArc, getAngle, fertileStart, fertileEnd]);
+  }, [getAngle, fertileStart, fertileEnd]);
 
   const upcomingPath = useMemo(() => {
     return describeArc(getAngle(upcomingStart - 1), getAngle(upcomingEnd));
-  }, [describeArc, getAngle, upcomingStart, upcomingEnd]);
+  }, [getAngle, upcomingStart, upcomingEnd]);
 
   const activeDay = hoveredDay ?? selectedDay;
 
@@ -121,11 +118,11 @@ export function CycleWheel({
         </g>
       );
     });
-  }, [cycleLength, getAngle, polarToCartesian, selectedDay, currentDay, periodLength, onHoverDay, onSelectDay]);
+  }, [cycleLength, getAngle, selectedDay, currentDay, periodLength, onHoverDay, onSelectDay]);
 
   const currentPos = useMemo(() => {
     return polarToCartesian(getAngle(selectedDay - 0.5), 44);
-  }, [polarToCartesian, getAngle, selectedDay]);
+  }, [getAngle, selectedDay]);
 
   return (
     <svg viewBox="0 0 100 100" className="viz-ring" style={{ overflow: 'visible' }}>

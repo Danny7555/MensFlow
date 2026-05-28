@@ -109,9 +109,9 @@ export function SymptomsChart() {
       monthSymptomsList.forEach(symptoms => {
         symptoms.forEach(sym => {
           const s = sym.toLowerCase()
-          if (s.includes('cramp')) cramps++
-          if (s.includes('mood') || s.includes('anxious') || s.includes('sad') || s.includes('irritable')) moodSwings++
-          if (s.includes('fatigue') || s.includes('sleep')) fatigue++
+          if (s.indexOf('cramp') !== -1) cramps++
+          if (s.indexOf('mood') !== -1 || s.indexOf('anxious') !== -1 || s.indexOf('sad') !== -1 || s.indexOf('irritable') !== -1) moodSwings++
+          if (s.indexOf('fatigue') !== -1 || s.indexOf('sleep') !== -1) fatigue++
         })
       })
 
@@ -137,6 +137,7 @@ export function SymptomsChart() {
           </div>
           <div className="flex items-center bg-muted/40 p-1 rounded-lg border border-border/50">
             <button
+              type="button"
               onClick={() => setViewMode('7days')}
               className={cn(
                 "px-3 py-1 text-xs font-medium rounded-md transition-all",
@@ -146,6 +147,7 @@ export function SymptomsChart() {
               7 Days
             </button>
             <button
+              type="button"
               onClick={() => setViewMode('6months')}
               className={cn(
                 "px-3 py-1 text-xs font-medium rounded-md transition-all",
