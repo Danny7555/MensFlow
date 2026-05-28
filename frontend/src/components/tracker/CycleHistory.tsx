@@ -5,7 +5,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { useStore } from '@/store/useStore'
-import { format, subDays, differenceInDays, parseISO } from 'date-fns'
+import { format, differenceInDays, parseISO } from 'date-fns'
 
 interface DotGridProps {
   cycleLength: number
@@ -31,7 +31,7 @@ function DotGrid({ cycleLength, totalRenderLength, isCurrent, typicalCycleDays }
             <div 
               key={`future-${day}`} 
               className="size-2.5 rounded-full bg-[#888] dark:bg-[#555] opacity-40" 
-            />
+              />
           )
         }
 
@@ -40,7 +40,7 @@ function DotGrid({ cycleLength, totalRenderLength, isCurrent, typicalCycleDays }
             <div 
               key={`menstrual-${day}`} 
               className="size-2.5 rounded-full bg-[#dc2626]" 
-            />
+              />
           )
         }
         
@@ -50,14 +50,14 @@ function DotGrid({ cycleLength, totalRenderLength, isCurrent, typicalCycleDays }
               <div 
                 key={`ovulation-${day}`} 
                 className="size-2.5 rounded-full bg-[#00a59b]" 
-              />
+                />
             )
           }
           return (
             <div 
               key={`fertile-${day}`} 
               className="size-2.5 rounded-full bg-[#6fd0cd] dark:bg-[#26899e]/80" 
-            />
+              />
           )
         }
 
@@ -65,7 +65,7 @@ function DotGrid({ cycleLength, totalRenderLength, isCurrent, typicalCycleDays }
           <div 
             key={`regular-${day}`} 
             className="size-2.5 rounded-full bg-[#eaeaec] dark:bg-[#362430]" 
-          />
+            />
         )
       })}
     </>
@@ -83,18 +83,6 @@ export function CycleHistory() {
   const today = new Date()
   const daysElapsed = differenceInDays(today, currentStart)
   const currentCycleDays = daysElapsed >= 0 ? daysElapsed + 1 : 1
-
-  // 2. Generate past cycles dynamically using typicalCycleDays with organic variations
-  const cycle2Length = Math.max(21, typicalCycleDays - 1) // e.g. 27 days when typical is 28
-  const cycle3Length = Math.max(21, typicalCycleDays + 1) // e.g. 29 days when typical is 28
-
-  // Previous Cycle (Cycle 2)
-  const cycle2End = subDays(currentStart, 1)
-  const cycle2Start = subDays(cycle2End, cycle2Length - 1)
-
-  // Two Cycles Ago (Cycle 3)
-  const cycle3End = subDays(cycle2Start, 1)
-  const cycle3Start = subDays(cycle3End, cycle3Length - 1)
 
   return (
     <div className="cycle-history-container">
@@ -136,56 +124,6 @@ export function CycleHistory() {
               cycleLength={currentCycleDays} 
               totalRenderLength={Math.max(currentCycleDays, typicalCycleDays)} 
               isCurrent={true} 
-              typicalCycleDays={typicalCycleDays} 
-            />
-          </div>
-        </div>
-
-        <div className="h-[1px] w-[calc(100%-3rem)] mx-auto bg-border/50" />
-
-        {/* Row 2: Previous Cycle */}
-        <div className="p-5 sm:p-6 relative">
-          <div className="flex items-start justify-between mb-3">
-            <div>
-              <h3 className="text-lg font-medium text-foreground mb-0.5">
-                {cycle2Length} days
-              </h3>
-              <p className="text-muted-foreground text-sm">
-                {format(cycle2Start, "MMM d")} – {format(cycle2End, "MMM d")}
-              </p>
-            </div>
-            <CaretRight size={20} className="text-[#999] mt-2" />
-          </div>
-          <div className="flex flex-wrap gap-1.5 mt-4">
-            <DotGrid 
-              cycleLength={cycle2Length} 
-              totalRenderLength={cycle2Length} 
-              isCurrent={false} 
-              typicalCycleDays={typicalCycleDays} 
-            />
-          </div>
-        </div>
-
-        <div className="h-[1px] w-[calc(100%-3rem)] mx-auto bg-border/50" />
-
-        {/* Row 3: Two Cycles Ago */}
-        <div className="p-5 sm:p-6 relative">
-          <div className="flex items-start justify-between mb-3">
-            <div>
-              <h3 className="text-lg font-medium text-foreground mb-0.5">
-                {cycle3Length} days
-              </h3>
-              <p className="text-muted-foreground text-sm">
-                {format(cycle3Start, "MMM d")} – {format(cycle3End, "MMM d")}
-              </p>
-            </div>
-            <CaretRight size={20} className="text-[#999] mt-2" />
-          </div>
-          <div className="flex flex-wrap gap-1.5 mt-4">
-            <DotGrid 
-              cycleLength={cycle3Length} 
-              totalRenderLength={cycle3Length} 
-              isCurrent={false} 
               typicalCycleDays={typicalCycleDays} 
             />
           </div>
