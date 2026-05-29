@@ -54,6 +54,7 @@ export function ChatComposer({
   disabled = false,
 }: ChatComposerProps) {
   const chatEnterToSend = useStore((state) => state.settings.chatEnterToSend)
+  const showAlert = useStore((state) => state.showAlert)
 
   const menuId = useId()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -92,8 +93,20 @@ export function ChatComposer({
     const arr = Array.from(list)
     const next = [...attachments]
     for (const file of arr) {
-      if (next.length >= MAX_FILES) break
-      if (file.size > MAX_BYTES) continue
+      if (next.length >= MAX_FILES) {
+        showAlert({
+          title: 'Maximum Files Reached',
+          description: `You can upload at most ${MAX_FILES} attachments.`
+        })
+        break
+      }
+      if (file.size > MAX_BYTES) {
+        showAlert({
+          title: 'File Too Large',
+          description: `"${file.name}" exceeds the ${formatBytes(MAX_BYTES)} size limit.`
+        })
+        continue
+      }
       next.push({
         id: `${file.name}-${file.size}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
         file,
@@ -129,9 +142,17 @@ export function ChatComposer({
       
       const files = results.filter((f): f is File => f !== null)
       if (files.length) addFiles(files)
-      else window.alert('No image on the clipboard.')
+      else {
+        showAlert({
+          title: 'No Image Found',
+          description: 'There is no image on your clipboard to paste.'
+        })
+      }
     } catch {
-      window.alert('Clipboard access was blocked. Try Upload files instead.')
+      showAlert({
+        title: 'Clipboard Blocked',
+        description: 'Clipboard access was blocked. Please try uploading files instead.'
+      })
     }
   }
 

@@ -11,6 +11,8 @@ import { isLoggedIn } from '../lib/auth-token'
 export type SymptomLog = {
   date: string
   symptoms: string[]
+  water?: number
+  weight?: number
 }
 
 export type AppUser = {
@@ -47,6 +49,8 @@ interface AppState {
       hormoneTrend: string
       bodySignals: string
       symptoms?: string[]
+      water?: number
+      weight?: number
       scientificInsight?: string
       dailyTip?: {
         title: string
@@ -74,6 +78,7 @@ interface AppState {
 
   // Logs
   addLog: (date: string, symptoms: string[]) => Promise<void>
+  updateDailyMetrics: (date: string, water?: number, weight?: number) => Promise<void>
   getLogForDate: (date: string) => SymptomLog | undefined
   fetchLogs: () => Promise<void>
   clearLogs: () => Promise<void>
@@ -90,6 +95,25 @@ interface AppState {
   pairPartner: (partnerCode: string) => Promise<void>
   invitePartner: (email: string) => Promise<void>
   disconnectPartnerAction: () => Promise<void>
+
+  // Confirmation / Alerts
+  confirmDialog: {
+    isOpen: boolean
+    title: string
+    description: string
+    onConfirm: (() => void) | null
+    onCancel: (() => void) | null
+  }
+  showConfirm: (options: { title: string; description: string; onConfirm: () => void; onCancel?: () => void }) => void
+  closeConfirm: () => void
+  
+  alertDialog: {
+    isOpen: boolean
+    title: string
+    description: string
+  }
+  showAlert: (options: { title: string; description: string }) => void
+  closeAlert: () => void
 }
 
 const DEFAULT_USER = { name: '', avatar: null, accessLevel: 'full' as const, isOnboarded: false, role: 'lady' as const, partnerCode: '', partnerId: null }
@@ -105,6 +129,56 @@ export const useStore = create<AppState>()((set, get) => ({
   supportStreak: 0,
   lastActionDate: '',
   partnerStatus: null,
+
+  confirmDialog: {
+    isOpen: false,
+    title: '',
+    description: '',
+    onConfirm: null,
+    onCancel: null,
+  },
+  showConfirm: (options) => {
+    set({
+      confirmDialog: {
+        isOpen: true,
+        title: options.title,
+        description: options.description,
+        onConfirm: options.onConfirm,
+        onCancel: options.onCancel || null,
+      },
+    })
+  },
+  closeConfirm: () => {
+    set((state) => ({
+      confirmDialog: {
+        ...state.confirmDialog,
+        isOpen: false,
+      },
+    }))
+  },
+
+  alertDialog: {
+    isOpen: false,
+    title: '',
+    description: '',
+  },
+  showAlert: (options) => {
+    set({
+      alertDialog: {
+        isOpen: true,
+        title: options.title,
+        description: options.description,
+      },
+    })
+  },
+  closeAlert: () => {
+    set((state) => ({
+      alertDialog: {
+        ...state.alertDialog,
+        isOpen: false,
+      },
+    }))
+  },
 
   // ── Hydrate from API response on login ──────────────────────────────────────
   hydrate: ({ user, settings, dashboard }) => {
@@ -155,6 +229,18 @@ export const useStore = create<AppState>()((set, get) => ({
       supportStreak: 0,
       lastActionDate: '',
       partnerStatus: null,
+      confirmDialog: {
+        isOpen: false,
+        title: '',
+        description: '',
+        onConfirm: null,
+        onCancel: null,
+      },
+      alertDialog: {
+        isOpen: false,
+        title: '',
+        description: '',
+      },
     }),
 
   // ── Dashboard ───────────────────────────────────────────────────────────────
@@ -242,19 +328,55 @@ export const useStore = create<AppState>()((set, get) => ({
   addLog: async (date, symptoms) => {
     set({ isSaving: true })
     try {
+      const existing = get().logs.find((l) => l.date === date)
+      const targetWater = existing?.water
+      const targetWeight = existing?.weight
+
       if (isLoggedIn()) {
-        const log = await logsApi.upsert(date, symptoms)
+        const log = await logsApi.upsert(date, symptoms, targetWater, targetWeight)
         set((state) => ({
           logs: [
             ...state.logs.filter((l) => l.date !== date),
-            { date: log.date, symptoms: log.symptoms },
+            { date: log.date, symptoms: log.symptoms, water: log.water, weight: log.weight },
           ],
         }))
       } else {
         set((state) => ({
           logs: [
             ...state.logs.filter((l) => l.date !== date),
-            { date, symptoms },
+            { date, symptoms, water: targetWater ?? 1000, weight: targetWeight ?? 62.5 },
+          ],
+        }))
+      }
+    } finally {
+      set({ isSaving: false })
+    }
+  },
+
+  updateDailyMetrics: async (date, water, weight) => {
+    set({ isSaving: true })
+    try {
+      const existing = get().logs.find((l) => l.date === date)
+      const existingSymptoms = existing?.symptoms ?? []
+      const existingWater = existing?.water ?? 1000
+      const existingWeight = existing?.weight ?? 62.5
+
+      const targetWater = water !== undefined ? water : existingWater
+      const targetWeight = weight !== undefined ? weight : existingWeight
+
+      if (isLoggedIn()) {
+        const log = await logsApi.upsert(date, undefined, targetWater, targetWeight)
+        set((state) => ({
+          logs: [
+            ...state.logs.filter((l) => l.date !== date),
+            { date: log.date, symptoms: log.symptoms, water: log.water, weight: log.weight },
+          ],
+        }))
+      } else {
+        set((state) => ({
+          logs: [
+            ...state.logs.filter((l) => l.date !== date),
+            { date, symptoms: existingSymptoms, water: targetWater, weight: targetWeight },
           ],
         }))
       }

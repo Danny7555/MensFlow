@@ -7,6 +7,8 @@ import { isLoggedIn } from '../lib/auth-token'
 export type ApiSymptomLog = {
   date: string
   symptoms: string[]
+  water?: number
+  weight?: number
 }
 
 export type ApiCustomSymptom = {
@@ -21,8 +23,8 @@ export const logsApi = {
   getAll: () =>
     get<ApiSymptomLog[]>('/logs'),
 
-  upsert: (date: string, symptoms: string[]) =>
-    post<ApiSymptomLog>('/logs', { date, symptoms }),
+  upsert: (date: string, symptoms?: string[], water?: number, weight?: number) =>
+    post<ApiSymptomLog>('/logs', { date, symptoms, water, weight }),
 
   clearAll: () =>
     del<{ success: boolean }>('/logs'),

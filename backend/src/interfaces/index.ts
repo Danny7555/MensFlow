@@ -77,6 +77,8 @@ export interface ISymptomLog {
   userId: string;
   date: string;              // YYYY-MM-DD
   symptoms: string[];
+  water?: number;
+  weight?: number;
 }
 
 // ─── Custom Symptom ──────────────────────────────────────────────────────────

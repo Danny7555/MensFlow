@@ -217,12 +217,15 @@ function DynamicToaster() {
   return <Toaster position="top-right" richColors theme={resolved} className="mt-14" />
 }
 
+import { GlobalModalContainer } from './components/GlobalModalContainer'
+
 export default function App() {
   return (
     <AuthProvider>
       <ThemeSync />
       <MainShell />
       <DynamicToaster />
+      <GlobalModalContainer />
     </AuthProvider>
   )
 }

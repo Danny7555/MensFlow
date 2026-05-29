@@ -45,10 +45,21 @@ function trackerReducer(state: TrackerState, action: TrackerAction): TrackerStat
 }
 
 export function TrackerView() {
-  const { isSaving, dashboard: data, user, invitePartner } = useStore()
+  const { isSaving, dashboard: data, user, invitePartner, fetchPartnerStatus, fetchLogs } = useStore()
   const { isAuthenticated, openAuthModal } = useAuth()
   const [inviteEmail, setInviteEmail] = useState('')
   const [isInviting, setIsInviting] = useState(false)
+
+  // Real-time synchronization on load
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (user?.role === 'partner') {
+        fetchPartnerStatus()
+      } else {
+        fetchLogs()
+      }
+    }
+  }, [isAuthenticated, user?.role, fetchPartnerStatus, fetchLogs])
 
   const [initialDay, setInitialDay] = useState(1)
 

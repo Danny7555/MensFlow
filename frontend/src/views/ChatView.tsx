@@ -153,7 +153,7 @@ function generateAIResponse(
 export function ChatView() {
   const { temporaryChat, setTemporaryChat } = useChatSession()
   const { chatShowTimestamps } = useStore((state) => state.settings)
-  const { dashboard: data, user, logs, customSymptoms } = useStore()
+  const { dashboard: data, user, logs, customSymptoms, showConfirm } = useStore()
 
   const threadEndRef = useRef<HTMLDivElement>(null)
 
@@ -444,25 +444,30 @@ export function ChatView() {
 
   const deleteSession = async (sessionId: string, e: React.MouseEvent) => {
     e.stopPropagation()
-    if (!window.confirm('Delete this conversation? This action cannot be undone.')) return
     
-    try {
-      await chatApi.deleteSession(sessionId)
-      toast.success('Chat deleted')
-      
-      if (activeSessionId === sessionId) {
-        const remaining = sessions.filter((s) => s.sessionId !== sessionId)
-        if (remaining.length > 0) {
-          setActiveSessionId(remaining[0].sessionId)
-        } else {
-          setActiveSessionId(generateNewSessionId())
+    showConfirm({
+      title: 'Delete Conversation',
+      description: 'Are you sure you want to delete this conversation? This action cannot be undone.',
+      onConfirm: async () => {
+        try {
+          await chatApi.deleteSession(sessionId)
+          toast.success('Chat deleted')
+          
+          if (activeSessionId === sessionId) {
+            const remaining = sessions.filter((s) => s.sessionId !== sessionId)
+            if (remaining.length > 0) {
+              setActiveSessionId(remaining[0].sessionId)
+            } else {
+              setActiveSessionId(generateNewSessionId())
+            }
+          }
+          
+          fetchSessions()
+        } catch (err: unknown) {
+          toast.error(err instanceof Error ? err.message : 'Failed to delete chat')
         }
       }
-      
-      fetchSessions()
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Failed to delete chat')
-    }
+    })
   }
 
   // Lock Actions

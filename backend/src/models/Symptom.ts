@@ -4,12 +4,16 @@ export interface SymptomLogDocument extends Document {
   userId: Schema.Types.ObjectId;
   date: string;
   symptoms: string[];
+  water?: number;
+  weight?: number;
 }
 
 const SymptomLogSchema = new Schema<SymptomLogDocument>({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   date: { type: String, required: true, match: /^\d{4}-\d{2}-\d{2}$/ },
   symptoms: { type: [String], default: [] },
+  water: { type: Number, default: 1000 },
+  weight: { type: Number, default: 62.5 },
 });
 
 SymptomLogSchema.index({ userId: 1, date: 1 }, { unique: true });

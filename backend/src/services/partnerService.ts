@@ -121,6 +121,8 @@ export async function getPartnerStatus(userId: string): Promise<object> {
           cycleVariationDays: partnerDash.cycleVariationDays,
           isAtypical: partnerDash.isAtypical,
           symptoms,
+          water: latestLog?.water !== undefined ? latestLog.water : 1000,
+          weight: latestLog?.weight !== undefined ? latestLog.weight : 62.5,
           scientificInsight: partnerDash.scientificInsight || '',
           dailyTip: partnerDash.dailyTip || { title: '', desc: '' },
         }

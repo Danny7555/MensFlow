@@ -1206,17 +1206,21 @@ export function SettingsView({
       .withDefault('general')
       .withOptions({ shallow: false })
   )
-  const { settings, updateSettings, resetSettings, user, updateUser, resetStore } = useStore()
+  const { settings, updateSettings, resetSettings, user, updateUser, resetStore, showConfirm } = useStore()
 
   const confirmResetApp = () => {
-    if (window.confirm('Delete all symptom logs, cycle data, and health settings? This cannot be undone.')) {
-      resetStore()
-      resetSettings()
-      localStorage.removeItem(CHAT_STORAGE_KEY)
-      window.dispatchEvent(new Event(CLEAR_LOCAL_CHATS_EVENT))
-      if (onLogout) onLogout()
-      window.location.reload()
-    }
+    showConfirm({
+      title: 'Reset Application',
+      description: 'Delete all symptom logs, cycle data, and health settings? This cannot be undone.',
+      onConfirm: () => {
+        resetStore()
+        resetSettings()
+        localStorage.removeItem(CHAT_STORAGE_KEY)
+        window.dispatchEvent(new Event(CLEAR_LOCAL_CHATS_EVENT))
+        if (onLogout) onLogout()
+        window.location.reload()
+      }
+    })
   }
 
   const exportBundle = () => {
@@ -1240,7 +1244,7 @@ export function SettingsView({
           },
           null,
           2,
-        ),
+          ),
       ],
       { type: 'application/json' },
     )
@@ -1253,37 +1257,37 @@ export function SettingsView({
   }
 
   const confirmResetSettings = () => {
-    if (
-      window.confirm(
-        'Reset all MensFlow preferences to defaults? This cannot be undone.',
-      )
-    ) {
-      resetSettings()
-    }
+    showConfirm({
+      title: 'Reset Settings',
+      description: 'Reset all MensFlow preferences to defaults? This cannot be undone.',
+      onConfirm: () => {
+        resetSettings()
+      }
+    })
   }
 
   const confirmClearChats = () => {
-    if (
-      window.confirm(
-        'Delete locally saved chat messages on this device?',
-      )
-    ) {
-      localStorage.removeItem(CHAT_STORAGE_KEY)
-      window.dispatchEvent(new Event(CLEAR_LOCAL_CHATS_EVENT))
-    }
+    showConfirm({
+      title: 'Clear Chats',
+      description: 'Delete locally saved chat messages on this device?',
+      onConfirm: () => {
+        localStorage.removeItem(CHAT_STORAGE_KEY)
+        window.dispatchEvent(new Event(CLEAR_LOCAL_CHATS_EVENT))
+      }
+    })
   }
 
   const confirmWipeLocalData = () => {
-    if (
-      window.confirm(
-        'Remove settings export cache and chat transcripts from this browser?',
-      )
-    ) {
-      localStorage.removeItem(CHAT_STORAGE_KEY)
-      localStorage.removeItem(SETTINGS_STORAGE_KEY)
-      window.dispatchEvent(new Event(CLEAR_LOCAL_CHATS_EVENT))
-      window.location.reload()
-    }
+    showConfirm({
+      title: 'Wipe Local Data',
+      description: 'Remove settings export cache and chat transcripts from this browser?',
+      onConfirm: () => {
+        localStorage.removeItem(CHAT_STORAGE_KEY)
+        localStorage.removeItem(SETTINGS_STORAGE_KEY)
+        window.dispatchEvent(new Event(CLEAR_LOCAL_CHATS_EVENT))
+        window.location.reload()
+      }
+    })
   }
 
   const panelTitle =
