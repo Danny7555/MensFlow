@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import { AuthRequest } from '../interfaces';
 import * as chatService from '../services/chatService';
 import { objectRecord, optionalString, requiredString } from '../utils/validation';
+import jwt from 'jsonwebtoken';
+import { getJwtSecret } from '../config/env';
 import { type HttpError } from '../utils/http';
 
 function isLockedError(err: unknown): err is HttpError & { locked: true } {
@@ -121,6 +123,30 @@ export async function sendGuestMessage(req: Request, res: Response, next: NextFu
 
     const result = await chatService.sendGuestMessage(text, history);
     res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getSuggestions(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    let userId: string | undefined;
+    const authHeader = req.header('Authorization');
+    if (authHeader) {
+      const parts = authHeader.split(' ');
+      if (parts.length === 2 && parts[0] === 'Bearer') {
+        try {
+          const secret = getJwtSecret();
+          const decoded = jwt.verify(parts[1], secret) as { id: string };
+          userId = decoded.id;
+        } catch {
+          // Token is invalid/expired, run in guest mode
+        }
+      }
+    }
+
+    const suggestions = await chatService.getSuggestions(userId);
+    res.json(suggestions);
   } catch (err) {
     next(err);
   }

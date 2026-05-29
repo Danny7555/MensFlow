@@ -52,6 +52,9 @@ export const chatApi = {
 
   deleteSession: (sessionId: string) =>
     del<{ success: boolean }>(`/chat/sessions/${encodeURIComponent(sessionId)}`),
+
+  getSuggestions: () =>
+    get<string[]>('/chat/suggestions'),
 }
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────
@@ -59,6 +62,14 @@ export const chatApi = {
 export const chatKeys = {
   sessions: ['chatSessions'] as const,
   messages: (sessionId: string) => ['chatMessages', sessionId] as const,
+  suggestions: ['chatSuggestions'] as const,
+}
+
+export function useChatSuggestions() {
+  return useQuery({
+    queryKey: chatKeys.suggestions,
+    queryFn: () => chatApi.getSuggestions(),
+  })
 }
 
 export function useChatSessions() {

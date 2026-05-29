@@ -380,3 +380,104 @@ Instructions:
     return { text: "Failed to connect to the Groq AI model. Please check the backend server logs for more details." };
   }
 }
+
+export async function getSuggestions(userId?: string): Promise<string[]> {
+  const groqApiKey = process.env.GROQ_API_KEY;
+  
+  const defaultSuggestions = [
+    "How can I support my partner with cramps today?",
+    "What should I cook for dinner during her luteal phase?",
+    "What are simple things to reduce her stress levels?"
+  ];
+
+  if (!groqApiKey) {
+    return defaultSuggestions;
+  }
+
+  let phaseLabel = 'Menstrual';
+  let currentDay = 1;
+  let symptomsText = 'No symptoms logged today';
+  let targetName = 'Partner';
+
+  if (userId) {
+    try {
+      const user = await User.findById(userId).lean();
+      let targetId = userId;
+      if (user?.partnerId) {
+        const partner = await User.findById(user.partnerId).lean();
+        if (partner) {
+          targetId = String(partner._id);
+          targetName = partner.name;
+        }
+      }
+      
+      const dashboard = await Dashboard.findOne({ userId: targetId }).lean();
+      if (dashboard?.lastPeriodStart) {
+        const start = new Date(`${dashboard.lastPeriodStart}T12:00:00`);
+        if (!isNaN(start.getTime())) {
+          const diff = Math.floor((Date.now() - start.getTime()) / 86_400_000);
+          const cycle = dashboard.typicalCycleDays || 28;
+          currentDay = (((diff % cycle) + cycle) % cycle) + 1;
+        }
+        phaseLabel = dashboard.phaseLabel ?? 'Menstrual';
+      }
+      
+      const today = new Date().toISOString().split('T')[0];
+      const logDoc = await SymptomLog.findOne({ userId: targetId, date: today }).lean();
+      const symptomsList = logDoc?.symptoms ?? [];
+      if (symptomsList.length > 0) {
+        symptomsText = `symptoms logged today: ${symptomsList.join(', ')}`;
+      }
+    } catch (err) {
+      console.error('[Groq Suggestions Data Fetch Error]', err);
+    }
+  }
+
+  const prompt = `You are a helpful assistant.
+Given a relationship context where a partner wants to support their loved one (named ${targetName}):
+- Cycle Phase: ${phaseLabel}
+- Cycle Day: Day ${currentDay}
+- Status: ${symptomsText}
+
+Generate 3 short, relevant, and highly actionable question prompts (maximum 8 words each) that the partner can ask the AI to get support advice.
+Return ONLY a valid JSON array of strings. Do not include markdown, bullet points, or explanation.
+Example format:
+["How can I help with her cramps?", "What should I cook for dinner?", "How to make her Luteal phase easier?"]`;
+
+  try {
+    const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${groqApiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.7,
+        max_tokens: 150
+      })
+    });
+
+    if (!response.ok) {
+      return defaultSuggestions;
+    }
+
+    const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
+    const content = data?.choices?.[0]?.message?.content?.trim() || '';
+    
+    const match = content.match(/\[\s*".*?"\s*(,\s*".*?"\s*)*\]/);
+    if (match) {
+      const parsed = JSON.parse(match[0]);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.slice(0, 3);
+      }
+    }
+    
+    return defaultSuggestions;
+  } catch (error) {
+    console.error('[Groq Suggestions Exception]', error);
+    return defaultSuggestions;
+  }
+}

@@ -5,6 +5,7 @@ import * as chatController from '../controllers/chatController';
 const router = Router();
 
 router.post('/guest-message', chatController.sendGuestMessage);
+router.get('/suggestions', chatController.getSuggestions);
 
 router.use(authenticate);
 
