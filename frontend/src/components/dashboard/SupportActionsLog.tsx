@@ -53,7 +53,9 @@ const getPhaseStyle = (phase: string): PhaseStyle => {
 
 export function SupportActionsLog() {
   const { 
-    dashboard, 
+    dashboard: ownDashboard, 
+    partnerStatus,
+    user,
     completedActions, 
     supportStreak, 
     toggleSupportAction, 
@@ -64,10 +66,15 @@ export function SupportActionsLog() {
     checkAndResetDailyActions()
   }, [checkAndResetDailyActions])
 
-  const tasks = getPhaseTasks(dashboard.phaseLabel)
+  const data = user?.role === 'partner' && partnerStatus?.paired && partnerStatus?.cycle
+    ? partnerStatus.cycle
+    : ownDashboard
+
+  const phaseLabel = data?.phaseLabel || 'Menstrual Phase'
+  const tasks = getPhaseTasks(phaseLabel)
   const completedCount = tasks.filter(t => completedActions.includes(t.id)).length
-  const progressPercent = Math.round((completedCount / tasks.length) * 100)
-  const theme = getPhaseStyle(dashboard.phaseLabel)
+  const progressPercent = tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0
+  const theme = getPhaseStyle(phaseLabel)
 
   const handleToggle = (id: string, label: string) => {
     const wasCompleted = completedActions.includes(id)
@@ -99,7 +106,7 @@ export function SupportActionsLog() {
             Daily Support Checklist
           </h3>
           <p className="text-[11px] text-[var(--mf-muted)] mt-1.5 max-w-md leading-relaxed">
-            Tailored supportive gestures to strengthen your bond during her {dashboard.phaseLabel} Phase.
+            Tailored supportive gestures to strengthen your bond during her {phaseLabel} Phase.
           </p>
         </div>
 

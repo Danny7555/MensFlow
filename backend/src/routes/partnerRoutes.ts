@@ -8,6 +8,7 @@ router.use(authenticate);
 
 router.get('/status', partnerController.getPartnerStatus);
 router.post('/pair', partnerController.pairPartner);
+router.post('/invite', partnerController.invitePartner);
 router.post('/disconnect', partnerController.disconnectPartner);
 
 router.get('/ping', partnerController.getLatestPing);

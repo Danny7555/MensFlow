@@ -117,6 +117,18 @@ export function SyncView() {
   const [partnerCodeInput, setPartnerCodeInput] = useState('')
   const [isPairing, setIsPairing] = useState(false)
 
+  // Pre-fill pairing code from URL query param if present
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const code = params.get('code')
+    if (code) {
+      const timer = setTimeout(() => {
+        setPartnerCodeInput(code.toUpperCase())
+      }, 0)
+      return () => clearTimeout(timer)
+    }
+  }, [])
+
   const handlePair = async () => {
     if (!partnerCodeInput.trim()) return
     setIsPairing(true)
@@ -126,10 +138,10 @@ export function SyncView() {
   }
 
   useEffect(() => {
-    if (user?.role === 'partner') {
+    if (isAuthenticated && user?.role) {
       fetchPartnerStatus()
     }
-  }, [user?.role, fetchPartnerStatus])
+  }, [isAuthenticated, user?.role, fetchPartnerStatus])
 
   const data = useMemo(() => {
     if (user?.role === 'partner' && partnerStatus?.paired && partnerStatus?.cycle) {

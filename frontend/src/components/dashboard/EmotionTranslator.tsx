@@ -221,7 +221,7 @@ const PRESETS = [
 ]
 
 export function EmotionTranslator() {
-  const { dashboard } = useStore()
+  const { dashboard: ownDashboard, partnerStatus, user } = useStore()
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [copied, setCopied] = useState(false)
 
@@ -233,9 +233,14 @@ export function EmotionTranslator() {
     return 'luteal'
   }
 
-  const phaseKey = getPhaseKey(dashboard.phaseLabel)
+  const data = user?.role === 'partner' && partnerStatus?.paired && partnerStatus?.cycle
+    ? partnerStatus.cycle
+    : ownDashboard
+
+  const phaseLabel = data?.phaseLabel || 'Menstrual Phase'
+  const phaseKey = getPhaseKey(phaseLabel)
   const translation = selectedIndex !== null ? TRANSLATIONS[phaseKey]?.[selectedIndex] : null
-  const theme = getPhaseStyle(dashboard.phaseLabel)
+  const theme = getPhaseStyle(phaseLabel)
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text)
@@ -263,7 +268,7 @@ export function EmotionTranslator() {
             Partner Emotion Translator
           </h3>
           <p className="text-[11px] text-[var(--mf-muted)] mt-1.5 leading-relaxed">
-            Translate common phrases during the {dashboard.phaseLabel} Phase into biological context, core needs, and copyable empathetic replies.
+            Translate common phrases during the {phaseLabel} Phase into biological context, core needs, and copyable empathetic replies.
           </p>
         </div>
 

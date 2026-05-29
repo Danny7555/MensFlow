@@ -83,6 +83,7 @@ interface AppState {
   checkAndResetDailyActions: () => void
   fetchPartnerStatus: () => Promise<void>
   pairPartner: (partnerCode: string) => Promise<void>
+  invitePartner: (email: string) => Promise<void>
   disconnectPartnerAction: () => Promise<void>
 }
 
@@ -369,6 +370,28 @@ export const useStore = create<AppState>()((set, get) => ({
       toast.success(`Successfully paired with ${result.partner.name}!`, { icon: '❤️' })
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Failed to pair with partner')
+    } finally {
+      set({ isSaving: false })
+    }
+  },
+
+  invitePartner: async (email) => {
+    set({ isSaving: true })
+    try {
+      const result = await partnerApi.invite(email)
+      if (result.partnerFound) {
+        const profile = await userApi.getProfile()
+        get().hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
+        await get().fetchPartnerStatus()
+        toast.success(`Partner found! Successfully paired with ${result.name}!`, { icon: '❤️' })
+      } else {
+        toast.success(`Invitation email sent to ${email}!`, {
+          description: `Once they sign up, they can pair with you using your code: ${get().user?.partnerCode || ''}`,
+          icon: '✉️'
+        })
+      }
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to send invitation')
     } finally {
       set({ isSaving: false })
     }

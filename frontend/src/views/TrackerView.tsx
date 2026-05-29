@@ -45,8 +45,10 @@ function trackerReducer(state: TrackerState, action: TrackerAction): TrackerStat
 }
 
 export function TrackerView() {
-  const { isSaving, dashboard: data } = useStore()
+  const { isSaving, dashboard: data, user, invitePartner } = useStore()
   const { isAuthenticated, openAuthModal } = useAuth()
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [isInviting, setIsInviting] = useState(false)
 
   const [initialDay, setInitialDay] = useState(1)
 
@@ -89,10 +91,26 @@ export function TrackerView() {
     return () => clearTimeout(timer)
   }, [])
 
+  const inviteUrl = `${window.location.origin}/sync?code=${user?.partnerCode || ''}`
   const copyLink = () => {
-    navigator.clipboard.writeText("https://mensflow.app/join/u123abc")
+    navigator.clipboard.writeText(inviteUrl)
     dispatch({ type: 'SET_COPIED', payload: true })
     setTimeout(() => dispatch({ type: 'SET_COPIED', payload: false }), 2000)
+  }
+
+  const handleSendInvite = async () => {
+    const email = inviteEmail.trim()
+    if (!email) return
+    setIsInviting(true)
+    try {
+      await invitePartner(email)
+      setInviteEmail('')
+      dispatch({ type: 'SET_INVITE_MODAL', payload: false })
+    } catch {
+      // Handled in store
+    } finally {
+      setIsInviting(false)
+    }
   }
 
   if (state.isLoading) {
@@ -201,10 +219,18 @@ export function TrackerView() {
                       id="partner-email"
                       type="email" 
                       placeholder="email@example.com"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') handleSendInvite() }}
+                      disabled={isInviting}
                       className="w-full h-14 px-5 rounded-2xl bg-muted/50 border border-border focus:border-[var(--mf-accent-border)] focus:bg-background transition-all outline-none text-base"
                     />
-                    <button className="absolute right-2 top-2 h-10 px-6 bg-[var(--mf-accent)] text-white rounded-xl text-sm font-normal hover:brightness-110 transition-all">
-                      Invite
+                    <button 
+                      onClick={handleSendInvite}
+                      disabled={isInviting || !inviteEmail.trim()}
+                      className="absolute right-2 top-2 h-10 px-6 bg-[var(--mf-accent)] text-white rounded-xl text-sm font-normal hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isInviting ? 'Inviting...' : 'Invite'}
                     </button>
                   </div>
                 </div>
@@ -220,8 +246,8 @@ export function TrackerView() {
 
                 <div className="space-y-3">
                   <div className="flex items-center gap-3 p-4 rounded-2xl bg-muted/30 border border-border/50 group hover:border-border transition-colors">
-                    <div className="flex-1 truncate text-sm text-muted-foreground font-mono">
-                      mensflow.app/join/u123abc
+                    <div className="flex-1 truncate text-xs text-muted-foreground font-mono">
+                      {inviteUrl}
                     </div>
                     <button 
                       onClick={copyLink}

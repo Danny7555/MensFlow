@@ -43,6 +43,9 @@ export const partnerApi = {
   pair: (partnerCode: string) =>
     post<{ success: boolean; partner: { id: string; name: string } }>('/partner/pair', { partnerCode }),
 
+  invite: (email: string) =>
+    post<{ success: boolean; partnerFound: boolean; id?: string; name?: string }>('/partner/invite', { email }),
+
   disconnect: () =>
     post<{ success: boolean }>('/partner/disconnect', {}),
 

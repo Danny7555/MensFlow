@@ -29,6 +29,36 @@ export async function pairWithPartner(
   return { id: String(partner._id), name: partner.name };
 }
 
+export async function invitePartner(
+  userId: string,
+  emailOrUsername: string
+): Promise<{ id?: string; name?: string; alreadyPaired: boolean; partnerFound: boolean }> {
+  const normalized = emailOrUsername.toLowerCase().trim();
+  const partner = await User.findOne({ username: normalized });
+
+  if (!partner) {
+    return { alreadyPaired: false, partnerFound: false };
+  }
+
+  if (String(partner._id) === userId) {
+    throw httpError('You cannot pair with yourself', 400);
+  }
+
+  if (partner.partnerId && String(partner.partnerId) !== userId) {
+    throw httpError('This partner is already paired with someone else', 400);
+  }
+
+  await User.findByIdAndUpdate(userId, { partnerId: partner._id });
+  await User.findByIdAndUpdate(partner._id, { partnerId: userId });
+
+  return {
+    id: String(partner._id),
+    name: partner.name,
+    alreadyPaired: false,
+    partnerFound: true
+  };
+}
+
 export async function disconnectPartner(userId: string): Promise<void> {
   const user = await User.findById(userId);
   if (user?.partnerId) {

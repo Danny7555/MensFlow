@@ -15,6 +15,18 @@ export async function pairPartner(req: AuthRequest, res: Response, next: NextFun
   }
 }
 
+export async function invitePartner(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const body = objectRecord(req.body);
+    const email = requiredString(body.email, 'email', { min: 3, max: 120 });
+
+    const result = await partnerService.invitePartner(req.user!.id, email);
+    res.json({ success: true, ...result });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function getPartnerStatus(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   try {
     const status = await partnerService.getPartnerStatus(req.user!.id);

@@ -158,7 +158,7 @@ export function BodySignalsCard({ signals, currentDay, phaseLabel }: { signals: 
 
 export function WellnessScoreCard() {
   const { logs, user, partnerStatus } = useStore()
-  const todayStr = new Date().toISOString().split('T')[0]
+  const todayStr = new Date().toLocaleDateString('en-CA')
   const todayLog = logs.find(l => l.date === todayStr)
   const symptoms = user?.role === 'partner' && partnerStatus?.cycle?.symptoms
     ? partnerStatus.cycle.symptoms
@@ -381,8 +381,14 @@ function getPartnerTranslation(phaseLabel: string) {
 }
 
 export function ConnectionChecklistCard() {
-  const { dashboard, completedActions, toggleSupportAction } = useStore()
-  const tasks = getPhaseTasks(dashboard.phaseLabel)
+  const { dashboard: ownDashboard, partnerStatus, user, completedActions, toggleSupportAction } = useStore()
+
+  const data = user?.role === 'partner' && partnerStatus?.paired && partnerStatus?.cycle
+    ? partnerStatus.cycle
+    : ownDashboard
+
+  const phaseLabel = data?.phaseLabel || 'Menstrual Phase'
+  const tasks = getPhaseTasks(phaseLabel)
   const completedCount = tasks.filter(t => completedActions.includes(t.id)).length
   const progressPercent = tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0
 
