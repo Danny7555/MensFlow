@@ -3,14 +3,14 @@ import { m } from 'framer-motion'
 import { 
   Ghost, 
   Question, 
-
-
   Lock, 
   Trash, 
   SidebarSimple, 
   X, 
   ChatCircle, 
-  Plus 
+  Plus,
+  Sparkle,
+  CaretRight 
 } from '@phosphor-icons/react'
 import { ChatComposer } from '../components/ChatComposer'
 import { useChatSession } from '../context/useChatSession'
@@ -19,7 +19,7 @@ import { CLEAR_LOCAL_CHATS_EVENT } from '../lib/constants'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../components/ui/tooltip'
 import { ChatSkeleton } from '../components/skeletons/ChatSkeleton'
 import { SYMPTOM_DEFS } from '../data/symptomsData'
-import { chatApi, type ApiChatSession } from '../services/chatService'
+import { chatApi, type ApiChatSession, useChatSuggestions } from '../services/chatService'
 import { toast } from 'sonner'
 import { cn } from '../lib/utils'
 import { computeCycleDay } from '../lib/cycleUtils'
@@ -170,6 +170,7 @@ export function ChatView() {
   const [draft, setDraft] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const { data: suggestions, isLoading: suggestionsLoading } = useChatSuggestions()
 
   // Lock & Unlock States
   const [unlockedPasscodes, setUnlockedPasscodes] = useState<Record<string, string>>({})
@@ -352,7 +353,9 @@ export function ChatView() {
     const text = (overrideText || draft).trim()
     if (!text || isTyping) return
     
+    // eslint-disable-next-line react-hooks/purity
     const uid = `u-${Date.now()}`
+    // eslint-disable-next-line react-hooks/purity
     const now = Date.now()
     
     setMessages((m) => [
@@ -744,6 +747,29 @@ export function ChatView() {
               </p>
 
               <div className="landing-composer-wrap mt-8">
+                {!suggestionsLoading && suggestions && suggestions.length > 0 && !isTyping && !isLoading && (
+                  <div className="chat-suggestions-container">
+                    <div className="chat-suggestions-label">
+                      <Sparkle size={14} weight="fill" className="text-[var(--mf-accent)]" />
+                      <span>Suggested Questions</span>
+                    </div>
+                    <div className="chat-suggestions-grid">
+                      {suggestions.map((s, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => send(s)}
+                          className="chat-suggestion-chip"
+                        >
+                          <span>{s}</span>
+                          <span className="chat-suggestion-icon">
+                            <CaretRight size={14} weight="bold" />
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <ChatComposer
                   value={draft}
                   onChange={setDraft}
@@ -832,6 +858,29 @@ export function ChatView() {
 
             <div className="chat-composer-dock p-3 bg-background/80 backdrop-blur-md border-t border-border">
               <div className="max-w-[800px] mx-auto w-full">
+                {!suggestionsLoading && suggestions && suggestions.length > 0 && !isTyping && !isLoading && (
+                  <div className="chat-suggestions-container">
+                    <div className="chat-suggestions-label">
+                      <Sparkle size={14} weight="fill" className="text-[var(--mf-accent)]" />
+                      <span>Suggested Questions</span>
+                    </div>
+                    <div className="chat-suggestions-grid">
+                      {suggestions.map((s, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => send(s)}
+                          className="chat-suggestion-chip"
+                        >
+                          <span>{s}</span>
+                          <span className="chat-suggestion-icon">
+                            <CaretRight size={14} weight="bold" />
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <ChatComposer
                   value={draft}
                   onChange={setDraft}

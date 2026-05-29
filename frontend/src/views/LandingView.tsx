@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CaretRight, FlowerLotus } from '@phosphor-icons/react'
+import { CaretRight, FlowerLotus, Sparkle } from '@phosphor-icons/react'
 import { ChatComposer } from '../components/ChatComposer'
 import { useAuth } from '../context/useAuth'
 import { CLEAR_LOCAL_CHATS_EVENT } from '../lib/constants'
@@ -8,6 +8,7 @@ import { post } from '../lib/apiClient'
 import { toast } from 'sonner'
 import { MarkdownText } from '../components/MarkdownText'
 import { cn } from '../lib/utils'
+import { useChatSuggestions } from '../services/chatService'
 
 export function LandingView() {
   const [draft, setDraft] = useState('')
@@ -26,13 +27,15 @@ export function LandingView() {
     return () => window.removeEventListener(CLEAR_LOCAL_CHATS_EVENT, onClear)
   }, [])
 
+  const { data: suggestions, isLoading: suggestionsLoading } = useChatSuggestions()
+
   // Auto scroll to bottom when messages or loading state changes
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isLoading])
 
-  const send = async () => {
-    const text = draft.trim()
+  const send = async (overrideText?: string) => {
+    const text = (overrideText || draft).trim()
     if (!text || isLoading) return
 
     const userMsgCount = messages.filter((m) => m.role === 'user').length
@@ -166,10 +169,33 @@ export function LandingView() {
         )}
 
         <div className="landing-composer-wrap">
+          {!suggestionsLoading && suggestions && suggestions.length > 0 && messages.filter((m) => m.role === 'user').length < 2 && !isLoading && (
+            <div className="chat-suggestions-container">
+              <div className="chat-suggestions-label">
+                <Sparkle size={14} weight="fill" className="text-[var(--mf-accent)]" />
+                <span>Suggested Questions</span>
+              </div>
+              <div className="chat-suggestions-grid">
+                {suggestions.map((s, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => send(s)}
+                    className="chat-suggestion-chip"
+                  >
+                    <span>{s}</span>
+                    <span className="chat-suggestion-icon">
+                      <CaretRight size={14} weight="bold" />
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <ChatComposer
             value={draft}
             onChange={setDraft}
-            onSubmit={send}
+            onSubmit={() => send()}
             placeholder={
               messages.filter((m) => m.role === 'user').length >= 2
                 ? 'Free message limit reached. Please sign in.'
