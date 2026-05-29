@@ -15,6 +15,10 @@ export interface SettingsDocument extends Document {
   notificationsProduct: boolean;
   privacyShareAnalytics: boolean;
   privacyDefaultTemporaryChat: boolean;
+  privacyLockChats: boolean;
+  privacyLockChatsPassword: string | null;
+  privacyLockChatsSecurityQuestion: string | null;
+  privacyLockChatsSecurityAnswer: string | null;
   chatPersistLocal: boolean;
   chatEnterToSend: boolean;
   chatShowTimestamps: boolean;
@@ -37,6 +41,10 @@ const SettingsSchema = new Schema<SettingsDocument>({
   notificationsProduct: { type: Boolean, default: false },
   privacyShareAnalytics: { type: Boolean, default: false },
   privacyDefaultTemporaryChat: { type: Boolean, default: false },
+  privacyLockChats: { type: Boolean, default: false },
+  privacyLockChatsPassword: { type: String, default: null },
+  privacyLockChatsSecurityQuestion: { type: String, default: null },
+  privacyLockChatsSecurityAnswer: { type: String, default: null },
   chatPersistLocal: { type: Boolean, default: true },
   chatEnterToSend: { type: Boolean, default: true },
   chatShowTimestamps: { type: Boolean, default: false },

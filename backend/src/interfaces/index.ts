@@ -44,6 +44,10 @@ export interface ISettings {
   notificationsProduct: boolean;
   privacyShareAnalytics: boolean;
   privacyDefaultTemporaryChat: boolean;
+  privacyLockChats: boolean;
+  privacyLockChatsPassword: string | null;
+  privacyLockChatsSecurityQuestion: string | null;
+  privacyLockChatsSecurityAnswer: string | null;
   chatPersistLocal: boolean;
   chatEnterToSend: boolean;
   chatShowTimestamps: boolean;
