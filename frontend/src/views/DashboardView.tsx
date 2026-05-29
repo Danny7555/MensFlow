@@ -290,16 +290,15 @@ export function DashboardView() {
   }
 
   useEffect(() => {
-    // Only poll for pings when authenticated — guests have no token
-    if (!isAuthenticated) return
-
     let active = true
 
-    const checkLatestPing = () => {
-      partnerApi.getLatestPing()
-        .then((ping) => {
-          if (!active) return
-          if (ping) {
+    const handlePingEvent = (e?: StorageEvent) => {
+      if (e && e.key && e.key !== 'mensflow_partner_ping:v1') return
+      try {
+        const pingStr = localStorage.getItem('mensflow_partner_ping:v1')
+        if (pingStr) {
+          const ping = JSON.parse(pingStr)
+          if (ping && ping.timestamp) {
             const lastProcessed = sessionStorage.getItem('mensflow_last_ping_processed:v1')
             if (lastProcessed !== String(ping.timestamp)) {
               sessionStorage.setItem('mensflow_last_ping_processed:v1', String(ping.timestamp))
@@ -310,16 +309,47 @@ export function DashboardView() {
               })
             }
           }
-        })
-        .catch((e) => console.error("Failed to fetch latest partner ping", e))
+        }
+      } catch (err) {
+        console.error("Failed to parse local storage ping", err)
+      }
     }
 
-    checkLatestPing()
-    const interval = setInterval(checkLatestPing, 10000)
+    window.addEventListener('storage', handlePingEvent as EventListener)
+
+    // Trigger check immediately in case storage is already set or on initial mount
+    handlePingEvent()
+
+    let interval: ReturnType<typeof setInterval> | null = null
+
+    if (isAuthenticated) {
+      const checkLatestPing = () => {
+        partnerApi.getLatestPing()
+          .then((ping) => {
+            if (!active) return
+            if (ping) {
+              const lastProcessed = sessionStorage.getItem('mensflow_last_ping_processed:v1')
+              if (lastProcessed !== String(ping.timestamp)) {
+                sessionStorage.setItem('mensflow_last_ping_processed:v1', String(ping.timestamp))
+                toast.info(user?.role === 'lady' ? "Support Update received!" : "Partner Update received!", {
+                  icon: "👋",
+                  description: user?.role === 'lady' ? `Partner says: "${ping.message}"` : `She is: "${ping.label}" (${ping.message})`,
+                  duration: 8000,
+                })
+              }
+            }
+          })
+          .catch((e) => console.error("Failed to fetch latest partner ping", e))
+      }
+
+      checkLatestPing()
+      interval = setInterval(checkLatestPing, 10000)
+    }
 
     return () => {
       active = false
-      clearInterval(interval)
+      window.removeEventListener('storage', handlePingEvent as EventListener)
+      if (interval) clearInterval(interval)
     }
   }, [isAuthenticated, user?.role])
 

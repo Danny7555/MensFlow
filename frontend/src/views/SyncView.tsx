@@ -165,7 +165,20 @@ export function SyncView() {
     if (!option) { setIsSending(false); return }
 
     try {
-      await partnerApi.sendPing(option.id, option.label, option.message)
+      if (isAuthenticated) {
+        await partnerApi.sendPing(option.id, option.label, option.message)
+      }
+
+      // Broadcast ping details via localStorage for cross-tab sync support
+      const pingData = {
+        id: option.id,
+        label: option.label,
+        message: option.message,
+        timestamp: Date.now()
+      }
+      localStorage.setItem('mensflow_partner_ping:v1', JSON.stringify(pingData))
+      window.dispatchEvent(new Event('storage'))
+
       setIsSending(false)
       setSent(true)
       toast.success(user?.role === 'partner' ? 'Support ping sent to partner!' : 'Ping sent to partner!', { icon: '💬' })
