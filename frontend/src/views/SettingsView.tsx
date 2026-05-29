@@ -1148,6 +1148,19 @@ function AccountPanel({
                   ]}
                 />
               </div>
+
+              <div className="mt-4 pt-4 border-t border-border/50">
+                <SelectRow
+                  label="Your App Role"
+                  description="Switch between Lady view (self-tracking) and Partner view (supporting partner)."
+                  value={user?.role || 'lady'}
+                  onChange={(v) => updateUser({ role: v as 'lady' | 'partner' })}
+                  options={[
+                    { value: 'lady', label: 'Lady (Self-Tracking)' },
+                    { value: 'partner', label: 'Partner (Supporting Partner)' },
+                  ]}
+                />
+              </div>
             </div>
           </div>
 

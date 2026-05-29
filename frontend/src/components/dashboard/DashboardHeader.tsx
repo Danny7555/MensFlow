@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button"
 
 interface DashboardHeaderProps {
   mounted: boolean
-  user: { name: string }
+  user: { name: string; avatar?: string | null; role?: 'lady' | 'partner' }
   isSaving: boolean
   temporaryChat: boolean
   toggleTempChat: () => void
@@ -59,7 +59,11 @@ export function DashboardHeader({
           whileTap={{ scale: 0.95 }}
           className="flo-avatar-wrap"
         >
-          <img src="/images/girl.png" alt="Profile" className="flo-avatar" />
+          <img 
+            src={user.avatar || (user.role === 'partner' ? '/images/mens.jpg' : '/images/girl.png')} 
+            alt="Profile" 
+            className="flo-avatar" 
+          />
         </m.div>
         <div className="flo-greeting">
           <m.div 
@@ -87,14 +91,22 @@ export function DashboardHeader({
               </span>
             </m.div>
           </m.div>
-          <m.h1 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="flo-user-name truncate max-w-[200px] sm:max-w-[400px]"
-          >
-            {mounted ? getGreeting() : 'Welcome'}, {user.name}
-          </m.h1>
+          
+          <div className="flex items-center gap-2">
+            <m.h1 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="flo-user-name truncate max-w-[150px] sm:max-w-[300px]"
+            >
+              {mounted ? getGreeting() : 'Welcome'}, {user.name}
+            </m.h1>
+            {mounted && user.role === 'partner' && (
+              <span className="px-2.5 py-0.5 rounded-full text-[9px] font-normal uppercase tracking-widest bg-gradient-to-r from-teal-500/20 to-emerald-500/20 text-teal-600 dark:text-teal-400 border border-teal-500/25 shrink-0 self-center mt-1">
+                Partner Support
+              </span>
+            )}
+          </div>
         </div>
       </div>
       <div className="flo-header-right gap-2">

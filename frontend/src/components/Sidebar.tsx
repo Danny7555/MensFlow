@@ -17,14 +17,13 @@ import {
   SidebarSimple,
   SignOut,
   Users,
-  Sparkle,
   Lock,
 } from '@phosphor-icons/react'
 import type { SectionId } from '../types/nav'
 import { cn } from '../lib/utils'
 import { useAuth } from '../context/useAuth'
 import { useStore } from '../store/useStore'
-import { computeCycleDay, getPhaseFromDay, getPhaseInfo } from '../lib/cycleUtils'
+import { computeCycleDay, getPhaseFromDay, getPhaseInfo, type CyclePhase } from '../lib/cycleUtils'
 
 type NavIcon = ComponentType<IconProps>
 
@@ -71,7 +70,7 @@ export function Sidebar({
 }: SidebarProps) {
   const { logout, onboardingCompleted } = useAuth()
 
-  const { dashboard: data, settings, user } = useStore()
+  const { dashboard: data, settings, user, partnerStatus } = useStore()
 
   const rawItems = isAuthenticated ? [...authItems] : [...guestItems]
   if (isAuthenticated && settings.privacyLockChats) {
@@ -86,8 +85,22 @@ export function Sidebar({
 
   const collapsed = !isMobile && desktopCollapsed
   const navIconSize = collapsed ? 22 : 20
-  const cycleDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
-  const phase = getPhaseFromDay(cycleDay)
+
+  const activeCycle = (user?.role === 'partner' && partnerStatus?.paired && partnerStatus?.cycle)
+    ? partnerStatus.cycle
+    : data
+
+  const phase: CyclePhase = activeCycle.phaseLabel 
+    ? (() => {
+        const normalized = activeCycle.phaseLabel.toLowerCase()
+        if (normalized.includes('menstrual')) return 'menstrual'
+        if (normalized.includes('follicular')) return 'follicular'
+        if (normalized.includes('fertile') || normalized.includes('ovulat')) return 'fertile'
+        if (normalized.includes('luteal')) return 'luteal'
+        return 'follicular'
+      })()
+    : getPhaseFromDay(computeCycleDay(activeCycle.lastPeriodStart, activeCycle.typicalCycleDays))
+
   const phaseInfo = getPhaseInfo(phase)
 
   return (
@@ -143,19 +156,31 @@ export function Sidebar({
               <div className={cn("flex items-center gap-4", collapsed && "justify-center")}>
                 <div 
                   className={cn("size-12 rounded-full flex items-center justify-center shrink-0 border border-[var(--mf-border)] shadow-sm overflow-hidden",
-                    user?.avatar ? "bg-transparent" : "bg-white dark:bg-transparent"
+                    (user?.role === 'partner' ? partnerStatus?.partner?.avatar : user?.avatar) ? "bg-transparent" : "bg-white dark:bg-transparent"
                   )}
                 >
-                  {user?.avatar ? (
-                    <img src={user.avatar} alt="Partner" className="w-full h-full object-cover" />
+                  {user?.role === 'partner' ? (
+                    partnerStatus?.partner?.avatar ? (
+                      <img src={partnerStatus.partner.avatar} alt="Partner" className="w-full h-full object-cover" />
+                    ) : (
+                      <img src="/images/girl.png" alt="Partner" className="w-full h-full object-cover" />
+                    )
                   ) : (
-                    <Sparkle size={20} weight="fill" className="text-yellow-400" />
+                    user?.avatar ? (
+                      <img src={user.avatar} alt="You" className="w-full h-full object-cover" />
+                    ) : (
+                      <img src="/images/girl.png" alt="You" className="w-full h-full object-cover" />
+                    )
                   )}
                 </div>
                 {!collapsed && (
                   <div className="flex flex-col min-w-0">
-                    <span className="text-[10px] font-normal uppercase tracking-[0.15em] text-muted-foreground/50 mb-0.5">Partner</span>
-                    <span className="text-base font-normal truncate text-[var(--mf-text-strong)]">{phaseInfo.label}</span>
+                    <span className="text-[10px] font-normal uppercase tracking-[0.15em] text-muted-foreground/50 mb-0.5">
+                      {user?.role === 'partner' ? "Her Phase" : "Your Phase"}
+                    </span>
+                    <span className="text-base font-normal truncate text-[var(--mf-text-strong)]">
+                      {user?.role === 'partner' && !partnerStatus?.paired ? "Unpaired" : phaseInfo.label}
+                    </span>
                   </div>
                 )}
               </div>
