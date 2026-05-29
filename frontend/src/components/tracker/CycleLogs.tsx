@@ -1,11 +1,14 @@
+import { useState } from "react"
 import { useStore } from "@/store/useStore"
 import { format, parseISO } from "date-fns"
 import { SYMPTOM_DEFS } from "@/data/symptomsData"
 
 export function CycleLogs() {
   const { logs, customSymptoms } = useStore()
+  const [showAll, setShowAll] = useState(false)
   
-  const sortedLogs = logs.toSorted((a, b) => b.date.localeCompare(a.date)).slice(0, 5)
+  const sortedLogs = logs.toSorted((a, b) => b.date.localeCompare(a.date))
+  const displayLogs = showAll ? sortedLogs : sortedLogs.slice(0, 3)
 
   if (logs.length === 0) {
     return null
@@ -17,10 +20,19 @@ export function CycleLogs() {
     <div className="space-y-4">
       <div className="flex items-center justify-between px-2">
         <h2 className="text-2xl font-normal text-foreground tracking-tight">Recent logs</h2>
+        {sortedLogs.length > 3 && (
+          <button
+            type="button"
+            onClick={() => setShowAll(!showAll)}
+            className="text-xs font-medium text-[var(--mf-accent)] hover:opacity-85 transition-opacity cursor-pointer"
+          >
+            {showAll ? 'Show less' : 'View all'}
+          </button>
+        )}
       </div>
 
       <div className="space-y-3">
-        {sortedLogs.map((log) => (
+        {displayLogs.map((log) => (
           <div key={log.date} className="flo-card">
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm font-normal text-muted-foreground">
