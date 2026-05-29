@@ -5,7 +5,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { useStore } from '@/store/useStore'
-import { format, differenceInDays, parseISO } from 'date-fns'
+import { format, differenceInDays, parseISO, isValid } from 'date-fns'
 
 interface DotGridProps {
   cycleLength: number
@@ -76,12 +76,13 @@ export function CycleHistory() {
   const { dashboard: data } = useStore()
   
   // 1. Parse the last period start date safely and get typical cycle length
-  const currentStart = parseISO(data.lastPeriodStart)
+  const currentStart = data.lastPeriodStart ? parseISO(data.lastPeriodStart) : null
+  const isValidStart = currentStart ? isValid(currentStart) : false
   const typicalCycleDays = data.typicalCycleDays || 28
 
   // Calculate days elapsed in the current cycle
   const today = new Date()
-  const daysElapsed = differenceInDays(today, currentStart)
+  const daysElapsed = isValidStart && currentStart ? differenceInDays(today, currentStart) : 0
   const currentCycleDays = daysElapsed >= 0 ? daysElapsed + 1 : 1
 
   return (
@@ -114,7 +115,7 @@ export function CycleHistory() {
                 Current cycle: {currentCycleDays} days
               </h3>
               <p className="text-muted-foreground text-sm">
-                Started {format(currentStart, "MMM d")}
+                {isValidStart && currentStart ? `Started ${format(currentStart, "MMM d")}` : 'Cycle not started'}
               </p>
             </div>
             <CaretRight size={20} className="text-[#999] mt-2" />

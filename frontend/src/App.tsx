@@ -22,7 +22,6 @@ const DashboardView = lazy(() => import('./views/DashboardView').then(m => ({ de
 const InsightsView = lazy(() => import('./views/InsightsView').then(m => ({ default: m.InsightsView })))
 const TipsView = lazy(() => import('./views/TipsView').then(m => ({ default: m.TipsView })))
 const LandingView = lazy(() => import('./views/LandingView').then(m => ({ default: m.LandingView })))
-const PlaceholderView = lazy(() => import('./views/PlaceholderView').then(m => ({ default: m.PlaceholderView })))
 const SettingsView = lazy(() => import('./views/SettingsView').then(m => ({ default: m.SettingsView })))
 const CalendarView = lazy(() => import('./views/CalendarView').then(m => ({ default: m.CalendarView })))
 const TrackerView = lazy(() => import('./views/TrackerView').then(m => ({ default: m.TrackerView })))
@@ -69,14 +68,7 @@ function MainShell() {
       ? 'Expand sidebar'
       : 'Collapse sidebar'
 
-  const guestPlaceholder = (title: string, body: string) => (
-    <PlaceholderView
-      title={title}
-      description={body}
-      actionLabel="Log in"
-      onAction={openAuthModal}
-    />
-  )
+
 
   return (
     <ChatSessionContext.Provider
@@ -128,24 +120,23 @@ function MainShell() {
               <Routes>
                 {!isAuthenticated ? (
                   <>
-                    <Route 
-                      path="/" 
-                      element={!onboardingCompleted ? <Navigate to="/onboarding" replace /> : <AccessGate><DashboardView /></AccessGate>} 
-                    />
+                    <Route path="/" element={<LandingView />} />
                     <Route path="/onboarding" element={<OnboardingView />} />
-                    <Route path="/ask" element={<LandingView />} />
                     <Route path="/settings" element={<SettingsView isGuest onLogin={openAuthModal} />} />
-                    <Route path="/calendar" element={<AccessGate><CalendarView /></AccessGate>} />
-                    <Route path="/tracker" element={<AccessGate><TrackerView /></AccessGate>} />
-                    <Route path="/insights" element={<AccessGate><InsightsView /></AccessGate>} />
-                    <Route path="/tips" element={<AccessGate><TipsView /></AccessGate>} />
-                    <Route path="/symptoms" element={<AccessGate><SymptomsView /></AccessGate>} />
                     <Route path="/education" element={<EducationView />} />
+                    
+                    {/* All other paths redirect to Landing Page */}
+                    <Route path="/ask" element={<Navigate to="/" replace />} />
                     <Route path="/dashboard" element={<Navigate to="/" replace />} />
-                    <Route path="/health-insights" element={<Navigate to="/insights" replace />} />
-                    <Route path="/wellness-tips" element={<Navigate to="/tips" replace />} />
-                    <Route path="/history" element={guestPlaceholder('History / logs', 'Chat and symptom history stays private to your account.')} />
-                    <Route path="/sync" element={<AccessGate><SyncView /></AccessGate>} />
+                    <Route path="/calendar" element={<Navigate to="/" replace />} />
+                    <Route path="/tracker" element={<Navigate to="/" replace />} />
+                    <Route path="/insights" element={<Navigate to="/" replace />} />
+                    <Route path="/tips" element={<Navigate to="/" replace />} />
+                    <Route path="/symptoms" element={<Navigate to="/" replace />} />
+                    <Route path="/sync" element={<Navigate to="/" replace />} />
+                    <Route path="/notifications" element={<Navigate to="/" replace />} />
+                    <Route path="/locked-chats" element={<Navigate to="/" replace />} />
+                    <Route path="/history" element={<Navigate to="/" replace />} />
                     <Route path="*" element={<NotFoundView />} />
                   </>
                 ) : (
@@ -168,7 +159,6 @@ function MainShell() {
                     <Route path="/symptoms" element={<AccessGate><SymptomsView /></AccessGate>} />
                     <Route path="/education" element={<EducationView />} />
                     <Route path="/sync" element={<AccessGate><SyncView /></AccessGate>} />
-                    <Route path="/sync" element={<SyncView />} />
                     <Route path="/locked-chats" element={<LockedChatsView />} />
                     <Route path="*" element={<NotFoundView />} />
                   </>

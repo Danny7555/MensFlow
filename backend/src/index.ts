@@ -1,10 +1,12 @@
 import 'dotenv/config';
+import crypto from 'crypto';
 import http from 'http';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import { connectDatabase } from './config/database';
 import { getCorsOrigins, getPort, isProduction, validateRuntimeEnv } from './config/env';
+import { authLimiter, apiLimiter } from './middleware/rateLimiter';
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
 import cycleRoutes from './routes/cycleRoutes';
@@ -16,6 +18,12 @@ const app = express();
 // ─── Global Middleware ────────────────────────────────────────────────────────
 
 app.disable('x-powered-by');
+
+// Attach a unique request ID to every request for log correlation
+app.use((_req: Request, res: Response, next: NextFunction) => {
+  res.setHeader('X-Request-Id', crypto.randomUUID());
+  next();
+});
 
 const corsOrigins = getCorsOrigins();
 app.use(cors({
@@ -29,15 +37,22 @@ app.use(cors({
   optionsSuccessStatus: 204,
 }));
 app.use(express.json({ limit: '64kb' }));
+app.use(express.text({ limit: '64kb' }));
 
 // ─── Request Logger (development) ────────────────────────────────────────────
 
 if (!isProduction) {
-  app.use((req: Request, _res: Response, next: NextFunction) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    const requestId = res.getHeader('X-Request-Id');
+    console.log(`[${new Date().toISOString()}] [${requestId}] ${req.method} ${req.path}`);
     next();
   });
 }
+
+// ─── Rate Limiting ────────────────────────────────────────────────────────────
+
+app.use('/api/auth', authLimiter);
+app.use('/api', apiLimiter);
 
 // ─── Routes ──────────────────────────────────────────────────────────────────
 
@@ -50,7 +65,16 @@ app.use('/api/chat', chatRoutes);
 // ─── Health Check ─────────────────────────────────────────────────────────────
 
 app.get('/health', (_req: Request, res: Response) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  const dbState = mongoose.connection.readyState;
+  // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
+  const dbStatus = ['disconnected', 'connected', 'connecting', 'disconnecting'][dbState] ?? 'unknown';
+  const isHealthy = dbState === 1;
+
+  res.status(isHealthy ? 200 : 503).json({
+    status: isHealthy ? 'ok' : 'degraded',
+    db: dbStatus,
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // ─── Not Found ───────────────────────────────────────────────────────────────
@@ -61,10 +85,23 @@ app.use((_req: Request, res: Response) => {
 
 // ─── Centralised Error Handler ────────────────────────────────────────────────
 
-app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
   const { status, message } = getErrorResponse(err);
-  console.error(`[ERROR] ${status} — ${message}`);
+  const requestId = res.getHeader('X-Request-Id') ?? '-';
+  console.error(`[ERROR] [${requestId}] ${req.method} ${req.path} — ${status}: ${message}`);
   res.status(status).json({ error: message });
+});
+
+// ─── Process-level Safety Nets ────────────────────────────────────────────────
+
+process.on('uncaughtException', (err) => {
+  console.error('[FATAL] Uncaught exception — shutting down:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('[FATAL] Unhandled promise rejection — shutting down:', reason);
+  process.exit(1);
 });
 
 // ─── Bootstrap ────────────────────────────────────────────────────────────────
@@ -73,13 +110,45 @@ async function bootstrap(): Promise<void> {
   validateRuntimeEnv();
   await connectDatabase();
   const PORT = getPort();
-  await listen(PORT);
+  const server = await listen(PORT);
+  setupGracefulShutdown(server);
 }
 
 bootstrap().catch((err) => {
   console.error('Failed to start server:', err);
   process.exit(1);
 });
+
+// ─── Graceful Shutdown ────────────────────────────────────────────────────────
+
+function setupGracefulShutdown(server: http.Server): void {
+  const shutdown = async (signal: string) => {
+    console.log(`[${signal}] Received — starting graceful shutdown…`);
+
+    server.close(async () => {
+      console.log('HTTP server closed. Disconnecting from MongoDB…');
+      try {
+        await mongoose.disconnect();
+        console.log('MongoDB disconnected. Goodbye.');
+      } catch (err) {
+        console.error('Error disconnecting from MongoDB:', err);
+      } finally {
+        process.exit(0);
+      }
+    });
+
+    // Force-kill after 10 s if server hasn't drained
+    setTimeout(() => {
+      console.error('Graceful shutdown timed out — forcing exit.');
+      process.exit(1);
+    }, 10_000).unref();
+  };
+
+  process.on('SIGTERM', () => void shutdown('SIGTERM'));
+  process.on('SIGINT',  () => void shutdown('SIGINT'));
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function getErrorResponse(err: unknown): { status: number; message: string } {
   if (err instanceof SyntaxError && 'body' in err) {

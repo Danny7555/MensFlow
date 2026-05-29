@@ -1,9 +1,16 @@
 import type { ReactNode } from 'react'
+import { Navigate } from 'react-router-dom'
 import { useStore } from '../store/useStore'
 import { Button } from './ui/button'
+import { isLoggedIn } from '../lib/auth-token'
 
 export function AccessGate({ children }: { children: ReactNode }) {
   const { user, updateUser } = useStore()
+
+  if (!isLoggedIn()) {
+    return <Navigate to="/" replace />
+  }
+
   const isEducational = user.accessLevel === 'educational'
 
   if (!isEducational) {

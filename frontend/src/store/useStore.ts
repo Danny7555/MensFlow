@@ -6,6 +6,7 @@ import { logsApi } from '../services/logsService'
 import { userApi, type ApiUser, type ApiSettings, type ApiDashboard } from '../services/userService'
 import { partnerApi } from '../services/partnerService'
 import { toast } from 'sonner'
+import { isLoggedIn } from '../lib/auth-token'
 
 export type SymptomLog = {
   date: string
@@ -152,15 +153,25 @@ export const useStore = create<AppState>()((set, get) => ({
   updateDashboard: async (patch) => {
     set({ isSaving: true })
     try {
-      const updated = await userApi.updateDashboard(patch)
-      set((state) => ({
-        dashboard: {
-          ...state.dashboard,
-          ...updated,
-          version: 1,
-          guidanceLines: updated.guidanceLines ?? state.dashboard.guidanceLines,
-        },
-      }))
+      if (isLoggedIn()) {
+        const updated = await userApi.updateDashboard(patch)
+        set((state) => ({
+          dashboard: {
+            ...state.dashboard,
+            ...updated,
+            version: 1,
+            guidanceLines: updated.guidanceLines ?? state.dashboard.guidanceLines,
+          },
+        }))
+      } else {
+        set((state) => ({
+          dashboard: {
+            ...state.dashboard,
+            ...patch,
+            version: 1,
+          },
+        }))
+      }
     } finally {
       set({ isSaving: false })
     }
@@ -170,19 +181,28 @@ export const useStore = create<AppState>()((set, get) => ({
   updateUser: async (patch) => {
     set({ isSaving: true })
     try {
-      const { user: updated } = await userApi.updateProfile(patch)
-      set((state) => ({
-        user: {
-          ...state.user,
-          name: updated.name,
-          avatar: updated.avatar,
-          accessLevel: updated.accessLevel,
-          isOnboarded: updated.isOnboarded,
-          role: updated.role,
-          partnerCode: updated.partnerCode,
-          partnerId: updated.partnerId,
-        },
-      }))
+      if (isLoggedIn()) {
+        const { user: updated } = await userApi.updateProfile(patch)
+        set((state) => ({
+          user: {
+            ...state.user,
+            name: updated.name,
+            avatar: updated.avatar,
+            accessLevel: updated.accessLevel,
+            isOnboarded: updated.isOnboarded,
+            role: updated.role,
+            partnerCode: updated.partnerCode,
+            partnerId: updated.partnerId,
+          },
+        }))
+      } else {
+        set((state) => ({
+          user: {
+            ...state.user,
+            ...patch,
+          },
+        }))
+      }
     } finally {
       set({ isSaving: false })
     }
@@ -192,10 +212,12 @@ export const useStore = create<AppState>()((set, get) => ({
   updateSettings: async (patch) => {
     // Optimistic update — keeps UI instant
     set((state) => ({ settings: { ...state.settings, ...patch } }))
-    try {
-      await userApi.updateSettings(patch)
-    } catch {
-      // Revert on failure (re-fetch would be ideal but keep it simple)
+    if (isLoggedIn()) {
+      try {
+        await userApi.updateSettings(patch)
+      } catch {
+        // Revert on failure (re-fetch would be ideal but keep it simple)
+      }
     }
   },
 
@@ -203,20 +225,31 @@ export const useStore = create<AppState>()((set, get) => ({
 
   // ── Symptom Logs ────────────────────────────────────────────────────────────
   fetchLogs: async () => {
-    const logs = await logsApi.getAll()
-    set({ logs })
+    if (isLoggedIn()) {
+      const logs = await logsApi.getAll()
+      set({ logs })
+    }
   },
 
   addLog: async (date, symptoms) => {
     set({ isSaving: true })
     try {
-      const log = await logsApi.upsert(date, symptoms)
-      set((state) => ({
-        logs: [
-          ...state.logs.filter((l) => l.date !== date),
-          { date: log.date, symptoms: log.symptoms },
-        ],
-      }))
+      if (isLoggedIn()) {
+        const log = await logsApi.upsert(date, symptoms)
+        set((state) => ({
+          logs: [
+            ...state.logs.filter((l) => l.date !== date),
+            { date: log.date, symptoms: log.symptoms },
+          ],
+        }))
+      } else {
+        set((state) => ({
+          logs: [
+            ...state.logs.filter((l) => l.date !== date),
+            { date, symptoms },
+          ],
+        }))
+      }
     } finally {
       set({ isSaving: false })
     }
@@ -225,34 +258,50 @@ export const useStore = create<AppState>()((set, get) => ({
   getLogForDate: (date) => get().logs.find((l) => l.date === date),
 
   clearLogs: async () => {
-    await logsApi.clearAll()
+    if (isLoggedIn()) {
+      await logsApi.clearAll()
+    }
     set({ logs: [] })
   },
 
   // ── Custom Symptoms ─────────────────────────────────────────────────────────
   fetchCustomSymptoms: async () => {
-    const items = await logsApi.getCustom()
-    set({
-      customSymptoms: items.map((c) => ({
-        id: c.id,
-        label: c.label,
-        category: c.category as SymptomCategory,
-      })),
-    })
+    if (isLoggedIn()) {
+      const items = await logsApi.getCustom()
+      set({
+        customSymptoms: items.map((c) => ({
+          id: c.id,
+          label: c.label,
+          category: c.category as SymptomCategory,
+        })),
+      })
+    }
   },
 
   addCustomSymptom: async (label, category) => {
-    const item = await logsApi.addCustom(label, category)
-    set((state) => ({
-      customSymptoms: [
-        ...state.customSymptoms,
-        { id: item.id, label: item.label, category: item.category as SymptomCategory },
-      ],
-    }))
+    if (isLoggedIn()) {
+      const item = await logsApi.addCustom(label, category)
+      set((state) => ({
+        customSymptoms: [
+          ...state.customSymptoms,
+          { id: item.id, label: item.label, category: item.category as SymptomCategory },
+        ],
+      }))
+    } else {
+      const randomId = Math.random().toString(36).substring(7)
+      set((state) => ({
+        customSymptoms: [
+          ...state.customSymptoms,
+          { id: randomId, label, category },
+        ],
+      }))
+    }
   },
 
   removeCustomSymptom: async (id) => {
-    await logsApi.removeCustom(id)
+    if (isLoggedIn()) {
+      await logsApi.removeCustom(id)
+    }
     set((state) => ({
       customSymptoms: state.customSymptoms.filter((s) => s.id !== id),
     }))
@@ -260,12 +309,24 @@ export const useStore = create<AppState>()((set, get) => ({
 
   // ── Partner support ─────────────────────────────────────────────────────────
   toggleSupportAction: async (actionId) => {
-    const result = await partnerApi.toggleAction(actionId)
-    set({
-      completedActions: result.completedActions,
-      supportStreak: result.supportStreak,
-      lastActionDate: result.lastActionDate,
-    })
+    if (isLoggedIn()) {
+      const result = await partnerApi.toggleAction(actionId)
+      set({
+        completedActions: result.completedActions,
+        supportStreak: result.supportStreak,
+        lastActionDate: result.lastActionDate,
+      })
+    } else {
+      set((state) => {
+        const completed = state.completedActions.includes(actionId)
+          ? state.completedActions.filter(id => id !== actionId)
+          : [...state.completedActions, actionId]
+        return {
+          completedActions: completed,
+          lastActionDate: new Date().toISOString().split('T')[0]
+        }
+      })
+    }
   },
 
   checkAndResetDailyActions: () => {

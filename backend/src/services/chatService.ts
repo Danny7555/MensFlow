@@ -47,11 +47,14 @@ export async function getMessages(
   const meta = await ChatMessage.findOne({ userId, sessionId }).lean();
   if (!meta) return [];
 
-  if (meta.isLocked && passcode !== meta.passcode) {
-    throw httpError('Chat is locked — provide the correct passcode', 403, {
-      securityQuestion: meta.securityQuestion,
-      locked: true,
-    });
+  if (meta.isLocked) {
+    const passcodeOk = passcode ? await bcrypt.compare(passcode, meta.passcode ?? '') : false;
+    if (!passcodeOk) {
+      throw httpError('Chat is locked — provide the correct passcode', 403, {
+        securityQuestion: meta.securityQuestion,
+        locked: true,
+      });
+    }
   }
 
   const messages = await ChatMessage.find({ userId, sessionId }).sort({ createdAt: 1 }).lean();
@@ -69,15 +72,18 @@ export async function sendMessage(
   const meta = await ChatMessage.findOne({ userId, sessionId }).lean();
 
   const isLocked = meta?.isLocked ?? false;
-  const storedPasscode = meta?.passcode ?? null;
+  const passcodeHash = meta?.passcode ?? null;
   const securityQuestion = meta?.securityQuestion ?? null;
   const securityAnswerHash = meta?.securityAnswerHash ?? null;
 
-  if (isLocked && passcode !== storedPasscode) {
-    throw httpError('Chat is locked — passcode verification failed', 403, {
-      securityQuestion,
-      locked: true,
-    });
+  if (isLocked) {
+    const passcodeOk = passcode ? await bcrypt.compare(passcode, passcodeHash ?? '') : false;
+    if (!passcodeOk) {
+      throw httpError('Chat is locked — passcode verification failed', 403, {
+        securityQuestion,
+        locked: true,
+      });
+    }
   }
 
   const history = await ChatMessage.find({ userId, sessionId }).sort({ createdAt: 1 }).lean();
@@ -91,7 +97,7 @@ export async function sendMessage(
     role: 'user',
     text,
     isLocked,
-    passcode: storedPasscode,
+    passcode: passcodeHash,
     securityQuestion,
     securityAnswerHash,
     createdAt: now,
@@ -105,7 +111,7 @@ export async function sendMessage(
     role: 'assistant',
     text: aiText,
     isLocked,
-    passcode: storedPasscode,
+    passcode: passcodeHash,
     securityQuestion,
     securityAnswerHash,
     createdAt: now + 10,
@@ -131,11 +137,14 @@ export async function lockSession(
     throw httpError('Chat session not found', 404);
   }
 
-  const securityAnswerHash = await bcrypt.hash(securityAnswer.toLowerCase().trim(), 10);
+  const [passcodeHash, securityAnswerHash] = await Promise.all([
+    bcrypt.hash(passcode, 10),
+    bcrypt.hash(securityAnswer.toLowerCase().trim(), 10),
+  ]);
 
   await ChatMessage.updateMany(
     { userId, sessionId },
-    { $set: { isLocked: true, passcode, securityQuestion, securityAnswerHash } }
+    { $set: { isLocked: true, passcode: passcodeHash, securityQuestion, securityAnswerHash } }
   );
 }
 
@@ -151,7 +160,8 @@ export async function unlockSession(
   }
 
   if (passcode) {
-    if (passcode !== meta.passcode) {
+    const isMatch = await bcrypt.compare(passcode, meta.passcode ?? '');
+    if (!isMatch) {
       throw httpError('Invalid passcode', 400);
     }
     return {};
@@ -165,7 +175,8 @@ export async function unlockSession(
     if (!isMatch) {
       throw httpError('Security answer is incorrect', 400);
     }
-    return { passcode: meta.passcode ?? undefined };
+    // We no longer return the raw passcode — the session is considered unlocked
+    return {};
   }
 
   throw httpError('Provide passcode or securityAnswer', 400);
@@ -174,6 +185,8 @@ export async function unlockSession(
 export async function deleteSession(userId: string, sessionId: string): Promise<void> {
   await ChatMessage.deleteMany({ userId, sessionId });
 }
+
+// ─── AI Response Builder ──────────────────────────────────────────────────────
 
 async function buildAIResponse(
   userId: string,
@@ -265,7 +278,7 @@ Instructions:
       return "An error occurred while connecting to the Groq API. Please make sure your API key is valid and has sufficient credits.";
     }
 
-    const data = await response.json() as any;
+    const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
     const content = data?.choices?.[0]?.message?.content;
     if (!content) {
       console.warn('[Groq API Warning] Empty response choices');
@@ -281,7 +294,18 @@ Instructions:
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function toMessageInterface(doc: any): IChatMessage {
+interface ChatMessageLike {
+  _id: unknown;
+  userId: unknown;
+  sessionId: string;
+  role: 'user' | 'assistant';
+  text: string;
+  isLocked: boolean;
+  securityQuestion: string | null;
+  createdAt: number;
+}
+
+function toMessageInterface(doc: ChatMessageLike): IChatMessage {
   return {
     id: String(doc._id),
     userId: String(doc.userId),

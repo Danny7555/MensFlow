@@ -9,7 +9,8 @@ import { useNavigate } from 'react-router-dom'
 import { AuthContext } from './auth-context'
 import { AuthModal } from '../components/AuthModal'
 import { authApi } from '../services/authService'
-import { userApi, type ApiUser } from '../services/userService'
+import { userApi, type ApiUser, userKeys } from '../services/userService'
+import { chatKeys } from '../services/chatService'
 import { setToken, clearToken, isLoggedIn } from '../lib/auth-token'
 import { useStore } from '../store/useStore'
 import { queryClient } from '../lib/queryClient'
@@ -52,8 +53,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         store.fetchCustomSymptoms().catch((err) => console.error('Failed to load custom symptoms', err))
         store.fetchPartnerStatus().catch((err) => console.error('Failed to load partner status', err))
 
-        // Invalidate queries to ensure React Query cache is hydrated with fresh server data
-        queryClient.invalidateQueries()
+        // Invalidate only the data queries that depend on the freshly-loaded profile
+        void queryClient.invalidateQueries({ queryKey: userKeys.profile })
+        void queryClient.invalidateQueries({ queryKey: chatKeys.sessions })
       })
       .catch(() => {
         // Token expired or invalid — clear it
@@ -64,6 +66,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setState(prev => ({ ...prev, isRehydrating: false }))
       })
   }, [hydrate])
+
+  // ── Auto-logout on token expiry (fired by apiClient on 401) ────────────────
+  useEffect(() => {
+    const handleAuthExpired = () => {
+      console.warn('[AuthProvider] Session expired — logging out')
+      clearToken()
+      sessionStorage.removeItem('mf_onboarding')
+      setState(prev => ({ ...prev, isAuthenticated: false, user: null, onboardingCompleted: false }))
+      resetStore()
+      queryClient.clear()
+      navigate('/')
+    }
+    window.addEventListener('mf:auth:expired', handleAuthExpired)
+    return () => window.removeEventListener('mf:auth:expired', handleAuthExpired)
+  }, [navigate, resetStore])
 
   // ── Login ──────────────────────────────────────────────────────────────────
   const login = useCallback(async (username: string, password: string) => {
@@ -113,8 +130,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         sessionStorage.removeItem('mf_partner_code')
       }
 
-      // Invalidate query client queries to fetch fresh dashboard/user data
-      queryClient.invalidateQueries()
+      // Invalidate only the affected data queries (targeted, not a full cache wipe)
+      void queryClient.invalidateQueries({ queryKey: userKeys.profile })
+      void queryClient.invalidateQueries({ queryKey: chatKeys.sessions })
 
       // Fetch logs, custom symptoms, and partner status from backend database
       const store = useStore.getState()
@@ -125,6 +143,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ]).catch((err) => console.error('Failed to load user logs/status', err))
 
       navigate(profile.user.isOnboarded ? '/dashboard' : '/onboarding')
+    } catch (err) {
+      setState(prev => ({ ...prev, isLoading: false }))
+      throw err
     } finally {
       setState(prev => ({ ...prev, isLoading: false }))
     }
@@ -177,8 +198,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         sessionStorage.removeItem('mf_partner_code')
       }
 
-      // Invalidate query client queries to fetch fresh dashboard/user data
-      queryClient.invalidateQueries()
+      // Invalidate only the affected data queries (targeted, not a full cache wipe)
+      void queryClient.invalidateQueries({ queryKey: userKeys.profile })
+      void queryClient.invalidateQueries({ queryKey: chatKeys.sessions })
 
       // Fetch logs, custom symptoms, and partner status from backend database
       const store = useStore.getState()
@@ -189,6 +211,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ]).catch((err) => console.error('Failed to load user logs/status', err))
 
       navigate(profile.user.isOnboarded ? '/dashboard' : '/onboarding')
+    } catch (err) {
+      setState(prev => ({ ...prev, isLoading: false }))
+      throw err
     } finally {
       setState(prev => ({ ...prev, isLoading: false }))
     }

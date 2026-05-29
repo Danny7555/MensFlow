@@ -7,7 +7,6 @@ import {
   CalendarBlank,
   CalendarHeart,
   ChatCircle,
-  ChatCenteredDots,
   FlowerLotus,
   GearSix,
   Heart,
@@ -31,14 +30,7 @@ type NavIcon = ComponentType<IconProps>
 
 const guestItems: { id: SectionId; label: string; Icon: NavIcon }[] = [
   { id: 'dashboard', label: 'Home', Icon: House },
-  { id: 'ask', label: 'Ask MensFlow', Icon: ChatCenteredDots },
-  { id: 'symptoms', label: 'Symptoms', Icon: Pulse },
-  { id: 'insights', label: 'Health insights', Icon: Target },
   { id: 'education', label: 'Education', Icon: BookOpen },
-  { id: 'calendar', label: 'Calendar', Icon: CalendarBlank },
-  { id: 'tracker', label: 'Tracker', Icon: CalendarHeart },
-  { id: 'tips', label: 'Wellness Tips', Icon: Heart },
-  { id: 'sync', label: 'Partner Sync', Icon: Users },
   { id: 'settings', label: 'Settings', Icon: GearSix },
 ]
 
@@ -77,20 +69,16 @@ export function Sidebar({
   onToggleDesktopCollapse,
   onToggleSidebar,
 }: SidebarProps) {
-  const { logout, onboardingCompleted } = useAuth()
+  const { logout } = useAuth()
 
   const { dashboard: data, settings, user } = useStore()
 
   const rawItems = isAuthenticated ? [...authItems] : [...guestItems]
-  if (settings.privacyLockChats) {
+  if (isAuthenticated && settings.privacyLockChats) {
     rawItems.splice(rawItems.length - 1, 0, { id: 'locked-chats', label: 'Locked Chats', Icon: Lock })
   }
 
-  const items = rawItems.filter(item => {
-    // If onboarding is not completed, only show the chat assistant
-    if (!onboardingCompleted && item.id !== 'ask') return false
-    return true
-  })
+  const items = rawItems
 
   const collapsed = !isMobile && desktopCollapsed
   const navIconSize = collapsed ? 22 : 20
@@ -139,35 +127,37 @@ export function Sidebar({
         </div>
 
         {/* Empathy Widget */}
-        <div className={cn("px-4 mb-4 mt-4", collapsed && "px-2 text-center")}>
-          <m.div 
-            layout
-            className={cn(
-              "transition-all duration-500 overflow-hidden border border-[var(--mf-border)] bg-white dark:bg-white/5 rounded-[2rem]",
-              collapsed ? "p-2" : "py-5 px-6"
-            )}
-          >
-            <div className={cn("flex items-center gap-4", collapsed && "justify-center")}>
-              <div 
-                className={cn("size-12 rounded-full flex items-center justify-center shrink-0 border border-[var(--mf-border)] shadow-sm overflow-hidden",
-                  user?.avatar ? "bg-transparent" : "bg-white dark:bg-transparent"
-                )}
-              >
-                {user?.avatar ? (
-                  <img src={user.avatar} alt="Partner" className="w-full h-full object-cover" />
-                ) : (
-                  <Sparkle size={20} weight="fill" className="text-yellow-400" />
+        {isAuthenticated && (
+          <div className={cn("px-4 mb-4 mt-4", collapsed && "px-2 text-center")}>
+            <m.div 
+              layout
+              className={cn(
+                "transition-all duration-500 overflow-hidden border border-[var(--mf-border)] bg-white dark:bg-white/5 rounded-[2rem]",
+                collapsed ? "p-2" : "py-5 px-6"
+              )}
+            >
+              <div className={cn("flex items-center gap-4", collapsed && "justify-center")}>
+                <div 
+                  className={cn("size-12 rounded-full flex items-center justify-center shrink-0 border border-[var(--mf-border)] shadow-sm overflow-hidden",
+                    user?.avatar ? "bg-transparent" : "bg-white dark:bg-transparent"
+                  )}
+                >
+                  {user?.avatar ? (
+                    <img src={user.avatar} alt="Partner" className="w-full h-full object-cover" />
+                  ) : (
+                    <Sparkle size={20} weight="fill" className="text-yellow-400" />
+                  )}
+                </div>
+                {!collapsed && (
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[10px] font-normal uppercase tracking-[0.15em] text-muted-foreground/50 mb-0.5">Partner</span>
+                    <span className="text-base font-normal truncate text-[var(--mf-text-strong)]">{phaseInfo.label}</span>
+                  </div>
                 )}
               </div>
-              {!collapsed && (
-                <div className="flex flex-col min-w-0">
-                  <span className="text-[10px] font-normal uppercase tracking-[0.15em] text-muted-foreground/50 mb-0.5">Partner</span>
-                  <span className="text-base font-normal truncate text-[var(--mf-text-strong)]">{phaseInfo.label}</span>
-                </div>
-              )}
-            </div>
-          </m.div>
-        </div>
+            </m.div>
+          </div>
+        )}
 
         <nav className="sidebar-nav">
           {items.map(({ id, label, Icon }) => (

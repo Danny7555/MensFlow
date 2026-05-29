@@ -2,6 +2,16 @@ import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../interfaces';
 import * as chatService from '../services/chatService';
 import { objectRecord, optionalString, requiredString } from '../utils/validation';
+import { type HttpError } from '../utils/http';
+
+function isLockedError(err: unknown): err is HttpError & { locked: true } {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    'locked' in err &&
+    (err as HttpError).locked === true
+  );
+}
 
 export async function getSessions(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   try {
@@ -15,13 +25,15 @@ export async function getSessions(req: AuthRequest, res: Response, next: NextFun
 export async function getMessages(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   try {
     const sessionId = requiredString(req.params.sessionId, 'sessionId', { max: 120 });
-    const passcode = typeof req.query.passcode === 'string' ? requiredString(req.query.passcode, 'passcode', { max: 80 }) : undefined;
+    const passcode = typeof req.query.passcode === 'string'
+      ? requiredString(req.query.passcode, 'passcode', { max: 80 })
+      : undefined;
 
     const messages = await chatService.getMessages(req.user!.id, sessionId, passcode);
     res.json(messages);
-  } catch (err: any) {
-    if (err.locked) {
-      res.status(err.status).json({
+  } catch (err) {
+    if (isLockedError(err)) {
+      res.status(err.status ?? 403).json({
         locked: true,
         securityQuestion: err.securityQuestion,
         error: err.message,
@@ -41,9 +53,9 @@ export async function sendMessage(req: AuthRequest, res: Response, next: NextFun
 
     const result = await chatService.sendMessage(req.user!.id, sessionId, text, passcode);
     res.json(result);
-  } catch (err: any) {
-    if (err.locked) {
-      res.status(err.status).json({
+  } catch (err) {
+    if (isLockedError(err)) {
+      res.status(err.status ?? 403).json({
         locked: true,
         securityQuestion: err.securityQuestion,
         error: err.message,

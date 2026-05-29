@@ -947,3 +947,172 @@
     transition-delay: 0s !important;
   }
 }
+
+/* ─── Error Boundary ───────────────────────────────────────────────────────── */
+
+.error-boundary-root {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--mf-main-bg, #1a1318);
+  padding: 2rem;
+}
+
+.error-boundary-card {
+  background: var(--mf-card, #1f161d);
+  border: 1px solid var(--mf-border, #362430);
+  border-radius: 1.5rem;
+  padding: 2.5rem 2rem;
+  max-width: 480px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
+}
+
+.error-boundary-icon {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.error-boundary-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--mf-text-strong, #f4f2f8);
+  letter-spacing: -0.02em;
+}
+
+.error-boundary-message {
+  font-size: 0.9375rem;
+  color: var(--mf-muted, #9d96a8);
+  line-height: 1.6;
+}
+
+.error-boundary-details {
+  width: 100%;
+  background: var(--mf-elevated, #251a22);
+  border: 1px solid var(--mf-border, #362430);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.8125rem;
+  color: var(--mf-muted, #9d96a8);
+  text-align: left;
+  cursor: pointer;
+}
+
+.error-boundary-details summary {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  list-style: none;
+}
+
+.error-boundary-details pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+  font-family: var(--font-mono);
+}
+
+.error-boundary-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ─── Query Error Toast ────────────────────────────────────────────────────── */
+
+.mf-toast-container {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  pointer-events: none;
+  max-width: 380px;
+  width: calc(100vw - 3rem);
+}
+
+.mf-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: var(--mf-card, #1f161d);
+  border: 1px solid var(--mf-border, #362430);
+  border-radius: 1rem;
+  padding: 0.875rem 1rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24);
+  pointer-events: all;
+  animation: mf-toast-in 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mf-toast--error {
+  border-left: 3px solid var(--mf-danger, #f97066);
+}
+
+.mf-toast--warning {
+  border-left: 3px solid var(--mf-warning, #fec84b);
+}
+
+.mf-toast-icon {
+  font-size: 1.125rem;
+  flex-shrink: 0;
+  margin-top: 0.0625rem;
+}
+
+.mf-toast-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.mf-toast-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--mf-text-strong, #f4f2f8);
+  line-height: 1.3;
+}
+
+.mf-toast-message {
+  font-size: 0.8125rem;
+  color: var(--mf-muted, #9d96a8);
+  margin-top: 0.125rem;
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mf-toast-dismiss {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--mf-muted, #9d96a8);
+  cursor: pointer;
+  padding: 0.125rem;
+  border-radius: 0.375rem;
+  line-height: 1;
+  font-size: 1rem;
+  transition: color 0.15s;
+}
+
+.mf-toast-dismiss:hover {
+  color: var(--mf-text-strong, #f4f2f8);
+}
+
+@keyframes mf-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

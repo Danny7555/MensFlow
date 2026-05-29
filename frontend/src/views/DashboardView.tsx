@@ -167,6 +167,7 @@ function TourTooltip({
 
 export function DashboardView() {
   const { dashboard: ownDashboard, partnerStatus, fetchPartnerStatus, updateDashboard: update, isSaving, user, pairPartner } = useStore()
+  const { logout, isAuthenticated, openAuthModal } = useAuth()
 
   const [dashboardPartnerCodeInput, setDashboardPartnerCodeInput] = useState('')
   const [isDashboardPairing, setIsDashboardPairing] = useState(false)
@@ -250,12 +251,11 @@ export function DashboardView() {
   }, [user?.role, isMobile])
 
   useEffect(() => {
-    if (user?.role) {
+    if (isAuthenticated && user?.role) {
       fetchPartnerStatus()
     }
-  }, [user?.role, fetchPartnerStatus])
+  }, [isAuthenticated, user?.role, fetchPartnerStatus])
 
-  const { logout, isAuthenticated, openAuthModal } = useAuth()
   const ctx = use(ChatSessionContext)
   const temporaryChat = ctx?.temporaryChat ?? false
   const setTemporaryChat = ctx?.setTemporaryChat ?? (() => {})
@@ -268,7 +268,7 @@ export function DashboardView() {
     isEditingGuidance: false,
     mounted: false,
     now: null,
-    isLoading: true,
+    isLoading: isAuthenticated, // Only show skeleton for authenticated users loading their data
     tourRun: false
   })
 
@@ -285,6 +285,9 @@ export function DashboardView() {
   }
 
   useEffect(() => {
+    // Only poll for pings when authenticated — guests have no token
+    if (!isAuthenticated) return
+
     let active = true
 
     const checkLatestPing = () => {
@@ -313,7 +316,7 @@ export function DashboardView() {
       active = false
       clearInterval(interval)
     }
-  }, [user?.role])
+  }, [isAuthenticated, user?.role])
 
   useEffect(() => {
     const hasSeenTour = sessionStorage.getItem('mensflow_tour_completed')
@@ -321,13 +324,19 @@ export function DashboardView() {
       type: 'MOUNT',
       payload: {
         now: new Date(),
-        tourRun: !hasSeenTour
+        tourRun: !hasSeenTour && isAuthenticated,
       }
     })
-    const timer = setTimeout(() => {
+    // Only show skeleton briefly for authenticated sessions loading real data
+    if (isAuthenticated) {
+      const timer = setTimeout(() => {
+        dispatch({ type: 'SET_LOADING', payload: false })
+      }, 400)
+      return () => clearTimeout(timer)
+    } else {
       dispatch({ type: 'SET_LOADING', payload: false })
-    }, 500)
-    return () => clearTimeout(timer)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleJoyrideCallback = (data: EventData) => {
