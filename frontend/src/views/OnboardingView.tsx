@@ -18,7 +18,7 @@ import { Input } from '../components/ui/input'
 import { cn } from '../lib/utils'
 
 import { type DashboardSnapshot } from '../lib/dashboardStorage'
-import type { ApiUser } from '../lib/api'
+import type { ApiUser } from '../services/userService'
 
 export function OnboardingView() {
   const [currentStep, setCurrentStep] = useState(0)

@@ -1,5 +1,5 @@
 import { createContext } from 'react'
-import type { ApiUser } from '../lib/api'
+import type { ApiUser } from '../services/userService'
 
 export type AuthContextValue = {
   isAuthenticated: boolean

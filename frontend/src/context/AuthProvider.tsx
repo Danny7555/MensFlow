@@ -8,9 +8,11 @@ import {
 import { useNavigate } from 'react-router-dom'
 import { AuthContext } from './auth-context'
 import { AuthModal } from '../components/AuthModal'
-import { authApi, userApi, type ApiUser } from '../lib/api'
+import { authApi } from '../services/authService'
+import { userApi, type ApiUser } from '../services/userService'
 import { setToken, clearToken, isLoggedIn } from '../lib/auth-token'
 import { useStore } from '../store/useStore'
+import { queryClient } from '../lib/queryClient'
 
 const getLocalOnboarding = () => sessionStorage.getItem('mf_onboarding') === 'true'
 const getLocalPartnerCode = () => sessionStorage.getItem('mf_partner_code')
@@ -49,6 +51,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         store.fetchLogs().catch((err) => console.error('Failed to load logs', err))
         store.fetchCustomSymptoms().catch((err) => console.error('Failed to load custom symptoms', err))
         store.fetchPartnerStatus().catch((err) => console.error('Failed to load partner status', err))
+
+        // Invalidate queries to ensure React Query cache is hydrated with fresh server data
+        queryClient.invalidateQueries()
       })
       .catch(() => {
         // Token expired or invalid — clear it
@@ -107,6 +112,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         })
         sessionStorage.removeItem('mf_partner_code')
       }
+
+      // Invalidate query client queries to fetch fresh dashboard/user data
+      queryClient.invalidateQueries()
 
       // Fetch logs, custom symptoms, and partner status from backend database
       const store = useStore.getState()
@@ -169,6 +177,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         sessionStorage.removeItem('mf_partner_code')
       }
 
+      // Invalidate query client queries to fetch fresh dashboard/user data
+      queryClient.invalidateQueries()
+
       // Fetch logs, custom symptoms, and partner status from backend database
       const store = useStore.getState()
       await Promise.all([
@@ -194,6 +205,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user: null,
     }))
     resetStore()
+    queryClient.clear()
     navigate('/')
   }, [navigate, resetStore])
 

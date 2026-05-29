@@ -2,7 +2,9 @@ import { create } from 'zustand'
 import { type DashboardSnapshot, DEFAULT_DASHBOARD } from '../lib/dashboardStorage'
 import { DEFAULT_SETTINGS, type MensFlowSettings } from '../context/settings-types'
 import { type SymptomDef, type SymptomCategory } from '../data/symptomsData'
-import { logsApi, userApi, partnerApi, type ApiUser, type ApiSettings, type ApiDashboard } from '../lib/api'
+import { logsApi } from '../services/logsService'
+import { userApi, type ApiUser, type ApiSettings, type ApiDashboard } from '../services/userService'
+import { partnerApi } from '../services/partnerService'
 import { toast } from 'sonner'
 
 export type SymptomLog = {

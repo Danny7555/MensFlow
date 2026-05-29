@@ -7,7 +7,7 @@ import { SupportActionsLog } from '../components/dashboard/SupportActionsLog'
 import { EmotionTranslator } from '../components/dashboard/EmotionTranslator'
 import { useStore } from '../store/useStore'
 import { useAuth } from '../context/useAuth'
-import { partnerApi } from '../lib/api'
+import { partnerApi } from '../services/partnerService'
 import { cn } from '../lib/utils'
 import { computeCycleDay, getPhaseFromDay, getPhaseTasks } from '../lib/cycleUtils'
 
