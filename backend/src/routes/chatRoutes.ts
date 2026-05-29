@@ -4,6 +4,8 @@ import * as chatController from '../controllers/chatController';
 
 const router = Router();
 
+router.post('/guest-message', chatController.sendGuestMessage);
+
 router.use(authenticate);
 
 router.get('/sessions', chatController.getSessions);

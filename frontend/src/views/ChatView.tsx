@@ -23,6 +23,7 @@ import { chatApi, type ApiChatSession } from '../services/chatService'
 import { toast } from 'sonner'
 import { cn } from '../lib/utils'
 import { computeCycleDay } from '../lib/cycleUtils'
+import { getPasswordStrength } from '../lib/passwordStrength'
 
 type Msg = {
   id: string
@@ -474,6 +475,12 @@ export function ChatView() {
       return
     }
 
+    const strength = getPasswordStrength(lockPasscodeVal)
+    if (!strength || !strength.isStrong) {
+      toast.error('Passcode is too weak. Please use a stronger passcode (at least Good).')
+      return
+    }
+
     try {
       await chatApi.lock(lockModalSessionId, lockPasscodeVal, lockSecurityQVal, lockSecurityAVal)
       toast.success('Chat session locked!')
@@ -864,6 +871,64 @@ export function ChatView() {
                   onChange={(e) => setLockPasscodeVal(e.target.value)}
                   required
                 />
+                {(() => {
+                  const strengthResult = getPasswordStrength(lockPasscodeVal)
+                  if (!lockPasscodeVal) return null
+                  return (
+                    <div className="w-full mt-2 space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-300">
+                      <div className="flex justify-between items-center text-[10px] font-medium tracking-wide">
+                        <span className="text-muted-foreground uppercase">Password Strength</span>
+                        {strengthResult && (
+                          <span className={strengthResult.textClass}>
+                            {strengthResult.label}
+                          </span>
+                        )}
+                      </div>
+                      <div className="h-1.5 w-full bg-muted/30 dark:bg-muted/10 rounded-full overflow-hidden flex gap-1">
+                        {strengthResult && (
+                          <>
+                            <div className={`h-full rounded-full transition-all duration-500 flex-1 ${
+                              strengthResult.percent >= 33 
+                                ? strengthResult.label === 'Bad' 
+                                  ? 'bg-rose-500' 
+                                  : strengthResult.label === 'Good' 
+                                    ? 'bg-amber-500' 
+                                    : 'bg-emerald-500'
+                                : 'bg-transparent'
+                            }`} />
+                            <div className={`h-full rounded-full transition-all duration-500 flex-1 ${
+                              strengthResult.percent >= 66 
+                                ? strengthResult.label === 'Good' 
+                                  ? 'bg-amber-500' 
+                                  : 'bg-emerald-500'
+                                : 'bg-muted/10'
+                            }`} />
+                            <div className={`h-full rounded-full transition-all duration-500 flex-1 ${
+                              strengthResult.percent >= 100 
+                                ? 'bg-emerald-500' 
+                                : 'bg-muted/10'
+                            }`} />
+                          </>
+                        )}
+                      </div>
+                      {strengthResult?.label === 'Bad' && (
+                        <p className="text-[9px] text-muted-foreground leading-normal text-left">
+                          ⚠️ Make it at least 8 characters with numbers or special symbols.
+                        </p>
+                      )}
+                      {strengthResult?.label === 'Good' && (
+                        <p className="text-[9px] text-muted-foreground leading-normal text-left">
+                          👍 Good! Add uppercase letters and symbols for maximum security.
+                        </p>
+                      )}
+                      {strengthResult?.label === 'Excellent' && (
+                        <p className="text-[9px] leading-normal font-medium text-emerald-500 dark:text-emerald-400 text-left">
+                          ✨ Excellent! Your passcode is highly secure.
+                        </p>
+                      )}
+                    </div>
+                  )
+                })()}
               </div>
 
               <div>
@@ -891,9 +956,16 @@ export function ChatView() {
               </div>
             </div>
 
-            <button type="submit" className="chat-lock-btn mt-2">
-              Secure Chat
-            </button>
+            <button 
+              type="submit" 
+              className="chat-lock-btn mt-2"
+              disabled={(() => {
+                const strengthResult = getPasswordStrength(lockPasscodeVal)
+                return !strengthResult || !strengthResult.isStrong
+              })()}
+             >
+               Secure Chat
+             </button>
           </form>
         </div>
       )}

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { X, Eye, EyeSlash } from '@phosphor-icons/react'
 import { toast } from 'sonner'
+import { getPasswordStrength } from '../lib/passwordStrength'
 
 type Mode = 'login' | 'register'
 
@@ -45,9 +46,16 @@ export function AuthModal({ open, onClose, onLogin, onRegister, isLoading }: Aut
       return
     }
 
-    if (mode === 'register' && !n) {
-      toast.error('Please enter your name')
-      return
+    if (mode === 'register') {
+      if (!n) {
+        toast.error('Please enter your name')
+        return
+      }
+      const strength = getPasswordStrength(p)
+      if (!strength || !strength.isStrong) {
+        toast.error('Password is too weak. Please use a stronger password (at least Good).')
+        return
+      }
     }
 
     try {
@@ -137,8 +145,78 @@ export function AuthModal({ open, onClose, onLogin, onRegister, isLoading }: Aut
               disabled={isLoading}
             >
               {showPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
-            </button>
+             </button>
           </div>
+
+          {mode === 'register' && password && (
+            <div className="w-full mt-2 mb-3 px-1 space-y-2 animate-in fade-in slide-in-from-top-1 duration-300">
+              <div className="flex justify-between items-center text-[10.5px] font-medium tracking-wide">
+                <span className="text-muted-foreground uppercase">Password Strength</span>
+                {(() => {
+                  const strength = getPasswordStrength(password)
+                  if (!strength) return null
+                  return (
+                    <span className={strength.textClass}>
+                      {strength.label}
+                    </span>
+                  )
+                })()}
+              </div>
+              <div className="h-1.5 w-full bg-muted/30 dark:bg-muted/10 rounded-full overflow-hidden flex gap-1">
+                {(() => {
+                  const strength = getPasswordStrength(password)
+                  if (!strength) return null
+                  return (
+                    <>
+                      <div className={`h-full rounded-full transition-all duration-500 flex-1 ${
+                        strength.percent >= 33 
+                          ? strength.label === 'Bad' 
+                            ? 'bg-rose-500' 
+                            : strength.label === 'Good' 
+                              ? 'bg-amber-500' 
+                              : 'bg-emerald-500'
+                          : 'bg-transparent'
+                      }`} />
+                      <div className={`h-full rounded-full transition-all duration-500 flex-1 ${
+                        strength.percent >= 66 
+                          ? strength.label === 'Good' 
+                            ? 'bg-amber-500' 
+                            : 'bg-emerald-500'
+                          : 'bg-muted/10'
+                      }`} />
+                      <div className={`h-full rounded-full transition-all duration-500 flex-1 ${
+                        strength.percent >= 100 
+                          ? 'bg-emerald-500' 
+                          : 'bg-muted/10'
+                      }`} />
+                    </>
+                  )
+                })()}
+              </div>
+              {(() => {
+                const strength = getPasswordStrength(password)
+                if (strength?.label === 'Bad') {
+                  return (
+                    <p className="text-[10px] text-muted-foreground leading-normal text-left">
+                      ⚠️ Make it at least 8 characters with numbers or special symbols.
+                    </p>
+                  )
+                }
+                if (strength?.label === 'Good') {
+                  return (
+                    <p className="text-[10px] text-muted-foreground leading-normal text-left">
+                      👍 Good! Add uppercase letters and symbols for maximum security.
+                    </p>
+                  )
+                }
+                return (
+                  <p className="text-[10px] leading-normal font-medium text-emerald-500 dark:text-emerald-400 text-left">
+                    ✨ Excellent! Your account is highly secure.
+                  </p>
+                )
+              })()}
+            </div>
+          )}
 
           <button
             type="button"

@@ -317,3 +317,66 @@ function toMessageInterface(doc: ChatMessageLike): IChatMessage {
     createdAt: doc.createdAt,
   };
 }
+
+export async function sendGuestMessage(
+  text: string,
+  history: { role: 'user' | 'assistant'; text: string }[]
+): Promise<{ text: string }> {
+  const groqApiKey = process.env.GROQ_API_KEY;
+  if (!groqApiKey) {
+    return {
+      text: "MensFlow AI requires the Groq API key to be set. Please add `GROQ_API_KEY` to the `.env` file on the backend and restart the server to enable chat."
+    };
+  }
+
+  const systemMessage = `You are MensFlow, a warm, highly empathetic, and supportive relationship assistant.
+You help partners support their loved ones during their menstrual cycle.
+Since this is a guest preview session, you do not have their custom cycle data yet.
+Provide warm, general cycle support suggestions, tips, and insights.
+Instructions:
+1. Speak like a supportive relationship coach who understands cycle physiology.
+2. Keep your answers concise, engaging, and easy to read (use markdown bullet points, bold text, or short paragraphs).
+3. Encourage the user to sign up or create a free account to log symptoms, sync with their partner, and get personalized, daily advice.`;
+
+  const apiMessages = [
+    { role: 'system', content: systemMessage },
+    ...history.slice(-15).map(msg => ({
+      role: msg.role === 'assistant' ? 'assistant' : 'user',
+      content: msg.text
+    })),
+    { role: 'user', content: text }
+  ];
+
+  const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+  try {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${groqApiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model,
+        messages: apiMessages,
+        temperature: 0.7
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[Groq Guest API Error] Status: ${response.status} - ${errorText}`);
+      return { text: "An error occurred while connecting to the Groq API. Please make sure your API key is valid." };
+    }
+
+    const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
+    const content = data?.choices?.[0]?.message?.content;
+    if (!content) {
+      return { text: "Received empty response from the Groq AI service. Please try asking again." };
+    }
+
+    return { text: content.trim() };
+  } catch (error) {
+    console.error('[Groq Guest API Exception]', error);
+    return { text: "Failed to connect to the Groq AI model. Please check the backend server logs for more details." };
+  }
+}

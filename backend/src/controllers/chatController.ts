@@ -1,4 +1,4 @@
-import { Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { AuthRequest } from '../interfaces';
 import * as chatService from '../services/chatService';
 import { objectRecord, optionalString, requiredString } from '../utils/validation';
@@ -100,6 +100,27 @@ export async function deleteSession(req: AuthRequest, res: Response, next: NextF
     const sessionId = requiredString(req.params.sessionId, 'sessionId', { max: 120 });
     await chatService.deleteSession(req.user!.id, sessionId);
     res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function sendGuestMessage(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const body = objectRecord(req.body);
+    const text = requiredString(body.text, 'text', { max: 4_000 });
+    const historyVal = 'history' in body ? (Array.isArray(body.history) ? body.history : []) : [];
+    
+    const history = historyVal.map((item: any) => {
+      const rec = objectRecord(item);
+      return {
+        role: requiredString(rec.role, 'role', { max: 20 }) as 'user' | 'assistant',
+        text: requiredString(rec.text, 'text', { max: 4_000 }),
+      };
+    });
+
+    const result = await chatService.sendGuestMessage(text, history);
+    res.json(result);
   } catch (err) {
     next(err);
   }

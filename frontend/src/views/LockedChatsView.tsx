@@ -4,7 +4,7 @@ import { Lock, LockKey, ShieldCheck } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import { ChatView } from './ChatView'
 import { SECURITY_QUESTIONS } from '../lib/constants'
-import { Info } from '@phosphor-icons/react'
+import { getPasswordStrength } from '../lib/passwordStrength'
 
 export function LockedChatsView() {
   const { settings, updateSettings } = useStore()
@@ -19,11 +19,8 @@ export function LockedChatsView() {
 
   const activeQuestion = SECURITY_QUESTIONS.find(q => q.id === settings.privacyLockChatsSecurityQuestion)
 
-  const isStrong = newPassword.length >= 8 && 
-    /[A-Z]/.test(newPassword) && 
-    /[a-z]/.test(newPassword) && 
-    /[0-9]/.test(newPassword) && 
-    /[^A-Za-z0-9]/.test(newPassword);
+  const strengthResult = getPasswordStrength(newPassword)
+  const isStrong = strengthResult ? strengthResult.isStrong : false
 
   if (!settings.privacyLockChats) {
     return (
@@ -140,17 +137,60 @@ export function LockedChatsView() {
                 className="w-full h-12 pl-10 pr-4 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-[var(--mf-accent)] focus:ring-1 transition-all outline-none text-base"
                 autoFocus
               />
-              <div className={`flex gap-2 items-start text-xs p-3 rounded-lg border mt-3 transition-colors ${
-                newPassword.length > 0 && !isStrong 
-                  ? 'bg-red-50 text-red-600 border-red-200 dark:bg-red-950/30 dark:border-red-900/50' 
-                  : 'text-muted-foreground bg-[var(--mf-accent-soft)]/30 border-[var(--mf-accent)]/20'
-              }`}>
-                <Info size={16} className={`shrink-0 mt-0.5 ${newPassword.length > 0 && !isStrong ? 'text-red-500' : 'text-[var(--mf-accent)]'}`} />
-                <p>
-                  <strong>Tip for a strong password:</strong> Use at least 8 characters, combining uppercase and lowercase letters, numbers, and symbols.
-                  {newPassword.length > 0 && !isStrong && <span className="block mt-1 font-medium">Your password is too weak and cannot be used.</span>}
-                </p>
-              </div>
+              {newPassword && (
+                <div className="w-full mt-3 space-y-2 animate-in fade-in slide-in-from-top-1 duration-300">
+                  <div className="flex justify-between items-center text-[10.5px] font-medium tracking-wide">
+                    <span className="text-muted-foreground uppercase">Password Strength</span>
+                    {strengthResult && (
+                      <span className={strengthResult.textClass}>
+                        {strengthResult.label}
+                      </span>
+                    )}
+                  </div>
+                  <div className="h-1.5 w-full bg-muted/30 dark:bg-muted/10 rounded-full overflow-hidden flex gap-1">
+                    {strengthResult && (
+                      <>
+                        <div className={`h-full rounded-full transition-all duration-500 flex-1 ${
+                          strengthResult.percent >= 33 
+                            ? strengthResult.label === 'Bad' 
+                              ? 'bg-rose-500' 
+                              : strengthResult.label === 'Good' 
+                                ? 'bg-amber-500' 
+                                : 'bg-emerald-500'
+                            : 'bg-transparent'
+                        }`} />
+                        <div className={`h-full rounded-full transition-all duration-500 flex-1 ${
+                          strengthResult.percent >= 66 
+                            ? strengthResult.label === 'Good' 
+                              ? 'bg-amber-500' 
+                              : 'bg-emerald-500'
+                            : 'bg-muted/10'
+                        }`} />
+                        <div className={`h-full rounded-full transition-all duration-500 flex-1 ${
+                          strengthResult.percent >= 100 
+                            ? 'bg-emerald-500' 
+                            : 'bg-muted/10'
+                        }`} />
+                      </>
+                    )}
+                  </div>
+                  {strengthResult?.label === 'Bad' && (
+                    <p className="text-[10px] text-muted-foreground leading-normal text-left">
+                      ⚠️ Make it at least 8 characters with numbers or special symbols.
+                    </p>
+                  )}
+                  {strengthResult?.label === 'Good' && (
+                    <p className="text-[10px] text-muted-foreground leading-normal text-left">
+                      👍 Good! Add uppercase letters and symbols for maximum security.
+                    </p>
+                  )}
+                  {strengthResult?.label === 'Excellent' && (
+                    <p className="text-[10px] leading-normal font-medium text-emerald-500 dark:text-emerald-400 text-left">
+                      ✨ Excellent! Your privacy is highly secure.
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
             <Button type="submit" disabled={!isStrong} className="w-full rounded-xl h-12 font-medium">
               Update & Unlock

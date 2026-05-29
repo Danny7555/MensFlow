@@ -8,7 +8,7 @@ import {
   Info, 
   
 } from '@phosphor-icons/react'
-import { format, addDays, startOfDay } from 'date-fns'
+import { format, addDays, startOfDay, differenceInCalendarDays, parseISO } from 'date-fns'
 
 import { 
   DropdownMenu, 
@@ -97,13 +97,22 @@ export function CycleTrackerHero({
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      const start = new Date(`${data.lastPeriodStart}T12:00:00`)
-      if (!Number.isNaN(+start)) {
-        const days = Math.floor((Date.now() - +start) / 86400000)
-        const m = ((days % data.typicalCycleDays) + data.typicalCycleDays) % data.typicalCycleDays
-        setCurrentDay(m + 1)
+      if (data.lastPeriodStart) {
+        const start = parseISO(data.lastPeriodStart)
+        const startValid = !Number.isNaN(start.getTime())
+        if (startValid) {
+          const days = differenceInCalendarDays(new Date(), start)
+          const m = ((days % data.typicalCycleDays) + data.typicalCycleDays) % data.typicalCycleDays
+          const calculatedDay = m + 1
+          setCurrentDay(calculatedDay)
+          dispatch({ type: 'INIT_DAYS', currentDay: calculatedDay, selectedDay: calculatedDay })
+        } else {
+          setCurrentDay(1)
+          dispatch({ type: 'INIT_DAYS', currentDay: 1, selectedDay: 1 })
+        }
       } else {
         setCurrentDay(1)
+        dispatch({ type: 'INIT_DAYS', currentDay: 1, selectedDay: 1 })
       }
     }, 0)
     return () => clearTimeout(timer)

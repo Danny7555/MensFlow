@@ -109,6 +109,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await userApi.updateProfile(patch).catch((err) => {
           console.error('Failed to sync guest onboarding to backend during login', err)
         })
+
+        const storeDashboard = useStore.getState().dashboard
+        await userApi.updateDashboard({
+          lastPeriodStart: storeDashboard.lastPeriodStart,
+          typicalCycleDays: storeDashboard.typicalCycleDays,
+          phaseLabel: storeDashboard.phaseLabel,
+          hormoneTrend: storeDashboard.hormoneTrend,
+          bodySignals: storeDashboard.bodySignals,
+          guidanceLines: storeDashboard.guidanceLines,
+          cycleNotes: storeDashboard.cycleNotes,
+          cycleVariationDays: storeDashboard.cycleVariationDays,
+          isAtypical: storeDashboard.isAtypical,
+        }).catch((err) => {
+          console.error('Failed to sync guest onboarding dashboard to backend during login', err)
+        })
       }
 
       // Fetch full profile so the store is hydrated
@@ -177,6 +192,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (storeUser.accessLevel) patch.accessLevel = storeUser.accessLevel
         await userApi.updateProfile(patch).catch((err) => {
           console.error('Failed to sync guest onboarding to backend during registration', err)
+        })
+
+        const storeDashboard = useStore.getState().dashboard
+        await userApi.updateDashboard({
+          lastPeriodStart: storeDashboard.lastPeriodStart,
+          typicalCycleDays: storeDashboard.typicalCycleDays,
+          phaseLabel: storeDashboard.phaseLabel,
+          hormoneTrend: storeDashboard.hormoneTrend,
+          bodySignals: storeDashboard.bodySignals,
+          guidanceLines: storeDashboard.guidanceLines,
+          cycleNotes: storeDashboard.cycleNotes,
+          cycleVariationDays: storeDashboard.cycleVariationDays,
+          isAtypical: storeDashboard.isAtypical,
+        }).catch((err) => {
+          console.error('Failed to sync guest onboarding dashboard to backend during registration', err)
         })
       }
 

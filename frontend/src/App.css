@@ -4729,3 +4729,77 @@
 .chat-modal-close:hover {
   color: var(--mf-text-strong);
 }
+
+/* Landing Onboarding CTA Divider */
+.landing-cta-divider {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin: 1.75rem 0 0.85rem;
+  color: var(--mf-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.landing-cta-divider::before,
+.landing-cta-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--mf-border) 50%, transparent);
+}
+
+.landing-cta-divider span {
+  padding: 0 1rem;
+  opacity: 0.7;
+}
+
+/* Premium Primary CTA Button */
+.landing-primary-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  width: 100%;
+  max-width: 340px;
+  height: 3.25rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, var(--mf-accent) 0%, var(--mf-accent-hover, #ff5277) 100%);
+  color: #ffffff;
+  border: none;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+  margin-top: 0.25rem;
+}
+
+.landing-primary-cta:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+
+.landing-primary-cta:active {
+  transform: translateY(1px);
+}
+
+.landing-primary-cta-text {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.landing-primary-cta svg {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-top: 1px;
+}
+
+.landing-primary-cta:hover svg {
+  transform: translateX(4px);
+}

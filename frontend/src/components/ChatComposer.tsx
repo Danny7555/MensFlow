@@ -33,6 +33,7 @@ type ChatComposerProps = {
   showKeyboardHint?: boolean
   attachments?: AttachedMeta[]
   onAttachmentsChange?: (files: AttachedMeta[]) => void
+  disabled?: boolean
 }
 
 function formatBytes(n: number) {
@@ -50,6 +51,7 @@ export function ChatComposer({
   showKeyboardHint = false,
   attachments: controlledAttachments,
   onAttachmentsChange,
+  disabled = false,
 }: ChatComposerProps) {
   const chatEnterToSend = useStore((state) => state.settings.chatEnterToSend)
 
@@ -206,7 +208,8 @@ export function ChatComposer({
         className={cn(
           "composer glass-morphism transition-all duration-300 focus-within:ring-2 focus-within:ring-[var(--mf-accent)]",
           "border-2 border-dotted border-[#d1d5db] dark:border-muted-foreground/30 bg-muted/20",
-          minimal && "composer--minimal"
+          minimal && "composer--minimal",
+          disabled && "opacity-60 pointer-events-none"
         )}
         onSubmit={handleSubmit}
       >
@@ -219,6 +222,7 @@ export function ChatComposer({
             aria-haspopup="true"
             aria-controls={menuOpen ? menuId : undefined}
             onClick={() => setMenuOpen((o) => !o)}
+            disabled={disabled}
           >
             <Plus size={21} aria-hidden />
           </button>
@@ -273,6 +277,7 @@ export function ChatComposer({
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
           aria-label="Message"
+          disabled={disabled}
         />
 
         <div className="flex items-center gap-1">
@@ -288,7 +293,7 @@ export function ChatComposer({
             type="submit"
             className="composer-send transition-all active:scale-95"
             aria-label="Send"
-            disabled={!value.trim()}
+            disabled={disabled || !value.trim()}
           >
             <PaperPlaneRight size={20} weight="fill" aria-hidden />
           </button>
