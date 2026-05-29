@@ -23,6 +23,7 @@ import { chatApi, type ApiChatSession } from '../services/chatService'
 import { toast } from 'sonner'
 import { cn } from '../lib/utils'
 import { computeCycleDay } from '../lib/cycleUtils'
+import { MarkdownText } from '../components/MarkdownText'
 import { getPasswordStrength } from '../lib/passwordStrength'
 
 type Msg = {
@@ -795,7 +796,11 @@ export function ChatView() {
                       </time>
                     )}
                   </span>
-                  <p className="chat-text whitespace-pre-line">{m.text}</p>
+                  {m.role === 'user' ? (
+                    <p className="chat-text whitespace-pre-line">{m.text}</p>
+                  ) : (
+                    <MarkdownText text={m.text} />
+                  )}
                 </div>
               ))}
 

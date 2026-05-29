@@ -6,6 +6,7 @@ import { useAuth } from '../context/useAuth'
 import { CLEAR_LOCAL_CHATS_EVENT } from '../lib/constants'
 import { post } from '../lib/apiClient'
 import { toast } from 'sonner'
+import { MarkdownText } from '../components/MarkdownText'
 
 export function LandingView() {
   const [draft, setDraft] = useState('')
@@ -77,7 +78,11 @@ export function LandingView() {
                 <div key={idx} className="space-y-3">
                   <div className={`chat-bubble ${isUser ? 'chat-bubble--user' : 'chat-bubble--assistant'}`}>
                     <span className="chat-role">{isUser ? 'You' : 'MensFlow'}</span>
-                    <p className="chat-text text-left whitespace-pre-wrap">{msg.text}</p>
+                    {isUser ? (
+                      <p className="chat-text text-left whitespace-pre-wrap">{msg.text}</p>
+                    ) : (
+                      <MarkdownText text={msg.text} />
+                    )}
                   </div>
                   
                   {showBanner && (
