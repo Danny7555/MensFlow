@@ -105,9 +105,13 @@ export function useDisconnectPartnerMutation() {
 }
 
 export function useSendPingMutation() {
+  const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ pingId, label, message }: { pingId: string; label: string; message: string }) =>
       partnerApi.sendPing(pingId, label, message),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: partnerKeys.ping })
+    },
   })
 }
 

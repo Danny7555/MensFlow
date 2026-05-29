@@ -184,8 +184,8 @@ export function SyncView() {
         className="dashboard-flo-theme relative overflow-hidden min-h-screen"
       >
         {/* Ambient background */}
-        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-gradient-to-br from-pink-500/10 to-purple-500/5 blur-[120px] pointer-events-none" />
-        <div className="absolute -bottom-20 -left-20 w-[400px] h-[400px] rounded-full bg-gradient-to-tr from-rose-500/8 to-transparent blur-[100px] pointer-events-none" />
+        <div className="absolute -top-40 -right-40 size-[500px] rounded-full bg-gradient-to-br from-pink-500/10 to-purple-500/5 blur-[120px] pointer-events-none" />
+        <div className="absolute -bottom-20 -left-20 size-[400px] rounded-full bg-gradient-to-tr from-rose-500/8 to-transparent blur-[100px] pointer-events-none" />
 
         <main className="flo-main-container pb-32 relative z-10">
           <div className="flo-content-inner max-w-3xl mx-auto">
@@ -246,7 +246,7 @@ export function SyncView() {
                 variants={itemVariants}
                 className="p-8 rounded-[2rem] bg-gradient-to-br from-pink-500/10 via-[var(--mf-composer-bg)] to-[var(--mf-composer-bg)] border border-[var(--mf-border)] text-center space-y-6 relative overflow-hidden max-w-xl mx-auto shadow-xl"
               >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/5 rounded-full blur-2xl pointer-events-none" />
+                <div className="absolute top-0 right-0 size-32 bg-pink-500/5 rounded-full blur-2xl pointer-events-none" />
                 <div className="relative z-10 space-y-4">
                   <div className="size-12 rounded-2xl bg-pink-500/10 flex items-center justify-center mx-auto text-pink-500 animate-pulse">
                     <Users size={24} weight="bold" />
@@ -271,7 +271,7 @@ export function SyncView() {
 
                 {/* Your code card */}
                 <div className="p-6 rounded-[1.5rem] bg-gradient-to-br from-pink-500/8 via-[var(--mf-composer-bg)] to-[var(--mf-composer-bg)] border border-[var(--mf-border)] space-y-4 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/5 rounded-full blur-2xl" />
+                  <div className="absolute top-0 right-0 size-32 bg-pink-500/5 rounded-full blur-2xl" />
                   <div className="relative z-10 space-y-4">
                     <div className="flex items-center gap-2">
                       <div className="size-7 rounded-xl bg-pink-500/10 flex items-center justify-center">
@@ -308,7 +308,7 @@ export function SyncView() {
 
                 {/* Enter partner's code */}
                 <div className="p-6 rounded-[1.5rem] bg-gradient-to-br from-purple-500/8 via-[var(--mf-composer-bg)] to-[var(--mf-composer-bg)] border border-[var(--mf-border)] space-y-4 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 rounded-full blur-2xl" />
+                  <div className="absolute top-0 right-0 size-32 bg-purple-500/5 rounded-full blur-2xl" />
                   <div className="relative z-10 space-y-4">
                     <div className="flex items-center gap-2">
                       <div className="size-7 rounded-xl bg-purple-500/10 flex items-center justify-center">
