@@ -461,6 +461,15 @@ function GeneralPanel({
             </p>
           </div>
 
+          {user?.role === 'lady' && (
+            <ToggleRow
+              label="Share Detailed Cycle Metrics"
+              description="Allow your partner to see your cycle tracker wheel, daily water/weight tracking, and logged symptoms. When disabled, they only see phase support checklists and empathy translators."
+              checked={settings.privacyShareCycleDetails}
+              onChange={(v) => updateSettings({ privacyShareCycleDetails: v })}
+            />
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Left side: Your pairing code */}
             <div className="p-4 rounded-2xl bg-[var(--mf-composer-bg)] border border-[var(--mf-border)] space-y-3">

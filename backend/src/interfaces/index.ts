@@ -53,6 +53,7 @@ export interface ISettings {
   chatShowTimestamps: boolean;
   cycleAvgLengthDays: number;
   cycleShowFertileWindow: boolean;
+  privacyShareCycleDetails: boolean;
 }
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────

@@ -123,6 +123,7 @@ function toSettings(settings: SettingsDocument): ISettings {
     chatShowTimestamps: settings.chatShowTimestamps,
     cycleAvgLengthDays: settings.cycleAvgLengthDays,
     cycleShowFertileWindow: settings.cycleShowFertileWindow,
+    privacyShareCycleDetails: settings.privacyShareCycleDetails,
   };
 }
 

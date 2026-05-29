@@ -353,11 +353,19 @@ export function DashboardView() {
   }
 
   const phase = useMemo(() => {
+    if (data.phaseLabel) {
+      const normalized = data.phaseLabel.toLowerCase()
+      if (normalized.includes('menstrual')) return 'menstrual'
+      if (normalized.includes('follicular')) return 'follicular'
+      if (normalized.includes('fertile') || normalized.includes('ovulat')) return 'fertile'
+      if (normalized.includes('luteal')) return 'luteal'
+    }
     const cycleDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
     return getPhaseFromDay(cycleDay)
-  }, [data.lastPeriodStart, data.typicalCycleDays])
+  }, [data.lastPeriodStart, data.typicalCycleDays, data.phaseLabel])
 
   const currentDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
+  const showRestrictedView = user?.role === 'partner' && partnerStatus?.paired && partnerStatus?.privacyShareCycleDetails === false
   const [tipCompleted, setTipCompleted] = useState(false)
 
   const handleCopyGesture = (text: string, title: string) => {
@@ -623,71 +631,112 @@ export function DashboardView() {
             </m.div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 md:gap-8 w-full min-w-0">
-            {/* Left Main Content */}
-            <div className="flex flex-col gap-6 md:gap-8 min-w-0">
-              <section className="flo-hero-panel min-w-0" aria-label="Cycle overview">
-                <CycleTrackerHero showCheckIn={user?.role !== 'partner'} data={data} />
-              </section>
+          {showRestrictedView ? (
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 md:gap-8 w-full min-w-0">
+              {/* Left Column: Support Mode Intro & Checklist */}
+              <div className="flex flex-col gap-6 md:gap-8 min-w-0">
+                <m.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-8 rounded-[2.5rem] bg-gradient-to-br from-[var(--mf-accent)]/10 via-[var(--mf-card)] to-[var(--mf-card)] border border-[var(--mf-border)] backdrop-blur-md relative overflow-hidden"
+                >
+                  <div className="absolute top-0 right-0 size-32 bg-[var(--mf-accent)]/5 rounded-full blur-2xl pointer-events-none" />
+                  
+                  <div className="flex flex-col items-start gap-4">
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.15em] bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] px-3 py-1 rounded-full border border-[var(--mf-accent)]/20">
+                      Empathy Mode Active 💖
+                    </span>
+                    <h2 className="text-2xl font-normal tracking-tight text-[var(--mf-text-strong)] text-left">
+                      Currently in the {phase.charAt(0).toUpperCase() + phase.slice(1)} Phase
+                    </h2>
+                    <p className="text-xs text-[var(--mf-muted)] leading-relaxed text-left max-w-xl">
+                      Detailed cycle metrics, logs, water intake, and weight trackings are kept private. Your partner has enabled Empathy Mode so you can focus entirely on supportive actions, gestures, and communication tips to help care for her today.
+                    </p>
+                  </div>
+                </m.div>
 
-              <div className="flo-today-plan flex flex-col gap-6 md:gap-8 w-full min-w-0">
-                <div className="w-full min-w-0">
-                  <DailyTipCard
-                    phaseLabel={phase}
-                    tipCompleted={tipCompleted}
-                    setTipCompleted={setTipCompleted}
-                    aiTip={aiTip}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 min-w-0">
-                  <PrimaryInsightCard 
-                    label={phase}
-                    currentDay={currentDay}
-                    trend={data.hormoneTrend}
-                  />
-                  <BodySignalsCard 
-                    signals={data.bodySignals}
-                    currentDay={currentDay}
-                    phaseLabel={phase}
-                  />
-                </div>
-
-                <div className={cn("grid grid-cols-1 gap-6 md:gap-8 min-w-0", user?.role === 'partner' ? "md:grid-cols-2" : "md:grid-cols-1")}>
-                  <HormoneInsightCard phaseLabel={phase} aiInsightText={aiInsightText} />
-                  {user?.role === 'partner' && <ConnectionChecklistCard />}
+                <div className="min-w-0">
+                  <ConnectionChecklistCard />
                 </div>
               </div>
-            </div>
 
-            {/* Right Sidebar Stack */}
-            <div className="flex flex-col gap-6 md:gap-8 min-w-0">
-              {user?.role === 'partner' && (
+              {/* Right Column: Empathy Translator */}
+              <div className="flex flex-col gap-6 md:gap-8 min-w-0">
                 <section aria-label="Partner support" className="min-w-0">
                   <PartnerTranslationCard 
                     label={phase}
                     onCopy={handleCopyGesture}
                   />
                 </section>
-              )}
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 md:gap-8 w-full min-w-0">
+              {/* Left Main Content */}
+              <div className="flex flex-col gap-6 md:gap-8 min-w-0">
+                <section className="flo-hero-panel min-w-0" aria-label="Cycle overview">
+                  <CycleTrackerHero showCheckIn={user?.role !== 'partner'} data={data} />
+                </section>
 
-              <div className="min-w-0">
-                <WellnessScoreCard />
+                <div className="flo-today-plan flex flex-col gap-6 md:gap-8 w-full min-w-0">
+                  <div className="w-full min-w-0">
+                    <DailyTipCard
+                      phaseLabel={phase}
+                      tipCompleted={tipCompleted}
+                      setTipCompleted={setTipCompleted}
+                      aiTip={aiTip}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 min-w-0">
+                    <PrimaryInsightCard 
+                      label={phase}
+                      currentDay={currentDay}
+                      trend={data.hormoneTrend}
+                    />
+                    <BodySignalsCard 
+                      signals={data.bodySignals}
+                      currentDay={currentDay}
+                      phaseLabel={phase}
+                    />
+                  </div>
+
+                  <div className={cn("grid grid-cols-1 gap-6 md:gap-8 min-w-0", user?.role === 'partner' ? "md:grid-cols-2" : "md:grid-cols-1")}>
+                    <HormoneInsightCard phaseLabel={phase} aiInsightText={aiInsightText} />
+                    {user?.role === 'partner' && <ConnectionChecklistCard />}
+                  </div>
+                </div>
               </div>
 
-              {user?.role !== 'partner' && (
-                <>
-                  <div className="min-w-0">
-                    <QuickLogCard onViewAll={() => dispatch({ type: 'TOGGLE_LOG', payload: true })} />
-                  </div>
+              {/* Right Sidebar Stack */}
+              <div className="flex flex-col gap-6 md:gap-8 min-w-0">
+                {user?.role === 'partner' && (
+                  <section aria-label="Partner support" className="min-w-0">
+                    <PartnerTranslationCard 
+                      label={phase}
+                      onCopy={handleCopyGesture}
+                    />
+                  </section>
+                )}
 
-                  <div className="flex-1 min-w-0">
-                    <SymptomLogger />
-                  </div>
-                </>
-              )}
+                <div className="min-w-0">
+                  <WellnessScoreCard />
+                </div>
+
+                {user?.role !== 'partner' && (
+                  <>
+                    <div className="min-w-0">
+                      <QuickLogCard onViewAll={() => dispatch({ type: 'TOGGLE_LOG', payload: true })} />
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <SymptomLogger />
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </main>
 

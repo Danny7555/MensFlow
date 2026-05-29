@@ -29,6 +29,7 @@ export type MensFlowSettings = {
   chatShowTimestamps: boolean
   cycleAvgLengthDays: number
   cycleShowFertileWindow: boolean
+  privacyShareCycleDetails: boolean
 }
 
 export const DEFAULT_SETTINGS: MensFlowSettings = {
@@ -55,4 +56,5 @@ export const DEFAULT_SETTINGS: MensFlowSettings = {
   chatShowTimestamps: false,
   cycleAvgLengthDays: 28,
   cycleShowFertileWindow: true,
+  privacyShareCycleDetails: true,
 }

@@ -24,6 +24,7 @@ export interface SettingsDocument extends Document {
   chatShowTimestamps: boolean;
   cycleAvgLengthDays: number;
   cycleShowFertileWindow: boolean;
+  privacyShareCycleDetails: boolean;
 }
 
 const SettingsSchema = new Schema<SettingsDocument>({
@@ -50,6 +51,7 @@ const SettingsSchema = new Schema<SettingsDocument>({
   chatShowTimestamps: { type: Boolean, default: false },
   cycleAvgLengthDays: { type: Number, default: 28, min: 15, max: 60 },
   cycleShowFertileWindow: { type: Boolean, default: true },
+  privacyShareCycleDetails: { type: Boolean, default: true },
 });
 
 export const Settings = model<SettingsDocument>('Settings', SettingsSchema);

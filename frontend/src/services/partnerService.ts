@@ -7,6 +7,7 @@ import { isLoggedIn } from '../lib/auth-token'
 
 export type ApiPartnerStatus = {
   paired: boolean
+  privacyShareCycleDetails?: boolean
   partner?: {
     name: string
     avatar: string | null

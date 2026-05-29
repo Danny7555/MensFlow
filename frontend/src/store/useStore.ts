@@ -37,6 +37,7 @@ interface AppState {
   lastActionDate: string
   partnerStatus: {
     paired: boolean
+    privacyShareCycleDetails?: boolean
     partner?: {
       name: string
       avatar: string | null

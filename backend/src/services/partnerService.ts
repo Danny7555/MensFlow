@@ -2,6 +2,7 @@ import { User } from '../models/User';
 import { Dashboard } from '../models/Dashboard';
 import { PartnerPing, SupportAction, SupportStreak } from '../models/Partner';
 import { SymptomLog } from '../models/Symptom';
+import { Settings } from '../models/Settings';
 import { IPartnerPing } from '../interfaces';
 import { httpError } from '../utils/http';
 
@@ -88,6 +89,10 @@ export async function getPartnerStatus(userId: string): Promise<object> {
   const latestLog = await SymptomLog.findOne({ userId: partner._id, date: today }).lean();
   const symptoms = latestLog?.symptoms ?? [];
 
+  // Load partner's settings to check detailed cycle sharing permissions
+  const partnerSettings = await Settings.findOne({ userId: partner._id }).lean();
+  const shareDetails = partnerSettings ? partnerSettings.privacyShareCycleDetails !== false : true;
+
   let streakDoc = await SupportStreak.findOne({ userId }).lean();
   if (!streakDoc) {
     await SupportStreak.create({ userId });
@@ -111,21 +116,37 @@ export async function getPartnerStatus(userId: string): Promise<object> {
       avatar: partner.avatar,
       accessLevel: partner.accessLevel,
     },
+    privacyShareCycleDetails: shareDetails,
     cycle: partnerDash
-      ? {
-          lastPeriodStart: partnerDash.lastPeriodStart,
-          typicalCycleDays: partnerDash.typicalCycleDays,
-          phaseLabel: partnerDash.phaseLabel,
-          hormoneTrend: partnerDash.hormoneTrend,
-          bodySignals: partnerDash.bodySignals,
-          cycleVariationDays: partnerDash.cycleVariationDays,
-          isAtypical: partnerDash.isAtypical,
-          symptoms,
-          water: latestLog?.water !== undefined ? latestLog.water : 1000,
-          weight: latestLog?.weight !== undefined ? latestLog.weight : 62.5,
-          scientificInsight: partnerDash.scientificInsight || '',
-          dailyTip: partnerDash.dailyTip || { title: '', desc: '' },
-        }
+      ? shareDetails
+        ? {
+            lastPeriodStart: partnerDash.lastPeriodStart,
+            typicalCycleDays: partnerDash.typicalCycleDays,
+            phaseLabel: partnerDash.phaseLabel,
+            hormoneTrend: partnerDash.hormoneTrend,
+            bodySignals: partnerDash.bodySignals,
+            cycleVariationDays: partnerDash.cycleVariationDays,
+            isAtypical: partnerDash.isAtypical,
+            symptoms,
+            water: latestLog?.water !== undefined ? latestLog.water : 1000,
+            weight: latestLog?.weight !== undefined ? latestLog.weight : 62.5,
+            scientificInsight: partnerDash.scientificInsight || '',
+            dailyTip: partnerDash.dailyTip || { title: '', desc: '' },
+          }
+        : {
+            lastPeriodStart: '', // Redacted
+            typicalCycleDays: 28, // Default fallback
+            phaseLabel: partnerDash.phaseLabel, // Shared phase for translator/checklist
+            hormoneTrend: 'Private details', // Redacted
+            bodySignals: 'Private details', // Redacted
+            cycleVariationDays: 28, // Redacted
+            isAtypical: false, // Redacted
+            symptoms: [], // Redacted
+            water: 1000, // Redacted
+            weight: 62.5, // Redacted
+            scientificInsight: 'Detailed insight kept private by your partner.', // Redacted
+            dailyTip: { title: 'Empathy Mode Active', desc: 'Focus on supportive gestures and empathy translator tips below!' },
+          }
       : null,
     support: {
       completedActions: completedToday,

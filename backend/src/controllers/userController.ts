@@ -63,6 +63,7 @@ export async function updateSettings(req: AuthRequest, res: Response, next: Next
       chatShowTimestamps: optionalBoolean(body, 'chatShowTimestamps'),
       cycleAvgLengthDays: optionalNumber(body, 'cycleAvgLengthDays', { min: 15, max: 60, integer: true }),
       cycleShowFertileWindow: optionalBoolean(body, 'cycleShowFertileWindow'),
+      privacyShareCycleDetails: optionalBoolean(body, 'privacyShareCycleDetails'),
     });
 
     const settings = await userService.updateUserSettings(req.user!.id, patch);
