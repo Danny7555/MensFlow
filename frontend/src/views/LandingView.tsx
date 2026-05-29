@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CaretRight } from '@phosphor-icons/react'
+import { CaretRight, FlowerLotus } from '@phosphor-icons/react'
 import { ChatComposer } from '../components/ChatComposer'
 import { useAuth } from '../context/useAuth'
 import { CLEAR_LOCAL_CHATS_EVENT } from '../lib/constants'
 import { post } from '../lib/apiClient'
 import { toast } from 'sonner'
 import { MarkdownText } from '../components/MarkdownText'
+import { cn } from '../lib/utils'
 
 export function LandingView() {
   const [draft, setDraft] = useState('')
@@ -14,6 +15,7 @@ export function LandingView() {
   const [isLoading, setIsLoading] = useState(false)
   const { onboardingCompleted, openAuthModal } = useAuth()
   const navigate = useNavigate()
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const onClear = () => {
@@ -23,6 +25,11 @@ export function LandingView() {
     window.addEventListener(CLEAR_LOCAL_CHATS_EVENT, onClear)
     return () => window.removeEventListener(CLEAR_LOCAL_CHATS_EVENT, onClear)
   }, [])
+
+  // Auto scroll to bottom when messages or loading state changes
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, isLoading])
 
   const send = async () => {
     const text = draft.trim()
@@ -58,18 +65,40 @@ export function LandingView() {
   }
 
   return (
-    <div className="landing">
-      <div className="landing-center">
-        <div className="landing-hero-image-wrap">
-          <img src="/images/lady.png" alt="" className="landing-hero-image" />
-        </div>
-        <h1 className="landing-title">Ask MensFlow about your cycle?</h1>
-        <p className="landing-sub">
-          Education, tracking context, and supportive guidance; not a substitute
-          for medical care.
-        </p>
+    <div className={cn("landing", messages.length > 0 && "landing--chatting")}>
+      <div className={cn("landing-center", messages.length > 0 && "landing-center--chatting")}>
+        {messages.length === 0 ? (
+          <>
+            <div className="landing-hero-image-wrap">
+              <img src="/images/lady.png" alt="" className="landing-hero-image" />
+            </div>
+            <h1 className="landing-title">Ask MensFlow about your cycle?</h1>
+            <p className="landing-sub">
+              Education, tracking context, and supportive guidance; not a substitute
+              for medical care.
+            </p>
+          </>
+        ) : (
+          <div className="w-full flex items-center justify-between p-4 border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+            <div className="flex items-center gap-3">
+              <div className="size-8 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] shrink-0">
+                <FlowerLotus size={18} weight="fill" className="text-[var(--mf-accent)]" />
+              </div>
+              <div className="text-left">
+                <h1 className="text-sm font-semibold leading-tight text-foreground">Ask MensFlow</h1>
+                <p className="text-[10px] text-muted-foreground">Guest preview session</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => openAuthModal()}
+              className="text-xs font-semibold text-primary hover:text-primary/90 bg-primary/5 hover:bg-primary/10 px-3 py-1.5 rounded-full cursor-pointer transition-all"
+            >
+              Sign up
+            </button>
+          </div>
+        )}
         {messages.length > 0 && (
-          <div className="landing-preview w-full max-h-[360px] overflow-y-auto pr-1 space-y-4 mb-4" aria-live="polite">
+          <div className="landing-preview w-full overflow-y-auto pr-1 space-y-4" aria-live="polite">
             {messages.map((msg, idx) => {
               const isUser = msg.role === 'user'
               // Only show banner after the assistant response corresponding to the 1st or 2nd user message
@@ -90,19 +119,19 @@ export function LandingView() {
                       {idx === 1 ? (
                         <>
                           <p className="font-semibold text-[var(--mf-text-strong)] flex items-center gap-1.5">
-                            💡 Personalized Insights Await
+                            ✨ Let's make your experience personalized!
                           </p>
                           <p className="text-left leading-normal">
-                            You've used 1 of 2 free guest messages. Sign up free to save your chats, log daily symptoms, and sync cycle phases with your partner.
+                            You've used 1 of your 2 free guest messages. Join us for free to save your chat, log daily symptoms, and connect cycle phases with your partner to support them best. 💕
                           </p>
                         </>
                       ) : (
                         <>
                           <p className="font-semibold text-[var(--mf-text-strong)] flex items-center gap-1.5">
-                            🔒 Message Limit Reached
+                            💖 Keep the conversation going!
                           </p>
                           <p className="text-left leading-normal">
-                            Create your free MensFlow account to unlock unlimited messaging, personalized tracker advice, and secure private chats.
+                            You've reached your free preview limit. Create a free account to unlock unlimited chats, personalized health tracker tips, and secure partner sync features. We'd love to help you along the journey!
                           </p>
                         </>
                       )}
@@ -110,7 +139,7 @@ export function LandingView() {
                         onClick={() => openAuthModal()}
                         className="text-left font-semibold text-[var(--mf-accent)] hover:underline self-start cursor-pointer"
                       >
-                        Sign in or sign up now →
+                        Join MensFlow for free or log in →
                       </button>
                     </div>
                   )}
@@ -132,6 +161,7 @@ export function LandingView() {
                 </div>
               </div>
             )}
+            <div ref={messagesEndRef} />
           </div>
         )}
 
@@ -149,7 +179,7 @@ export function LandingView() {
           />
         </div>
 
-        {!onboardingCompleted && (
+        {!onboardingCompleted && messages.length === 0 && (
           <>
             <div className="landing-cta-divider">
               <span>or</span>
