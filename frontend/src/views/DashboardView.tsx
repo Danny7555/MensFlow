@@ -9,6 +9,7 @@ import { useAuth } from '../context/useAuth'
 import { ChatSessionContext } from '../context/chat-session-context'
 import { cn } from '../lib/utils'
 import { partnerApi } from '../services/partnerService'
+import { useDailyGuidance } from '../services/chatService'
 import { computeCycleDay, getPhaseFromDay, getGreeting, type CyclePhase } from '../lib/cycleUtils'
 import { CycleTrackerHero } from '../components/tracker/CycleTrackerHero'
 import { LogSymptomsModal } from '../components/tracker/LogSymptomsModal'
@@ -168,6 +169,7 @@ function TourTooltip({
 export function DashboardView() {
   const { dashboard: ownDashboard, partnerStatus, fetchPartnerStatus, updateDashboard: update, isSaving, user, pairPartner } = useStore()
   const { logout, isAuthenticated, openAuthModal } = useAuth()
+  const { data: dailyGuidance } = useDailyGuidance()
 
   const [dashboardPartnerCodeInput, setDashboardPartnerCodeInput] = useState('')
   const [isDashboardPairing, setIsDashboardPairing] = useState(false)
@@ -197,6 +199,9 @@ export function DashboardView() {
     }
     return ownDashboard
   }, [user?.role, partnerStatus, ownDashboard])
+
+  const aiTip = dailyGuidance?.dailyTip || (data.dailyTip && data.dailyTip.title ? data.dailyTip : undefined)
+  const aiInsightText = dailyGuidance?.scientificInsight || data.scientificInsight
 
   const tourSteps = useMemo(() => {
     const isPartner = user?.role === 'partner'
@@ -631,6 +636,7 @@ export function DashboardView() {
                     phaseLabel={phase}
                     tipCompleted={tipCompleted}
                     setTipCompleted={setTipCompleted}
+                    aiTip={aiTip}
                   />
                 </div>
 
@@ -648,7 +654,7 @@ export function DashboardView() {
                 </div>
 
                 <div className={cn("grid grid-cols-1 gap-6 md:gap-8 min-w-0", user?.role === 'partner' ? "md:grid-cols-2" : "md:grid-cols-1")}>
-                  <HormoneInsightCard phaseLabel={phase} />
+                  <HormoneInsightCard phaseLabel={phase} aiInsightText={aiInsightText} />
                   {user?.role === 'partner' && <ConnectionChecklistCard />}
                 </div>
               </div>

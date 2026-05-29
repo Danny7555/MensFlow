@@ -11,6 +11,19 @@ export interface DashboardDocument extends Document {
   cycleNotes: string;
   cycleVariationDays: number;
   isAtypical: boolean;
+  scientificInsight?: string;
+  dailyTip?: {
+    title: string;
+    desc: string;
+  };
+  guidanceGeneratedDate?: string;
+  wellnessTips?: Array<{
+    id: string;
+    category: string;
+    title: string;
+    summary: string;
+    phaseTag: string;
+  }>;
 }
 
 const DashboardSchema = new Schema<DashboardDocument>({
@@ -24,6 +37,25 @@ const DashboardSchema = new Schema<DashboardDocument>({
   cycleNotes: { type: String, default: '', maxlength: 2000 },
   cycleVariationDays: { type: Number, default: 36, min: 0, max: 120 },
   isAtypical: { type: Boolean, default: true },
+  scientificInsight: { type: String, default: '' },
+  dailyTip: {
+    type: {
+      title: { type: String, default: '' },
+      desc: { type: String, default: '' }
+    },
+    default: { title: '', desc: '' }
+  },
+  guidanceGeneratedDate: { type: String, default: '' },
+  wellnessTips: {
+    type: [{
+      id: { type: String, required: true },
+      category: { type: String, required: true },
+      title: { type: String, required: true },
+      summary: { type: String, required: true },
+      phaseTag: { type: String, required: true }
+    }],
+    default: []
+  }
 });
 
 export const Dashboard = model<DashboardDocument>('Dashboard', DashboardSchema);

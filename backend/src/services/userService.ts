@@ -134,6 +134,8 @@ function toDashboard(dashboard: DashboardDocument): IDashboard {
     cycleNotes: dashboard.cycleNotes,
     cycleVariationDays: dashboard.cycleVariationDays,
     isAtypical: dashboard.isAtypical,
+    scientificInsight: dashboard.scientificInsight ?? '',
+    dailyTip: dashboard.dailyTip ?? { title: '', desc: '' },
   };
 }
 

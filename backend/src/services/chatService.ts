@@ -481,3 +481,238 @@ Example format:
     return defaultSuggestions;
   }
 }
+
+export async function getDailyGuidance(userId: string): Promise<any> {
+  const groqApiKey = process.env.GROQ_API_KEY;
+
+  const defaultGuidance = {
+    scientificInsight: "Did you know? Estrogen levels rise, which stimulates the growth of follicles in your ovaries and can increase your cognitive clarity, mood, and physical stamina.",
+    dailyTip: {
+      title: "Embrace rising energy",
+      desc: "Suggest starting a new creative project or outdoor activity together. Her body is highly responsive to learning and planning."
+    },
+    wellnessTips: [
+      {
+        id: "1",
+        category: "nutrition",
+        title: "Iron + vitamin C pairings",
+        summary: "Combine lentils or leafy greens with citrus or bell pepper to improve iron absorption during flow and early luteal.",
+        phaseTag: "Menstrual · Luteal"
+      },
+      {
+        id: "2",
+        category: "movement",
+        title: "Low-impact strength",
+        summary: "20 minutes of bodyweight or light bands supports mood without spiking cortisol when energy dips.",
+        phaseTag: "Luteal"
+      },
+      {
+        id: "3",
+        category: "rest",
+        title: "Sleep window consistency",
+        summary: "Aim for the same wake time ±45 minutes — progesterone can lighten sleep quality in late luteal.",
+        phaseTag: "Luteal"
+      }
+    ]
+  };
+
+  const today = new Date().toISOString().split('T')[0];
+  let phaseLabel = 'Menstrual';
+  let currentDay = 1;
+  let symptomsText = 'No symptoms logged today';
+  let targetName = 'Partner';
+  let targetId = userId;
+
+  try {
+    const user = await User.findById(userId).lean();
+    if (user?.partnerId) {
+      const partner = await User.findById(user.partnerId).lean();
+      if (partner) {
+        targetId = String(partner._id);
+        targetName = partner.name;
+      }
+    }
+    
+    const dashboard = await Dashboard.findOne({ userId: targetId }).lean();
+    if (dashboard && dashboard.guidanceGeneratedDate === today && dashboard.scientificInsight && dashboard.dailyTip) {
+      return {
+        scientificInsight: dashboard.scientificInsight,
+        dailyTip: dashboard.dailyTip,
+        wellnessTips: dashboard.wellnessTips && dashboard.wellnessTips.length > 0 ? dashboard.wellnessTips : defaultGuidance.wellnessTips
+      };
+    }
+
+    if (dashboard?.lastPeriodStart) {
+      const start = new Date(`${dashboard.lastPeriodStart}T12:00:00`);
+      if (!isNaN(start.getTime())) {
+        const diff = Math.floor((Date.now() - start.getTime()) / 86_400_000);
+        const cycle = dashboard.typicalCycleDays || 28;
+        currentDay = (((diff % cycle) + cycle) % cycle) + 1;
+      }
+      phaseLabel = dashboard.phaseLabel ?? 'Menstrual';
+    }
+    
+    const logDoc = await SymptomLog.findOne({ userId: targetId, date: today }).lean();
+    const symptomsList = logDoc?.symptoms ?? [];
+    if (symptomsList.length > 0) {
+      symptomsText = `symptoms logged today: ${symptomsList.join(', ')}`;
+    }
+  } catch (err) {
+    console.error('[Groq Guidance Data Fetch Error]', err);
+  }
+
+  if (!groqApiKey) {
+    try {
+      await Dashboard.findOneAndUpdate(
+        { userId: targetId },
+        { 
+          scientificInsight: defaultGuidance.scientificInsight,
+          dailyTip: defaultGuidance.dailyTip,
+          guidanceGeneratedDate: today,
+          wellnessTips: defaultGuidance.wellnessTips
+        },
+        { upsert: true }
+      );
+    } catch (dbErr) {
+      console.error('[Groq Guidance DB Save Error - fallback]', dbErr);
+    }
+    return defaultGuidance;
+  }
+
+  const prompt = `You are a helpful wellness and partner support assistant.
+Given a relationship context where a partner wants to support their loved one (named ${targetName}):
+- Cycle Phase: ${phaseLabel}
+- Cycle Day: Day ${currentDay}
+- Status: ${symptomsText}
+
+Generate a highly personalized daily guidance JSON response matching exactly this format:
+{
+  "scientificInsight": "Did you know? Estrogen levels rise during the follicular phase and can increase cognitive clarity, mood, and physical stamina.",
+  "dailyTip": {
+    "title": "Embrace rising energy",
+    "desc": "Suggest starting a new creative project or outdoor activity together. Her body is highly responsive to learning and planning."
+  },
+  "wellnessTips": [
+    {
+      "id": "1",
+      "category": "nutrition",
+      "title": "Iron + vitamin C pairings",
+      "summary": "Combine lentils or leafy greens with citrus or bell pepper to improve iron absorption during flow and early luteal.",
+      "phaseTag": "Menstrual · Luteal"
+    },
+    {
+      "id": "2",
+      "category": "movement",
+      "title": "Low-impact strength",
+      "summary": "20 minutes of bodyweight or light bands supports mood without spiking cortisol when energy dips.",
+      "phaseTag": "Luteal"
+    },
+    {
+      "id": "3",
+      "category": "rest",
+      "title": "Sleep window consistency",
+      "summary": "Aim for the same wake time ±45 minutes — progesterone can lighten sleep quality in late luteal.",
+      "phaseTag": "Luteal"
+    }
+  ]
+}
+
+Make sure to generate:
+1. One interesting "scientificInsight" starting with "Did you know?".
+2. One action-oriented "dailyTip" with a concise title and details on how the partner can support them today.
+3. Three highly specific "wellnessTips" (one category of nutrition, movement, rest, or mind per tip) matching this cycle phase or Any phase.
+Return ONLY valid JSON. No markdown backticks, no wrapping other than the JSON object itself, no comments.`;
+
+  try {
+    const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${groqApiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.7,
+        max_tokens: 800
+      })
+    });
+
+    if (!response.ok) {
+      try {
+        await Dashboard.findOneAndUpdate(
+          { userId: targetId },
+          { 
+            scientificInsight: defaultGuidance.scientificInsight,
+            dailyTip: defaultGuidance.dailyTip,
+            guidanceGeneratedDate: today,
+            wellnessTips: defaultGuidance.wellnessTips
+          },
+          { upsert: true }
+        );
+      } catch (dbErr) {
+        console.error('[Groq Guidance DB Save Error - bad API response]', dbErr);
+      }
+      return defaultGuidance;
+    }
+
+    const responseData = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
+    let content = responseData?.choices?.[0]?.message?.content?.trim() || '';
+
+    // Strip out triple backticks if present
+    content = content.replace(/^```json\s*/i, '').replace(/```$/, '').trim();
+    
+    const parsed = JSON.parse(content);
+    if (parsed && typeof parsed === 'object' && parsed.scientificInsight && parsed.dailyTip && Array.isArray(parsed.wellnessTips)) {
+      try {
+        await Dashboard.findOneAndUpdate(
+          { userId: targetId },
+          { 
+            scientificInsight: parsed.scientificInsight,
+            dailyTip: parsed.dailyTip,
+            guidanceGeneratedDate: today,
+            wellnessTips: parsed.wellnessTips
+          },
+          { upsert: true }
+        );
+      } catch (dbErr) {
+        console.error('[Groq Guidance DB Save Error - success route]', dbErr);
+      }
+      return parsed;
+    }
+
+    try {
+      await Dashboard.findOneAndUpdate(
+        { userId: targetId },
+        { 
+          scientificInsight: defaultGuidance.scientificInsight,
+          dailyTip: defaultGuidance.dailyTip,
+          guidanceGeneratedDate: today,
+          wellnessTips: defaultGuidance.wellnessTips
+        },
+        { upsert: true }
+      );
+    } catch (dbErr) {
+      console.error('[Groq Guidance DB Save Error - invalid JSON payload]', dbErr);
+    }
+    return defaultGuidance;
+  } catch (error) {
+    console.error('[Groq Guidance Exception]', error);
+    try {
+      await Dashboard.findOneAndUpdate(
+        { userId: targetId },
+        { 
+          scientificInsight: defaultGuidance.scientificInsight,
+          dailyTip: defaultGuidance.dailyTip,
+          guidanceGeneratedDate: today,
+          wellnessTips: defaultGuidance.wellnessTips
+        },
+        { upsert: true }
+      );
+    } catch (dbErr) {
+      console.error('[Groq Guidance DB Save Error - catch block]', dbErr);
+    }
+    return defaultGuidance;
+  }
+}

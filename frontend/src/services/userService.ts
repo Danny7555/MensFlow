@@ -47,6 +47,11 @@ export type ApiDashboard = {
   cycleNotes: string
   cycleVariationDays: number
   isAtypical: boolean
+  scientificInsight?: string
+  dailyTip?: {
+    title: string
+    desc: string
+  }
 }
 
 // ─── Endpoints ────────────────────────────────────────────────────────────────

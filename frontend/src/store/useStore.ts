@@ -47,6 +47,11 @@ interface AppState {
       hormoneTrend: string
       bodySignals: string
       symptoms?: string[]
+      scientificInsight?: string
+      dailyTip?: {
+        title: string
+        desc: string
+      }
     } | null
     support?: {
       completedActions: string[]
@@ -130,6 +135,8 @@ export const useStore = create<AppState>()((set, get) => ({
             cycleNotes: dashboard.cycleNotes ?? '',
             cycleVariationDays: dashboard.cycleVariationDays ?? 36,
             isAtypical: dashboard.isAtypical ?? true,
+            scientificInsight: dashboard.scientificInsight ?? '',
+            dailyTip: dashboard.dailyTip ?? { title: '', desc: '' },
           }
         : DEFAULT_DASHBOARD,
     })

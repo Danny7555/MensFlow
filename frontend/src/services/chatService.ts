@@ -55,6 +55,19 @@ export const chatApi = {
 
   getSuggestions: () =>
     get<string[]>('/chat/suggestions'),
+
+  getDailyGuidance: () =>
+    get<{
+      scientificInsight: string;
+      dailyTip: { title: string; desc: string };
+      wellnessTips: {
+        id: string;
+        category: 'nutrition' | 'movement' | 'rest' | 'mind';
+        title: string;
+        summary: string;
+        phaseTag: string;
+      }[];
+    }>('/chat/daily-guidance'),
 }
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────
@@ -63,6 +76,16 @@ export const chatKeys = {
   sessions: ['chatSessions'] as const,
   messages: (sessionId: string) => ['chatMessages', sessionId] as const,
   suggestions: ['chatSuggestions'] as const,
+  dailyGuidance: ['dailyGuidance'] as const,
+}
+
+export function useDailyGuidance() {
+  return useQuery({
+    queryKey: chatKeys.dailyGuidance,
+    queryFn: () => chatApi.getDailyGuidance(),
+    enabled: isLoggedIn(),
+    staleTime: 1000 * 60 * 30, // 30 minutes cache
+  })
 }
 
 export function useChatSuggestions() {

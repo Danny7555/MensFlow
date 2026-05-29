@@ -151,3 +151,12 @@ export async function getSuggestions(req: Request, res: Response, next: NextFunc
     next(err);
   }
 }
+
+export async function getDailyGuidance(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const guidance = await chatService.getDailyGuidance(req.user!.id);
+    res.json(guidance);
+  } catch (err) {
+    next(err);
+  }
+}

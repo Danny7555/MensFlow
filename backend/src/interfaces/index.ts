@@ -64,6 +64,11 @@ export interface IDashboard {
   cycleNotes: string;
   cycleVariationDays: number;
   isAtypical: boolean;
+  scientificInsight: string;
+  dailyTip: {
+    title: string;
+    desc: string;
+  };
 }
 
 // ─── Symptom Log ─────────────────────────────────────────────────────────────

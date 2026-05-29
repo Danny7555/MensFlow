@@ -19,6 +19,11 @@ export type ApiPartnerStatus = {
     hormoneTrend: string
     bodySignals: string
     symptoms?: string[]
+    scientificInsight?: string
+    dailyTip?: {
+      title: string
+      desc: string
+    }
   } | null
   support?: {
     completedActions: string[]

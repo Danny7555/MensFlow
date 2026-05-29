@@ -5,6 +5,7 @@ import { Sparkle, CaretRight } from "@phosphor-icons/react"
 interface HormoneInsightCardProps {
   variants?: Variants
   phaseLabel?: string
+  aiInsightText?: string
 }
 
 const INSIGHTS_BY_PHASE: Record<string, string> = {
@@ -15,11 +16,12 @@ const INSIGHTS_BY_PHASE: Record<string, string> = {
   luteal: "Did you know? Progesterone rises, raising your resting heart rate by 2-5 beats per minute and slightly increasing basal body temperature. Don't be alarmed if your tracker shows higher exertion today."
 }
 
-export function HormoneInsightCard({ variants, phaseLabel }: HormoneInsightCardProps) {
+export function HormoneInsightCard({ variants, phaseLabel, aiInsightText }: HormoneInsightCardProps) {
   const normalized = (phaseLabel || '').toLowerCase()
-  const insightText = normalized 
+  const staticInsight = normalized 
     ? (INSIGHTS_BY_PHASE[normalized] || INSIGHTS_BY_PHASE.luteal)
     : INSIGHTS_BY_PHASE.luteal
+  const insightText = aiInsightText || staticInsight
 
   return (
     <m.div 

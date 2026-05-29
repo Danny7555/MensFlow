@@ -9,6 +9,11 @@ export type DashboardSnapshot = {
   cycleNotes: string
   cycleVariationDays?: number
   isAtypical?: boolean
+  scientificInsight?: string
+  dailyTip?: {
+    title: string
+    desc: string
+  }
 }
 
 export const DEFAULT_DASHBOARD: DashboardSnapshot = {
@@ -22,6 +27,8 @@ export const DEFAULT_DASHBOARD: DashboardSnapshot = {
   cycleNotes: '',
   cycleVariationDays: 36,
   isAtypical: true,
+  scientificInsight: '',
+  dailyTip: { title: '', desc: '' },
 }
 
 export function loadDashboard(): DashboardSnapshot {

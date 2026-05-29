@@ -7,6 +7,7 @@ interface DailyTipCardProps {
   tipCompleted: boolean
   setTipCompleted: (completed: boolean) => void
   variants?: Variants
+  aiTip?: { title: string; desc: string }
 }
 
 const TIPS_BY_PHASE: Record<string, { title: string; desc: string }> = {
@@ -32,14 +33,15 @@ const TIPS_BY_PHASE: Record<string, { title: string; desc: string }> = {
   }
 }
 
-export function DailyTipCard({ phaseLabel, tipCompleted, setTipCompleted, variants }: DailyTipCardProps) {
+export function DailyTipCard({ phaseLabel, tipCompleted, setTipCompleted, variants, aiTip }: DailyTipCardProps) {
   const normalized = (phaseLabel || '').toLowerCase()
-  const tip = normalized
+  const staticTip = normalized
     ? (TIPS_BY_PHASE[normalized] || TIPS_BY_PHASE.luteal)
     : {
         title: "Setup Cycle Tracking",
         desc: "Please enter your partner's last period date in Settings or Tracker to compute cycle phases and receive tailored daily recommendations."
       }
+  const tip = aiTip || staticTip
 
   return (
     <m.div 

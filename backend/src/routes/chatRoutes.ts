@@ -9,6 +9,7 @@ router.get('/suggestions', chatController.getSuggestions);
 
 router.use(authenticate);
 
+router.get('/daily-guidance', chatController.getDailyGuidance);
 router.get('/sessions', chatController.getSessions);
 router.get('/sessions/:sessionId', chatController.getMessages);
 router.post('/message', chatController.sendMessage);
