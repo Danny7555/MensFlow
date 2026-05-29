@@ -53,6 +53,7 @@ export function GlobalModalContainer() {
           </DialogHeader>
           <DialogFooter className="mt-6 flex flex-col-reverse sm:flex-row gap-2 sm:gap-0 justify-end w-full">
             <button
+              type="button"
               onClick={() => {
                 if (confirmDialog.onCancel) confirmDialog.onCancel()
                 closeConfirm()
@@ -62,6 +63,7 @@ export function GlobalModalContainer() {
               Cancel
             </button>
             <button
+              type="button"
               onClick={() => {
                 if (confirmDialog.onConfirm) confirmDialog.onConfirm()
                 closeConfirm()
@@ -93,10 +95,11 @@ export function GlobalModalContainer() {
           </DialogHeader>
           <DialogFooter className="mt-6 flex justify-end w-full">
             <button
+              type="button"
               onClick={closeAlert}
               className="btn bg-gradient-to-r from-[var(--mf-accent)] to-[#be185d] text-white hover:opacity-90 px-6 py-2.5 rounded-full font-medium transition-all text-sm shadow-md"
             >
-              Okay
+              Dismiss
             </button>
           </DialogFooter>
         </DialogContent>

@@ -71,7 +71,7 @@ export function LockedChatsView() {
                     setError(false)
                   }}
                 >
-                  <option value="" disabled>Select an answer...</option>
+                  <option value="" disabled>Select an answer…</option>
                   {activeQuestion.options?.map(opt => (
                     <option key={opt} value={opt}>{opt}</option>
                   ))}
@@ -87,6 +87,7 @@ export function LockedChatsView() {
                   }}
                   className={`w-full h-12 px-4 rounded-xl bg-muted border ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-border focus:border-[var(--mf-accent-border)] focus:ring-[var(--mf-accent)]'} focus:ring-1 transition-all outline-none text-base`}
                   autoFocus
+                  aria-label="Security answer"
                 />
               )}
             </div>
@@ -136,6 +137,7 @@ export function LockedChatsView() {
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="w-full h-12 pl-10 pr-4 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-[var(--mf-accent)] focus:ring-1 transition-all outline-none text-base"
                 autoFocus
+                aria-label="New password"
               />
               {newPassword && (
                 <div className="w-full mt-3 space-y-2 animate-in fade-in slide-in-from-top-1 duration-300">
@@ -236,6 +238,7 @@ export function LockedChatsView() {
               }}
               className={`w-full h-12 pl-10 pr-4 rounded-xl bg-muted border ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-border focus:border-[var(--mf-accent-border)] focus:ring-[var(--mf-accent)]'} focus:ring-1 transition-all outline-none text-base`}
               autoFocus
+              aria-label="Passcode"
             />
           </div>
           {error && <p className="text-xs text-red-500 text-left px-1 animate-in slide-in-from-top-1">Incorrect password. Please try again.</p>}

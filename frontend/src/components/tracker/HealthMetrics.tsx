@@ -79,6 +79,7 @@ export function HealthMetrics() {
           </div>
           {!isPartner ? (
             <button 
+              type="button"
               onClick={handleIncrementWater}
               className="size-8 rounded-full bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
               aria-label="Add water"
@@ -110,6 +111,7 @@ export function HealthMetrics() {
           </div>
           {!isPartner ? (
             <button 
+              type="button"
               onClick={handleIncrementWeight}
               className="size-8 rounded-full bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
               aria-label="Record weight"

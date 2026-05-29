@@ -735,11 +735,11 @@ export function ChatView() {
                 <img src="/images/lady.png" alt="" className="landing-hero-image" />
               </div>
               <h1 className="landing-title">Ask MensFlow about your cycle?</h1>
-              <p className="landing-sub flex items-center gap-1 justify-center max-w-[500px] mx-auto text-center leading-relaxed">
+              <div className="landing-sub flex items-center gap-1 justify-center max-w-[500px] mx-auto text-center leading-relaxed">
                 Education, tracking context, and supportive guidance; not a substitute for medical care.
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <button className="p-1 hover:bg-black/5 rounded-full transition-colors inline-flex items-center justify-center cursor-help" aria-label="Medical disclaimer information">
+                    <button type="button" className="p-1 hover:bg-black/5 rounded-full transition-colors inline-flex items-center justify-center cursor-help" aria-label="Medical disclaimer information">
                       <Question size={14} weight="bold" className="opacity-40" />
                     </button>
                   </TooltipTrigger>
@@ -749,7 +749,7 @@ export function ChatView() {
                     </p>
                   </TooltipContent>
                 </Tooltip>
-              </p>
+              </div>
 
               <div className="landing-composer-wrap mt-8">
                 {!suggestionsLoading && suggestions && suggestions.length > 0 && !isTyping && !isLoading && (
