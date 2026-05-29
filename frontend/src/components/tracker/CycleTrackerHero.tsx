@@ -27,12 +27,28 @@ import { useStore } from '@/store/useStore'
 import { LogSymptomsModal } from './LogSymptomsModal'
 import { CycleWheel } from './CycleWheel'
 
+export interface CycleTrackerData {
+  lastPeriodStart: string
+  typicalCycleDays: number
+  phaseLabel?: string
+  hormoneTrend?: string
+  bodySignals?: string
+  cycleVariationDays?: number
+  isAtypical?: boolean
+  scientificInsight?: string
+  dailyTip?: {
+    title: string
+    desc: string
+  }
+}
+
 interface CycleTrackerHeroProps {
   showCheckIn?: boolean
   selectedDay?: number
   hoveredDay?: number | null
   onSelectDay?: (day: number) => void
   onHoverDay?: (day: number | null) => void
+  data?: CycleTrackerData
 }
 
 interface CycleTrackerState {
@@ -75,9 +91,12 @@ export function CycleTrackerHero({
   selectedDay: controlledSelectedDay,
   hoveredDay: controlledHoveredDay,
   onSelectDay,
-  onHoverDay
+  onHoverDay,
+  data: propData,
 }: CycleTrackerHeroProps) {
-  const { dashboard: data } = useStore()
+  const { dashboard: storeData, user } = useStore()
+  const data = propData || storeData
+  const isPartner = user?.role === 'partner'
   
   const [state, dispatch] = useReducer(cycleTrackerReducer, {
     currentDay: 1,
@@ -259,7 +278,9 @@ export function CycleTrackerHero({
         >
            <img src="/images/exp.jpg" alt="" className="mood-cta-bg" />
            <div className="mood-cta-overlay" />
-           <span className="mood-text pl-4">Log symptoms for Day {activeDay}</span>
+           <span className="mood-text pl-4">
+             {isPartner ? `View symptoms for Day ${activeDay}` : `Log symptoms for Day ${activeDay}`}
+           </span>
            <CaretRight size={20} className="caret-right group-hover:translate-x-1 transition-transform" />
         </div>
 

@@ -89,11 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const syncInterval = setInterval(() => {
       const store = useStore.getState()
       store.fetchPartnerStatus().catch((err) => console.error('Failed to sync partner status in background', err))
-      
-      // If lady, also sync symptoms logs so both stay completely consistent
-      if (store.user?.role !== 'partner') {
-        store.fetchLogs().catch((err) => console.error('Failed to sync daily logs in background', err))
-      }
+      store.fetchLogs().catch((err) => console.error('Failed to sync daily logs in background', err))
     }, 10000)
 
     return () => clearInterval(syncInterval)

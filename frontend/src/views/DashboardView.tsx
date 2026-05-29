@@ -627,7 +627,7 @@ export function DashboardView() {
             {/* Left Main Content */}
             <div className="flex flex-col gap-6 md:gap-8 min-w-0">
               <section className="flo-hero-panel min-w-0" aria-label="Cycle overview">
-                <CycleTrackerHero showCheckIn={user?.role !== 'partner'} />
+                <CycleTrackerHero showCheckIn={user?.role !== 'partner'} data={data} />
               </section>
 
               <div className="flo-today-plan flex flex-col gap-6 md:gap-8 w-full min-w-0">

@@ -1,8 +1,11 @@
 import { SymptomLog, CustomSymptom } from '../models/Symptom';
 import { ISymptomLog, ICustomSymptom } from '../interfaces';
+import { User } from '../models/User';
 
 export async function getSymptomLogs(userId: string): Promise<ISymptomLog[]> {
-  const logs = await SymptomLog.find({ userId }).sort({ date: -1 }).lean();
+  const user = await User.findById(userId).lean();
+  const targetId = (user?.role === 'partner' && user.partnerId) ? user.partnerId : userId;
+  const logs = await SymptomLog.find({ userId: targetId }).sort({ date: -1 }).lean();
   return logs.map((l) => ({
     userId: String(l.userId),
     date: l.date,
@@ -53,7 +56,9 @@ export async function clearAllLogs(userId: string): Promise<void> {
 }
 
 export async function getCustomSymptoms(userId: string): Promise<ICustomSymptom[]> {
-  const items = await CustomSymptom.find({ userId }).lean();
+  const user = await User.findById(userId).lean();
+  const targetId = (user?.role === 'partner' && user.partnerId) ? user.partnerId : userId;
+  const items = await CustomSymptom.find({ userId: targetId }).lean();
   return items.map((c) => ({
     id: String(c._id),
     userId: String(c.userId),

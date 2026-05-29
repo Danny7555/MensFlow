@@ -21,7 +21,8 @@ interface LogSymptomsModalProps {
 }
 
 export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }: LogSymptomsModalProps) {
-  const { addLog, getLogForDate, isSaving, customSymptoms, addCustomSymptom } = useStore()
+  const { addLog, getLogForDate, isSaving, customSymptoms, addCustomSymptom, user } = useStore()
+  const isPartner = user?.role === 'partner'
   const dateKey = format(activeDate, 'yyyy-MM-dd')
   const [selectedSymptoms, setSelectedSymptoms] = useState<Set<string>>(() => {
     if (!isOpen) return new Set()
@@ -104,9 +105,11 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
       <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden border-none rounded-[32px] bg-background">
         <div className="p-8">
           <DialogHeader className="mb-6">
-            <DialogTitle className="text-2xl font-normal tracking-tight">Log Symptoms: Day {activeDay}</DialogTitle>
+            <DialogTitle className="text-2xl font-normal tracking-tight">
+              {isPartner ? `Partner Symptoms: Day ${activeDay}` : `Log Symptoms: Day ${activeDay}`}
+            </DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground pt-1">
-              Select any symptoms or moods you're experiencing today.
+              {isPartner ? "View logged symptoms and moods for this day." : "Select any symptoms or moods you're experiencing today."}
             </DialogDescription>
           </DialogHeader>
 
@@ -131,14 +134,15 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
                           key={s.id}
                           type="button"
                           onClick={() => toggleSymptom(s.id)}
-                          disabled={isSaving}
+                          disabled={isSaving || isPartner}
                           className={cn(
                             "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 border",
                             isActive 
                               ? (s.id === 'flow-medium' ? "bg-rose-100 text-rose-600 border-rose-300 scale-[1.02] dark:bg-rose-500/20 dark:text-rose-400 dark:border-rose-500/40" : 
                                  s.id === 'flow-heavy' ? "bg-red-100 text-red-700 border-red-400 scale-[1.02] dark:bg-red-500/30 dark:text-red-400 dark:border-red-500/50" : 
                                  "bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] border-[var(--mf-accent-border)] scale-[1.02]") 
-                              : "bg-card text-muted-foreground border-border hover:border-[var(--mf-accent-border)] hover:text-foreground"
+                              : "bg-card text-muted-foreground border-border hover:border-[var(--mf-accent-border)] hover:text-foreground",
+                            isPartner && "cursor-default hover:border-border"
                           )}
                         >
                           {imgSrc ? (
@@ -163,53 +167,66 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
             })}
 
             {/* Add Custom Symptom Form */}
-            <form onSubmit={handleAddSymptom} className="pt-4 border-t border-border mt-2 space-y-3">
-              <span className="text-xs font-normal uppercase tracking-widest text-muted-foreground block">Create Custom Tracker</span>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <input
-                  type="text"
-                  placeholder="e.g. Backache, Caffeine log..."
-                  value={newSymptomName}
-                  onChange={(e) => setNewSymptomName(e.target.value)}
-                  className="flex-1 h-10 px-4 rounded-xl bg-muted/50 border-none outline-none focus:ring-1 ring-[var(--mf-accent)] text-sm transition-all"
-                />
-                <select
-                  value={newSymptomCat}
-                  onChange={(e) => setNewSymptomCat(e.target.value as SymptomCategory)}
-                  className="h-10 px-3 rounded-xl bg-muted/50 border-none outline-none text-sm text-muted-foreground focus:ring-1 ring-[var(--mf-accent)]"
-                >
-                  <option value="Physical">Physical</option>
-                  <option value="Mood">Mood</option>
-                  <option value="Lifestyle">Lifestyle</option>
-                </select>
-                <button
-                  type="submit"
-                  className="h-10 px-4 rounded-xl bg-[var(--mf-accent)] text-white text-sm font-normal hover:brightness-105 active:scale-95 transition-all"
-                >
-                  Add
-                </button>
-              </div>
-            </form>
+            {!isPartner && (
+              <form onSubmit={handleAddSymptom} className="pt-4 border-t border-border mt-2 space-y-3">
+                <span className="text-xs font-normal uppercase tracking-widest text-muted-foreground block">Create Custom Tracker</span>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="text"
+                    placeholder="e.g. Backache, Caffeine log..."
+                    value={newSymptomName}
+                    onChange={(e) => setNewSymptomName(e.target.value)}
+                    className="flex-1 h-10 px-4 rounded-xl bg-muted/50 border-none outline-none focus:ring-1 ring-[var(--mf-accent)] text-sm transition-all"
+                  />
+                  <select
+                    value={newSymptomCat}
+                    onChange={(e) => setNewSymptomCat(e.target.value as SymptomCategory)}
+                    className="h-10 px-3 rounded-xl bg-muted/50 border-none outline-none text-sm text-muted-foreground focus:ring-1 ring-[var(--mf-accent)]"
+                  >
+                    <option value="Physical">Physical</option>
+                    <option value="Mood">Mood</option>
+                    <option value="Lifestyle">Lifestyle</option>
+                  </select>
+                  <button
+                    type="submit"
+                    className="h-10 px-4 rounded-xl bg-[var(--mf-accent)] text-white text-sm font-normal hover:brightness-105 active:scale-95 transition-all"
+                  >
+                    Add
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
 
           <div className="mt-8 flex gap-3">
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className={cn(
-                "flex-1 h-12 rounded-2xl bg-[var(--mf-accent)] text-white font-normal hover:brightness-110 transition-all shadow-none flex items-center justify-center gap-2",
-                isSaving && "opacity-80 cursor-not-allowed"
-              )}
-            >
-              {isSaving ? (
-                <>
-                  <div className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Syncing…</span>
-                </>
-              ) : (
-                "Save Log"
-              )}
-            </button>
+            {isPartner ? (
+              <button
+                type="button"
+                onClick={() => onOpenChange(false)}
+                className="flex-1 h-12 rounded-2xl bg-secondary text-foreground font-normal hover:bg-secondary/80 transition-all flex items-center justify-center"
+              >
+                Close
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={isSaving}
+                className={cn(
+                  "flex-1 h-12 rounded-2xl bg-[var(--mf-accent)] text-white font-normal hover:brightness-110 transition-all shadow-none flex items-center justify-center gap-2",
+                  isSaving && "opacity-80 cursor-not-allowed"
+                )}
+              >
+                {isSaving ? (
+                  <>
+                    <div className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Syncing…</span>
+                  </>
+                ) : (
+                  "Save Log"
+                )}
+              </button>
+            )}
           </div>
         </div>
       </DialogContent>

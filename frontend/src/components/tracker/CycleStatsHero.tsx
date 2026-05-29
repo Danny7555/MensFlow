@@ -7,7 +7,11 @@ import {
 import { useStore } from '@/store/useStore'
 
 export function CycleStatsHero() {
-  const { dashboard: data } = useStore()
+  const { dashboard: ownDashboard, partnerStatus, user } = useStore()
+  
+  const data = (user?.role === 'partner' && partnerStatus?.paired && partnerStatus?.cycle)
+    ? partnerStatus.cycle
+    : ownDashboard
   
   return (
     <div className="cycle-stats-hero">

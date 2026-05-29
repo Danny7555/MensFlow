@@ -51,6 +51,8 @@ interface AppState {
       symptoms?: string[]
       water?: number
       weight?: number
+      cycleVariationDays?: number
+      isAtypical?: boolean
       scientificInsight?: string
       dailyTip?: {
         title: string

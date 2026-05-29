@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useState } from "react"
+import { useEffect, useReducer, useState, useMemo } from "react"
 import { CycleTrackerHero } from "@/components/tracker/CycleTrackerHero"
 import { CycleStatsHero } from "@/components/tracker/CycleStatsHero"
 import { CycleHistory } from "@/components/tracker/CycleHistory"
@@ -45,18 +45,25 @@ function trackerReducer(state: TrackerState, action: TrackerAction): TrackerStat
 }
 
 export function TrackerView() {
-  const { isSaving, dashboard: data, user, invitePartner, fetchPartnerStatus, fetchLogs } = useStore()
+  const { isSaving, dashboard: ownDashboard, partnerStatus, user, invitePartner, fetchPartnerStatus, fetchLogs } = useStore()
   const { isAuthenticated, openAuthModal } = useAuth()
   const [inviteEmail, setInviteEmail] = useState('')
   const [isInviting, setIsInviting] = useState(false)
 
+  // Swapped dashboard data source for partner role
+  const data = useMemo(() => {
+    if (user?.role === 'partner' && partnerStatus?.paired && partnerStatus?.cycle) {
+      return partnerStatus.cycle
+    }
+    return ownDashboard
+  }, [user?.role, partnerStatus, ownDashboard])
+
   // Real-time synchronization on load
   useEffect(() => {
     if (isAuthenticated) {
+      fetchLogs()
       if (user?.role === 'partner') {
         fetchPartnerStatus()
-      } else {
-        fetchLogs()
       }
     }
   }, [isAuthenticated, user?.role, fetchPartnerStatus, fetchLogs])
@@ -144,6 +151,7 @@ export function TrackerView() {
           {/* Main Column */}
           <div className="space-y-12">
             <CycleTrackerHero 
+              data={data}
               selectedDay={selectedDay}
               hoveredDay={state.hoveredDay}
               onSelectDay={(day) => dispatch({ type: 'SET_SELECTED_DAY', payload: day })}
@@ -179,7 +187,7 @@ export function TrackerView() {
           </aside>
         </div>
 
-        {isAuthenticated && (
+        {isAuthenticated && user?.role === 'lady' && (!partnerStatus || !partnerStatus.paired) && (
           <div className="mt-16 mb-16 w-full max-w-[1100px] mx-auto">
             <div 
               role="button"

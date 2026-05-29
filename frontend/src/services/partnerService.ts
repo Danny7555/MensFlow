@@ -19,6 +19,8 @@ export type ApiPartnerStatus = {
     hormoneTrend: string
     bodySignals: string
     symptoms?: string[]
+    cycleVariationDays?: number
+    isAtypical?: boolean
     scientificInsight?: string
     dailyTip?: {
       title: string
