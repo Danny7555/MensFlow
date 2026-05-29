@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { X, Eye, EyeSlash } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { getPasswordStrength } from '../lib/passwordStrength'
+import { cn } from '../lib/utils'
 
 type Mode = 'login' | 'register'
 
@@ -9,7 +10,7 @@ type AuthModalProps = {
   open: boolean
   onClose: () => void
   onLogin: (username: string, password: string) => Promise<void>
-  onRegister: (username: string, password: string, name: string) => Promise<void>
+  onRegister: (username: string, password: string, name: string, role?: 'lady' | 'partner') => Promise<void>
   isLoading?: boolean
 }
 
@@ -19,6 +20,10 @@ export function AuthModal({ open, onClose, onLogin, onRegister, isLoading }: Aut
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [role, setRole] = useState<'lady' | 'partner'>(() => {
+    const params = new URLSearchParams(window.location.search)
+    return params.get('code') ? 'partner' : 'lady'
+  })
 
   if (!open) return null
 
@@ -62,7 +67,7 @@ export function AuthModal({ open, onClose, onLogin, onRegister, isLoading }: Aut
       if (mode === 'login') {
         await onLogin(u, p)
       } else {
-        await onRegister(u, p, n)
+        await onRegister(u, p, n, role)
       }
       reset()
     } catch (err: unknown) {
@@ -104,15 +109,49 @@ export function AuthModal({ open, onClose, onLogin, onRegister, isLoading }: Aut
 
         <div className={`auth-modal-form ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}>
           {mode === 'register' && (
-            <input
-              type="text"
-              placeholder="Your name"
-              className="auth-modal-email"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              disabled={isLoading}
-              autoComplete="name"
-            />
+            <>
+              <div className="w-full flex flex-col gap-1.5 mb-2">
+                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest text-left ml-1">
+                  I want to...
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setRole('lady')}
+                    className={cn(
+                      "flex-1 py-3 px-4 rounded-2xl border text-xs font-semibold transition-all cursor-pointer",
+                      role === 'lady'
+                        ? "bg-[var(--mf-accent-soft)] border-[var(--mf-accent-border)] text-[var(--mf-accent)]"
+                        : "bg-muted/30 border-border hover:border-border-strong text-muted-foreground"
+                    )}
+                  >
+                    Track my cycle
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRole('partner')}
+                    className={cn(
+                      "flex-1 py-3 px-4 rounded-2xl border text-xs font-semibold transition-all cursor-pointer",
+                      role === 'partner'
+                        ? "bg-[var(--mf-accent-soft)] border-[var(--mf-accent-border)] text-[var(--mf-accent)]"
+                        : "bg-muted/30 border-border hover:border-border-strong text-muted-foreground"
+                    )}
+                  >
+                    Support a partner
+                  </button>
+                </div>
+              </div>
+
+              <input
+                type="text"
+                placeholder="Your name"
+                className="auth-modal-email"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                disabled={isLoading}
+                autoComplete="name"
+              />
+            </>
           )}
 
           <input

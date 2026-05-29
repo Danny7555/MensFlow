@@ -21,7 +21,8 @@ export async function generateUniquePartnerCode(): Promise<string> {
 export async function registerUser(
   username: string,
   password: string,
-  name: string
+  name: string,
+  role: 'lady' | 'partner' = 'lady'
 ): Promise<{ token: string; user: Partial<IUser> }> {
   const normalizedUsername = username.toLowerCase();
   const existingUser = await User.findOne({ username: normalizedUsername });
@@ -32,7 +33,7 @@ export async function registerUser(
   const partnerCode = await generateUniquePartnerCode();
   const passwordHash = await bcrypt.hash(password, 10);
 
-  const user = await User.create({ username: normalizedUsername, passwordHash, name, partnerCode });
+  const user = await User.create({ username: normalizedUsername, passwordHash, name, partnerCode, role });
 
   const defaultLastPeriodStart = new Date(Date.now() - 20 * 24 * 60 * 60 * 1000)
     .toISOString()

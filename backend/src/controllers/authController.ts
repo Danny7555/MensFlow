@@ -8,8 +8,9 @@ export async function register(req: Request, res: Response, next: NextFunction):
     const username = requiredString(body.username, 'username', { max: 120 }).toLowerCase();
     const password = requiredString(body.password, 'password', { min: 8, max: 128 });
     const name = requiredString(body.name, 'name', { max: 80 });
+    const role = body.role === 'partner' ? 'partner' : 'lady';
 
-    const result = await authService.registerUser(username, password, name);
+    const result = await authService.registerUser(username, password, name, role);
     res.status(201).json(result);
   } catch (err) {
     next(err);

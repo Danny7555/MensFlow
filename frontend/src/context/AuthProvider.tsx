@@ -167,10 +167,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [navigate, hydrate])
 
   // ── Register ───────────────────────────────────────────────────────────────
-  const register = useCallback(async (username: string, password: string, name: string) => {
+  const register = useCallback(async (username: string, password: string, name: string, role?: 'lady' | 'partner') => {
     setState(prev => ({ ...prev, isLoading: true }))
     try {
-      const { token, user: u } = await authApi.register(username, password, name)
+      const { token, user: u } = await authApi.register(username, password, name, role)
       setToken(token)
       
       const localOnboarding = getLocalOnboarding()
