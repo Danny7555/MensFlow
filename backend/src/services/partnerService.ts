@@ -158,7 +158,11 @@ export async function sendPing(
 }
 
 export async function getLatestPing(userId: string): Promise<IPartnerPing | null> {
-  const ping = await PartnerPing.findOne({ receiverId: userId })
+  const ping = await PartnerPing.findOne({ 
+    receiverId: userId,
+    message: { $exists: true, $ne: '' },
+    label: { $exists: true, $ne: '' }
+  })
     .sort({ timestamp: -1 })
     .lean();
 
