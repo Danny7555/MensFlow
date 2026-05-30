@@ -75,36 +75,38 @@ export function HormoneWave() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (!data?.lastPeriodStart) {
-        if (data?.phaseLabel) {
-          const norm = data.phaseLabel.toLowerCase()
-          if (norm.includes('menstrual')) {
-            setActiveDay(3)
-          } else if (norm.includes('follicular')) {
-            setActiveDay(7)
-          } else if (norm.includes('ovulat') || norm.includes('fertile')) {
-            setActiveDay(14)
-          } else if (norm.includes('luteal')) {
-            setActiveDay(20)
-          } else {
-            setActiveDay(1)
-          }
+      if (data?.lastPeriodStart) {
+        // Prefer computed day from actual date — same noon-anchored method as computeCycleDay()
+        const safeLen = Math.max(1, cycleLen || 28)
+        const start = new Date(`${data.lastPeriodStart}T12:00:00`)
+        if (!Number.isNaN(+start)) {
+          const days = Math.floor((Date.now() - +start) / 86400000)
+          const m = ((days % safeLen) + safeLen) % safeLen
+          setActiveDay(m + 1)
+          return
+        }
+      }
+      // Fallback: use phaseLabel to estimate a representative day
+      if (data?.phaseLabel) {
+        const norm = data.phaseLabel.toLowerCase()
+        if (norm.includes('menstrual')) {
+          setActiveDay(3)
+        } else if (norm.includes('follicular')) {
+          setActiveDay(7)
+        } else if (norm.includes('ovulat') || norm.includes('fertile')) {
+          setActiveDay(Math.max(7, cycleLen - 14))
+        } else if (norm.includes('luteal')) {
+          setActiveDay(Math.round(cycleLen * 0.75))
         } else {
           setActiveDay(1)
         }
-        return
-      }
-      const start = new Date(`${data.lastPeriodStart}T12:00:00`)
-      if (!Number.isNaN(+start)) {
-        const days = Math.floor((Date.now() - +start) / 86400000)
-        const m = ((days % cycleLen) + cycleLen) % cycleLen
-        setActiveDay(m + 1)
       } else {
         setActiveDay(1)
       }
     }, 0)
     return () => clearTimeout(timer)
   }, [data?.lastPeriodStart, data?.phaseLabel, cycleLen])
+
 
   // Phase & Insight information
   const dayInsight = useMemo(() => getDayInsight(activeDay, cycleLen), [activeDay, cycleLen])

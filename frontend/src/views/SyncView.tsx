@@ -153,8 +153,9 @@ export function SyncView() {
 
   const phase = useMemo(() => {
     const cycleDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
-    return getPhaseFromDay(cycleDay)
+    return getPhaseFromDay(cycleDay, data.typicalCycleDays)
   }, [data.lastPeriodStart, data.typicalCycleDays])
+
 
   const options = user?.role === 'partner' ? SUPPORT_PING_OPTIONS : STATUS_OPTIONS
 

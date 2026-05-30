@@ -106,7 +106,7 @@ export function Sidebar({
         if (normalized.includes('luteal')) return 'luteal'
         return 'follicular'
       })()
-    : getPhaseFromDay(computeCycleDay(activeCycle.lastPeriodStart, activeCycle.typicalCycleDays))
+    : getPhaseFromDay(computeCycleDay(activeCycle.lastPeriodStart, activeCycle.typicalCycleDays), activeCycle.typicalCycleDays)
   const phaseInfo = getPhaseInfo(phase)
 
   return (

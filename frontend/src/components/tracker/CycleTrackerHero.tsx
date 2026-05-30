@@ -8,7 +8,7 @@ import {
   Info,
   Flask,
 } from '@phosphor-icons/react'
-import { format, addDays, startOfDay, differenceInCalendarDays, parseISO } from 'date-fns'
+import { format, addDays, startOfDay } from 'date-fns'
 import { toast } from 'sonner'
 
 import { 
@@ -118,11 +118,13 @@ export function CycleTrackerHero({
   useEffect(() => {
     const timer = setTimeout(() => {
       if (data.lastPeriodStart) {
-        const start = parseISO(data.lastPeriodStart)
+        // Use noon-anchored ms calculation to stay consistent with computeCycleDay() in cycleUtils
+        const safeLen = Math.max(1, data.typicalCycleDays || 28)
+        const start = new Date(`${data.lastPeriodStart}T12:00:00`)
         const startValid = !Number.isNaN(start.getTime())
         if (startValid) {
-          const days = differenceInCalendarDays(new Date(), start)
-          const m = ((days % data.typicalCycleDays) + data.typicalCycleDays) % data.typicalCycleDays
+          const days = Math.floor((Date.now() - start.getTime()) / 86400000)
+          const m = ((days % safeLen) + safeLen) % safeLen
           const calculatedDay = m + 1
           setCurrentDay(calculatedDay)
           dispatch({ type: 'INIT_DAYS', currentDay: calculatedDay, selectedDay: calculatedDay })
@@ -303,7 +305,7 @@ export function CycleTrackerHero({
             <p className="viz-today">{format(activeDate, 'EEEE, d MMM')}</p>
             <h2 className="viz-title" style={{ color: activeInfo.color }}>
               {activeDay === currentDay 
-                ? `${isPartner ? 'Her next period' : 'Next period'}: ${format(addDays(today, cycleLength - currentDay + 1), 'd MMM')}`
+                ? `${isPartner ? 'Her next period' : 'Next period'}: ${format(addDays(today, cycleLength - currentDay), 'd MMM')}`
                 : activeInfo.phase
               }
             </h2>

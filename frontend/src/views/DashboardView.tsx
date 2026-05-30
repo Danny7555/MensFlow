@@ -477,7 +477,7 @@ export function DashboardView() {
       if (normalized.includes('luteal')) return 'luteal'
     }
     const cycleDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
-    return getPhaseFromDay(cycleDay)
+    return getPhaseFromDay(cycleDay, data.typicalCycleDays)
   }, [data.lastPeriodStart, data.typicalCycleDays, data.phaseLabel])
 
   const currentDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
