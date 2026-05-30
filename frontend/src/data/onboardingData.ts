@@ -21,7 +21,7 @@ export const ONBOARDING_QUESTIONS: OnboardingQuestion[] = [
     description: 'Are you tracking your own cycle or supporting a partner?',
     type: 'single-choice',
     options: [
-      { label: "I'm tracking my own cycle", value: 'lady', img: '/images/heart.png' },
+      { label: "I'm tracking my own cycle", value: 'lady', img: '/images/lady.png' },
       { label: "I'm supporting my partner", value: 'partner', img: '/images/calm.jpg' },
     ],
   },
@@ -39,7 +39,7 @@ export const ONBOARDING_QUESTIONS: OnboardingQuestion[] = [
     type: 'single-choice',
     options: [
       { label: 'Track energy', value: 'track', img: '/images/cal.png' },
-      { label: 'Build habits', value: 'health', img: '/images/heart.png' },
+      { label: 'Build habits', value: 'health', img: '/images/calm.jpg' },
       { label: 'Monitor mood', value: 'symptoms', img: '/images/brain.png' },
       { label: 'Learn wellness', value: 'learn', img: '/images/flow.jpg' },
     ],

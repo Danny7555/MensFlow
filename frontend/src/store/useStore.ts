@@ -250,6 +250,10 @@ export const useStore = create<AppState>()((set, get) => ({
   updateDashboard: async (patch) => {
     set({ isSaving: true })
     try {
+      const settingsPatch = patch.typicalCycleDays !== undefined
+        ? { cycleAvgLengthDays: patch.typicalCycleDays }
+        : null
+
       if (isLoggedIn()) {
         const updated = await userApi.updateDashboard(patch)
         set((state) => ({
@@ -259,7 +263,13 @@ export const useStore = create<AppState>()((set, get) => ({
             version: 1,
             guidanceLines: updated.guidanceLines ?? state.dashboard.guidanceLines,
           },
+          settings: settingsPatch 
+            ? { ...state.settings, ...settingsPatch } 
+            : state.settings,
         }))
+        if (settingsPatch) {
+          await userApi.updateSettings(settingsPatch)
+        }
       } else {
         set((state) => ({
           dashboard: {
@@ -267,6 +277,9 @@ export const useStore = create<AppState>()((set, get) => ({
             ...patch,
             version: 1,
           },
+          settings: settingsPatch 
+            ? { ...state.settings, ...settingsPatch } 
+            : state.settings,
         }))
       }
     } finally {
@@ -308,10 +321,23 @@ export const useStore = create<AppState>()((set, get) => ({
   // ── Settings ────────────────────────────────────────────────────────────────
   updateSettings: async (patch) => {
     // Optimistic update — keeps UI instant
-    set((state) => ({ settings: { ...state.settings, ...patch } }))
+    const dashboardPatch = patch.cycleAvgLengthDays !== undefined
+      ? { typicalCycleDays: patch.cycleAvgLengthDays }
+      : null
+
+    set((state) => ({ 
+      settings: { ...state.settings, ...patch },
+      dashboard: dashboardPatch
+        ? { ...state.dashboard, ...dashboardPatch }
+        : state.dashboard,
+    }))
+
     if (isLoggedIn()) {
       try {
         await userApi.updateSettings(patch)
+        if (dashboardPatch) {
+          await userApi.updateDashboard(dashboardPatch)
+        }
       } catch {
         // Revert on failure (re-fetch would be ideal but keep it simple)
       }

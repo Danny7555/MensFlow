@@ -92,7 +92,7 @@ export const EDUCATION_ARTICLES: ArticleDef[] = [
     category: "Care",
     readTime: "4 min read",
     icon: Heartbeat,
-    image: "/images/heart.png",
+    image: "/images/bbt_3d.png",
     url: "https://www.mayoclinic.org/tests-procedures/basal-body-temperature/about/pac-20393026",
   },
 ];
