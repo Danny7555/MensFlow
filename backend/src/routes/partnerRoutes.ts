@@ -15,5 +15,6 @@ router.get('/ping', partnerController.getLatestPing);
 router.post('/ping', partnerController.sendPing);
 
 router.post('/action', partnerController.toggleAction);
+router.post('/request-access', partnerController.requestDetailedAccess);
 
 export default router;

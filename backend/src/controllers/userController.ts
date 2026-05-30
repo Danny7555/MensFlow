@@ -64,6 +64,7 @@ export async function updateSettings(req: AuthRequest, res: Response, next: Next
       cycleAvgLengthDays: optionalNumber(body, 'cycleAvgLengthDays', { min: 15, max: 60, integer: true }),
       cycleShowFertileWindow: optionalBoolean(body, 'cycleShowFertileWindow'),
       privacyShareCycleDetails: optionalBoolean(body, 'privacyShareCycleDetails'),
+      privacyPendingAccessRequest: optionalBoolean(body, 'privacyPendingAccessRequest'),
     });
 
     const settings = await userService.updateUserSettings(req.user!.id, patch);

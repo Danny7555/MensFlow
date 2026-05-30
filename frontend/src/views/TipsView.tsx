@@ -2,8 +2,8 @@ import { useMemo, useState, useEffect } from 'react'
 
 import { TIPS_DUMMY, type WellnessTip } from '../data/tipsData'
 import { useStore } from '../store/useStore'
-import { cn } from '@/lib/utils';
-import { TipsSkeleton } from '../components/skeletons/TipsSkeleton';
+import { TipsSkeleton } from '../components/skeletons/TipsSkeleton'
+import { cn } from '@/lib/utils'
 
 const CATS: { id: WellnessTip['category'] | 'all'; label: string }[] = [
   { id: 'all', label: 'All' },
@@ -14,7 +14,12 @@ const CATS: { id: WellnessTip['category'] | 'all'; label: string }[] = [
 ]
 
 export function TipsView() {
-  const { dashboard: data } = useStore()
+  const { dashboard: ownDashboard, partnerStatus, user } = useStore()
+
+  const data = (user?.role === 'partner' && partnerStatus?.paired && partnerStatus?.cycle)
+    ? partnerStatus.cycle
+    : ownDashboard
+
   const [cat, setCat] = useState<(typeof CATS)[number]['id']>('all')
   const [saved, setSaved] = useState<Set<string>>(
     () => new Set(TIPS_DUMMY.slice(0, 2).map((t) => t.id)),
@@ -33,18 +38,19 @@ export function TipsView() {
       'rest',
       'mind',
     ]
-    return data.guidanceLines.map((text, i) => ({
+    const lines = (data && 'guidanceLines' in data) ? (data.guidanceLines || []) : []
+    return lines.map((text: string, i: number) => ({
       id: `dash-${i}`,
       category: rotate[i % rotate.length],
-      title: `From your dashboard (${i + 1})`,
+      title: user?.role === 'partner' ? `From her dashboard (${i + 1})` : `From your dashboard (${i + 1})`,
       summary: text,
-      phaseTag: data.phaseLabel,
+      phaseTag: data?.phaseLabel || '',
     }))
-  }, [data.guidanceLines, data.phaseLabel])
+  }, [data, user?.role])
 
   const merged: WellnessTip[] = useMemo(
     () => [
-      ...fromDashboard.map((t) => ({
+      ...fromDashboard.map((t: { id: string; category: WellnessTip['category']; title: string; summary: string; phaseTag: string }) => ({
         id: t.id,
         category: t.category,
         title: t.title,
@@ -107,8 +113,8 @@ export function TipsView() {
                 <img 
                   src="/images/heart.png" 
                   alt="" 
-                  width={48} 
-                  height={48} 
+                  width={20} 
+                  height={20} 
                   className={cn(
                     "object-contain transition-all duration-300", 
                     !saved.has(t.id) && "opacity-40 grayscale"

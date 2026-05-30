@@ -1,4 +1,4 @@
-import { Sparkle, Heart } from '@phosphor-icons/react'
+import { Sparkle } from '@phosphor-icons/react'
 
 interface EmpathySupportGuideProps {
   supportTip: string
@@ -19,7 +19,7 @@ export function EmpathySupportGuide({ supportTip }: EmpathySupportGuideProps) {
           <div className="flex items-start gap-2.5 md:gap-3">
             <div className="shrink-0 mt-0.5">
               <div className="size-6 md:size-6.5 rounded-xl bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center text-amber-600 dark:text-amber-400">
-                <Heart size={14} weight="fill" className="scale-90 md:scale-100" />
+                <img src="/images/heart.png" alt="" className="size-3.5 object-contain" />
               </div>
             </div>
             

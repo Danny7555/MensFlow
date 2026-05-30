@@ -12,6 +12,7 @@ import { SymptomsChart } from '../components/SymptomsChart'
 import { CycleLengthChart } from '../components/tracker/CycleLengthChart'
 import { useStore } from '../store/useStore'
 import { TrackerSkeleton } from '../components/skeletons/TrackerSkeleton'
+import { toast } from 'sonner'
 
 const SYMPTOM_ICONS: Record<string, React.ElementType> = {
   'flow-light': DropSimple,
@@ -35,13 +36,15 @@ function SymptomCategoryList({
   IconComponent, 
   activeSymptoms, 
   toggleSymptom,
-  isSaving
+  isSaving,
+  readOnly = false
 }: { 
   category: SymptomCategory, 
   IconComponent: React.ElementType, 
   activeSymptoms: Set<string>, 
   toggleSymptom: (id: string) => void,
-  isSaving: boolean
+  isSaving: boolean,
+  readOnly?: boolean
 }) {
   const items = SYMPTOM_DEFS.filter((s) => s.category === category)
   if (items.length === 0) return null
@@ -74,10 +77,11 @@ function SymptomCategoryList({
             <button
               key={symptom.id}
               type="button"
-              onClick={() => toggleSymptom(symptom.id)}
-              disabled={isSaving}
+              onClick={() => !readOnly && toggleSymptom(symptom.id)}
+              disabled={isSaving || readOnly}
               className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-normal border transition-all duration-300 cursor-pointer",
+                "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-normal border transition-all duration-300",
+                !readOnly && "cursor-pointer",
                 isActive
                   ? (symptom.id === 'flow-medium' ? "bg-rose-100 text-rose-600 border-rose-300 scale-[1.02] dark:bg-rose-500/20 dark:text-rose-400 dark:border-rose-500/40" : 
                      symptom.id === 'flow-heavy' ? "bg-red-100 text-red-700 border-red-400 scale-[1.02] dark:bg-red-500/30 dark:text-red-400 dark:border-red-500/50" : 
@@ -127,8 +131,14 @@ function SymptomCategoryList({
 }
 
 export function SymptomsView() {
-  const { addLog, getLogForDate, isSaving } = useStore()
+  const { addLog, getLogForDate, isSaving, user, partnerStatus } = useStore()
   const [isLoading, setIsLoading] = useState(true)
+  const [requestSent, setRequestSent] = useState(false)
+
+  const handleRequestAccess = () => {
+    setRequestSent(true)
+    toast.success("Access request sent! Your partner will receive a notification to enable detailed sharing.")
+  }
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -140,8 +150,14 @@ export function SymptomsView() {
   const todayKey = useMemo(() => format(new Date(), 'yyyy-MM-dd'), [])
 
   const currentLog = getLogForDate(todayKey)
+  const isPartner = user?.role === 'partner'
 
-  const activeSymptoms = useMemo(() => new Set(currentLog?.symptoms || []), [currentLog])
+  const activeSymptoms = useMemo(() => {
+    if (isPartner) {
+      return new Set(partnerStatus?.cycle?.symptoms || [])
+    }
+    return new Set(currentLog?.symptoms || [])
+  }, [currentLog, isPartner, partnerStatus])
 
   const todayStr = useMemo(() => {
     return new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric' })
@@ -165,9 +181,9 @@ export function SymptomsView() {
         <div className="dash-header-left">
           <img src="/images/girl.png" alt="" className="dash-avatar" />
           <div>
-            <p className="dash-kicker">Tracking</p>
+            <p className="dash-kicker">{isPartner ? "Partner's Cycle" : "Tracking"}</p>
             <div className="flex items-center gap-3">
-              <h1 className="dash-title">Daily symptoms</h1>
+              <h1 className="dash-title">{isPartner ? "Her Daily Symptoms" : "Daily symptoms"}</h1>
               <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-muted/40 border border-border/50 sync-pill mt-1">
                 <span className="text-[10px] font-normal text-muted-foreground uppercase tracking-wider">
                   {isSaving ? 'Syncing' : 'Synced'}
@@ -183,7 +199,9 @@ export function SymptomsView() {
           </span>
         </div>
         <p className="dash-sub">
-          Log how you feel to discover patterns 
+          {isPartner 
+            ? `Shared symptoms logged by ${partnerStatus?.partner?.name || 'your partner'}` 
+            : "Log how you feel to discover patterns"}
         </p>
       </header>
 
@@ -196,26 +214,127 @@ export function SymptomsView() {
             {activeSymptoms.size} symptoms logged
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <SymptomCategoryList category="Physical" IconComponent={Pulse} activeSymptoms={activeSymptoms} toggleSymptom={toggleSymptom} isSaving={isSaving} />
-          <SymptomCategoryList category="Mood" IconComponent={Pill} activeSymptoms={activeSymptoms} toggleSymptom={toggleSymptom} isSaving={isSaving} />
-          <SymptomCategoryList category="Flow" IconComponent={Drop} activeSymptoms={activeSymptoms} toggleSymptom={toggleSymptom} isSaving={isSaving} />
-        </div>
+
+        {isPartner ? (
+          <div className="dash-panel p-8 rounded-[2rem] bg-[var(--mf-card)] border border-[var(--mf-border)]">
+            {activeSymptoms.size === 0 ? (
+              <div className="text-center py-8 space-y-4">
+                <div className="size-16 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center mx-auto text-emerald-600 dark:text-emerald-400">
+                  <Pulse size={32} />
+                </div>
+                <h3 className="text-base font-normal text-[var(--mf-text-strong)]">No Symptoms Logged</h3>
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                  {partnerStatus?.partner?.name || 'Your partner'} has not logged any symptoms for today yet.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-8">
+                <p className="text-xs text-muted-foreground">
+                  Here is what {partnerStatus?.partner?.name || 'your partner'} logged today:
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                  {['Flow', 'Mood', 'Physical'].map((cat) => {
+                    const catSymptoms = SYMPTOM_DEFS.filter(
+                      (s) => s.category === cat && activeSymptoms.has(s.id)
+                    )
+                    if (catSymptoms.length === 0) return null
+
+                    const IconComponent = cat === 'Physical' ? Pulse : cat === 'Mood' ? Pill : Drop
+                    const imgMap: Record<string, string> = {
+                      'mood-happy': '/images/happy.jpg',
+                      'mood-sad': '/images/sad.jpg',
+                      'mood-irritable': '/images/angry.jpg',
+                      'mood-anxious': '/images/anxious.jpg',
+                      'mood-calm': '/images/calm.jpg',
+                      'phys-cramps': '/images/cramps.jpg',
+                      'phys-fatigue': '/images/fatique.jpg',
+                      'phys-bloating': '/images/bloat.jpg',
+                      'phys-headache': '/images/headache.jpg',
+                      'phys-acne': '/images/acne.jpg',
+                      'phys-tender': '/images/tender.jpg',
+                    }
+
+                    return (
+                      <div key={cat} className="space-y-4 p-5 rounded-2xl bg-muted/20 border border-border/50">
+                        <h4 className="text-xs font-normal tracking-wider text-muted-foreground uppercase flex items-center gap-1.5">
+                          <IconComponent size={16} className="text-[var(--mf-accent)]" />
+                          {cat}
+                        </h4>
+                        <div className="flex flex-col gap-2">
+                          {catSymptoms.map((symptom) => (
+                            <div 
+                              key={symptom.id} 
+                              className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-card border border-border text-sm font-normal text-[var(--mf-text-strong)]"
+                            >
+                              {imgMap[symptom.id] ? (
+                                <img src={imgMap[symptom.id]} alt="" className="size-6 rounded-full object-cover" />
+                              ) : SYMPTOM_ICONS[symptom.id] ? (
+                                (() => {
+                                  const Icon = SYMPTOM_ICONS[symptom.id]
+                                  return (
+                                    <span className="text-[var(--mf-accent)]">
+                                      <Icon size={16} />
+                                    </span>
+                                  )
+                                })()
+                              ) : null}
+                              <span>{symptom.label}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <SymptomCategoryList category="Physical" IconComponent={Pulse} activeSymptoms={activeSymptoms} toggleSymptom={toggleSymptom} isSaving={isSaving} readOnly={isPartner} />
+            <SymptomCategoryList category="Mood" IconComponent={Pill} activeSymptoms={activeSymptoms} toggleSymptom={toggleSymptom} isSaving={isSaving} readOnly={isPartner} />
+            <SymptomCategoryList category="Flow" IconComponent={Drop} activeSymptoms={activeSymptoms} toggleSymptom={toggleSymptom} isSaving={isSaving} readOnly={isPartner} />
+          </div>
+        )}
       </section>
 
-      <section aria-labelledby="trends-title" className="space-y-6 pt-4">
-        <h2 id="trends-title" className="text-lg font-normal tracking-tight text-foreground">
-          Analytical Cycle Graphs & Trends
-        </h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="dash-panel p-0 overflow-hidden">
-            <SymptomsChart />
+      {!isPartner ? (
+        <section aria-labelledby="trends-title" className="space-y-6 pt-4">
+          <h2 id="trends-title" className="text-lg font-normal tracking-tight text-foreground">
+            Analytical Cycle Graphs & Trends
+          </h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="dash-panel p-0 overflow-hidden">
+              <SymptomsChart />
+            </div>
+            <div className="dash-panel p-0 overflow-hidden">
+              <CycleLengthChart />
+            </div>
           </div>
-          <div className="dash-panel p-0 overflow-hidden">
-            <CycleLengthChart />
+        </section>
+      ) : (
+        <section className="pt-4">
+          <div className="p-6 sm:p-8 rounded-[2rem] bg-[var(--mf-card)] border border-[var(--mf-border)] text-center w-full max-w-md mx-auto space-y-4 flex flex-col items-center">
+            <h2 className="text-sm font-normal tracking-tight text-foreground">Analytical Trends Private</h2>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Historical cycle graphs, trends, and diagnostic symptom charts are managed privately on your partner's device.
+            </p>
+            <button
+              type="button"
+              onClick={handleRequestAccess}
+              disabled={requestSent}
+              className={cn(
+                "px-6 py-2.5 rounded-full text-xs font-normal transition-all",
+                requestSent 
+                  ? "bg-emerald-500 text-white cursor-default animate-in fade-in" 
+                  : "bg-[var(--mf-accent)] text-white hover:brightness-110 active-squish cursor-pointer border-0 outline-none"
+              )}
+            >
+              {requestSent ? "Access Request Sent ✔" : "Request Detailed Access"}
+            </button>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   )
 }

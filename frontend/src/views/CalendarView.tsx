@@ -58,6 +58,8 @@ import { CalendarSkeleton } from "@/components/skeletons/CalendarSkeleton"
 
 export function CalendarView() {
   const { isAuthenticated, openAuthModal } = useAuth()
+  const { user } = useStore()
+  const isPartner = user?.role === 'partner'
 
   const [isLoading, setIsLoading] = React.useState(true)
 
@@ -166,26 +168,33 @@ export function CalendarView() {
           </div>
 
           <div className="flex justify-center sm:justify-end order-3">
-            <Button 
-              variant={isEditingPeriods ? "default" : "outline"}
-              onClick={() => isAuthenticated ? dispatch({ type: "SET_EDITING_PERIODS", payload: !isEditingPeriods }) : openAuthModal()}
-              className={cn(
-                "rounded-full text-xs font-normal gap-2",
-                isEditingPeriods ? "bg-[var(--mf-danger)]/10 text-[var(--mf-danger)] border-[var(--mf-danger)]/30 hover:bg-[var(--mf-danger)]/20" : ""
-              )}
-            >
-              {isEditingPeriods ? (
-                <>
-                  <Check size={14} weight="regular" />
-                  <span>Finish Editing</span>
-                </>
-              ) : (
-                <>
-                  <PencilSimple size={14} weight="bold" />
-                  <span>Edit Periods</span>
-                </>
-              )}
-            </Button>
+            {!isPartner && (
+              <Button 
+                variant={isEditingPeriods ? "default" : "outline"}
+                onClick={() => isAuthenticated ? dispatch({ type: "SET_EDITING_PERIODS", payload: !isEditingPeriods }) : openAuthModal()}
+                className={cn(
+                  "rounded-full text-xs font-normal gap-2",
+                  isEditingPeriods ? "bg-[var(--mf-danger)]/10 text-[var(--mf-danger)] border-[var(--mf-danger)]/30 hover:bg-[var(--mf-danger)]/20" : ""
+                )}
+              >
+                {isEditingPeriods ? (
+                  <>
+                    <Check size={14} weight="regular" />
+                    <span>Finish Editing</span>
+                  </>
+                ) : (
+                  <>
+                    <PencilSimple size={14} weight="bold" />
+                    <span>Edit Periods</span>
+                  </>
+                )}
+              </Button>
+            )}
+            {isPartner && (
+              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest bg-muted px-4 py-2 rounded-full border border-border/40">
+                View-Only Mode
+              </div>
+            )}
           </div>
         </div>
 
@@ -392,7 +401,9 @@ function computeCycleDayForDate(targetDate: Date, startIso: string, cycleLen: nu
 }
 
 function DetailSheet({ selectedDate, isAuthenticated, onOpenAuth }: { selectedDate: Date, isAuthenticated: boolean, onOpenAuth: () => void }) {
-  const { dashboard: data } = useStore()
+  const { dashboard: ownDashboard, user, partnerStatus } = useStore()
+  const isPartner = user?.role === 'partner'
+  const data = (isPartner && partnerStatus?.paired && partnerStatus?.cycle) ? partnerStatus.cycle : ownDashboard
   const [isLogOpen, setIsLogOpen] = React.useState(false)
 
   const displayCycleDay = React.useMemo(() => {
@@ -416,7 +427,10 @@ function DetailSheet({ selectedDate, isAuthenticated, onOpenAuth }: { selectedDa
         <div className="flex items-start justify-between mb-8">
           <div>
             <h3 className="text-lg font-normal text-foreground">
-              Edit Period for {selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+              {isPartner 
+                ? `Cycle Day Details for ${selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
+                : `Edit Period for ${selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
+              }
             </h3>
             <p className="text-[var(--mf-accent)] font-normal text-sm">
               Cycle Day {displayCycleDay}
@@ -430,25 +444,30 @@ function DetailSheet({ selectedDate, isAuthenticated, onOpenAuth }: { selectedDa
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1 bg-muted/30 dark:bg-muted/10 rounded-2xl p-4 border border-dashed border-muted">
             <p className="text-muted-foreground text-sm text-center italic">
-              Add weight, mood & symptoms for this day
+              {isPartner 
+                ? "Symptom and period data are managed by your partner." 
+                : "Add weight, mood & symptoms for this day"
+              }
             </p>
           </div>
           
-          <div className="flex items-center gap-4 sm:gap-8">
-            <div className="hidden sm:flex items-center gap-2">
-              <span className="text-[10px] font-normal text-muted-foreground uppercase tracking-widest">LOG DATA</span>
-              <svg width="40" height="20" viewBox="0 0 40 20" fill="none" className="text-muted-foreground opacity-30">
-                <path d="M2 18C10 18 30 18 38 2M38 2L32 2M38 2L38 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+          {!isPartner && (
+            <div className="flex items-center gap-4 sm:gap-8">
+              <div className="hidden sm:flex items-center gap-2">
+                <span className="text-[10px] font-normal text-muted-foreground uppercase tracking-widest">LOG DATA</span>
+                <svg width="40" height="20" viewBox="0 0 40 20" fill="none" className="text-muted-foreground opacity-30">
+                  <path d="M2 18C10 18 30 18 38 2M38 2L32 2M38 2L38 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              
+              <Button 
+                onClick={() => setIsLogOpen(true)}
+                className="size-14 rounded-full bg-[var(--mf-accent)] hover:bg-[var(--mf-accent-hover)] text-white p-0 flex items-center justify-center border-none transition-transform hover:scale-105 active:scale-95"
+              >
+                <Plus size={32} strokeWidth={2.5} />
+              </Button>
             </div>
-            
-            <Button 
-              onClick={() => setIsLogOpen(true)}
-              className="size-14 rounded-full bg-[var(--mf-accent)] hover:bg-[var(--mf-accent-hover)] text-white p-0 flex items-center justify-center border-none transition-transform hover:scale-105 active:scale-95"
-            >
-              <Plus size={32} strokeWidth={2.5} />
-            </Button>
-          </div>
+          )}
         </div>
       </Card>
 

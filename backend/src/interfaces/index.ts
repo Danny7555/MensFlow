@@ -54,6 +54,7 @@ export interface ISettings {
   cycleAvgLengthDays: number;
   cycleShowFertileWindow: boolean;
   privacyShareCycleDetails: boolean;
+  privacyPendingAccessRequest: boolean;
 }
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────

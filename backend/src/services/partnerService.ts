@@ -268,3 +268,20 @@ function yesterdayString(): string {
   d.setDate(d.getDate() - 1);
   return d.toISOString().split('T')[0];
 }
+
+export async function requestDetailedAccess(userId: string): Promise<void> {
+  const user = await User.findById(userId);
+  if (!user?.partnerId) {
+    throw httpError('You must pair with a partner before requesting detailed access', 400);
+  }
+
+  // Update Lady's Settings (privacyPendingAccessRequest = true)
+  await Settings.findOneAndUpdate(
+    { userId: user.partnerId },
+    { privacyPendingAccessRequest: true }
+  );
+
+  // Send a PartnerPing so she gets notified instantly
+  const partnerName = user.name || 'Your partner';
+  await sendPing(userId, 'access-request-ping', 'Access Request', `${partnerName} has requested detailed cycle access.`);
+}
