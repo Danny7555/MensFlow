@@ -55,3 +55,25 @@ const SupportStreakSchema = new Schema<SupportStreakDocument>({
 });
 
 export const SupportStreak = model<SupportStreakDocument>('SupportStreak', SupportStreakSchema);
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface PartnerChatMessageDocument extends Document {
+  senderId: Schema.Types.ObjectId;
+  receiverId: Schema.Types.ObjectId;
+  text: string;
+  createdAt: number;
+}
+
+const PartnerChatMessageSchema = new Schema<PartnerChatMessageDocument>({
+  senderId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  receiverId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  text: { type: String, required: true, maxlength: 4000 },
+  createdAt: { type: Number, required: true },
+});
+
+PartnerChatMessageSchema.index({ senderId: 1, receiverId: 1 });
+PartnerChatMessageSchema.index({ senderId: 1, receiverId: 1, createdAt: 1 });
+
+export const PartnerChatMessage = model<PartnerChatMessageDocument>('PartnerChatMessage', PartnerChatMessageSchema);
+

@@ -2,6 +2,7 @@ import type { ComponentType, ReactNode } from 'react'
 import { useState, useEffect } from 'react'
 import { useStore } from '../store/useStore'
 import { SettingsSkeleton } from '../components/skeletons/SettingsSkeleton'
+import { m } from 'framer-motion'
 import {
   ArrowCounterClockwise,
   Bell,
@@ -1288,6 +1289,28 @@ export function SettingsView({
   )
   const { settings, updateSettings, resetSettings, user, updateUser, resetStore, showConfirm } = useStore()
 
+  const [isSwitchingRole, setIsSwitchingRole] = useState(false)
+
+  const handleRoleChange = async (newRole: 'lady' | 'partner') => {
+    setIsSwitchingRole(true)
+    const toastId = toast.loading("Reconfiguring workspace perspective...")
+    try {
+      await updateUser({ role: newRole })
+      // Artificial delay for smooth loading effect
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      
+      toast.success(`Switched to ${newRole === 'lady' ? 'Lady' : 'Partner'} view`, {
+        id: toastId,
+        description: `Dashboard layout updated to ${newRole === 'lady' ? 'self-tracking' : 'partner support'}.`,
+        duration: 3000
+      })
+    } catch (err) {
+      toast.error("Failed to switch role.", { id: toastId })
+    } finally {
+      setIsSwitchingRole(false)
+    }
+  }
+
   const confirmResetApp = () => {
     showConfirm({
       title: 'Reset Application',
@@ -1433,7 +1456,13 @@ export function SettingsView({
         <AccountPanel
           isGuest={!!isGuest}
           user={user}
-          updateUser={updateUser}
+          updateUser={async (patch) => {
+            if (patch.role !== undefined && patch.role !== user.role) {
+              await handleRoleChange(patch.role)
+            } else {
+              await updateUser(patch)
+            }
+          }}
           onLogin={onLogin}
           onLogout={onLogout}
         />
@@ -1473,6 +1502,25 @@ export function SettingsView({
         <h2 className="settings-panel-heading">{panelTitle}</h2>
         <div className="settings-panel-body">{panel}</div>
       </div>
+
+      {isSwitchingRole && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex flex-col items-center justify-center z-50 animate-in fade-in duration-300">
+          <div className="bg-[var(--mf-card)] border border-[var(--mf-border)] rounded-[2.5rem] p-8 max-w-sm text-center space-y-4 shadow-2xl">
+            <div className="size-16 rounded-full bg-[var(--mf-accent)]/10 flex items-center justify-center text-[var(--mf-accent)] mx-auto">
+              <m.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
+              >
+                <Sparkle size={32} weight="bold" />
+              </m.div>
+            </div>
+            <h3 className="text-lg font-semibold text-[var(--mf-text-strong)]">Reconfiguring App Role</h3>
+            <p className="text-xs text-[var(--mf-muted)] leading-relaxed">
+              Switching dashboard perspective and preparing your custom workspace...
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -150,3 +150,12 @@ export interface ISessionSummary {
   messageCount: number;
   title?: string;
 }
+
+export interface IPartnerChatMessage {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  text: string;
+  createdAt: number;
+}
+

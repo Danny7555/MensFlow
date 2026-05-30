@@ -14,7 +14,12 @@ router.post('/disconnect', partnerController.disconnectPartner);
 router.get('/ping', partnerController.getLatestPing);
 router.post('/ping', partnerController.sendPing);
 
+router.get('/chat', partnerController.getPartnerMessages);
+router.post('/chat', partnerController.sendPartnerMessage);
+router.get('/chat/suggest-replies', partnerController.suggestReplies);
+
 router.post('/action', partnerController.toggleAction);
+
 router.post('/request-access', partnerController.requestDetailedAccess);
 
 export default router;

@@ -3,9 +3,10 @@ import { m, AnimatePresence } from 'framer-motion'
 import type { Variants } from 'framer-motion'
 import { Check, Sparkle, PaperPlaneTilt, LinkSimple, Copy, ArrowRight, Users, ChatCircle } from '@phosphor-icons/react'
 import { toast } from 'sonner'
-import { SupportActionsLog } from '../components/dashboard/SupportActionsLog'
-import { EmotionTranslator } from '../components/dashboard/EmotionTranslator'
+import { PartnerChat } from '../components/dashboard/PartnerChat'
 import { useStore } from '../store/useStore'
+
+
 import { useAuth } from '../context/useAuth'
 import { partnerApi } from '../services/partnerService'
 import { cn } from '../lib/utils'
@@ -544,12 +545,13 @@ export function SyncView() {
               </div>
             </m.section>
 
-            {/* Right Column: Empathy Log & Emotion Translator */}
+            {/* Right Column: Partner Chat */}
             <m.section variants={itemVariants} className="flo-dashboard-right space-y-8">
-              {user?.role === 'partner' && <SupportActionsLog />}
-              {user?.role === 'partner' && <EmotionTranslator />}
+              {partnerStatus?.paired && <PartnerChat />}
               <SupportHistory />
             </m.section>
+
+
 
           </div>
         </div>
