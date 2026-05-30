@@ -62,9 +62,7 @@ export function PrimaryInsightCard({ label, currentDay, trend }: { label: string
     <m.div variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
       <div className="flex flex-col h-full">
         <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden">
-          <m.img 
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.6 }}
+          <img 
             src="/images/track.png" alt="Phase" className="w-full h-full object-cover object-center" 
           />
         </div>
@@ -88,9 +86,8 @@ export function PrimaryInsightCard({ label, currentDay, trend }: { label: string
             <span className="text-xs font-normal opacity-60">{metric}</span>
             <div className="flex gap-2">
               {['m1', 'm2', 'm3'].map(id => (
-                <m.div 
+                <div 
                    key={id} 
-                   whileHover={{ scale: 1.1 }}
                    className="size-6 rounded-full border border-[var(--mf-card)] bg-[var(--mf-accent-soft)]" 
                 />
               ))}
@@ -120,9 +117,7 @@ export function BodySignalsCard({ signals, currentDay, phaseLabel }: { signals: 
     <m.div variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
       <div className="flex flex-col h-full">
         <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden">
-          <m.img 
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.6 }}
+          <img 
             src="/images/calm.jpg" alt="Body Signals" className="w-full h-full object-cover" 
           />
         </div>
@@ -181,12 +176,11 @@ export function WellnessScoreCard() {
   return (
     <m.div variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
       <div className="flex flex-col h-full">
-        <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden">
-          <m.img 
-            whileHover={{ scale: 1.1 }}
-            transition={{ duration: 0.6 }}
-            src="/images/heart.png" alt="Wellness" className="w-full h-full object-cover object-center scale-[1.3] translate-y-3" 
-          />
+        <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden bg-gradient-to-tr from-teal-500/30 to-indigo-500/20 dark:from-teal-900/40 dark:to-indigo-900/30">
+          <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#2dd4bf_1px,transparent_1px)] [background-size:16px_16px]" />
+          <div className="w-full h-full flex items-center justify-center text-teal-600 dark:text-teal-400">
+            <Heartbeat size={40} weight="light" className="opacity-80" />
+          </div>
         </div>
         <div className="flo-card-top relative z-10">
           <div className="flo-card-icon flo-card-icon--pink">
@@ -237,8 +231,8 @@ export function PartnerTranslationCard({ label, onCopy }: {
     >
       <div className="flo-card-top relative z-10 mb-2">
         <div className="flex flex-col gap-0.5">
-          <p className="flo-card-title !text-[10px] !text-[var(--mf-accent)] font-semibold tracking-[0.15em]">Partner</p>
-          <h3 className="text-xl font-medium text-[var(--mf-text-strong)] capitalize">{label}</h3>
+          <p className="flo-card-title !text-[10px] !text-[var(--mf-accent)] font-normal tracking-[0.15em]">Partner</p>
+          <h3 className="text-xl font-normal text-[var(--mf-text-strong)] capitalize">{label}</h3>
         </div>
         <div className="flo-card-icon text-[var(--mf-accent)]">
           <Users size={24} weight="fill" />
@@ -247,7 +241,7 @@ export function PartnerTranslationCard({ label, onCopy }: {
       
       <div className="mt-2 relative z-10 flex flex-col flex-1">
         <div className="p-4 rounded-2xl bg-[var(--mf-accent-soft)]/30 border border-[var(--mf-accent-soft)] mb-4">
-          <p className="text-[0.95rem] text-[var(--mf-text-strong)] leading-relaxed font-medium">
+          <p className="text-[0.95rem] text-[var(--mf-text-strong)] leading-relaxed font-normal">
             {desc}
           </p>
         </div>
@@ -268,9 +262,7 @@ export function PartnerTranslationCard({ label, onCopy }: {
           <span className="text-[10px] font-normal text-muted-foreground uppercase tracking-wider block mb-2.5">Quick Supportive Gestures</span>
           <div className="flex flex-wrap gap-2">
             {gestures.map((g) => (
-              <m.button
-                whileHover={{ scale: 1.02, backgroundColor: "var(--mf-hover)" }}
-                whileTap={{ scale: 0.98 }}
+              <button
                 key={g.title}
                 type="button"
                 onClick={() => onCopy(g.text, g.title)}
@@ -278,7 +270,7 @@ export function PartnerTranslationCard({ label, onCopy }: {
               >
                 <g.Icon size={14} className={cn(g.color)} weight="bold" />
                 <span>{g.title}</span>
-              </m.button>
+              </button>
             ))}
           </div>
         </div>
@@ -308,9 +300,7 @@ export function QuickLogCard({ onViewAll }: { onViewAll: () => void }) {
             { label: 'Cravings', img: '/images/cravings.png' },
             { label: 'More', icon: <Plus size={20} weight="bold" /> },
           ].map(action => (
-            <m.button 
-              whileHover={{ y: -4 }}
-              whileTap={{ scale: 0.95 }}
+            <button 
               key={action.label} 
               className="flex flex-col items-center gap-2 transition-all group outline-none"
               onClick={onViewAll}
@@ -325,7 +315,7 @@ export function QuickLogCard({ onViewAll }: { onViewAll: () => void }) {
                 )}
               </div>
               <span className="text-[0.65rem] font-normal text-[var(--mf-muted)] group-hover:text-[var(--mf-text-strong)] transition-colors">{action.label}</span>
-            </m.button>
+            </button>
           ))}
         </div>
       </div>
@@ -341,7 +331,7 @@ function getPartnerTranslation(phaseLabel: string) {
         desc: "Their body is resetting. Energy may be low, and they might experience cramps or discomfort.",
         tips: ["Offer a warm heating pad", "Take over extra chores to allow them to rest", "Be patient with mood fluctuations"],
         gestures: [
-          { title: "Comfort note", text: "Hey! I'm thinking of you. Can I bring you some tea or chocolate to help you feel better? ❤️", Icon: Heart, color: "text-rose-500" },
+          { title: "Comfort note", text: "Hey! I'm thinking of you. Can I bring you some tea or chocolate to help you feel better?", Icon: Heart, color: "text-rose-500" },
           { title: "Offer heating pad", text: "Hey, let me know if you want me to heat up the pad or run an errand for you today! 🍵", Icon: Coffee, color: "text-amber-600" },
           { title: "Soup recipe", text: "I'm thinking of making a warm, cozy soup for dinner tonight. Rest up, I've got it handled!", Icon: CookingPot, color: "text-orange-500" }
         ]
@@ -362,7 +352,7 @@ function getPartnerTranslation(phaseLabel: string) {
         tips: ["Compliment them, they are feeling confident", "Great time for social events", "Communicate openly about intimacy"],
         gestures: [
           { title: "Date night dinner", text: "You are absolutely glowing lately. Let me take you out to a nice dinner tonight! 🕯️", Icon: Martini, color: "text-indigo-500" },
-          { title: "Sweet message", text: "Just wanted to say I love you and I'm so lucky to have you. Hope you have a wonderful day! ❤️", Icon: Heart, color: "text-rose-500" },
+          { title: "Sweet message", text: "Just wanted to say I love you and I'm so lucky to have you. Hope you have a wonderful day!", Icon: Heart, color: "text-rose-500" },
           { title: "Bring flowers", text: "I'm stopping by the store on my way home, bringing something nice for you!", Icon: Flower, color: "text-pink-500" }
         ]
       }
@@ -397,17 +387,14 @@ export function ConnectionChecklistCard() {
     toggleSupportAction(id)
     if (!wasCompleted) {
       toast.success(`Completed: "${label}"!`, {
-        icon: '❤️',
+        icon: <Heart size={16} weight="fill" className="text-rose-500" />,
         duration: 3005
       })
     }
   }
 
   return (
-    <m.div 
-      variants={itemVariants}
-      className="flo-card flo-card--prominent overflow-hidden h-full flex flex-col bg-gradient-to-br from-card to-teal-50/5 connection-checklist-card"
-    >
+    <div className="flo-card flo-card--prominent overflow-hidden h-full flex flex-col bg-[var(--mf-card)] connection-checklist-card">
       <div className="flo-card-top relative z-10">
         <p className="flo-card-title">Daily Connection</p>
         <div className="flo-card-icon text-teal-500">
@@ -448,9 +435,9 @@ export function ConnectionChecklistCard() {
 
         <div className="mt-auto pt-4 flex items-center justify-between text-[10px] text-muted-foreground border-t border-[var(--mf-border)]">
           <span>Relationship resonance</span>
-          <span className="text-teal-500 font-medium">{progressPercent}% Optimal</span>
+          <span className="text-teal-500 font-normal">{progressPercent}% Optimal</span>
         </div>
       </div>
-    </m.div>
+    </div>
   )
 }

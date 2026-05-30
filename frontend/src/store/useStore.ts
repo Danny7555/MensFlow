@@ -499,7 +499,7 @@ export const useStore = create<AppState>()((set, get) => ({
       const profile = await userApi.getProfile()
       get().hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
       await get().fetchPartnerStatus()
-      toast.success(`Successfully paired with ${result.partner.name}!`, { icon: '❤️' })
+      toast.success(`Successfully paired with ${result.partner.name}!`)
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Failed to pair with partner')
     } finally {
@@ -515,11 +515,10 @@ export const useStore = create<AppState>()((set, get) => ({
         const profile = await userApi.getProfile()
         get().hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
         await get().fetchPartnerStatus()
-        toast.success(`Partner found! Successfully paired with ${result.name}!`, { icon: '❤️' })
+        toast.success(`Partner found! Successfully paired with ${result.name}!`)
       } else {
         toast.success(`Invitation email sent to ${email}!`, {
           description: `Once they sign up, they can pair with you using your code: ${get().user?.partnerCode || ''}`,
-          icon: '✉️'
         })
       }
     } catch (err: unknown) {

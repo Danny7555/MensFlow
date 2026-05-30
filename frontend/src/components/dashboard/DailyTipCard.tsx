@@ -48,7 +48,7 @@ export function DailyTipCard({ phaseLabel, tipCompleted, setTipCompleted, varian
       variants={variants}
       className="flo-card flo-card--featured overflow-hidden flex flex-col group relative !p-5 md:!p-6 xl:!p-8"
     >
-      <div className="flex flex-col md:flex-row md:items-center justify-between w-full gap-4 md:gap-5 xl:gap-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between w-full gap-4 md:gap-5 xl:gap-8 ">
         <div className="-mx-5 -mt-5 md:mt-0 md:mx-0 h-[100px] md:h-[120px] xl:h-[140px] md:w-[100px] xl:w-[130px] relative shrink-0 overflow-hidden rounded-b-3xl md:rounded-2xl">
           <m.img 
             animate={{ 
@@ -78,7 +78,7 @@ export function DailyTipCard({ phaseLabel, tipCompleted, setTipCompleted, varian
           </div>
           
           <div className="relative z-10 ml-8 min-w-0">
-            <h3 className="text-xl md:text-xl xl:text-2xl font-normal text-[var(--mf-text-strong)] tracking-tight mb-2">{tip.title}</h3>
+            <h3 className="text-xl md:text-xl xl:text-2xl font-normal text-[var(--mf-text-strong)] tracking-tight mb-2 whitespace-nowrap">{tip.title}</h3>
             <p className="text-[12px] md:text-[13px] xl:text-[15px] leading-relaxed text-[var(--mf-text)] opacity-80 max-w-2xl font-normal">
               {tip.desc}
             </p>

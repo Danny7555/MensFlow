@@ -6,9 +6,10 @@ import {
   CaretDown, 
   CaretRight, 
   Info, 
-  
+  Heart,
 } from '@phosphor-icons/react'
 import { format, addDays, startOfDay, differenceInCalendarDays, parseISO } from 'date-fns'
+import { toast } from 'sonner'
 
 import { 
   DropdownMenu, 
@@ -174,25 +175,32 @@ export function CycleTrackerHero({
   return (
     <div className="cycle-tracker-hero relative">
       <div className="cycle-tracker-mode">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="mode-chip">
-              Mode: MensFlow {trackingMode}
-              <CaretDown size={14} weight="regular" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-56 bg-card border-border">
-            {modes.map((m) => (
-              <DropdownMenuItem 
-                key={m} 
-                onClick={() => dispatch({ type: 'SET_TRACKING_MODE', payload: m })}
-                className="text-sm font-regular focus:bg-[var(--mf-accent-soft)] focus:text-[var(--mf-accent)] cursor-pointer"
-              >
-                {m}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {isPartner ? (
+          <div className="mode-chip cursor-default bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 font-normal text-xs tracking-wider flex items-center gap-1.5">
+            <Heart size={12} weight="fill" className="text-emerald-500 animate-pulse" />
+            <span>Partner Empathy Mode</span>
+          </div>
+        ) : (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="mode-chip">
+                Mode: MensFlow {trackingMode}
+                <CaretDown size={14} weight="regular" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56 bg-card border-border">
+              {modes.map((m) => (
+                <DropdownMenuItem 
+                  key={m} 
+                  onClick={() => dispatch({ type: 'SET_TRACKING_MODE', payload: m })}
+                  className="text-sm font-regular focus:bg-[var(--mf-accent-soft)] focus:text-[var(--mf-accent)] cursor-pointer"
+                >
+                  {m}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
       <div className="cycle-tracker-viz">
@@ -234,7 +242,7 @@ export function CycleTrackerHero({
             <p className="viz-today">{format(activeDate, 'EEEE, d MMM')}</p>
             <h2 className="viz-title" style={{ color: activeInfo.color }}>
               {activeDay === currentDay 
-                ? `Next period: ${format(addDays(today, cycleLength - currentDay + 1), 'd MMM')}`
+                ? `${isPartner ? 'Her next period' : 'Next period'}: ${format(addDays(today, cycleLength - currentDay + 1), 'd MMM')}`
                 : activeInfo.phase
               }
             </h2>
@@ -249,7 +257,10 @@ export function CycleTrackerHero({
                       </button>
                     </TooltipTrigger>
                     <TooltipContent side="bottom" className="max-w-[200px] text-xs">
-                      This represents your current phase in the menstrual cycle based on your logs.
+                      {isPartner
+                        ? "This represents your partner's current phase in her cycle based on her details."
+                        : "This represents your current phase in the menstrual cycle based on your logs."
+                      }
                     </TooltipContent>
                   </Tooltip>
                 )}
@@ -260,7 +271,9 @@ export function CycleTrackerHero({
 
           <div className="viz-day-badge">
              <div className="badge-inner">
-                <span className="badge-label">{activeDay === currentDay ? 'Today' : 'Day'}</span>
+                <span className="badge-label">
+                  {activeDay === currentDay ? (isPartner ? 'Her Today' : 'Today') : 'Day'}
+                </span>
                 <span className="badge-value">{activeDay}</span>
                 <span className="text-[10px] font-normal opacity-40 mt-0.5">{format(activeDate, 'd MMM').toUpperCase()}</span>
              </div>
@@ -269,24 +282,54 @@ export function CycleTrackerHero({
       </div>
 
       <div className="cycle-tracker-mood-cta">
-        <div 
-          role="button"
-          tabIndex={0}
-          onClick={() => dispatch({ type: 'SET_LOG_MODAL_OPEN', payload: true })}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') dispatch({ type: 'SET_LOG_MODAL_OPEN', payload: true }) }}
-          className="mood-cta-card cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mf-accent)] rounded-2xl"
-        >
-           <img src="/images/exp.jpg" alt="" className="mood-cta-bg" />
-           <div className="mood-cta-overlay" />
-           <span className="mood-text pl-4">
-             {isPartner ? `View symptoms for Day ${activeDay}` : `Log symptoms for Day ${activeDay}`}
-           </span>
-           <CaretRight size={20} className="caret-right group-hover:translate-x-1 transition-transform" />
-        </div>
+        {isPartner ? (
+          <div 
+            role="button"
+            tabIndex={0}
+            onClick={() => {
+              const el = document.querySelector('.partner-translation-card')
+              if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+              } else {
+                toast.info("Empathy & supportive tips are available on your dashboard playbook!")
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                const el = document.querySelector('.partner-translation-card')
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+              }
+            }}
+            className="mood-cta-card cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mf-accent)] rounded-2xl"
+          >
+             <img src="/images/calm.jpg" alt="" className="mood-cta-bg opacity-80" />
+             <div className="mood-cta-overlay bg-gradient-to-r from-teal-900/60 to-indigo-900/50" />
+             <span className="mood-text pl-4 flex items-center gap-2">
+               <Heart size={16} weight="fill" className="text-teal-400 animate-pulse shrink-0" />
+               <span>View Empathy Decoder & Playbook</span>
+             </span>
+             <CaretRight size={20} className="caret-right group-hover:translate-x-1 transition-transform text-teal-400" />
+          </div>
+        ) : (
+          <div 
+            role="button"
+            tabIndex={0}
+            onClick={() => dispatch({ type: 'SET_LOG_MODAL_OPEN', payload: true })}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') dispatch({ type: 'SET_LOG_MODAL_OPEN', payload: true }) }}
+            className="mood-cta-card cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mf-accent)] rounded-2xl"
+          >
+             <img src="/images/exp.jpg" alt="" className="mood-cta-bg" />
+             <div className="mood-cta-overlay" />
+             <span className="mood-text pl-4">
+               Log symptoms for Day {activeDay}
+             </span>
+             <CaretRight size={20} className="caret-right group-hover:translate-x-1 transition-transform" />
+          </div>
+        )}
 
         {showCheckIn && (
           <div className="mt-8">
-            {/* Daily Tip has been moved to the main Dashboard grid for better visibility */}
+
           </div>
         )}
       </div>

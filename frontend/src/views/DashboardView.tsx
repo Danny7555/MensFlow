@@ -2,7 +2,7 @@ import { use, useReducer, useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Joyride, STATUS, type EventData, type TooltipRenderProps } from 'react-joyride'
 import { m } from 'framer-motion'
-import { Plus, LinkSimple, Users, ArrowRight, Sparkle } from '@phosphor-icons/react'
+import { Plus, LinkSimple, Users, ArrowRight, Sparkle, Check, Cookie, CookingPot, Heart, Moon, HandWaving, LockSimple, PersonIcon } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { useStore } from '../store/useStore'
 import { useAuth } from '../context/useAuth'
@@ -10,7 +10,7 @@ import { ChatSessionContext } from '../context/chat-session-context'
 import { cn } from '../lib/utils'
 import { partnerApi } from '../services/partnerService'
 import { useDailyGuidance } from '../services/chatService'
-import { computeCycleDay, getPhaseFromDay, getGreeting, type CyclePhase } from '../lib/cycleUtils'
+import { computeCycleDay, getPhaseFromDay, getGreeting } from '../lib/cycleUtils'
 import { CycleTrackerHero } from '../components/tracker/CycleTrackerHero'
 import { LogSymptomsModal } from '../components/tracker/LogSymptomsModal'
 import { SnapshotModal } from '../components/dashboard/SnapshotModal'
@@ -31,29 +31,98 @@ import { DailyTipCard } from '../components/dashboard/DailyTipCard'
 import { HormoneInsightCard } from '../components/dashboard/HormoneInsightCard'
 import { SymptomLogger } from '../components/dashboard/DailyCheckIn'
 
-function AmbientBackground({ phase }: { phase: CyclePhase }) {
+const getTimestamp = () => new Date().getTime()
+
+interface QuickEmpathyBoostCardProps {
+  ladyName: string
+  isAuthenticated: boolean
+}
+
+function QuickEmpathyBoostCard({ ladyName, isAuthenticated }: QuickEmpathyBoostCardProps) {
+  const [activePing, setActivePing] = useState<string | null>(null)
+  
+  const options = [
+    { id: 'chocolate', label: 'Bring Chocolate', Icon: Cookie, color: "text-amber-600", message: "I'm on my way home with some sweet treats for you! 🍫" },
+    { id: 'dinner', label: 'Cook Dinner', Icon: CookingPot, color: "text-orange-500", message: "Don't worry about dinner tonight, I've got it covered! 🍳" },
+    { id: 'hug', label: 'Warm Hug', Icon: Heart, color: "text-rose-500", message: "Just wanted to send you a warm hug and remind you I'm here." },
+    { id: 'space', label: 'Give Space', Icon: Moon, color: "text-indigo-400", message: "I'll make sure you have a quiet, peaceful space to rest today. 🤫" },
+  ]
+
+  const handleSendPing = async (id: string, label: string, message: string) => {
+    setActivePing(id)
+    try {
+      if (isAuthenticated) {
+        await partnerApi.sendPing(id, label, message)
+      }
+      
+      const pingData = {
+        id,
+        label,
+        message,
+        timestamp: getTimestamp()
+      }
+      localStorage.setItem('mensflow_partner_ping:v1', JSON.stringify(pingData))
+      window.dispatchEvent(new Event('storage'))
+      
+      toast.success(`Sent empathy boost to ${ladyName}!`, {
+        description: `"${label}" nudge dispatched successfully.`
+      })
+    } catch (err) {
+      console.error(err)
+      toast.error("Failed to send empathy nudge")
+    } finally {
+      setTimeout(() => setActivePing(null), 1000)
+    }
+  }
+
   return (
-    <>
-      <div 
-        className={cn(
-          "absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full blur-[150px] opacity-60 pointer-events-none transition-all duration-1000 ease-in-out bg-gradient-to-br z-0",
-          phase === 'menstrual' && "from-red-500/20 to-transparent",
-          phase === 'follicular' && "from-teal-500/20 to-transparent",
-          phase === 'fertile' && "from-sky-500/20 to-transparent",
-          phase === 'luteal' && "from-amber-500/20 to-transparent"
-        )} 
-      />
-      <div 
-        className={cn(
-          "absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full blur-[150px] opacity-40 pointer-events-none transition-all duration-1000 ease-in-out bg-gradient-to-br z-0",
-          phase === 'menstrual' && "from-rose-500/10 to-transparent",
-          phase === 'follicular' && "from-emerald-500/10 to-transparent",
-          phase === 'fertile' && "from-cyan-500/10 to-transparent",
-          phase === 'luteal' && "from-yellow-500/10 to-transparent"
-        )} 
-      />
-    </>
+    <div className="flo-card p-6 border-[var(--mf-border-strong)] bg-white dark:bg-[var(--mf-card)] text-left">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <span className="text-[9px] font-normal text-[var(--mf-accent)] uppercase tracking-[0.2em] block mb-0.5">Quick Actions</span>
+          <h3 className="text-base font-normal text-[var(--mf-text-strong)] flex items-center gap-1.5">
+            Send Empathy Boost <Heart size={18} className="text-rose-500" weight="fill" />
+          </h3>
+        </div>
+      </div>
+      <p className="text-[11px] text-[var(--mf-muted)] mb-5">
+        Tap to send an instant real-time notification to her phone:
+      </p>
+      
+      <div className="grid grid-cols-2 gap-3">
+        {options.map((opt) => {
+          const isPending = activePing === opt.id
+          return (
+            <button
+              key={opt.id}
+              onClick={() => handleSendPing(opt.id, opt.label, opt.message)}
+              disabled={activePing !== null}
+              className="p-3 rounded-2xl bg-[var(--mf-hover)] hover:bg-[var(--mf-border)] text-left border border-[var(--mf-border)] flex flex-col justify-between h-[84px] transition-all cursor-pointer relative overflow-hidden group active-squish"
+            >
+              <div className="flex items-center justify-between w-full">
+                <opt.Icon size={24} className={opt.color} weight="bold" />
+                {isPending && (
+                  <m.div 
+                    animate={{ scale: [1, 1.2, 1] }} 
+                    className="size-4 rounded-full bg-[var(--mf-accent)] flex items-center justify-center text-white"
+                  >
+                    <Check size={8} weight="bold" />
+                  </m.div>
+                )}
+              </div>
+              <span className="text-xs font-normal text-[var(--mf-text-strong)] group-hover:text-[var(--mf-accent)] transition-colors">
+                {opt.label}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+    </div>
   )
+}
+
+function AmbientBackground(_props: { phase: any; isPartner?: boolean }) {
+  return null;
 }
 
 type DashboardState = {
@@ -291,6 +360,7 @@ export function DashboardView() {
 
   useEffect(() => {
     let active = true
+    const mountTime = Date.now()
 
     const handlePingEvent = (e?: StorageEvent) => {
       if (e && e.key && e.key !== 'mensflow_partner_ping:v1') return
@@ -299,14 +369,17 @@ export function DashboardView() {
         if (pingStr) {
           const ping = JSON.parse(pingStr)
           if (ping && ping.timestamp) {
-            const lastProcessed = sessionStorage.getItem('mensflow_last_ping_processed:v1')
+            const lastProcessed = localStorage.getItem('mensflow_last_ping_processed:v1')
             if (lastProcessed !== String(ping.timestamp)) {
-              sessionStorage.setItem('mensflow_last_ping_processed:v1', String(ping.timestamp))
-              toast.info(user?.role === 'lady' ? "Support Update received!" : "Partner Update received!", {
-                icon: "👋",
-                description: user?.role === 'lady' ? `Partner says: "${ping.message}"` : `She is: "${ping.label}" (${ping.message})`,
-                duration: 8000,
-              })
+              localStorage.setItem('mensflow_last_ping_processed:v1', String(ping.timestamp))
+              // Only toast if the message is fresh (sent after mount or within the last 15 seconds)
+              if (ping.timestamp > mountTime - 15000) {
+                toast.info(user?.role === 'lady' ? "Support Update received!" : "Partner Update received!", {
+                  icon: <HandWaving size={16} weight="fill" className="text-amber-500" />,
+                  description: user?.role === 'lady' ? `Partner says: "${ping.message}"` : `She is: "${ping.label}" (${ping.message})`,
+                  duration: 8000,
+                })
+              }
             }
           }
         }
@@ -328,14 +401,17 @@ export function DashboardView() {
           .then((ping) => {
             if (!active) return
             if (ping) {
-              const lastProcessed = sessionStorage.getItem('mensflow_last_ping_processed:v1')
+              const lastProcessed = localStorage.getItem('mensflow_last_ping_processed:v1')
               if (lastProcessed !== String(ping.timestamp)) {
-                sessionStorage.setItem('mensflow_last_ping_processed:v1', String(ping.timestamp))
-                toast.info(user?.role === 'lady' ? "Support Update received!" : "Partner Update received!", {
-                  icon: "👋",
-                  description: user?.role === 'lady' ? `Partner says: "${ping.message}"` : `She is: "${ping.label}" (${ping.message})`,
-                  duration: 8000,
-                })
+                localStorage.setItem('mensflow_last_ping_processed:v1', String(ping.timestamp))
+                // Only toast if the message is fresh (sent after mount or within the last 15 seconds)
+                if (ping.timestamp > mountTime - 15000) {
+                  toast.info(user?.role === 'lady' ? "Support Update received!" : "Partner Update received!", {
+                    icon: <HandWaving size={16} weight="fill" className="text-amber-500" />,
+                    description: user?.role === 'lady' ? `Partner says: "${ping.message}"` : `She is: "${ping.label}" (${ping.message})`,
+                    duration: 8000,
+                  })
+                }
               }
             }
           })
@@ -424,7 +500,7 @@ export function DashboardView() {
   if (user?.role === 'partner' && (!partnerStatus || !partnerStatus.paired)) {
     return (
       <div className="dashboard-flo-theme relative overflow-hidden min-h-screen animate-in fade-in duration-700">
-        <AmbientBackground phase="follicular" />
+        <AmbientBackground phase="follicular" isPartner={true} />
         {!isAuthenticated && (
           <div className="bg-gradient-to-r from-[var(--mf-accent)] to-[#f472b6] text-white py-2.5 px-4 text-center text-xs font-normal flex items-center justify-center gap-2 relative z-50 animate-in slide-in-from-top duration-500">
             <span>You are previewing MensFlow as a guest. Your data is stored locally.</span>
@@ -454,25 +530,18 @@ export function DashboardView() {
             <m.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="p-8 md:p-10 rounded-[2.5rem] bg-gradient-to-br from-pink-500/10 via-[var(--mf-composer-bg)] to-[var(--mf-composer-bg)] border border-[var(--mf-border)] backdrop-blur-lg relative overflow-hidden shadow-xl"
+              className="p-8 md:p-10 rounded-[2.5rem] bg-[var(--mf-card)] border border-[var(--mf-border)] relative overflow-hidden"
             >
-              <div className="absolute top-0 right-0 size-48 bg-pink-500/5 rounded-full blur-3xl pointer-events-none" />
-              <div className="absolute -bottom-10 left-10 size-48 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
-
               <div className="flex flex-col items-center text-center gap-y-6">
-                <m.div
-                  animate={{ y: [0, -8, 0] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                  className="size-20 rounded-full bg-gradient-to-br from-pink-400 to-rose-600 flex items-center justify-center shadow-lg shadow-pink-500/10 relative"
-                >
-                  <Users size={36} weight="duotone" className="text-white" />
-                  <div className="absolute -right-1 -bottom-1 size-6 rounded-full bg-purple-500 flex items-center justify-center border-2 border-white dark:border-gray-900">
+                <div className="size-20 rounded-full bg-[var(--mf-accent)]/10 flex items-center justify-center text-[var(--mf-accent)] relative">
+                  <Users size={36} className="text-[var(--mf-accent)]" />
+                  <div className="absolute -right-1 -bottom-1 size-6 rounded-full bg-[var(--mf-accent)] flex items-center justify-center border-2 border-white dark:border-gray-900">
                     <LinkSimple size={12} weight="bold" className="text-white" />
                   </div>
-                </m.div>
+                </div>
 
                 <div className="space-y-2">
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] bg-pink-500/10 text-pink-500 px-3 py-1 rounded-full border border-pink-500/20 inline-block">
+                  <span className="text-[10px] font-normal uppercase tracking-[0.2em] border border-[var(--mf-border)] text-[var(--mf-accent)] px-3 py-1 rounded-full inline-block">
                     Partner Program
                   </span>
                   <h1 className="text-2xl md:text-3xl font-normal tracking-tight text-[var(--mf-text-strong)]">
@@ -485,7 +554,7 @@ export function DashboardView() {
 
                 <div className="w-full max-w-sm space-y-4 pt-4">
                   <div className="space-y-2 text-left">
-                    <label htmlFor="partner-code" className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block">
+                    <label htmlFor="partner-code" className="text-[10px] font-normal uppercase tracking-wider text-muted-foreground block">
                       Enter Partner's Code
                     </label>
                     <div className="flex gap-3">
@@ -495,16 +564,14 @@ export function DashboardView() {
                         placeholder="e.g. XY82HA"
                         value={dashboardPartnerCodeInput}
                         onChange={(e) => setDashboardPartnerCodeInput(e.target.value.toUpperCase())}
-                        className="flex-grow bg-white dark:bg-white/5 border border-[var(--mf-border)] rounded-2xl px-4 py-3 text-base font-mono tracking-widest text-center font-bold focus:outline-none focus:ring-2 focus:ring-[var(--mf-accent)]/50 uppercase text-[var(--mf-text-strong)] w-full"
+                        className="flex-grow bg-white dark:bg-white/5 border border-[var(--mf-border)] rounded-2xl px-4 py-3 text-base font-mono tracking-widest text-center font-normal focus:outline-none focus:ring-2 focus:ring-[var(--mf-accent)]/50 uppercase text-[var(--mf-text-strong)] w-full"
                         maxLength={6}
                       />
-                      <m.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                      <button
                         type="button"
                         disabled={isDashboardPairing || !dashboardPartnerCodeInput.trim()}
                         onClick={handleDashboardPair}
-                        className="bg-[var(--mf-accent)] text-white hover:opacity-95 px-6 rounded-2xl text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md shadow-[var(--mf-accent)]/15 min-w-[100px] cursor-pointer"
+                        className="bg-[var(--mf-accent)] text-white hover:opacity-95 px-6 rounded-2xl text-xs font-normal flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed transition-all min-w-[100px] cursor-pointer"
                       >
                         {isDashboardPairing ? (
                           <m.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
@@ -516,7 +583,7 @@ export function DashboardView() {
                             <ArrowRight size={14} weight="bold" />
                           </>
                         )}
-                      </m.button>
+                      </button>
                     </div>
                   </div>
 
@@ -528,8 +595,8 @@ export function DashboardView() {
 
                   <div className="p-4 rounded-2xl bg-white/40 dark:bg-white/5 border border-[var(--mf-border)] flex items-center justify-between gap-4">
                     <div className="text-left">
-                      <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground block">Your Code</span>
-                      <span className="text-sm font-mono font-bold tracking-wider text-[var(--mf-text-strong)]">
+                      <span className="text-[9px] font-normal uppercase tracking-wider text-muted-foreground block">Your Code</span>
+                      <span className="text-sm font-mono font-normal tracking-wider text-[var(--mf-text-strong)]">
                         {user?.partnerCode ?? '------'}
                       </span>
                     </div>
@@ -543,15 +610,16 @@ export function DashboardView() {
                           })
                         }
                       }}
-                      className="text-[11px] font-semibold bg-white dark:bg-white/10 hover:bg-gray-50 dark:hover:bg-white/15 text-[var(--mf-text-strong)] border border-[var(--mf-border)] px-3 py-1.5 rounded-xl transition-all active:scale-95 cursor-pointer shrink-0"
+                      className="text-[11px] font-normal bg-white dark:bg-white/10 hover:bg-gray-50 dark:hover:bg-white/15 text-[var(--mf-text-strong)] border border-[var(--mf-border)] px-3 py-1.5 rounded-xl transition-all cursor-pointer shrink-0"
                     >
                       Copy
                     </button>
                   </div>
                 </div>
 
-                <p className="text-[10px] text-muted-foreground pt-4">
-                  🔒 Connection is private. Your partner will only see shared empathy updates and checklists.
+                <p className="text-[10px] text-muted-foreground pt-4 flex items-center justify-center gap-1.5">
+                  <LockSimple size={12} className="text-muted-foreground shrink-0" />
+                  Connection is private. Your partner will only see shared empathy updates and checklists.
                 </p>
               </div>
             </m.div>
@@ -587,9 +655,12 @@ export function DashboardView() {
     }
   }
 
+  const ladyName = partnerStatus?.partner?.name || 'your partner'
+  const isPartner = user?.role === 'partner'
+
   return (
     <div className="dashboard-flo-theme relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <AmbientBackground phase={phase} />
+      <AmbientBackground phase={phase} isPartner={isPartner} />
       {!isAuthenticated && (
         <div className="bg-gradient-to-r from-[var(--mf-accent)] to-[#f472b6] text-white py-2.5 px-4 text-center text-xs font-normal flex items-center justify-center gap-2 relative z-50 animate-in slide-in-from-top duration-500">
           <span>You are previewing MensFlow as a guest. Your data is stored locally.</span>
@@ -622,28 +693,21 @@ export function DashboardView() {
 
           {/* Pairing Alert Banner */}
           {isAuthenticated && (!partnerStatus || !partnerStatus.paired) && (
-            <m.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-transparent border border-[var(--mf-border)] backdrop-blur-md relative overflow-hidden"
-            >
-              {/* Decorative glows */}
-              <div className="absolute top-0 right-0 size-32 bg-pink-500/5 rounded-full blur-2xl pointer-events-none" />
-
+            <div className="mb-6 p-4 rounded-2xl bg-[var(--mf-card)] border border-[var(--mf-border)] relative overflow-hidden">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
                 <div className="flex items-center gap-3">
-                  <div className="size-8 rounded-xl bg-pink-500/10 text-pink-500 flex items-center justify-center shrink-0">
+                  <div className="size-8 rounded-xl bg-[var(--mf-border)] text-[var(--mf-text-strong)] flex items-center justify-center shrink-0">
                     <LinkSimple size={16} weight="bold" />
                   </div>
                   <div className="space-y-0.5">
-                    <h2 className="text-xs font-semibold text-[var(--mf-text-strong)] flex items-center gap-1.5 text-left">
+                    <h2 className="text-xs font-normal text-[var(--mf-text-strong)] flex items-center gap-1.5 text-left">
                       Sync with your partner
-                      <span className="text-[8px] font-semibold uppercase tracking-wider bg-pink-500/10 text-pink-500 px-1.5 py-0.5 rounded">
+                      <span className="text-[8px] font-normal uppercase tracking-wider bg-[var(--mf-border)] text-[var(--mf-text-strong)] px-1.5 py-0.5 rounded">
                         Unpaired
                       </span>
                     </h2>
                     <p className="text-[11px] text-[var(--mf-muted)] text-left">
-                      {user?.role === 'partner'
+                      {isPartner
                         ? 'Connect to view cycle updates, wellness logs, and care options in real-time.'
                         : 'Connect to share your cycle phase, symptoms, and receive supportive tips.'}
                     </p>
@@ -653,59 +717,117 @@ export function DashboardView() {
                 <button
                   type="button"
                   onClick={() => navigate('/sync')}
-                  className="text-xs font-semibold bg-[var(--mf-accent)] text-white hover:opacity-90 px-4 py-2 rounded-xl transition-all active:scale-95 shrink-0 w-full sm:w-auto text-center cursor-pointer shadow-sm shadow-[var(--mf-accent)]/10"
+                  className="text-xs font-normal bg-[var(--mf-accent)] text-white px-4 py-2 rounded-xl transition-all active:scale-95 shrink-0 w-full sm:w-auto text-center cursor-pointer"
                 >
                   Pair Now
                 </button>
               </div>
-            </m.div>
+            </div>
           )}
 
-          {showRestrictedView ? (
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 md:gap-8 w-full min-w-0">
-              {/* Left Column: Support Mode Intro & Checklist */}
-              <div className="flex flex-col gap-6 md:gap-8 min-w-0">
-                <m.div
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="p-8 rounded-[2.5rem] bg-gradient-to-br from-[var(--mf-accent)]/10 via-[var(--mf-card)] to-[var(--mf-card)] border border-[var(--mf-border)] backdrop-blur-md relative overflow-hidden"
-                >
-                  <div className="absolute top-0 right-0 size-32 bg-[var(--mf-accent)]/5 rounded-full blur-2xl pointer-events-none" />
-                  
-                  <div className="flex flex-col items-start gap-4">
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.15em] bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] px-3 py-1 rounded-full border border-[var(--mf-accent)]/20">
-                      Empathy Mode Active 💖
-                    </span>
-                    <h2 className="text-2xl font-normal tracking-tight text-[var(--mf-text-strong)] text-left">
-                      Currently in the {phase.charAt(0).toUpperCase() + phase.slice(1)} Phase
-                    </h2>
-                    <p className="text-xs text-[var(--mf-muted)] leading-relaxed text-left max-w-xl">
-                      Detailed cycle metrics, logs, water intake, and weight trackings are kept private. Your partner has enabled Empathy Mode so you can focus entirely on supportive actions, gestures, and communication tips to help care for her today.
-                    </p>
-                  </div>
-                </m.div>
-
-                <div className="min-w-0">
-                  <ConnectionChecklistCard />
+          {/* Top Playbook Header Banner for Partner */}
+          {isPartner && (
+            <div className="mb-8 p-6 md:p-8 rounded-[2.5rem] bg-[var(--mf-card)] border border-[var(--mf-border)] relative overflow-hidden text-left">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative z-10">
+                <div className="space-y-2 text-left">
+                  <h2 className="text-2xl font-normal tracking-tight text-[var(--mf-text-strong)]">
+                    Partner Empathy Support Hub
+                  </h2>
+                  <p className="text-xs text-[var(--mf-muted)] max-w-xl leading-relaxed">
+                    Welcome to your supportive workspace for {ladyName}. Today is her cycle Day {currentDay} in the {phase.charAt(0).toUpperCase() + phase.slice(1)} Phase. Use the checklist playbooks and translators below to coordinate active support.
+                  </p>
+                </div>
+                <div className="shrink-0 flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/40 dark:bg-white/5 border border-[var(--mf-border)] text-xs font-normal text-[var(--mf-text)] ">
+                  <PersonIcon size={16} className="text-teal-500" />
+                  <span>Connected to {ladyName}</span>
                 </div>
               </div>
+            </div>
+          )}
 
-              {/* Right Column: Empathy Translator */}
+          {isPartner ? (
+            /* PARTNER PLAYBOOK LAYOUT */
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 md:gap-8 w-full min-w-0">
+              {/* Left Column: Primary Empathy & Playbook Tools */}
               <div className="flex flex-col gap-6 md:gap-8 min-w-0">
-                <section aria-label="Partner support" className="min-w-0">
+                <div className="w-full min-w-0">
+                  <DailyTipCard
+                    phaseLabel={phase}
+                    tipCompleted={tipCompleted}
+                    setTipCompleted={setTipCompleted}
+                    aiTip={aiTip}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 min-w-0">
+                  <ConnectionChecklistCard />
                   <PartnerTranslationCard 
                     label={phase}
                     onCopy={handleCopyGesture}
                   />
-                </section>
+                </div>
+
+                {!showRestrictedView && (
+                  <div className="flex flex-col gap-6 md:gap-8 min-w-0 mt-2">
+                    <div className="flex items-center gap-2 border-b border-[var(--mf-border)] pb-2">
+                      <Sparkle size={18} className="text-teal-500" weight="fill" />
+                      <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--mf-text-strong)]">Her Cycle Insights</h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 min-w-0">
+                      <PrimaryInsightCard 
+                        label={phase}
+                        currentDay={currentDay}
+                        trend={data.hormoneTrend}
+                      />
+                      <BodySignalsCard 
+                        signals={data.bodySignals}
+                        currentDay={currentDay}
+                        phaseLabel={phase}
+                      />
+                    </div>
+                    <div className="w-full min-w-0">
+                      <HormoneInsightCard phaseLabel={phase} aiInsightText={aiInsightText} />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Right Column: Her Passive Status Reference & Real-Time Interaction */}
+              <div className="flex flex-col gap-6 md:gap-8 min-w-0">
+                {!showRestrictedView && (
+                  <section className="flo-hero-panel min-w-0" aria-label="Cycle overview">
+                    <CycleTrackerHero showCheckIn={false} data={data} />
+                  </section>
+                )}
+
+                <div className="min-w-0">
+                  <QuickEmpathyBoostCard ladyName={ladyName} isAuthenticated={isAuthenticated} />
+                </div>
+
+                <div className="min-w-0">
+                  <WellnessScoreCard />
+                </div>
+
+                {showRestrictedView && (
+                  <div className="p-6 rounded-[2rem] bg-gradient-to-br from-teal-500/5 via-[var(--mf-composer-bg)] to-[var(--mf-composer-bg)] border border-[var(--mf-border)] text-center space-y-4">
+                    <div className="size-10 rounded-xl bg-teal-500/10 flex items-center justify-center mx-auto text-teal-500">
+                      <Users size={20} weight="bold" />
+                    </div>
+                    <h3 className="text-xs font-semibold text-[var(--mf-text-strong)]">Detailed Metrics Kept Private</h3>
+                    <p className="text-[11px] text-[var(--mf-muted)] leading-relaxed max-w-xs mx-auto">
+                      {ladyName} has restricted sharing. The cycle status, hormone wave trends, and body signals are hidden.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           ) : (
+            /* LADY TRACKING LAYOUT */
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 md:gap-8 w-full min-w-0">
               {/* Left Main Content */}
               <div className="flex flex-col gap-6 md:gap-8 min-w-0">
                 <section className="flo-hero-panel min-w-0" aria-label="Cycle overview">
-                  <CycleTrackerHero showCheckIn={user?.role !== 'partner'} data={data} />
+                  <CycleTrackerHero showCheckIn={true} data={data} />
                 </section>
 
                 <div className="flo-today-plan flex flex-col gap-6 md:gap-8 w-full min-w-0">
@@ -731,39 +853,25 @@ export function DashboardView() {
                     />
                   </div>
 
-                  <div className={cn("grid grid-cols-1 gap-6 md:gap-8 min-w-0", user?.role === 'partner' ? "md:grid-cols-2" : "md:grid-cols-1")}>
+                  <div className="grid grid-cols-1 gap-6 md:gap-8 min-w-0 md:grid-cols-1">
                     <HormoneInsightCard phaseLabel={phase} aiInsightText={aiInsightText} />
-                    {user?.role === 'partner' && <ConnectionChecklistCard />}
                   </div>
                 </div>
               </div>
 
               {/* Right Sidebar Stack */}
               <div className="flex flex-col gap-6 md:gap-8 min-w-0">
-                {user?.role === 'partner' && (
-                  <section aria-label="Partner support" className="min-w-0">
-                    <PartnerTranslationCard 
-                      label={phase}
-                      onCopy={handleCopyGesture}
-                    />
-                  </section>
-                )}
-
                 <div className="min-w-0">
                   <WellnessScoreCard />
                 </div>
 
-                {user?.role !== 'partner' && (
-                  <>
-                    <div className="min-w-0">
-                      <QuickLogCard onViewAll={() => dispatch({ type: 'TOGGLE_LOG', payload: true })} />
-                    </div>
+                <div className="min-w-0">
+                  <QuickLogCard onViewAll={() => dispatch({ type: 'TOGGLE_LOG', payload: true })} />
+                </div>
 
-                    <div className="flex-1 min-w-0">
-                      <SymptomLogger />
-                    </div>
-                  </>
-                )}
+                <div className="flex-1 min-w-0">
+                  <SymptomLogger />
+                </div>
               </div>
             </div>
           )}
@@ -772,15 +880,13 @@ export function DashboardView() {
 
       {/* Persistent Interaction Trigger */}
       {user?.role !== 'partner' && (
-        <m.button 
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+        <button 
           className="flo-fab"
           onClick={() => dispatch({ type: 'TOGGLE_LOG', payload: true })}
         >
           <div className="flo-fab-ripple" />
           <Plus size={28} weight="bold" />
-        </m.button>
+        </button>
       )}
 
        <SnapshotModal 

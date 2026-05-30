@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Check } from '@phosphor-icons/react'
+import { Check, Heart } from '@phosphor-icons/react'
 import { useStore } from '../../store/useStore'
 import { toast } from 'sonner'
 
@@ -82,7 +82,7 @@ export function SupportActionsLog() {
     
     if (!wasCompleted) {
       toast.success(`Completed: "${label}"!`, {
-        icon: '❤️',
+        icon: <Heart size={16} weight="fill" className="text-rose-500" />,
         duration: 3000
       })
     }
@@ -94,15 +94,15 @@ export function SupportActionsLog() {
       <div className="relative z-10 flex items-start justify-between gap-4 mb-5">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className={`w-fit text-[9px] font-medium uppercase tracking-[0.12em] ${theme.accentBg} ${theme.accentColor} px-3 py-1 rounded-full border ${theme.borderColor}`}>
+            <span className={`w-fit text-[9px] font-normal uppercase tracking-[0.12em] ${theme.accentBg} ${theme.accentColor} px-3 py-1 rounded-full border ${theme.borderColor}`}>
               {theme.badgeText}
             </span>
-            <div className={`flex items-center gap-1.5 text-[10px] ${theme.accentColor} font-medium`}>
+            <div className={`flex items-center gap-1.5 text-[10px] ${theme.accentColor} font-normal`}>
               <img src="/images/star.png" alt="Star" className="size-3.5 object-contain" />
               <span>Empathy Tracker</span>
             </div>
           </div>
-          <h3 className="text-lg font-medium text-[var(--mf-text-strong)] tracking-tight">
+          <h3 className="text-lg font-normal text-[var(--mf-text-strong)] tracking-tight">
             Daily Support Checklist
           </h3>
           <p className="text-[11px] text-[var(--mf-muted)] mt-1.5 max-w-md leading-relaxed">
@@ -114,9 +114,9 @@ export function SupportActionsLog() {
         <div className="flex flex-col items-center justify-center bg-[var(--mf-card)] border border-[var(--mf-border)] rounded-2xl px-3.5 py-2.5 !shadow-none transition-all duration-300">
           <div className="flex items-center gap-1.5 text-amber-500">
             <img src="/images/star.png" alt="Streak" className={`size-5 object-contain ${supportStreak > 0 ? "animate-pulse" : ""}`} />
-            <span className="text-lg font-medium font-mono">{supportStreak}</span>
+            <span className="text-lg font-normal font-mono">{supportStreak}</span>
           </div>
-          <span className="text-[9px] uppercase tracking-wider text-[var(--mf-muted)] mt-0.5 font-medium">
+          <span className="text-[9px] uppercase tracking-wider text-[var(--mf-muted)] mt-0.5 font-normal">
             Streak Days
           </span>
         </div>
@@ -125,8 +125,8 @@ export function SupportActionsLog() {
       {/* Progress bar */}
       <div className="relative z-10 mb-6 bg-[var(--mf-hover)]/30 border border-[var(--mf-border)]/40 p-4 rounded-2xl">
         <div className="flex justify-between items-center mb-2 text-xs">
-          <span className="text-[var(--mf-muted)] font-medium">Today's Support Goal</span>
-          <span className="text-[var(--mf-text-strong)] font-medium font-mono">{progressPercent}%</span>
+          <span className="text-[var(--mf-muted)] font-normal">Today's Support Goal</span>
+          <span className="text-[var(--mf-text-strong)] font-normal font-mono">{progressPercent}%</span>
         </div>
         <div className="w-full h-2 bg-[var(--mf-border)]/40 rounded-full overflow-hidden">
           <div 
@@ -161,7 +161,7 @@ export function SupportActionsLog() {
                 >
                   <Check size={10} weight="bold" />
                 </div>
-                <span className={`text-[12.5px] font-medium leading-tight transition-all duration-300 ${
+                <span className={`text-[12.5px] font-normal leading-tight transition-all duration-300 ${
                   isDone ? 'line-through opacity-65 text-[var(--mf-muted)]' : ''
                 }`}>
                   {task.label}
@@ -169,7 +169,7 @@ export function SupportActionsLog() {
               </div>
 
               {isDone && (
-                <img src="/images/heart.png" alt="Heart" className="size-4 object-contain animate-pulse shrink-0 ml-2" />
+                <Heart size={14} weight="fill" className="text-rose-500 animate-pulse shrink-0 ml-2" />
               )}
             </button>
           )

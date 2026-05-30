@@ -36,7 +36,7 @@ const NotFoundView = lazy(() => import('./views/NotFoundView').then(m => ({ defa
 
 function MainShell() {
   const { isAuthenticated, onboardingCompleted, logout, openAuthModal, isRehydrating } = useAuth()
-  const { settings, updateSettings } = useStore()
+  const { settings, updateSettings, user } = useStore()
   const navigate = useNavigate()
   const location = useLocation()
   const isMobile = useMediaQuery('(max-width: 768px)')
@@ -74,7 +74,7 @@ function MainShell() {
     <ChatSessionContext.Provider
       value={{ temporaryChat, setTemporaryChat }}
     >
-      <div className="app-shell">
+      <div className={cn("app-shell", user?.role === 'partner' && "partner-theme")}>
         <LazyMotion features={domAnimation}>
           {!location.pathname.startsWith('/onboarding') && (!isMobile || location.pathname !== '/dashboard') && (
           <Sidebar

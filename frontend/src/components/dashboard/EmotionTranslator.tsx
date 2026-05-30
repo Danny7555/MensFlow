@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowRight, Check } from '@phosphor-icons/react'
+import { ArrowRight, Check, Heart } from '@phosphor-icons/react'
 import { useStore } from '../../store/useStore'
 import { toast } from 'sonner'
 
@@ -61,7 +61,7 @@ const TRANSLATIONS: Record<string, Record<number, TranslationResult>> = {
         "Prepare a warm, soothing drink (like raspberry leaf or ginger tea).",
         "Quietly handle dinner prep and cleanup to let her lie down."
       ],
-      quickReply: "I completely understand. Rest up, my love. I've taken care of the household chores today so you don't have to lift a finger. Let me know if I can bring you some warm tea! ❤️"
+      quickReply: "I completely understand. Rest up, my love. I've taken care of the household chores today so you don't have to lift a finger. Let me know if I can bring you some warm tea!"
     },
     1: {
       biologicalContext: "Brain blood flow fluctuates slightly as estrogen starts its cycle. Severe low energy means making even trivial decisions feels like climbing a mountain.",
@@ -91,7 +91,7 @@ const TRANSLATIONS: Record<string, Record<number, TranslationResult>> = {
         "Avoid trying to 'fix' the crying or finding logical reasons.",
         "Reassure her that crying is a completely natural physical release."
       ],
-      quickReply: "I'm right here with you. It's completely okay to cry and let it all out. You don't have to explain why. I love you and I've got your back. ❤️"
+      quickReply: "I'm right here with you. It's completely okay to cry and let it all out. You don't have to explain why. I love you and I've got your back."
     }
   },
   follicular: {
@@ -167,7 +167,7 @@ const TRANSLATIONS: Record<string, Record<number, TranslationResult>> = {
         "Provide comforting words and a warm hug.",
         "Check if she is experiencing ovulation cramps."
       ],
-      quickReply: "I'm right here. Sometimes having peak energy can be overwhelming. Come here for a warm hug, and let me know if you need anything at all. You're doing amazing. ❤️"
+      quickReply: "I'm right here. Sometimes having peak energy can be overwhelming. Come here for a warm hug, and let me know if you need anything at all. You're doing amazing."
     }
   },
   luteal: {
@@ -307,7 +307,7 @@ export function EmotionTranslator() {
             {/* Core Need */}
             <div className="space-y-1">
               <span className="flex items-center gap-1.5 text-[9px] font-medium uppercase tracking-wider text-amber-500">
-                <img src="/images/heart.png" alt="Heart" className="size-3.5 object-contain" /> Core Need
+                <Heart size={14} weight="fill" className="text-rose-500 shrink-0" /> Core Need
               </span>
               <p className="text-[11.5px] text-[var(--mf-text-strong)] leading-relaxed font-normal">
                 {translation.coreNeed}

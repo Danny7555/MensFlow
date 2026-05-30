@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { m, AnimatePresence } from 'framer-motion'
 import type { Variants } from 'framer-motion'
-import { Check, Sparkle, PaperPlaneTilt, LinkSimple, Copy, ArrowRight, Users } from '@phosphor-icons/react'
+import { Check, Sparkle, PaperPlaneTilt, LinkSimple, Copy, ArrowRight, Users, ChatCircle, Heart } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { SupportActionsLog } from '../components/dashboard/SupportActionsLog'
 import { EmotionTranslator } from '../components/dashboard/EmotionTranslator'
@@ -29,7 +29,7 @@ const STATUS_OPTIONS: StatusOption[] = [
 const SUPPORT_PING_OPTIONS: StatusOption[] = [
   { id: 'chocolate', label: 'Bring Chocolate', image: '/images/cravings.png', message: "I'm on my way home with some sweet treats for you! 🍫" },
   { id: 'dinner', label: 'Cook Dinner', image: '/images/cramps.jpg', message: "Don't worry about dinner tonight, I've got it covered! 🍳" },
-  { id: 'hug', label: 'Warm Hug', image: '/images/happy.jpg', message: "Just wanted to send you a warm hug and remind you I'm here. ❤️" },
+  { id: 'hug', label: 'Warm Hug', image: '/images/happy.jpg', message: "Just wanted to send you a warm hug and remind you I'm here." },
   { id: 'space', label: 'Give Space', image: '/images/calm.jpg', message: "I'll make sure you have a quiet, peaceful space to rest today. 🤫" },
 ]
 
@@ -97,7 +97,7 @@ function SupportHistory() {
         {completed.slice(-3).reverse().map((task) => (
           <div key={task.id} className="flex items-center justify-between text-[11.5px] py-2 border-b border-border/40 last:border-0">
             <div className="flex items-center gap-2.5">
-              <img src="/images/heart.png" alt="" className="size-3.5 object-contain" />
+              <Heart size={14} weight="fill" className="text-rose-500 shrink-0" />
               <span className="text-[var(--mf-text)]">{task.label}</span>
             </div>
             <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Completed</span>
@@ -181,7 +181,7 @@ export function SyncView() {
 
       setIsSending(false)
       setSent(true)
-      toast.success(user?.role === 'partner' ? 'Support ping sent to partner!' : 'Ping sent to partner!', { icon: '💬' })
+      toast.success(user?.role === 'partner' ? 'Support ping sent to partner!' : 'Ping sent to partner!', { icon: <ChatCircle size={16} weight="fill" className="text-teal-500" /> })
     } catch (err: unknown) {
       setIsSending(false)
       toast.error(err instanceof Error ? err.message : 'Failed to send ping')
@@ -255,53 +255,45 @@ export function SyncView() {
 
             {/* Pairing cards */}
             {!isAuthenticated ? (
-              <m.div
-                variants={itemVariants}
-                className="p-8 rounded-[2rem] bg-gradient-to-br from-pink-500/10 via-[var(--mf-composer-bg)] to-[var(--mf-composer-bg)] border border-[var(--mf-border)] text-center space-y-6 relative overflow-hidden max-w-xl mx-auto shadow-xl"
+              <div
+                className="p-8 rounded-[2rem] bg-[var(--mf-card)] border border-[var(--mf-border)] text-center space-y-6 relative overflow-hidden max-w-xl mx-auto"
               >
-                <div className="absolute top-0 right-0 size-32 bg-pink-500/5 rounded-full blur-2xl pointer-events-none" />
                 <div className="relative z-10 space-y-4">
                   <div className="size-12 rounded-2xl bg-pink-500/10 flex items-center justify-center mx-auto text-pink-500 animate-pulse">
                     <Users size={24} weight="bold" />
                   </div>
-                  <h3 className="text-lg font-medium text-[var(--mf-text-strong)]">Pairing requires an account</h3>
+                  <h3 className="text-lg font-normal text-[var(--mf-text-strong)]">Pairing requires an account</h3>
                   <p className="text-xs text-[var(--mf-muted)] max-w-sm mx-auto leading-relaxed">
                     Create an account or sign in to generate a secure pairing code and start syncing with your partner.
                   </p>
-                  <m.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                  <button
                     onClick={openAuthModal}
-                    className="inline-flex items-center gap-2 bg-[var(--mf-accent)] text-white hover:opacity-95 px-6 py-3 rounded-xl text-xs font-semibold shadow-lg shadow-[var(--mf-accent)]/20 transition-all cursor-pointer border-0 outline-none"
+                    className="inline-flex items-center gap-2 bg-[var(--mf-accent)] text-white hover:opacity-95 px-6 py-3 rounded-xl text-xs font-normal transition-all cursor-pointer border-0 outline-none"
                   >
                     <span>Sign In or Sign Up</span>
                     <ArrowRight size={14} weight="bold" />
-                  </m.button>
+                  </button>
                 </div>
-              </m.div>
+              </div>
             ) : (
-              <m.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
+              <m.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Your code card */}
-                <div className="p-6 rounded-[1.5rem] bg-gradient-to-br from-pink-500/8 via-[var(--mf-composer-bg)] to-[var(--mf-composer-bg)] border border-[var(--mf-border)] space-y-4 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 size-32 bg-pink-500/5 rounded-full blur-2xl" />
+                <div className="p-6 rounded-[1.5rem] bg-[var(--mf-card)] border border-[var(--mf-border)] space-y-4 relative overflow-hidden">
                   <div className="relative z-10 space-y-4">
                     <div className="flex items-center gap-2">
                       <div className="size-7 rounded-xl bg-pink-500/10 flex items-center justify-center">
                         <Copy size={14} weight="bold" className="text-pink-500" />
                       </div>
-                      <span className="text-xs font-semibold text-[var(--mf-text-strong)]">Your Pairing Code</span>
+                      <span className="text-xs font-normal text-[var(--mf-text-strong)]">Your Pairing Code</span>
                     </div>
                     <p className="text-[11px] text-[var(--mf-muted)] leading-relaxed">
                       Share this code with your partner. They'll enter it on their Partner Sync page to connect with you.
                     </p>
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl font-mono font-bold tracking-[0.3em] text-[var(--mf-text-strong)] bg-white dark:bg-white/5 px-4 py-2.5 rounded-xl border border-[var(--mf-border)] select-all flex-1 text-center">
+                      <span className="text-2xl font-mono font-normal tracking-[0.3em] text-[var(--mf-text-strong)] bg-white dark:bg-white/5 px-4 py-2.5 rounded-xl border border-[var(--mf-border)] select-all flex-1 text-center">
                         {user?.partnerCode ?? '- - - - - -'}
                       </span>
-                      <m.button
-                        whileHover={{ scale: 1.04 }}
-                        whileTap={{ scale: 0.96 }}
+                      <button
                         type="button"
                         onClick={() => {
                           if (user?.partnerCode) {
@@ -311,23 +303,22 @@ export function SyncView() {
                             })
                           }
                         }}
-                        className="size-11 shrink-0 rounded-xl bg-[var(--mf-accent)] text-white hover:opacity-90 flex items-center justify-center transition-all active:scale-95 shadow-lg shadow-[var(--mf-accent)]/20"
+                        className="size-11 shrink-0 rounded-xl bg-[var(--mf-accent)] text-white hover:opacity-90 flex items-center justify-center transition-all active:scale-95"
                       >
                         <Copy size={18} weight="bold" />
-                      </m.button>
+                      </button>
                     </div>
                   </div>
                 </div>
 
                 {/* Enter partner's code */}
-                <div className="p-6 rounded-[1.5rem] bg-gradient-to-br from-purple-500/8 via-[var(--mf-composer-bg)] to-[var(--mf-composer-bg)] border border-[var(--mf-border)] space-y-4 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 size-32 bg-purple-500/5 rounded-full blur-2xl" />
+                <div className="p-6 rounded-[1.5rem] bg-[var(--mf-card)] border border-[var(--mf-border)] space-y-4 relative overflow-hidden">
                   <div className="relative z-10 space-y-4">
                     <div className="flex items-center gap-2">
                       <div className="size-7 rounded-xl bg-purple-500/10 flex items-center justify-center">
                         <LinkSimple size={14} weight="bold" className="text-purple-500" />
                       </div>
-                      <span className="text-xs font-semibold text-[var(--mf-text-strong)]">Enter Partner's Code</span>
+                      <span className="text-xs font-normal text-[var(--mf-text-strong)]">Enter Partner's Code</span>
                     </div>
                     <p className="text-[11px] text-[var(--mf-muted)] leading-relaxed">
                       Got a code from your partner? Enter it below to pair and start syncing your cycles together.
@@ -338,16 +329,14 @@ export function SyncView() {
                         placeholder="e.g. XY82HA"
                         value={partnerCodeInput}
                         onChange={(e) => setPartnerCodeInput(e.target.value.toUpperCase())}
-                        className="w-full bg-white dark:bg-white/5 border border-[var(--mf-border)] rounded-xl px-4 py-3 text-base font-mono tracking-[0.3em] text-center font-bold focus:outline-none focus:ring-2 focus:ring-[var(--mf-accent)]/50 focus:border-[var(--mf-accent)] uppercase text-[var(--mf-text-strong)] transition-all text-sm font-semibold"
+                        className="w-full bg-white dark:bg-white/5 border border-[var(--mf-border)] rounded-xl px-4 py-3 text-base font-mono tracking-[0.3em] text-center font-normal focus:outline-none focus:ring-2 focus:ring-[var(--mf-accent)]/50 focus:border-[var(--mf-accent)] uppercase text-[var(--mf-text-strong)] transition-all text-sm"
                         maxLength={6}
                       />
-                      <m.button
-                        whileHover={{ scale: 1.01 }}
-                        whileTap={{ scale: 0.99 }}
+                      <button
                         type="button"
                         disabled={isPairing || !partnerCodeInput.trim()}
                         onClick={handlePair}
-                        className="w-full h-11 bg-[var(--mf-accent)] text-white rounded-xl font-semibold text-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-[var(--mf-accent)]/20 hover:opacity-95"
+                        className="w-full h-11 bg-[var(--mf-accent)] text-white rounded-xl font-normal text-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:opacity-95"
                       >
                         {isPairing ? (
                           <m.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
@@ -360,7 +349,7 @@ export function SyncView() {
                             <ArrowRight size={14} weight="bold" />
                           </>
                         )}
-                      </m.button>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -447,9 +436,9 @@ export function SyncView() {
                   <m.div 
                     animate={{ scale: [1, 1.05, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
-                    className="mb-4"
+                    className="mb-4 size-14 rounded-full bg-rose-500/10 flex items-center justify-center text-rose-500"
                   >
-                    <img src="/images/heart.png" alt="Heart" className="size-14 object-contain" />
+                    <Heart size={28} weight="fill" />
                   </m.div>
 
                   <h2 className="text-xl font-normal tracking-tight text-[var(--mf-text-strong)]">
@@ -495,10 +484,8 @@ export function SyncView() {
                       
                       <div className="grid grid-cols-2 gap-3">
                         {options.map((opt) => (
-                          <m.button
+                          <button
                             key={opt.id}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
                             onClick={() => setSelected(opt.id)}
                             type="button"
                             className={cn(
@@ -525,14 +512,12 @@ export function SyncView() {
                             <span className="text-white text-[11px] font-normal tracking-wide z-20 mt-auto drop-shadow-sm">
                               {opt.label}
                             </span>
-                          </m.button>
+                          </button>
                         ))}
                       </div>
                     </div>
 
-                    <m.button
-                      whileHover={{ scale: 1.01 }}
-                      whileTap={{ scale: 0.99 }}
+                    <button
                       onClick={handleSendPing}
                       disabled={!selected || isSending}
                       className="w-full h-12 bg-[var(--mf-accent)] text-white rounded-2xl font-normal flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-xs transition-all !shadow-none"
