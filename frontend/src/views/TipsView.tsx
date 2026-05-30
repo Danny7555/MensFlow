@@ -1,9 +1,9 @@
 import { useMemo, useState, useEffect } from 'react'
-import { Heart } from '@phosphor-icons/react'
 
 import { TIPS_DUMMY, type WellnessTip } from '../data/tipsData'
 import { useStore } from '../store/useStore'
 import { TipsSkeleton } from '../components/skeletons/TipsSkeleton'
+import { cn } from '@/lib/utils'
 
 const CATS: { id: WellnessTip['category'] | 'all'; label: string }[] = [
   { id: 'all', label: 'All' },
@@ -110,10 +110,16 @@ export function TipsView() {
                 aria-label={saved.has(t.id) ? 'Remove from saved' : 'Save tip'}
                 onClick={() => toggleSave(t.id)}
               >
-                <Heart 
-                  size={20} 
-                  weight={saved.has(t.id) ? "fill" : "regular"} 
-                  className="transition-colors duration-300"
+                <img 
+                  src="/images/heart.png" 
+                  alt="" 
+                  width={20} 
+                  height={20} 
+                  className={cn(
+                    "object-contain transition-all duration-300", 
+                    !saved.has(t.id) && "opacity-40 grayscale"
+                  )} 
+                  aria-hidden 
                 />
               </button>
             </div>

@@ -1,6 +1,6 @@
 import { m } from "framer-motion"
 import type { Variants } from "framer-motion"
-import { Check, Plus, Heart } from "@phosphor-icons/react"
+import { Check, Plus } from "@phosphor-icons/react"
 
 interface DailyTipCardProps {
   phaseLabel: string
@@ -100,7 +100,7 @@ export function DailyTipCard({ phaseLabel, tipCompleted, setTipCompleted, varian
               whileTap={{ scale: 0.98 }}
               className="w-full px-4 xl:px-6 py-2 xl:py-2.5 rounded-full border border-[var(--mf-border)] bg-[var(--mf-card)] text-[var(--mf-text-strong)] text-[9px] xl:text-[10px] font-medium tracking-widest uppercase flex items-center justify-center gap-2 hover:bg-[var(--mf-hover)] transition-all"
             >
-              <Heart size={14} weight="bold" />
+              <img src="/images/heart.png" alt="" className="size-3.5 object-contain" />
               <span>Save</span>
             </m.button>
           </div>

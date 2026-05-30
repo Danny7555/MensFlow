@@ -8,7 +8,7 @@ export function StoriesSection() {
     { label: 'Daily Plan', image: '/images/star.png', active: true, route: '/dashboard' },
     { label: 'Insights', image: '/images/brain.png', route: '/insights' },
     { label: 'Secret Chats', image: '/images/moon.png', route: '/ask' },
-    { label: 'Wellness', image: '/images/sleep_3d.png', route: '/wellness-tips' },
+    { label: 'Wellness', image: '/images/heart.png', route: '/wellness-tips' },
     { label: 'Partner', image: '/images/girl.png', route: '/tracker' },
   ]
 

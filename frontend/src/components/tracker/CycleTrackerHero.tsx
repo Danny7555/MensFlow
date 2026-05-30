@@ -5,8 +5,7 @@ import { useEffect, useMemo, useReducer, useState } from 'react'
 import { 
   CaretDown, 
   CaretRight, 
-  Info, 
-  Heart,
+  Info,
 } from '@phosphor-icons/react'
 import { format, addDays, startOfDay, differenceInCalendarDays, parseISO } from 'date-fns'
 import { toast } from 'sonner'
@@ -177,7 +176,7 @@ export function CycleTrackerHero({
       <div className="cycle-tracker-mode">
         {isPartner ? (
           <div className="mode-chip cursor-default bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 font-normal text-xs tracking-wider flex items-center gap-1.5">
-            <Heart size={12} weight="fill" className="text-emerald-500 animate-pulse" />
+            <img src="/images/heart.png" alt="" className="size-3.5 object-contain animate-pulse" />
             <span>Partner Empathy Mode</span>
           </div>
         ) : (
@@ -305,7 +304,7 @@ export function CycleTrackerHero({
              <img src="/images/calm.jpg" alt="" className="mood-cta-bg opacity-80" />
              <div className="mood-cta-overlay bg-gradient-to-r from-teal-900/60 to-indigo-900/50" />
              <span className="mood-text pl-4 flex items-center gap-2">
-               <Heart size={16} weight="fill" className="text-teal-400 animate-pulse shrink-0" />
+               <img src="/images/heart.png" alt="" className="size-4 object-contain animate-pulse shrink-0" />
                <span>View Empathy Decoder & Playbook</span>
              </span>
              <CaretRight size={20} className="caret-right group-hover:translate-x-1 transition-transform text-teal-400" />

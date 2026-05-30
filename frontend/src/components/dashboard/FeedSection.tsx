@@ -3,7 +3,6 @@ import type { Variants } from "framer-motion"
 import { 
   Sparkle, 
   Target, 
-  Heartbeat, 
   Plus, 
   Check, 
   CaretRight, 
@@ -176,15 +175,12 @@ export function WellnessScoreCard() {
   return (
     <m.div variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
       <div className="flex flex-col h-full">
-        <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden bg-gradient-to-tr from-teal-500/30 to-indigo-500/20 dark:from-teal-900/40 dark:to-indigo-900/30">
-          <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#2dd4bf_1px,transparent_1px)] [background-size:16px_16px]" />
-          <div className="w-full h-full flex items-center justify-center text-teal-600 dark:text-teal-400">
-            <Heartbeat size={40} weight="light" className="opacity-80" />
-          </div>
+        <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden bg-card">
+          <img src="/images/heart.png" alt="Wellness" className="w-full h-full object-cover" />
         </div>
         <div className="flo-card-top relative z-10">
-          <div className="flo-card-icon flo-card-icon--pink">
-            <Heartbeat size={20} weight="fill" />
+          <div className="flo-card-icon flo-card-icon--pink flex items-center justify-center">
+            <img src="/images/heart.png" alt="" className="size-5 object-contain" />
           </div>
         </div>
         <div className="mt-2 relative z-10 flex flex-col flex-1">
@@ -268,7 +264,11 @@ export function PartnerTranslationCard({ label, onCopy }: {
                 onClick={() => onCopy(g.text, g.title)}
                 className="px-3.5 py-2 rounded-xl bg-[var(--mf-card)] text-xs font-normal text-[var(--mf-text-strong)] border border-[var(--mf-border-strong)] hover:border-[var(--mf-accent-border)] transition-all flex items-center gap-1.5 "
               >
-                <g.Icon size={14} className={cn(g.color)} weight="bold" />
+                {g.Icon === Heart ? (
+                  <img src="/images/heart.png" alt="" className="size-3.5 object-contain" />
+                ) : (
+                  <g.Icon size={14} className={cn(g.color)} weight="bold" />
+                )}
                 <span>{g.title}</span>
               </button>
             ))}
@@ -387,8 +387,8 @@ export function ConnectionChecklistCard() {
     toggleSupportAction(id)
     if (!wasCompleted) {
       toast.success(`Completed: "${label}"!`, {
-        icon: <Heart size={16} weight="fill" className="text-rose-500" />,
-        duration: 3005
+        icon: <img src="/images/heart.png" alt="" className="size-4.5 object-contain" />,
+        duration: 3000
       })
     }
   }
@@ -397,8 +397,8 @@ export function ConnectionChecklistCard() {
     <div className="flo-card flo-card--prominent overflow-hidden h-full flex flex-col bg-[var(--mf-card)] connection-checklist-card">
       <div className="flo-card-top relative z-10">
         <p className="flo-card-title">Daily Connection</p>
-        <div className="flo-card-icon text-teal-500">
-          <Heart size={20} weight="fill" />
+        <div className="flo-card-icon text-teal-500 flex items-center justify-center">
+          <img src="/images/heart.png" alt="" className="size-5 object-contain" />
         </div>
       </div>
       <div className="mt-2 relative z-10 flex flex-col flex-1">

@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { m, AnimatePresence } from 'framer-motion'
 import type { Variants } from 'framer-motion'
-import { Check, Sparkle, PaperPlaneTilt, LinkSimple, Copy, ArrowRight, Users, ChatCircle, Heart } from '@phosphor-icons/react'
+import { Check, Sparkle, PaperPlaneTilt, LinkSimple, Copy, ArrowRight, Users, ChatCircle } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { SupportActionsLog } from '../components/dashboard/SupportActionsLog'
 import { EmotionTranslator } from '../components/dashboard/EmotionTranslator'
@@ -97,7 +97,7 @@ function SupportHistory() {
         {completed.slice(-3).reverse().map((task) => (
           <div key={task.id} className="flex items-center justify-between text-[11.5px] py-2 border-b border-border/40 last:border-0">
             <div className="flex items-center gap-2.5">
-              <Heart size={14} weight="fill" className="text-rose-500 shrink-0" />
+              <img src="/images/heart.png" alt="" className="size-3.5 object-contain shrink-0" />
               <span className="text-[var(--mf-text)]">{task.label}</span>
             </div>
             <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Completed</span>
@@ -438,7 +438,7 @@ export function SyncView() {
                     transition={{ duration: 2, repeat: Infinity }}
                     className="mb-4 size-14 rounded-full bg-rose-500/10 flex items-center justify-center text-rose-500"
                   >
-                    <Heart size={28} weight="fill" />
+                    <img src="/images/heart.png" alt="" className="size-8 object-contain" />
                   </m.div>
 
                   <h2 className="text-xl font-normal tracking-tight text-[var(--mf-text-strong)]">

@@ -81,7 +81,7 @@ function QuickEmpathyBoostCard({ ladyName, isAuthenticated }: QuickEmpathyBoostC
         <div>
           <span className="text-[9px] font-normal text-[var(--mf-accent)] uppercase tracking-[0.2em] block mb-0.5">Quick Actions</span>
           <h3 className="text-base font-normal text-[var(--mf-text-strong)] flex items-center gap-1.5">
-            Send Empathy Boost <Heart size={18} className="text-rose-500" weight="fill" />
+            Send Empathy Boost <img src="/images/heart.png" alt="" className="size-4.5 object-contain inline-block ml-1" />
           </h3>
         </div>
       </div>
@@ -100,7 +100,11 @@ function QuickEmpathyBoostCard({ ladyName, isAuthenticated }: QuickEmpathyBoostC
               className="p-3 rounded-2xl bg-[var(--mf-hover)] hover:bg-[var(--mf-border)] text-left border border-[var(--mf-border)] flex flex-col justify-between h-[84px] transition-all cursor-pointer relative overflow-hidden group active-squish"
             >
               <div className="flex items-center justify-between w-full">
-                <opt.Icon size={24} className={opt.color} weight="bold" />
+                {opt.Icon === Heart ? (
+                  <img src="/images/heart.png" alt="" className="size-6 object-contain" />
+                ) : (
+                  <opt.Icon size={24} className={opt.color} weight="bold" />
+                )}
                 {isPending && (
                   <m.div 
                     animate={{ scale: [1, 1.2, 1] }} 

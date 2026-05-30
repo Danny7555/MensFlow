@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Check, Heart } from '@phosphor-icons/react'
+import { Check } from '@phosphor-icons/react'
 import { useStore } from '../../store/useStore'
 import { toast } from 'sonner'
 
@@ -82,7 +82,7 @@ export function SupportActionsLog() {
     
     if (!wasCompleted) {
       toast.success(`Completed: "${label}"!`, {
-        icon: <Heart size={16} weight="fill" className="text-rose-500" />,
+        icon: <img src="/images/heart.png" alt="" className="size-4 object-contain" />,
         duration: 3000
       })
     }
@@ -169,7 +169,7 @@ export function SupportActionsLog() {
               </div>
 
               {isDone && (
-                <Heart size={14} weight="fill" className="text-rose-500 animate-pulse shrink-0 ml-2" />
+                <img src="/images/heart.png" alt="" className="size-3.5 object-contain animate-pulse shrink-0 ml-2" />
               )}
             </button>
           )
