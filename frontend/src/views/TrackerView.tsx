@@ -18,6 +18,8 @@ import {
 
 import { useStore } from "@/store/useStore"
 import { TrackerSkeleton } from "@/components/skeletons/TrackerSkeleton"
+import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 
 type TrackerState = {
   isInviteModalOpen: boolean
@@ -51,6 +53,12 @@ export function TrackerView() {
   const { isAuthenticated, openAuthModal } = useAuth()
   const [inviteEmail, setInviteEmail] = useState('')
   const [isInviting, setIsInviting] = useState(false)
+  const [requestSent, setRequestSent] = useState(false)
+
+  const handleRequestAccess = () => {
+    setRequestSent(true)
+    toast.success("Access request sent! Your partner will receive a notification to enable detailed sharing.")
+  }
 
   const showRestrictedView = user?.role === 'partner' && partnerStatus?.paired && partnerStatus?.privacyShareCycleDetails === false
 
@@ -142,7 +150,7 @@ export function TrackerView() {
   if (showRestrictedView) {
     return (
       <div className="flex flex-col h-full bg-background overflow-auto items-center justify-center p-6 min-h-[80vh]">
-        <div className="max-w-[420px] w-full text-center bg-card border border-border p-8 sm:p-10 rounded-[2.5rem] shadow-xl space-y-6 relative overflow-hidden">
+        <div className="max-w-[420px] w-full text-center bg-card border border-border p-8 sm:p-10 rounded-[2.5rem] shadow-xl space-y-6 relative overflow-hidden flex flex-col items-center">
           <div className="absolute top-0 right-0 size-32 bg-[var(--mf-accent)]/5 rounded-full blur-2xl pointer-events-none" />
           
           <div className="size-16 rounded-3xl bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] flex items-center justify-center mx-auto border border-[var(--mf-accent)]/10">
@@ -159,17 +167,33 @@ export function TrackerView() {
               Detailed Cycle Logs Private
             </h2>
             <p className="text-xs text-[var(--mf-muted)] leading-relaxed max-w-sm mx-auto">
-              Your partner has kept cycle statistics, symptom logs, water tracking, and weight details private. Head back to the Dashboard to view guidelines and Empathy support cards!
+              Your partner has kept cycle statistics, symptom logs, water tracking, and weight details private.
             </p>
           </div>
 
-          <button 
-            type="button"
-            onClick={() => navigate('/dashboard')}
-            className="w-full py-3 bg-[var(--mf-accent)] text-white hover:opacity-95 rounded-2xl text-xs font-semibold shadow-md transition-all active:scale-98 cursor-pointer border-0 outline-none"
-          >
-            Go to Dashboard
-          </button>
+          <div className="w-full flex flex-col gap-3">
+            <button
+              type="button"
+              onClick={handleRequestAccess}
+              disabled={requestSent}
+              className={cn(
+                "w-full py-3 text-white rounded-2xl text-xs font-semibold transition-all border-0 outline-none",
+                requestSent 
+                  ? "bg-emerald-500 cursor-default animate-in fade-in" 
+                  : "bg-[var(--mf-accent)] hover:opacity-95 active:scale-98 cursor-pointer"
+              )}
+            >
+              {requestSent ? "Access Request Sent ✔" : "Request Detailed Access"}
+            </button>
+
+            <button 
+              type="button"
+              onClick={() => navigate('/dashboard')}
+              className="w-full py-3 bg-muted text-[var(--mf-text-strong)] hover:bg-muted/80 rounded-2xl text-xs font-semibold transition-all active:scale-98 cursor-pointer border-0 outline-none"
+            >
+              Go to Dashboard
+            </button>
+          </div>
         </div>
       </div>
     )

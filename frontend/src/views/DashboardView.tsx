@@ -242,6 +242,12 @@ export function DashboardView() {
 
   const [dashboardPartnerCodeInput, setDashboardPartnerCodeInput] = useState('')
   const [isDashboardPairing, setIsDashboardPairing] = useState(false)
+  const [requestSent, setRequestSent] = useState(false)
+
+  const handleRequestAccess = () => {
+    setRequestSent(true)
+    toast.success("Access request sent! Your partner will receive a notification to enable detailed sharing.")
+  }
 
   const [isMobile, setIsMobile] = useState(false)
   useEffect(() => {
@@ -809,7 +815,7 @@ export function DashboardView() {
                 </div>
 
                 {showRestrictedView && (
-                  <div className="p-6 rounded-[2rem] bg-gradient-to-br from-teal-500/5 via-[var(--mf-composer-bg)] to-[var(--mf-composer-bg)] border border-[var(--mf-border)] text-center space-y-4">
+                  <div className="p-6 rounded-[2rem] bg-gradient-to-br from-teal-500/5 via-[var(--mf-composer-bg)] to-[var(--mf-composer-bg)] border border-[var(--mf-border)] text-center space-y-4 flex flex-col items-center">
                     <div className="size-10 rounded-xl bg-teal-500/10 flex items-center justify-center mx-auto text-teal-500">
                       <Users size={20} weight="bold" />
                     </div>
@@ -817,6 +823,19 @@ export function DashboardView() {
                     <p className="text-[11px] text-[var(--mf-muted)] leading-relaxed max-w-xs mx-auto">
                       {ladyName} has restricted sharing. The cycle status, hormone wave trends, and body signals are hidden.
                     </p>
+                    <button
+                      type="button"
+                      onClick={handleRequestAccess}
+                      disabled={requestSent}
+                      className={cn(
+                        "px-5 py-2 rounded-full text-[10px] font-normal transition-all mt-2",
+                        requestSent 
+                          ? "bg-emerald-500 text-white cursor-default animate-in fade-in" 
+                          : "bg-[var(--mf-accent)] text-white hover:brightness-110 active-squish cursor-pointer border-0 outline-none"
+                      )}
+                    >
+                      {requestSent ? "Access Request Sent ✔" : "Request Detailed Access"}
+                    </button>
                   </div>
                 )}
               </div>

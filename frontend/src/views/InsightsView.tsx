@@ -42,6 +42,12 @@ export function InsightsView() {
   const { isAuthenticated, openAuthModal } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
   const { logs, customSymptoms, user } = useStore()
+  const [requestSent, setRequestSent] = useState(false)
+
+  const handleRequestAccess = () => {
+    setRequestSent(true)
+    toast.success("Access request sent! Your partner will receive a notification to enable detailed sharing.")
+  }
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 500)
@@ -106,6 +112,19 @@ export function InsightsView() {
             <p className="text-muted-foreground text-sm leading-relaxed mb-6 font-normal">
               Cycle analytics, trend charts, and exportable reports are private to your partner. As a supporting partner, you have view-only access to her current phase, calendar predictions, and daily symptoms, keeping her personal health data under her control.
             </p>
+            <button
+              type="button"
+              onClick={handleRequestAccess}
+              disabled={requestSent}
+              className={cn(
+                "px-6 py-2.5 rounded-full text-xs font-normal transition-all mb-6",
+                requestSent 
+                  ? "bg-emerald-500 text-white cursor-default animate-in fade-in" 
+                  : "bg-[var(--mf-accent)] text-white hover:brightness-110 active-squish cursor-pointer border-0 outline-none"
+              )}
+            >
+              {requestSent ? "Access Request Sent ✔" : "Request Detailed Access"}
+            </button>
             <div className="w-full border-t border-border pt-6 flex flex-col gap-2 text-xs text-muted-foreground text-left">
               <div className="flex items-start gap-2.5">
                 <div className="size-1.5 rounded-full bg-[var(--mf-accent)] mt-1.5 shrink-0" />

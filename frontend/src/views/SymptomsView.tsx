@@ -12,6 +12,7 @@ import { SymptomsChart } from '../components/SymptomsChart'
 import { CycleLengthChart } from '../components/tracker/CycleLengthChart'
 import { useStore } from '../store/useStore'
 import { TrackerSkeleton } from '../components/skeletons/TrackerSkeleton'
+import { toast } from 'sonner'
 
 const SYMPTOM_ICONS: Record<string, React.ElementType> = {
   'flow-light': DropSimple,
@@ -132,6 +133,12 @@ function SymptomCategoryList({
 export function SymptomsView() {
   const { addLog, getLogForDate, isSaving, user, partnerStatus } = useStore()
   const [isLoading, setIsLoading] = useState(true)
+  const [requestSent, setRequestSent] = useState(false)
+
+  const handleRequestAccess = () => {
+    setRequestSent(true)
+    toast.success("Access request sent! Your partner will receive a notification to enable detailed sharing.")
+  }
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -307,11 +314,24 @@ export function SymptomsView() {
         </section>
       ) : (
         <section className="pt-4">
-          <div className="p-6 rounded-[2rem] bg-[var(--mf-card)] border border-[var(--mf-border)] text-center space-y-4">
+          <div className="p-8 rounded-[2rem] bg-[var(--mf-card)] border border-[var(--mf-border)] text-center max-w-md mx-auto space-y-4 flex flex-col items-center">
             <h2 className="text-sm font-normal tracking-tight text-foreground">Analytical Trends Private</h2>
-            <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
+            <p className="text-xs text-muted-foreground leading-relaxed">
               Historical cycle graphs, trends, and diagnostic symptom charts are managed privately on your partner's device.
             </p>
+            <button
+              type="button"
+              onClick={handleRequestAccess}
+              disabled={requestSent}
+              className={cn(
+                "px-6 py-2.5 rounded-full text-xs font-normal transition-all",
+                requestSent 
+                  ? "bg-emerald-500 text-white cursor-default animate-in fade-in" 
+                  : "bg-[var(--mf-accent)] text-white hover:brightness-110 active-squish cursor-pointer border-0 outline-none"
+              )}
+            >
+              {requestSent ? "Access Request Sent ✔" : "Request Detailed Access"}
+            </button>
           </div>
         </section>
       )}
