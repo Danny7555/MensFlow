@@ -292,7 +292,7 @@ export function LockedChatsView() {
       </div>
       
       <div className="flex-1 flex flex-col relative overflow-hidden bg-background">
-        <ChatView />
+        <ChatView showOnlyLocked />
       </div>
     </div>
   )

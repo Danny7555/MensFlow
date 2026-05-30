@@ -17,6 +17,7 @@ import {
   SidebarSimple,
   SignOut,
   Users,
+  Sparkle,
   Lock,
 } from '@phosphor-icons/react'
 import type { SectionId } from '../types/nav'
@@ -77,6 +78,7 @@ export function Sidebar({
     rawItems.splice(rawItems.length - 1, 0, { id: 'locked-chats', label: 'Locked Chats', Icon: Lock })
   }
 
+
   const items = rawItems.filter(item => {
     // If onboarding is not completed, only show the chat assistant
     if (!onboardingCompleted && item.id !== 'ask') return false
@@ -100,7 +102,6 @@ export function Sidebar({
         return 'follicular'
       })()
     : getPhaseFromDay(computeCycleDay(activeCycle.lastPeriodStart, activeCycle.typicalCycleDays))
-
   const phaseInfo = getPhaseInfo(phase)
 
   return (

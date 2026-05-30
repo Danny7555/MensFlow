@@ -150,7 +150,7 @@ function generateAIResponse(
 
 
 
-export function ChatView() {
+export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean }) {
   const { temporaryChat, setTemporaryChat } = useChatSession()
   const { chatShowTimestamps } = useStore((state) => state.settings)
   const { dashboard: data, user, logs, customSymptoms, showConfirm } = useStore()
@@ -163,6 +163,7 @@ export function ChatView() {
   const welcomeText = `Hi - I'm MensFlow, your personal relationship and cycle support companion. Currently, ${user.name} is on Day ${currentDay} of her cycle (${data.phaseLabel}). Ask me about her active phase, logged symptoms, how you can support her today, or what healthy meals you can cook! 🌸`
 
   const [sessions, setSessions] = useState<ApiChatSession[]>([])
+  const filteredSessions = showOnlyLocked ? sessions.filter((s) => s.isLocked) : sessions
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
 
@@ -222,17 +223,18 @@ export function ChatView() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchSessions()
       .then((data) => {
-        if (data && data.length > 0) {
-          setActiveSessionId(data[0].sessionId)
+        const filtered = showOnlyLocked ? data?.filter(s => s.isLocked) : data
+        if (filtered && filtered.length > 0) {
+          setActiveSessionId(filtered[0].sessionId)
         } else {
-          setActiveSessionId(generateNewSessionId())
+          setActiveSessionId(showOnlyLocked ? null : generateNewSessionId())
         }
       })
       .finally(() => {
         clearTimeout(loadingTimer)
         setIsLoading(false)
       })
-  }, [temporaryChat, fetchSessions, welcomeText])
+  }, [temporaryChat, fetchSessions, welcomeText, showOnlyLocked])
 
   // 2. Load messages for activeSessionId
   useEffect(() => {
@@ -454,11 +456,11 @@ export function ChatView() {
           toast.success('Chat deleted')
           
           if (activeSessionId === sessionId) {
-            const remaining = sessions.filter((s) => s.sessionId !== sessionId)
+            const remaining = (showOnlyLocked ? sessions.filter(s => s.isLocked) : sessions).filter((s) => s.sessionId !== sessionId)
             if (remaining.length > 0) {
               setActiveSessionId(remaining[0].sessionId)
             } else {
-              setActiveSessionId(generateNewSessionId())
+              setActiveSessionId(showOnlyLocked ? null : generateNewSessionId())
             }
           }
           
@@ -564,27 +566,29 @@ export function ChatView() {
     <div className="chat-layout-container">
       {/* 1. Left Sidebar for Chat History */}
       <aside className={cn("chat-sidebar-wrapper", !isSidebarOpen && "collapsed")}>
-        <div className="chat-sidebar-header">
-          <button
-            type="button"
-            className="chat-new-btn active-squish"
-            onClick={startNewChat}
-          >
-            <Plus size={16} weight="bold" />
-            <span>New Chat</span>
-          </button>
-        </div>
+        {!showOnlyLocked && (
+          <div className="chat-sidebar-header">
+            <button
+              type="button"
+              className="chat-new-btn active-squish"
+              onClick={startNewChat}
+            >
+              <Plus size={16} weight="bold" />
+              <span>New Chat</span>
+            </button>
+          </div>
+        )}
 
         <div className="chat-sessions-list scrollbar-hide">
           <div className="text-[10px] text-muted-foreground uppercase font-semibold px-2 mb-2 tracking-wider">
             Recent Chats
           </div>
-          {sessions.length === 0 ? (
+          {filteredSessions.length === 0 ? (
             <div className="text-xs text-muted-foreground px-2 py-4 italic">
               No recent chats
             </div>
           ) : (
-            sessions.map((s) => (
+            filteredSessions.map((s) => (
               <div
                 key={s.sessionId}
                 className={cn(
@@ -726,6 +730,18 @@ export function ChatView() {
                 {showSecurityQuestionReset ? "Back to Passcode Input" : "Forgot passcode? Answer security question"}
               </button>
             </form>
+          </div>
+        ) : showOnlyLocked && filteredSessions.length === 0 ? (
+          <div className="flex-1 overflow-y-auto flex items-center justify-center p-4">
+            <div className="text-center max-w-sm mx-auto space-y-4">
+              <div className="size-16 rounded-full bg-[var(--mf-accent-soft)]/20 flex items-center justify-center text-[var(--mf-accent)] mx-auto animate-pulse">
+                <Lock size={32} />
+              </div>
+              <h2 className="text-lg font-semibold text-[var(--mf-text-strong)]">No Locked Chats</h2>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                You haven&apos;t locked any conversation sessions yet. Go to the main chat, select a conversation, and click the &quot;Lock Chat&quot; button to secure it.
+              </p>
+            </div>
           </div>
         ) : isInitialState ? (
           /* Render Landing view */
