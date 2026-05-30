@@ -105,87 +105,166 @@ export function NotificationsView() {
     const list: Notification[] = []
     const today = new Date()
     const todayStr = format(today, 'yyyy-MM-dd')
+    const isPartner = user?.role === 'partner'
 
-    // 1. Setup Reminders / Cycle Reminders
-    if (!data.lastPeriodStart) {
-      list.push({
-        id: 'setup-cycle',
-        title: "Setup Cycle Prediction",
-        message: "Unlock personalized predictions, wellness reminders, and health tips by setting your partner's last cycle start date.",
-        time: new Date(new Date().setHours(9, 0, 0, 0)),
-        type: 'info',
-        read: false
-      })
-    } else if (settings.notificationsCycleReminders) {
-      const cycleDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
-      
-      if (cycleDay >= 24) {
+    if (isPartner) {
+      // ─── PARTNER NOTIFICATIONS ───
+      if (!partnerStatus || !partnerStatus.paired) {
         list.push({
-          id: 'cycle-warning-luteal',
-          title: "Period starting soon",
-          message: "Predictive logs show your partner is approaching her Menstrual phase. Get ready to offer comfort and warm support.",
-          time: new Date(new Date().setHours(8, 30, 0, 0)),
-          type: 'warning',
+          id: 'pair-partner',
+          title: "Pair with your partner",
+          message: "Sync with your partner to see her cycle phase, symptoms, and receive daily checklists to support her.",
+          time: new Date(new Date().setHours(9, 0, 0, 0)),
+          type: 'info',
           read: false
         })
-      } else if (cycleDay >= 11 && cycleDay <= 15) {
+      } else if (!partnerStatus.cycle || !partnerStatus.cycle.lastPeriodStart) {
         list.push({
-          id: 'cycle-info-ovulation',
-          title: "Ovulation window active",
-          message: "Your partner is in her peak fertility window. Social battery and communication capacity are high!",
-          time: new Date(new Date().setHours(10, 0, 0, 0)),
+          id: 'awaiting-setup',
+          title: "Awaiting partner setup",
+          message: "Your partner needs to configure her cycle start date before predictions and supportive tips can be generated.",
+          time: new Date(new Date().setHours(9, 0, 0, 0)),
+          type: 'info',
+          read: false
+        })
+      } else if (settings.notificationsCycleReminders) {
+        const pCycle = partnerStatus.cycle
+        const cycleDay = computeCycleDay(pCycle.lastPeriodStart, pCycle.typicalCycleDays)
+        const partnerName = partnerStatus.partner?.name || "your partner"
+
+        if (cycleDay >= 24) {
+          list.push({
+            id: 'cycle-warning-luteal',
+            title: "Period starting soon",
+            message: `Predictive logs show ${partnerName} is approaching her Menstrual phase. Get ready to offer comfort and warm support.`,
+            time: new Date(new Date().setHours(8, 30, 0, 0)),
+            type: 'warning',
+            read: false
+          })
+        } else if (cycleDay >= 11 && cycleDay <= 15) {
+          list.push({
+            id: 'cycle-info-ovulation',
+            title: "Ovulation window active",
+            message: `${partnerName} is in her peak fertility window. Social battery and communication capacity are high!`,
+            time: new Date(new Date().setHours(10, 0, 0, 0)),
+            type: 'success',
+            read: false
+          })
+        } else if (cycleDay >= 1 && cycleDay <= 5) {
+          list.push({
+            id: 'cycle-warning-menstruation',
+            title: "Menstrual phase tracking",
+            message: "Rest and recovery phase is active. Help with household chores, prepare warm beverages, and allow plenty of rest.",
+            time: new Date(new Date().setHours(8, 0, 0, 0)),
+            type: 'warning',
+            read: false
+          })
+        } else {
+          list.push({
+            id: 'cycle-info-follicular',
+            title: "Follicular phase focus",
+            message: `${partnerName} is in her Follicular phase. Energy levels are rising, ideal for cooperative planning.`,
+            time: new Date(new Date().setHours(9, 0, 0, 0)),
+            type: 'info',
+            read: false
+          })
+        }
+
+        // Daily reminder to support/check on partner
+        const hasPartnerLoggedToday = pCycle.symptoms && pCycle.symptoms.length > 0
+        if (!hasPartnerLoggedToday) {
+          list.push({
+            id: 'partner-log-nudge',
+            title: "Supportive check-in reminder",
+            message: `${partnerName} hasn't logged her symptoms for today yet. Ask how she is feeling to maintain accurate cycle insights.`,
+            time: new Date(new Date().setHours(18, 0, 0, 0)),
+            type: 'info',
+            read: false
+          })
+        }
+      }
+
+      // Support Streak Reminder (partner only)
+      if (supportStreak > 0 && settings.notificationsProduct) {
+        list.push({
+          id: 'streak-remainder',
+          title: "Amazing support streak!",
+          message: `You have successfully maintained your partner support streak for ${supportStreak} ${supportStreak === 1 ? 'day' : 'days'}! Keep up the outstanding efforts.`,
+          time: new Date(new Date().setHours(12, 15, 0, 0)),
           type: 'success',
           read: false
         })
-      } else if (cycleDay >= 1 && cycleDay <= 5) {
+      }
+    } else {
+      // ─── LADY NOTIFICATIONS ───
+      if (!data.lastPeriodStart) {
         list.push({
-          id: 'cycle-warning-menstruation',
-          title: "Menstrual phase tracking",
-          message: "Rest and recovery phase is active. Help with household chores, prepare warm beverages, and allow plenty of rest.",
-          time: new Date(new Date().setHours(8, 0, 0, 0)),
-          type: 'warning',
+          id: 'setup-cycle',
+          title: "Setup Cycle Prediction",
+          message: "Unlock personalized predictions, wellness reminders, and health tips by setting your last period start date.",
+          time: new Date(new Date().setHours(9, 0, 0, 0)),
+          type: 'info',
           read: false
         })
-      } else {
+      } else if (settings.notificationsCycleReminders) {
+        const cycleDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
+        
+        if (cycleDay >= 24) {
+          list.push({
+            id: 'cycle-warning-luteal',
+            title: "Period starting soon",
+            message: "Predictive logs show you are approaching your Menstrual phase. Get ready to prioritize rest and wellness.",
+            time: new Date(new Date().setHours(8, 30, 0, 0)),
+            type: 'warning',
+            read: false
+          })
+        } else if (cycleDay >= 11 && cycleDay <= 15) {
+          list.push({
+            id: 'cycle-info-ovulation',
+            title: "Ovulation window active",
+            message: "You are in your peak fertility window. Energy levels and social battery are high!",
+            time: new Date(new Date().setHours(10, 0, 0, 0)),
+            type: 'success',
+            read: false
+          })
+        } else if (cycleDay >= 1 && cycleDay <= 5) {
+          list.push({
+            id: 'cycle-warning-menstruation',
+            title: "Menstrual phase tracking",
+            message: "Your Menstrual phase is active. Focus on rest, recovery, and gentle movement.",
+            time: new Date(new Date().setHours(8, 0, 0, 0)),
+            type: 'warning',
+            read: false
+          })
+        } else {
+          list.push({
+            id: 'cycle-info-follicular',
+            title: "Follicular phase focus",
+            message: "You are in your Follicular phase. Energy levels are rising, ideal for starting new projects.",
+            time: new Date(new Date().setHours(9, 0, 0, 0)),
+            type: 'info',
+            read: false
+          })
+        }
+      }
+
+      // Daily Log Reminder
+      const todayLogged = logs.some(l => l.date === todayStr)
+      if (!todayLogged && settings.notificationsCycleReminders) {
         list.push({
-          id: 'cycle-info-follicular',
-          title: "Follicular phase focus",
-          message: "Your partner is in her Follicular phase. Energy levels are rising, ideal for cooperative planning.",
-          time: new Date(new Date().setHours(9, 0, 0, 0)),
+          id: 'log-remainder',
+          title: "Daily check-in alert",
+          message: "No symptoms or flow levels have been logged for today yet. Take a moment to log body signals to maintain prediction accuracy.",
+          time: new Date(new Date().setHours(18, 0, 0, 0)),
           type: 'info',
           read: false
         })
       }
     }
 
-    // 2. Daily Log Reminder
-    const todayLogged = logs.some(l => l.date === todayStr)
-    if (!todayLogged && settings.notificationsCycleReminders) {
-      list.push({
-        id: 'log-remainder',
-        title: "Daily check-in alert",
-        message: "No symptoms or flow levels have been logged for today yet. Take a moment to log body signals to maintain prediction accuracy.",
-        time: new Date(new Date().setHours(18, 0, 0, 0)),
-        type: 'info',
-        read: false
-      })
-    }
-
-    // 3. Support Streak Reminder
-    if (supportStreak > 0 && settings.notificationsProduct) {
-      list.push({
-        id: 'streak-remainder',
-        title: "Amazing support streak!",
-        message: `You have successfully maintained your partner support streak for ${supportStreak} ${supportStreak === 1 ? 'day' : 'days'}! Keep up the outstanding efforts.`,
-        time: new Date(new Date().setHours(12, 15, 0, 0)),
-        type: 'success',
-        read: false
-      })
-    }
-
     // Sort by time descending
     return list.sort((a, b) => b.time.getTime() - a.time.getTime())
-  }, [data.lastPeriodStart, data.typicalCycleDays, settings.notificationsCycleReminders, settings.notificationsProduct, logs, supportStreak])
+  }, [data.lastPeriodStart, data.typicalCycleDays, settings.notificationsCycleReminders, settings.notificationsProduct, logs, supportStreak, user?.role, partnerStatus])
 
   const handleEmailReminder = async (notif: Notification) => {
     const emailTo = authUser?.username || 'user@example.com'
