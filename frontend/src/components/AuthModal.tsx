@@ -1,8 +1,7 @@
 import { useState } from 'react'
-import { X, Eye, EyeSlash } from '@phosphor-icons/react'
+import { X, Eye, EyeSlash, WarningCircle, CheckCircle, Sparkle } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { getPasswordStrength } from '../lib/passwordStrength'
-import { cn } from '../lib/utils'
 
 type Mode = 'login' | 'register'
 
@@ -20,7 +19,7 @@ export function AuthModal({ open, onClose, onLogin, onRegister, isLoading }: Aut
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [role, setRole] = useState<'lady' | 'partner'>(() => {
+  const [role] = useState<'lady' | 'partner'>(() => {
     const params = new URLSearchParams(window.location.search)
     return params.get('code') ? 'partner' : 'lady'
   })
@@ -110,38 +109,6 @@ export function AuthModal({ open, onClose, onLogin, onRegister, isLoading }: Aut
         <div className={`auth-modal-form ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}>
           {mode === 'register' && (
             <>
-              <div className="w-full flex flex-col gap-1.5 mb-2">
-                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest text-left ml-1">
-                  I want to...
-                </span>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setRole('lady')}
-                    className={cn(
-                      "flex-1 py-3 px-4 rounded-2xl border text-xs font-semibold transition-all cursor-pointer",
-                      role === 'lady'
-                        ? "bg-[var(--mf-accent-soft)] border-[var(--mf-accent-border)] text-[var(--mf-accent)]"
-                        : "bg-muted/30 border-border hover:border-border-strong text-muted-foreground"
-                    )}
-                  >
-                    Track my cycle
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setRole('partner')}
-                    className={cn(
-                      "flex-1 py-3 px-4 rounded-2xl border text-xs font-semibold transition-all cursor-pointer",
-                      role === 'partner'
-                        ? "bg-[var(--mf-accent-soft)] border-[var(--mf-accent-border)] text-[var(--mf-accent)]"
-                        : "bg-muted/30 border-border hover:border-border-strong text-muted-foreground"
-                    )}
-                  >
-                    Support a partner
-                  </button>
-                </div>
-              </div>
-
               <input
                 type="text"
                 placeholder="Your name"
@@ -236,21 +203,24 @@ export function AuthModal({ open, onClose, onLogin, onRegister, isLoading }: Aut
                 const strength = getPasswordStrength(password)
                 if (strength?.label === 'Bad') {
                   return (
-                    <p className="text-[10px] text-muted-foreground leading-normal text-left">
-                      ⚠️ Make it at least 8 characters with numbers or special symbols.
+                    <p className="text-[10px] text-muted-foreground leading-normal text-left flex items-center gap-2">
+                      <WarningCircle size={14} aria-hidden="true" className="text-rose-500" />
+                      <span>Make it at least 8 characters with numbers or special symbols.</span>
                     </p>
                   )
                 }
                 if (strength?.label === 'Good') {
                   return (
-                    <p className="text-[10px] text-muted-foreground leading-normal text-left">
-                      👍 Good! Add uppercase letters and symbols for maximum security.
+                    <p className="text-[10px] text-muted-foreground leading-normal text-left flex items-center gap-2">
+                      <CheckCircle size={14} aria-hidden="true" className="text-amber-500" />
+                      <span>Good! Add uppercase letters and symbols for maximum security.</span>
                     </p>
                   )
                 }
                 return (
-                  <p className="text-[10px] leading-normal font-medium text-emerald-500 dark:text-emerald-400 text-left">
-                    ✨ Excellent! Your account is highly secure.
+                  <p className="text-[10px] leading-normal font-medium text-emerald-500 dark:text-emerald-400 text-left flex items-center gap-2">
+                    <Sparkle size={14} aria-hidden="true" className="text-emerald-500" />
+                    <span>Excellent! Your account is highly secure.</span>
                   </p>
                 )
               })()}

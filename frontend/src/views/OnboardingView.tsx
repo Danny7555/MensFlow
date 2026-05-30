@@ -143,7 +143,11 @@ export function OnboardingView() {
 
     completeOnboarding()
     if (isAuthenticated) {
-      navigate('/dashboard')
+      if (answers.access_level === 'educational') {
+        navigate('/education')
+      } else {
+        navigate('/dashboard')
+      }
     } else {
       openAuthModal()
       navigate('/')

@@ -81,6 +81,12 @@ export function Sidebar({
   const items = rawItems.filter(item => {
     // If onboarding is not completed, only show the chat assistant
     if (!onboardingCompleted && item.id !== 'ask') return false
+    // If user has educational access, restrict dashboard, symptoms, insights, calendar, tracker, tips, sync.
+    // So only keep ask, education, settings, and locked-chats.
+    if (isAuthenticated && user?.accessLevel === 'educational') {
+      const allowedEducationalIds = ['ask', 'education', 'settings', 'locked-chats']
+      if (!allowedEducationalIds.includes(item.id)) return false
+    }
     return true
   })
 
@@ -144,7 +150,7 @@ export function Sidebar({
         </div>
 
         {/* Empathy Widget */}
-        {isAuthenticated && (
+        {isAuthenticated && user?.accessLevel !== 'educational' && (
           <div className={cn("px-4 mb-4 mt-4", collapsed && "px-2 text-center")}>
             <m.div 
               layout

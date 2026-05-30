@@ -24,6 +24,9 @@ export interface IUser {
   partnerCode: string;
   partnerId: string | null;
   role: 'lady' | 'partner';
+  xp: number;
+  quizLastCompletedAt: string;
+  quizCountToday: number;
   createdAt: Date;
 }
 

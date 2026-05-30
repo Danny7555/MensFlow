@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { m, AnimatePresence } from 'framer-motion'
 import type { Variants } from 'framer-motion'
-import { Check, Sparkle, PaperPlaneTilt, LinkSimple, Copy, ArrowRight, Users, ChatCircle } from '@phosphor-icons/react'
+import { Check, Sparkle, PaperPlaneTilt, LinkSimple, Copy, ArrowRight, Users, ChatCircle, Lock } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { PartnerChat } from '../components/dashboard/PartnerChat'
 import { useStore } from '../store/useStore'
@@ -359,7 +359,8 @@ export function SyncView() {
 
             {/* Trust note */}
             <m.p variants={itemVariants} className="text-center text-[10px] text-muted-foreground mt-6">
-              🔒 Your health data is always private. Only aggregated cycle phase info is shared with your partner.
+              <Lock size={12} aria-hidden="true" className="inline-block mr-1" />
+              Your health data is always private. Only aggregated cycle phase info is shared with your partner.
             </m.p>
 
           </div>

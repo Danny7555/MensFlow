@@ -10,6 +10,9 @@ export interface UserDocument extends Document {
   partnerCode: string;
   partnerId: Schema.Types.ObjectId | null;
   role: 'lady' | 'partner';
+  xp: number;
+  quizLastCompletedAt: string;
+  quizCountToday: number;
   createdAt: Date;
 }
 
@@ -24,6 +27,9 @@ const UserSchema = new Schema<UserDocument>(
     partnerCode: { type: String, required: true, unique: true, uppercase: true },
     partnerId: { type: Schema.Types.ObjectId, ref: 'User', default: null },
     role: { type: String, enum: ['lady', 'partner'], default: 'lady' },
+    xp: { type: Number, default: 0 },
+    quizLastCompletedAt: { type: String, default: '' },
+    quizCountToday: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

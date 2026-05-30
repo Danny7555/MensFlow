@@ -1,14 +1,19 @@
 import { useState, useMemo, useEffect } from 'react'
 import { Sparkle } from '@phosphor-icons/react'
-import { HormoneLegend } from './HormoneLegend'
 import { BiologicalSnapshot } from './BiologicalSnapshot'
 import { EmpathySupportGuide } from './EmpathySupportGuide'
 import { useStore } from '../../store/useStore'
 
-const getDayInsight = (activeDay: number) => {
-  if (activeDay <= 5) {
+const getDayInsight = (activeDay: number, cycleLen: number = 28) => {
+  const menstrualEnd = 5
+  const ovulationDay = Math.max(7, cycleLen - 14)
+  const fertileStart = ovulationDay - 4
+  const fertileEnd = ovulationDay + 2
+  const midLutealEnd = cycleLen - 6
+
+  if (activeDay <= menstrualEnd) {
     return {
-      phase: 'Menstrual Phase (Days 1-5)',
+      phase: `Menstrual Phase (Days 1-${menstrualEnd})`,
       estrogen: 'Low (19–83 pg/mL)',
       progesterone: 'Low (<0.1–0.8 ng/mL)',
       accentColor: '#f43f5e',
@@ -16,9 +21,9 @@ const getDayInsight = (activeDay: number) => {
       supportTip: 'Offer a heating pad, prepare warm meals (soups/tea), and prioritize low-key nights in. Do not expect high physical activity.',
     }
   }
-  if (activeDay <= 9) {
+  if (activeDay <= fertileStart - 1) {
     return {
-      phase: 'Early Follicular Phase (Days 6-9)',
+      phase: `Early Follicular Phase (Days ${menstrualEnd + 1}-${fertileStart - 1})`,
       estrogen: 'Rising (83–200 pg/mL)',
       progesterone: 'Low (0.1–0.8 ng/mL)',
       accentColor: '#0d9488',
@@ -26,9 +31,9 @@ const getDayInsight = (activeDay: number) => {
       supportTip: 'Great time to plan social activities, try new dates, or tackle collaborative projects. She is feeling more outgoing!',
     }
   }
-  if (activeDay <= 16) {
+  if (activeDay <= fertileEnd) {
     return {
-      phase: 'Ovulatory Phase / Fertile Window (Days 10-16)',
+      phase: `Ovulatory Phase / Fertile Window (Days ${fertileStart}-${fertileEnd})`,
       estrogen: 'Peak Surge (200–400 pg/mL)',
       progesterone: 'Low to Rising (0.1–1.5 ng/mL)',
       accentColor: '#0ea5e9',
@@ -36,9 +41,9 @@ const getDayInsight = (activeDay: number) => {
       supportTip: 'Compliment her, schedule special romantic date nights, and enjoy her peak social and physical energy window.',
     }
   }
-  if (activeDay <= 22) {
+  if (activeDay <= midLutealEnd) {
     return {
-      phase: 'Mid-Luteal Phase (Days 17-22)',
+      phase: `Mid-Luteal Phase (Days ${fertileEnd + 1}-${midLutealEnd})`,
       estrogen: 'Moderate Second Peak (100–250 pg/mL)',
       progesterone: 'Peak Surge (2.0–25.0 ng/mL)',
       accentColor: '#d97706',
@@ -47,7 +52,7 @@ const getDayInsight = (activeDay: number) => {
     }
   }
   return {
-    phase: 'Late Luteal / PMS Phase (Days 23-28)',
+    phase: `Late Luteal / PMS Phase (Days ${midLutealEnd + 1}-${cycleLen})`,
     estrogen: 'Falling (19–100 pg/mL)',
     progesterone: 'Falling (0.5–5.0 ng/mL)',
     accentColor: '#6b7280',
@@ -63,28 +68,46 @@ export function HormoneWave() {
     ? partnerStatus.cycle
     : ownDashboard
 
+  const cycleLen = data?.typicalCycleDays || 28
+  const ovulationDay = Math.max(7, cycleLen - 14)
+
   const [activeDay, setActiveDay] = useState(14)
 
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!data?.lastPeriodStart) {
-        setActiveDay(1)
+        if (data?.phaseLabel) {
+          const norm = data.phaseLabel.toLowerCase()
+          if (norm.includes('menstrual')) {
+            setActiveDay(3)
+          } else if (norm.includes('follicular')) {
+            setActiveDay(7)
+          } else if (norm.includes('ovulat') || norm.includes('fertile')) {
+            setActiveDay(14)
+          } else if (norm.includes('luteal')) {
+            setActiveDay(20)
+          } else {
+            setActiveDay(1)
+          }
+        } else {
+          setActiveDay(1)
+        }
         return
       }
       const start = new Date(`${data.lastPeriodStart}T12:00:00`)
       if (!Number.isNaN(+start)) {
         const days = Math.floor((Date.now() - +start) / 86400000)
-        const m = ((days % data.typicalCycleDays) + data.typicalCycleDays) % data.typicalCycleDays
+        const m = ((days % cycleLen) + cycleLen) % cycleLen
         setActiveDay(m + 1)
       } else {
         setActiveDay(1)
       }
     }, 0)
     return () => clearTimeout(timer)
-  }, [data?.lastPeriodStart, data?.typicalCycleDays])
+  }, [data?.lastPeriodStart, data?.phaseLabel, cycleLen])
 
   // Phase & Insight information
-  const dayInsight = useMemo(() => getDayInsight(activeDay), [activeDay])
+  const dayInsight = useMemo(() => getDayInsight(activeDay, cycleLen), [activeDay, cycleLen])
 
   return (
     <div className="flo-card p-4 md:p-5 relative overflow-hidden group transition-all duration-500 mb-6 border border-[var(--mf-border)]/60 !shadow-none">
@@ -99,7 +122,7 @@ export function HormoneWave() {
             </div>
             <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--mf-hover)] border border-[var(--mf-border)]">
               <Sparkle size={10} weight="fill" className="text-amber-500" />
-              <span className="text-[9px] md:text-[10px] text-[var(--mf-muted)] font-medium">Interactive Wave</span>
+              <span className="text-[9px] md:text-[10px] text-[var(--mf-muted)] font-medium">Interactive Timeline</span>
             </div>
           </div>
           
@@ -109,11 +132,6 @@ export function HormoneWave() {
           <p className="text-[10.5px] md:text-[11px] text-[var(--mf-muted)] max-w-xl leading-relaxed font-normal">
             <span className="font-medium text-[var(--mf-text-strong)]">Hormone Guide:</span> Estrogen drives physical energy, positive mood, and social confidence. Progesterone promotes physical relaxation and calm, but its drop can trigger premenstrual sensitivity.
           </p>
-        </div>
-
-        {/* Legend */}
-        <div className="shrink-0 pt-0 md:pt-2">
-          <HormoneLegend />
         </div>
       </div>
 
@@ -154,7 +172,7 @@ export function HormoneWave() {
           <div className="flex flex-col gap-0.5">
             <span className="text-[9px] md:text-[10px] font-medium text-[var(--mf-muted)] uppercase tracking-widest">Timeline Position</span>
             <span className="text-xs md:text-sm font-medium text-[var(--mf-text-strong)] flex items-center gap-2">
-              Day {activeDay} of 28
+              Day {activeDay} of {cycleLen}
             </span>
           </div>
           
@@ -176,7 +194,7 @@ export function HormoneWave() {
           <input
             type="range"
             min="1"
-            max="28"
+            max={cycleLen}
             value={activeDay}
             onChange={(e) => setActiveDay(parseInt(e.target.value))}
             className="hormone-range-input w-full cursor-pointer focus:outline-none"
@@ -185,10 +203,10 @@ export function HormoneWave() {
         
         <div className="flex justify-between text-[10px] text-[var(--mf-muted)] px-1 font-normal opacity-60">
           <span>Day 1</span>
-          <span>Day 7</span>
-          <span className="text-[var(--mf-text-strong)] font-medium">Day 14 (Ovulation)</span>
-          <span>Day 21</span>
-          <span>Day 28</span>
+          <span>Day {Math.round(cycleLen * 0.25)}</span>
+          <span className="text-[var(--mf-text-strong)] font-medium">Day {ovulationDay} (Ovulation)</span>
+          <span>Day {Math.round(cycleLen * 0.75)}</span>
+          <span>Day {cycleLen}</span>
         </div>
       </div>
 

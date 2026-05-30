@@ -3854,6 +3854,13 @@
   overflow: hidden;
 }
 
+/* Partner dark mode should have a solid tracker/dashboard background */
+[data-theme='dark'] .partner-theme .dashboard-flo-theme,
+.partner-theme [data-theme='dark'] .dashboard-flo-theme {
+  background: var(--mf-main-bg) !important;
+  background-image: none !important;
+}
+
 .flo-action-btn {
   background: var(--mf-card);
   border: 1px solid rgba(var(--mf-border-rgb, 229, 231, 235), 0.6);

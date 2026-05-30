@@ -42,10 +42,10 @@ function QuickEmpathyBoostCard({ ladyName, isAuthenticated }: QuickEmpathyBoostC
   const [activePing, setActivePing] = useState<string | null>(null)
   
   const options = [
-    { id: 'chocolate', label: 'Bring Chocolate', Icon: Cookie, color: "text-amber-600", message: "I'm on my way home with some sweet treats for you! 🍫" },
-    { id: 'dinner', label: 'Cook Dinner', Icon: CookingPot, color: "text-orange-500", message: "Don't worry about dinner tonight, I've got it covered! 🍳" },
+    { id: 'chocolate', label: 'Bring Chocolate', Icon: Cookie, color: "text-amber-600", message: "I'm on my way home with some sweet treats for you! " },
+    { id: 'dinner', label: 'Cook Dinner', Icon: CookingPot, color: "text-orange-500", message: "Don't worry about dinner tonight, I've got it covered! " },
     { id: 'hug', label: 'Warm Hug', Icon: Heart, color: "text-rose-500", message: "Just wanted to send you a warm hug and remind you I'm here." },
-    { id: 'space', label: 'Give Space', Icon: Moon, color: "text-indigo-400", message: "I'll make sure you have a quiet, peaceful space to rest today. 🤫" },
+    { id: 'space', label: 'Give Space', Icon: Moon, color: "text-indigo-400", message: "I'll make sure you have a quiet, peaceful space to rest today. " },
   ]
 
   const handleSendPing = async (id: string, label: string, message: string) => {

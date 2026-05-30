@@ -332,7 +332,7 @@ function getPartnerTranslation(phaseLabel: string) {
         tips: ["Offer a warm heating pad", "Take over extra chores to allow them to rest", "Be patient with mood fluctuations"],
         gestures: [
           { title: "Comfort note", text: "Hey! I'm thinking of you. Can I bring you some tea or chocolate to help you feel better?", Icon: Heart, color: "text-rose-500" },
-          { title: "Offer heating pad", text: "Hey, let me know if you want me to heat up the pad or run an errand for you today! 🍵", Icon: Coffee, color: "text-amber-600" },
+          { title: "Offer heating pad", text: "Hey, let me know if you want me to heat up the pad or run an errand for you today! ", Icon: Coffee, color: "text-amber-600" },
           { title: "Soup recipe", text: "I'm thinking of making a warm, cozy soup for dinner tonight. Rest up, I've got it handled!", Icon: CookingPot, color: "text-orange-500" }
         ]
       }
@@ -341,8 +341,8 @@ function getPartnerTranslation(phaseLabel: string) {
         desc: "Energy is rising. Great for new ideas.",
         tips: ["Suggest a fun date or activity", "Encourage their new ideas", "Enjoy their increased energy levels"],
         gestures: [
-          { title: "Invite to walk", text: "The weather is nice today! Let's go for a walk or outdoor run after work? 🏃‍♀️", Icon: Sun, color: "text-amber-500" },
-          { title: "Plan weekend date", text: "Since your energy is up, let's plan a fun date night or weekend outing! Any places you've been wanting to try? 🌟", Icon: Calendar, color: "text-teal-500" },
+          { title: "Invite to walk", text: "The weather is nice today! Let's go for a walk or outdoor run after work? ‍♀️", Icon: Sun, color: "text-amber-500" },
+          { title: "Plan weekend date", text: "Since your energy is up, let's plan a fun date night or weekend outing! Any places you've been wanting to try? ", Icon: Calendar, color: "text-teal-500" },
           { title: "Encourage ideas", text: "Hey, let's look into that new creative idea you mentioned. I'd love to help you design it!", Icon: Lightbulb, color: "text-yellow-500" }
         ]
       }
@@ -351,7 +351,7 @@ function getPartnerTranslation(phaseLabel: string) {
         desc: "Hormones are peaking. They are likely feeling their most confident and energetic.",
         tips: ["Compliment them, they are feeling confident", "Great time for social events", "Communicate openly about intimacy"],
         gestures: [
-          { title: "Date night dinner", text: "You are absolutely glowing lately. Let me take you out to a nice dinner tonight! 🕯️", Icon: Martini, color: "text-indigo-500" },
+          { title: "Date night dinner", text: "You are absolutely glowing lately. Let me take you out to a nice dinner tonight! ️", Icon: Martini, color: "text-indigo-500" },
           { title: "Sweet message", text: "Just wanted to say I love you and I'm so lucky to have you. Hope you have a wonderful day!", Icon: Heart, color: "text-rose-500" },
           { title: "Bring flowers", text: "I'm stopping by the store on my way home, bringing something nice for you!", Icon: Flower, color: "text-pink-500" }
         ]
@@ -362,7 +362,7 @@ function getPartnerTranslation(phaseLabel: string) {
         desc: "Progesterone is rising. Their body temperature is slightly higher, and they may experience lower energy levels and heightened cravings.",
         tips: ["Keep the bedroom cool tonight", "Offer a magnesium-rich snack", "Give them space to unwind and relax"],
         gestures: [
-          { title: "Cozy night in", text: "Let's just stay in tonight, order some takeout and watch a movie. You deserve to relax! 🍿", Icon: Popcorn, color: "text-amber-600" },
+          { title: "Cozy night in", text: "Let's just stay in tonight, order some takeout and watch a movie. You deserve to relax! ", Icon: Popcorn, color: "text-amber-600" },
           { title: "Take over dinner", text: "Don't worry about any chores or dinner tonight, I'll take care of all of it. Just put your feet up!", Icon: CookingPot, color: "text-orange-500" },
           { title: "Ask how to help", text: "I know this phase can be a bit overwhelming. Let me know how I can make your day easier!", Icon: Question, color: "text-teal-500" }
         ]

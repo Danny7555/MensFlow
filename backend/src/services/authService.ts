@@ -57,6 +57,9 @@ export async function registerUser(
       partnerCode: user.partnerCode,
       partnerId: null,
       role: user.role,
+      xp: user.xp || 0,
+      quizLastCompletedAt: user.quizLastCompletedAt || '',
+      quizCountToday: user.quizCountToday || 0,
     },
   };
 }
@@ -89,6 +92,9 @@ export async function loginUser(
       partnerCode: user.partnerCode,
       partnerId: user.partnerId ? String(user.partnerId) : null,
       role: user.role,
+      xp: user.xp || 0,
+      quizLastCompletedAt: user.quizLastCompletedAt || '',
+      quizCountToday: user.quizCountToday || 0,
     },
   };
 }

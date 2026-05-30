@@ -170,7 +170,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         store.fetchPartnerStatus()
       ]).catch((err) => console.error('Failed to load user logs/status', err))
 
-      navigate(profile.user.isOnboarded ? '/dashboard' : '/onboarding')
+      navigate(profile.user.isOnboarded ? (profile.user.accessLevel === 'educational' ? '/education' : '/dashboard') : '/onboarding')
     } catch (err) {
       setState(prev => ({ ...prev, isLoading: false }))
       throw err
@@ -253,7 +253,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         store.fetchPartnerStatus()
       ]).catch((err) => console.error('Failed to load user logs/status', err))
 
-      navigate(profile.user.isOnboarded ? '/dashboard' : '/onboarding')
+      navigate(profile.user.isOnboarded ? (profile.user.accessLevel === 'educational' ? '/education' : '/dashboard') : '/onboarding')
     } catch (err) {
       setState(prev => ({ ...prev, isLoading: false }))
       throw err

@@ -69,6 +69,22 @@ export async function sendMessage(
   text: string,
   passcode?: string
 ): Promise<{ userMessage: IChatMessage; assistantMessage: IChatMessage }> {
+  const user = await User.findById(userId).lean();
+  if (!user) {
+    throw httpError('User not found', 404);
+  }
+
+  // Enforce message limit for users with < 500 XP
+  if ((user.xp || 0) < 500) {
+    const userMsgCount = await ChatMessage.countDocuments({ userId, role: 'user' });
+    if (userMsgCount >= 5) {
+      throw httpError(
+        `Chat limit reached. You have used your 5 free messages. Complete daily quizzes to reach 500 XP and unlock unlimited AI assistant access! (Current XP: ${user.xp || 0}/500)`,
+        403
+      );
+    }
+  }
+
   const meta = await ChatMessage.findOne({ userId, sessionId }).lean();
 
   const isLocked = meta?.isLocked ?? false;

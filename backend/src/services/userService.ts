@@ -36,6 +36,9 @@ export async function getUserProfile(
       partnerCode: user.partnerCode,
       partnerId: user.partnerId ? String(user.partnerId) : null,
       role: user.role,
+      xp: user.xp || 0,
+      quizLastCompletedAt: user.quizLastCompletedAt || '',
+      quizCountToday: user.quizCountToday || 0,
     },
     settings: toSettings(settings),
     dashboard: toDashboard(dashboard),
@@ -65,6 +68,62 @@ export async function updateUserProfile(
     partnerCode: user.partnerCode,
     partnerId: user.partnerId ? String(user.partnerId) : null,
     role: user.role,
+    xp: user.xp || 0,
+    quizLastCompletedAt: user.quizLastCompletedAt || '',
+    quizCountToday: user.quizCountToday || 0,
+  };
+}
+
+export async function submitQuizAttempt(
+  userId: string,
+  date: string,
+  correct: boolean
+): Promise<Partial<IUser>> {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw Object.assign(new Error('User not found'), { status: 404 });
+  }
+
+  // Check and reset daily quiz count if it's a new day
+  let quizCountToday = user.quizCountToday || 0;
+  if (user.quizLastCompletedAt !== date) {
+    quizCountToday = 0;
+  }
+
+  if (quizCountToday >= 2) {
+    throw Object.assign(new Error('You have already taken your 2 daily quizzes today. Please try again tomorrow!'), { status: 400 });
+  }
+
+  const xpToAdd = correct ? 50 : 0;
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
+    {
+      $inc: { xp: xpToAdd },
+      $set: {
+        quizLastCompletedAt: date,
+        quizCountToday: quizCountToday + 1,
+      }
+    },
+    { new: true, lean: true }
+  );
+
+  if (!updatedUser) {
+    throw Object.assign(new Error('User not found'), { status: 404 });
+  }
+
+  return {
+    id: String(updatedUser._id),
+    username: updatedUser.username,
+    name: updatedUser.name,
+    avatar: updatedUser.avatar,
+    accessLevel: updatedUser.accessLevel,
+    isOnboarded: !!updatedUser.isOnboarded,
+    partnerCode: updatedUser.partnerCode,
+    partnerId: updatedUser.partnerId ? String(updatedUser.partnerId) : null,
+    role: updatedUser.role,
+    xp: updatedUser.xp || 0,
+    quizLastCompletedAt: updatedUser.quizLastCompletedAt || '',
+    quizCountToday: updatedUser.quizCountToday || 0,
   };
 }
 

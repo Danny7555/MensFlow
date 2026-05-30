@@ -2,6 +2,7 @@ import { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AuthRequest, JwtPayload } from '../interfaces';
 import { getJwtSecret } from '../config/env';
+import { User } from '../models/User';
 
 export function authenticate(req: AuthRequest, res: Response, next: NextFunction): void {
   const authHeader = req.header('Authorization');
@@ -28,5 +29,26 @@ export function authenticate(req: AuthRequest, res: Response, next: NextFunction
     next();
   } catch {
     res.status(401).json({ error: 'Token is invalid or expired' });
+  }
+}
+
+export async function requireFullAccess(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    if (!req.user?.id) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+    const user = await User.findById(req.user.id).lean();
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+    if (user.accessLevel !== 'full') {
+      res.status(403).json({ error: 'This feature requires Full Access. Please upgrade your profile access level.' });
+      return;
+    }
+    next();
+  } catch (err) {
+    next(err);
   }
 }

@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
+import { WarningCircle } from '@phosphor-icons/react'
 
 interface Props {
   children: ReactNode
@@ -35,7 +36,9 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="error-boundary-root">
           <div className="error-boundary-card">
-            <div className="error-boundary-icon">⚠️</div>
+            <div className="error-boundary-icon">
+              <WarningCircle size={36} weight="duotone" />
+            </div>
             <h1 className="error-boundary-title">Something went wrong</h1>
             <p className="error-boundary-message">
               An unexpected error occurred. You can try refreshing the page or returning to the dashboard.

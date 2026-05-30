@@ -6,6 +6,7 @@ import {
   CaretDown, 
   CaretRight, 
   Info,
+  Flask,
 } from '@phosphor-icons/react'
 import { format, addDays, startOfDay, differenceInCalendarDays, parseISO } from 'date-fns'
 import { toast } from 'sonner'
@@ -311,7 +312,7 @@ export function CycleTrackerHero({
               <div className="flex justify-center gap-2 mt-1 mb-2 animate-in fade-in duration-300">
                 {activeLog.lhLevel !== undefined && activeLog.lhLevel !== null && (
                   <span className="text-[10px] font-medium bg-[#e07a5f]/15 text-[#e07a5f] border border-[#e07a5f]/25 px-2 py-0.5 rounded-full flex items-center gap-1 capitalize">
-                    <span>🧪</span>
+                    <Flask size={12} className="text-[#e07a5f]" aria-hidden="true" />
                     <span>LH: {activeLog.lhLevel}</span>
                   </span>
                 )}

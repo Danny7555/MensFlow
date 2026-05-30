@@ -99,3 +99,22 @@ export async function updateDashboard(req: AuthRequest, res: Response, next: Nex
     next(err);
   }
 }
+
+export async function addUserXp(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const body = objectRecord(req.body);
+    const date = optionalIsoDate(body, 'date');
+    if (date === undefined) {
+      throw Object.assign(new Error('date is required'), { status: 400 });
+    }
+    const correct = optionalBoolean(body, 'correct');
+    if (correct === undefined) {
+      throw Object.assign(new Error('correct is required'), { status: 400 });
+    }
+
+    const user = await userService.submitQuizAttempt(req.user!.id, date, correct);
+    res.json({ success: true, user });
+  } catch (err) {
+    next(err);
+  }
+}

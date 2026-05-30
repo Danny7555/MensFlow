@@ -25,13 +25,16 @@ export type AppUser = {
   role?: 'lady' | 'partner'
   partnerCode?: string
   partnerId?: string | null
+  xp?: number
+  quizLastCompletedAt?: string
+  quizCountToday?: number
 }
 
 interface AppState {
   dashboard: DashboardSnapshot
   settings: MensFlowSettings
   logs: SymptomLog[]
-  user: { name: string; avatar?: string | null; accessLevel?: 'full' | 'educational'; isOnboarded?: boolean; role?: 'lady' | 'partner'; partnerCode?: string; partnerId?: string | null }
+  user: { name: string; avatar?: string | null; accessLevel?: 'full' | 'educational'; isOnboarded?: boolean; role?: 'lady' | 'partner'; partnerCode?: string; partnerId?: string | null; xp?: number; quizLastCompletedAt?: string; quizCountToday?: number }
   customSymptoms: SymptomDef[]
   isSaving: boolean
   completedActions: string[]
@@ -122,9 +125,10 @@ interface AppState {
   }
   showAlert: (options: { title: string; description: string }) => void
   closeAlert: () => void
+  submitQuizAttemptAction: (date: string, correct: boolean) => Promise<void>
 }
 
-const DEFAULT_USER = { name: '', avatar: null, accessLevel: 'full' as const, isOnboarded: false, role: 'lady' as const, partnerCode: '', partnerId: null }
+const DEFAULT_USER = { name: '', avatar: null, accessLevel: 'full' as const, isOnboarded: false, role: 'lady' as const, partnerCode: '', partnerId: null, xp: 0, quizLastCompletedAt: '', quizCountToday: 0 }
 
 export const useStore = create<AppState>()((set, get) => ({
   dashboard: DEFAULT_DASHBOARD,
@@ -199,6 +203,9 @@ export const useStore = create<AppState>()((set, get) => ({
         role: user.role,
         partnerCode: user.partnerCode,
         partnerId: user.partnerId,
+        xp: user.xp || 0,
+        quizLastCompletedAt: user.quizLastCompletedAt || '',
+        quizCountToday: user.quizCountToday || 0,
       },
       settings: {
         ...DEFAULT_SETTINGS,
@@ -310,6 +317,9 @@ export const useStore = create<AppState>()((set, get) => ({
             role: updated.role,
             partnerCode: updated.partnerCode,
             partnerId: updated.partnerId,
+            xp: updated.xp || 0,
+            quizLastCompletedAt: updated.quizLastCompletedAt || '',
+            quizCountToday: updated.quizCountToday || 0,
           },
         }))
       } else {
@@ -611,6 +621,45 @@ export const useStore = create<AppState>()((set, get) => ({
       localStorage.setItem('mensflow_guest_pending_access_request', 'true')
       window.dispatchEvent(new Event('storage'))
       toast.success("Access request sent! Your partner will receive a notification to enable detailed sharing.")
+    }
+  },
+
+  submitQuizAttemptAction: async (date: string, correct: boolean) => {
+    set({ isSaving: true })
+    try {
+      if (isLoggedIn()) {
+        const result = await userApi.submitQuizAttempt(date, correct)
+        set((state) => ({
+          user: {
+            ...state.user,
+            xp: result.user.xp,
+            quizLastCompletedAt: result.user.quizLastCompletedAt,
+            quizCountToday: result.user.quizCountToday,
+          },
+        }))
+      } else {
+        set((state) => {
+          let count = state.user.quizCountToday || 0
+          if (state.user.quizLastCompletedAt !== date) {
+            count = 0
+          }
+          if (count >= 2) return state
+          const xpToAdd = correct ? 50 : 0
+          return {
+            user: {
+              ...state.user,
+              xp: (state.user.xp || 0) + xpToAdd,
+              quizLastCompletedAt: date,
+              quizCountToday: count + 1,
+            },
+          }
+        })
+      }
+    } catch (err: unknown) {
+      console.error('Failed to submit quiz attempt:', err)
+      toast.error(err instanceof Error ? err.message : 'Failed to submit quiz attempt')
+    } finally {
+      set({ isSaving: false })
     }
   },
 }))

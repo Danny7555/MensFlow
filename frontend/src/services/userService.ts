@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { get, put } from '../lib/apiClient'
+import { get, post, put } from '../lib/apiClient'
 import { isLoggedIn } from '../lib/auth-token'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -14,6 +14,9 @@ export type ApiUser = {
   partnerCode: string
   partnerId: string | null
   role: 'lady' | 'partner'
+  xp: number
+  quizLastCompletedAt: string
+  quizCountToday: number
 }
 
 export type ApiSettings = {
@@ -68,6 +71,9 @@ export const userApi = {
 
   updateDashboard: (patch: Partial<ApiDashboard>) =>
     put<ApiDashboard>('/user/dashboard', patch),
+
+  submitQuizAttempt: (date: string, correct: boolean) =>
+    post<{ success: boolean; user: ApiUser }>('/user/xp', { date, correct }),
 }
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────

@@ -10,7 +10,7 @@ import { useAuth } from './context/useAuth'
 import { useStore } from './store/useStore'
 import { Header } from './components/Header'
 import { Sidebar } from './components/Sidebar'
-import { House, Target, Heartbeat, Bell, UserCircle } from '@phosphor-icons/react'
+import { House, Target, Heartbeat, Bell, UserCircle, BookOpen, ChatCircle } from '@phosphor-icons/react'
 import { useMediaQuery } from './hooks/useMediaQuery'
 import { PageLoader } from './components/skeletons/PageLoader'
 import { AccessGate } from './components/AccessGate'
@@ -143,7 +143,13 @@ function MainShell() {
                   <>
                     <Route 
                       path="/" 
-                      element={!onboardingCompleted ? <Navigate to="/onboarding" replace /> : <Navigate to="/dashboard" replace />} 
+                      element={
+                        !onboardingCompleted 
+                          ? <Navigate to="/onboarding" replace /> 
+                          : (user?.accessLevel === 'educational' 
+                              ? <Navigate to="/education" replace /> 
+                              : <Navigate to="/dashboard" replace />)
+                      } 
                     />
                     <Route path="/onboarding" element={<OnboardingView />} />
                     <Route path="/dashboard" element={<AccessGate><DashboardView /></AccessGate>} />
@@ -170,38 +176,66 @@ function MainShell() {
         </LazyMotion>
         {!location.pathname.startsWith('/onboarding') && isAuthenticated && isMobile && (
           <nav className="flo-bottom-nav">
-            <button 
-              className={cn("flo-nav-item", location.pathname === '/dashboard' && "flo-nav-item--active")}
-              onClick={() => navigate('/dashboard')}
-            >
-              <House size={24} weight={location.pathname === '/dashboard' ? "fill" : "regular"} />
-              <span className="flo-nav-label">Home</span>
-            </button>
-            <button className="flo-nav-item" onClick={() => navigate('/insights')}>
-              <Target size={24} />
-              <span className="flo-nav-label">Insights</span>
-            </button>
-            <button 
-              className={cn("flo-nav-item", location.pathname === '/wellness-tips' && "flo-nav-item--active")}
-              onClick={() => navigate('/wellness-tips')}
-            >
-              <Heartbeat size={24} weight={location.pathname === '/wellness-tips' ? "fill" : "light"} />
-              <span className="flo-nav-label">Wellness</span>
-            </button>
-            <button 
-              className={cn("flo-nav-item", location.pathname === '/notifications' && "flo-nav-item--active")}
-              onClick={() => navigate('/notifications')}
-            >
-              <Bell size={24} weight={location.pathname === '/notifications' ? "fill" : "light"} />
-              <span className="flo-nav-label">Alerts</span>
-            </button>
-            <button 
-              className={cn("flo-nav-item", location.pathname === '/settings' && "flo-nav-item--active")}
-              onClick={() => navigate('/settings')}
-            >
-              <UserCircle size={24} weight={location.pathname === '/settings' ? "fill" : "light"} />
-              <span className="flo-nav-label">Profile</span>
-            </button>
+            {user?.accessLevel === 'educational' ? (
+              <>
+                <button 
+                  className={cn("flo-nav-item", location.pathname === '/education' && "flo-nav-item--active")}
+                  onClick={() => navigate('/education')}
+                >
+                  <BookOpen size={24} weight={location.pathname === '/education' ? "fill" : "regular"} />
+                  <span className="flo-nav-label">Education</span>
+                </button>
+                <button 
+                  className={cn("flo-nav-item", location.pathname === '/ask' && "flo-nav-item--active")}
+                  onClick={() => navigate('/ask')}
+                >
+                  <ChatCircle size={24} weight={location.pathname === '/ask' ? "fill" : "regular"} />
+                  <span className="flo-nav-label">Ask AI</span>
+                </button>
+                <button 
+                  className={cn("flo-nav-item", location.pathname === '/settings' && "flo-nav-item--active")}
+                  onClick={() => navigate('/settings')}
+                >
+                  <UserCircle size={24} weight={location.pathname === '/settings' ? "fill" : "light"} />
+                  <span className="flo-nav-label">Profile</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <button 
+                  className={cn("flo-nav-item", location.pathname === '/dashboard' && "flo-nav-item--active")}
+                  onClick={() => navigate('/dashboard')}
+                >
+                  <House size={24} weight={location.pathname === '/dashboard' ? "fill" : "regular"} />
+                  <span className="flo-nav-label">Home</span>
+                </button>
+                <button className="flo-nav-item" onClick={() => navigate('/insights')}>
+                  <Target size={24} />
+                  <span className="flo-nav-label">Insights</span>
+                </button>
+                <button 
+                  className={cn("flo-nav-item", location.pathname === '/wellness-tips' && "flo-nav-item--active")}
+                  onClick={() => navigate('/wellness-tips')}
+                >
+                  <Heartbeat size={24} weight={location.pathname === '/wellness-tips' ? "fill" : "light"} />
+                  <span className="flo-nav-label">Wellness</span>
+                </button>
+                <button 
+                  className={cn("flo-nav-item", location.pathname === '/notifications' && "flo-nav-item--active")}
+                  onClick={() => navigate('/notifications')}
+                >
+                  <Bell size={24} weight={location.pathname === '/notifications' ? "fill" : "light"} />
+                  <span className="flo-nav-label">Alerts</span>
+                </button>
+                <button 
+                  className={cn("flo-nav-item", location.pathname === '/settings' && "flo-nav-item--active")}
+                  onClick={() => navigate('/settings')}
+                >
+                  <UserCircle size={24} weight={location.pathname === '/settings' ? "fill" : "light"} />
+                  <span className="flo-nav-label">Profile</span>
+                </button>
+              </>
+            )}
           </nav>
         )}
       </div>

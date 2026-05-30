@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
+import { WarningCircle, Plug, X } from '@phosphor-icons/react'
 import { queryClient } from '../lib/queryClient'
 import { ApiError } from '../lib/apiClient'
 
@@ -66,8 +67,8 @@ export function QueryErrorToast() {
           className={`mf-toast mf-toast--${toast.variant}`}
           role="alert"
         >
-          <span className="mf-toast-icon">
-            {toast.variant === 'error' ? '⚠️' : '🔌'}
+          <span className="mf-toast-icon" aria-hidden="true">
+            {toast.variant === 'error' ? <WarningCircle size={18} weight="bold" /> : <Plug size={18} weight="bold" />}
           </span>
           <div className="mf-toast-body">
             <p className="mf-toast-title">{toast.title}</p>
@@ -78,7 +79,7 @@ export function QueryErrorToast() {
             onClick={() => dismiss(toast.id)}
             aria-label="Dismiss notification"
           >
-            ✕
+            <X size={16} weight="bold" />
           </button>
         </div>
       ))}
