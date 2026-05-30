@@ -30,6 +30,7 @@ export type MensFlowSettings = {
   cycleAvgLengthDays: number
   cycleShowFertileWindow: boolean
   privacyShareCycleDetails: boolean
+  privacyPendingAccessRequest: boolean
 }
 
 export const DEFAULT_SETTINGS: MensFlowSettings = {
@@ -57,4 +58,5 @@ export const DEFAULT_SETTINGS: MensFlowSettings = {
   cycleAvgLengthDays: 28,
   cycleShowFertileWindow: true,
   privacyShareCycleDetails: true,
+  privacyPendingAccessRequest: false,
 }

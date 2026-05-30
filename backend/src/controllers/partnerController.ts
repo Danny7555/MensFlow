@@ -79,3 +79,12 @@ export async function toggleAction(req: AuthRequest, res: Response, next: NextFu
     next(err);
   }
 }
+
+export async function requestDetailedAccess(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    await partnerService.requestDetailedAccess(req.user!.id);
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+}
