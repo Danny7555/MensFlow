@@ -104,7 +104,7 @@ export function InsightsView() {
 
       {user?.role === 'partner' ? (
         <m.div variants={itemVariants} className="insights-section mt-8">
-          <div className="bg-card border border-border p-8 rounded-3xl text-center max-w-[500px] mx-auto flex flex-col items-center">
+          <div className="bg-card border border-border p-6 sm:p-8 rounded-3xl text-center w-full max-w-[500px] mx-auto flex flex-col items-center">
             <div className="size-16 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center mb-6">
               <ShieldCheck size={32} className="text-[var(--mf-accent)]" />
             </div>

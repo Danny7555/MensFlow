@@ -815,7 +815,7 @@ export function DashboardView() {
                 </div>
 
                 {showRestrictedView && (
-                  <div className="p-6 rounded-[2rem] bg-gradient-to-br from-teal-500/5 via-[var(--mf-composer-bg)] to-[var(--mf-composer-bg)] border border-[var(--mf-border)] text-center space-y-4 flex flex-col items-center">
+                  <div className="p-5 sm:p-6 rounded-[2rem] bg-gradient-to-br from-teal-500/5 via-[var(--mf-composer-bg)] to-[var(--mf-composer-bg)] border border-[var(--mf-border)] text-center w-full space-y-4 flex flex-col items-center">
                     <div className="size-10 rounded-xl bg-teal-500/10 flex items-center justify-center mx-auto text-teal-500">
                       <Users size={20} weight="bold" />
                     </div>
