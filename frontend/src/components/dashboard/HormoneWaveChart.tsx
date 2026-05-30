@@ -144,34 +144,6 @@ export function HormoneWaveChart({ activeDay, setActiveDay, accentColor }: Hormo
         aria-label="Interactive hormone wave chart"
         tabIndex={0}
       >
-        <defs>
-          <linearGradient id="estrogenGrad" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#ff6b8b" />
-            <stop offset="100%" stopColor="#e11d48" />
-          </linearGradient>
-          <linearGradient id="progesteroneGrad" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#8b5cf6" />
-            <stop offset="100%" stopColor="#4f46e5" />
-          </linearGradient>
-          <linearGradient id="estrogenAreaGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#ff6b8b" stopOpacity="0.1" />
-            <stop offset="100%" stopColor="#ff6b8b" stopOpacity="0.0" />
-          </linearGradient>
-          <linearGradient id="progesteroneAreaGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.1" />
-            <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.0" />
-          </linearGradient>
-        </defs>
-
-        {/* Background Phase Columns */}
-        <g opacity="0.03" className="transition-all duration-300 pointer-events-none">
-          <rect x="0" y="0" width="148" height="195" fill="#f43f5e" />
-          <rect x="148" y="0" width="148" height="195" fill="#0d9488" />
-          <rect x="296" y="0" width="259" height="195" fill="#0ea5e9" />
-          <rect x="555" y="0" width="222" height="195" fill="#d97706" />
-          <rect x="777" y="0" width="223" height="195" fill="#6b7280" />
-        </g>
-
         {/* Phase boundary dashed separator lines */}
         <g opacity="0.15" stroke="var(--mf-text)" strokeWidth="1" strokeDasharray="3,3" className="pointer-events-none">
           <line x1="148" y1="0" x2="148" y2="195" />
@@ -196,25 +168,13 @@ export function HormoneWaveChart({ activeDay, setActiveDay, accentColor }: Hormo
           <text x="888" y="212" textAnchor="middle">Days 23-28: PMS Phase</text>
         </g>
 
-        {/* Translucent Area Fills */}
-        <path
-          d={`${ESTROGEN_PATH} L 1000 225 L 0 225 Z`}
-          fill="url(#estrogenAreaGrad)"
-          className="pointer-events-none"
-        />
-        <path
-          d={`${PROGESTERONE_PATH} L 1000 225 L 0 225 Z`}
-          fill="url(#progesteroneAreaGrad)"
-          className="pointer-events-none"
-        />
-
         {/* Estrogen Ribbon */}
         <path
           ref={estrogenPathRef}
           d={ESTROGEN_PATH}
           fill="none"
-          stroke="url(#estrogenGrad)"
-          strokeWidth="2"
+          stroke="#ec4899"
+          strokeWidth="3.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
@@ -223,8 +183,8 @@ export function HormoneWaveChart({ activeDay, setActiveDay, accentColor }: Hormo
           ref={progesteronePathRef}
           d={PROGESTERONE_PATH}
           fill="none"
-          stroke="url(#progesteroneGrad)"
-          strokeWidth="2"
+          stroke="#8b5cf6"
+          strokeWidth="3.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />

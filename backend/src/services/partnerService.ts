@@ -5,6 +5,7 @@ import { SymptomLog } from '../models/Symptom';
 import { Settings } from '../models/Settings';
 import { IPartnerPing, IPartnerChatMessage } from '../interfaces';
 import { httpError } from '../utils/http';
+import { generateUniquePartnerCode } from './authService';
 
 
 // ─── Pairing ─────────────────────────────────────────────────────────────────
@@ -63,10 +64,25 @@ export async function invitePartner(
 
 export async function disconnectPartner(userId: string): Promise<void> {
   const user = await User.findById(userId);
-  if (user?.partnerId) {
-    await User.findByIdAndUpdate(user.partnerId, { partnerId: null });
+  if (!user) return;
+
+  const partnerId = user.partnerId;
+
+  // Generate a new code for the disconnecting user
+  const newCodeForUser = await generateUniquePartnerCode();
+  await User.findByIdAndUpdate(userId, { 
+    partnerId: null,
+    partnerCode: newCodeForUser
+  });
+
+  // If there was a partner, disconnect them and regenerate their code too
+  if (partnerId) {
+    const newCodeForPartner = await generateUniquePartnerCode();
+    await User.findByIdAndUpdate(partnerId, { 
+      partnerId: null,
+      partnerCode: newCodeForPartner
+    });
   }
-  await User.findByIdAndUpdate(userId, { partnerId: null });
 }
 
 // ─── Partner Status ──────────────────────────────────────────────────────────

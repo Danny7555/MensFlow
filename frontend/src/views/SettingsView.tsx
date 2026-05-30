@@ -2,7 +2,6 @@ import type { ComponentType, ReactNode } from 'react'
 import { useState, useEffect } from 'react'
 import { useStore } from '../store/useStore'
 import { SettingsSkeleton } from '../components/skeletons/SettingsSkeleton'
-import { m } from 'framer-motion'
 import {
   ArrowCounterClockwise,
   Bell,
@@ -31,6 +30,13 @@ import {
   DialogFooter
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { useQueryState, parseAsStringLiteral } from 'nuqs'
 import type {
   AccentPreset,
@@ -96,17 +102,18 @@ function SelectRow({
           <p className="settings-field-desc">{description}</p>
         )}
       </div>
-      <select
-        className="settings-select"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      >
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger className="settings-select flex items-center justify-between bg-none shadow-none min-w-[150px] h-9 pr-2 pl-3 cursor-pointer">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="rounded-xl border border-border bg-card">
+          {options.map((o) => (
+            <SelectItem key={o.value} value={o.value}>
+              {o.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   )
 }
@@ -888,32 +895,39 @@ function LockChatSetupModal({
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-xs font-medium uppercase text-muted-foreground">Select a question</label>
-                <select 
-                  className="w-full h-11 px-3 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-1 focus:ring-[var(--mf-accent)] outline-none text-sm"
+                <Select
                   value={questionId}
-                  onChange={(e) => {
-                    setQuestionId(e.target.value)
+                  onValueChange={(val) => {
+                    setQuestionId(val)
                     setAnswer('')
                   }}
                 >
-                  {SECURITY_QUESTIONS.map(q => (
-                    <option key={q.id} value={q.id}>{q.label}</option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-full h-11 px-3 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-1 focus:ring-[var(--mf-accent)] outline-none text-sm text-left flex items-center justify-between">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border border-border bg-card">
+                    {SECURITY_QUESTIONS.map(q => (
+                      <SelectItem key={q.id} value={q.id}>{q.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-medium uppercase text-muted-foreground">Your Answer</label>
                 {activeQuestion.type === 'select' ? (
-                  <select 
-                    className="w-full h-11 px-3 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-1 focus:ring-[var(--mf-accent)] outline-none text-sm"
+                  <Select
                     value={answer}
-                    onChange={(e) => setAnswer(e.target.value)}
+                    onValueChange={setAnswer}
                   >
-                    <option value="" disabled>Select an answer...</option>
-                    {activeQuestion.options?.map(opt => (
-                      <option key={opt} value={opt}>{opt}</option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-full h-11 px-3 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-1 focus:ring-[var(--mf-accent)] outline-none text-sm text-left flex items-center justify-between">
+                      <SelectValue placeholder="Select an answer..." />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border border-border bg-card">
+                      {activeQuestion.options?.map(opt => (
+                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 ) : (
                   <input 
                     type="text"
@@ -1289,10 +1303,7 @@ export function SettingsView({
   )
   const { settings, updateSettings, resetSettings, user, updateUser, resetStore, showConfirm } = useStore()
 
-  const [isSwitchingRole, setIsSwitchingRole] = useState(false)
-
   const handleRoleChange = async (newRole: 'lady' | 'partner') => {
-    setIsSwitchingRole(true)
     const toastId = toast.loading("Reconfiguring workspace perspective...")
     try {
       await updateUser({ role: newRole })
@@ -1306,8 +1317,6 @@ export function SettingsView({
       })
     } catch (err) {
       toast.error("Failed to switch role.", { id: toastId })
-    } finally {
-      setIsSwitchingRole(false)
     }
   }
 
@@ -1502,25 +1511,6 @@ export function SettingsView({
         <h2 className="settings-panel-heading">{panelTitle}</h2>
         <div className="settings-panel-body">{panel}</div>
       </div>
-
-      {isSwitchingRole && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex flex-col items-center justify-center z-50 animate-in fade-in duration-300">
-          <div className="bg-[var(--mf-card)] border border-[var(--mf-border)] rounded-[2.5rem] p-8 max-w-sm text-center space-y-4 shadow-2xl">
-            <div className="size-16 rounded-full bg-[var(--mf-accent)]/10 flex items-center justify-center text-[var(--mf-accent)] mx-auto">
-              <m.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
-              >
-                <Sparkle size={32} weight="bold" />
-              </m.div>
-            </div>
-            <h3 className="text-lg font-semibold text-[var(--mf-text-strong)]">Reconfiguring App Role</h3>
-            <p className="text-xs text-[var(--mf-muted)] leading-relaxed">
-              Switching dashboard perspective and preparing your custom workspace...
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

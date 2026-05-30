@@ -1143,15 +1143,22 @@
   --mf-accent-hover: #5eead4;
   --mf-accent-soft: rgba(45, 212, 191, 0.15);
   --mf-accent-border: rgba(45, 212, 191, 0.35);
-  --mf-main-bg: #091211;
-  --mf-sidebar-bg: #0b1716;
-  --mf-elevated: #0f211f;
-  --mf-card: #0b1716;
-  --mf-card-rgb: 11, 23, 22;
-  --mf-composer-bg: #0f211f;
-  --mf-border: #142e2a;
-  --mf-border-strong: #1b423c;
+  --mf-main-bg: #1a1318;
+  --mf-sidebar-bg: #1f161d;
+  --mf-elevated: #251a22;
+  --mf-card: #1f161d;
+  --mf-card-rgb: 31, 22, 29;
+  --mf-composer-bg: #251a22;
+  --mf-border: #362430;
+  --mf-border-rgb: 54, 36, 48;
+  --mf-border-strong: #4f3547;
   --mf-hover: rgba(45, 212, 191, 0.08);
   --mf-active: rgba(45, 212, 191, 0.15);
   --mf-ring: rgba(45, 212, 191, 0.45);
+}
+
+/* Make partner dashboard background solid dark in dark mode */
+[data-theme='dark'] .partner-theme .dashboard-flo-theme,
+.partner-theme[data-theme='dark'] .dashboard-flo-theme {
+  background: var(--mf-main-bg) !important;
 }
