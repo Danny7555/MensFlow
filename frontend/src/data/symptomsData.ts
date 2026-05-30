@@ -24,6 +24,22 @@ export const SYMPTOM_DEFS: SymptomDef[] = [
   { id: 'phys-tender', label: 'Breast tenderness', category: 'Physical' },
   { id: 'phys-acne', label: 'Acne', category: 'Physical' },
 
+  // Specialized Condition Symptoms
+  // PCOS Niche
+  { id: 'pcos-hirsutism', label: 'Excess Hair Growth', category: 'Physical' },
+  { id: 'pcos-oily', label: 'Oily Skin', category: 'Physical' },
+  { id: 'pcos-hairloss', label: 'Hair Thinning', category: 'Physical' },
+  
+  // Endometriosis Niche
+  { id: 'endo-pelvicpain', label: 'Severe Pelvic Pain', category: 'Physical' },
+  { id: 'endo-painsex', label: 'Painful Intercourse', category: 'Physical' },
+  { id: 'endo-backache', label: 'Lower Back Pain', category: 'Physical' },
+  
+  // Perimenopause Niche
+  { id: 'peri-hotflash', label: 'Hot Flashes', category: 'Physical' },
+  { id: 'peri-nightsweat', label: 'Night Sweats', category: 'Physical' },
+  { id: 'peri-brainfog', label: 'Brain Fog', category: 'Mood' },
+
   { id: 'life-sleep', label: 'Sleep Quality', category: 'Lifestyle' },
   { id: 'life-bbt', label: 'BBT Logged', category: 'Lifestyle' },
   { id: 'life-sex', label: 'Sexual Activity', category: 'Lifestyle' },

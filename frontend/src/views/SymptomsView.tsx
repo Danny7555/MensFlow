@@ -2,17 +2,23 @@ import { useMemo, useState, useEffect } from 'react'
 import { 
   Pill, Pulse, Drop, DropHalf, DropSimple, 
   Smiley, SmileyWink, SmileyXEyes, SmileySad, Fire, 
-  Brain, Waves, Moon, HandHeart, Sparkle,
+  Brain, Waves, Moon, HandHeart, Sparkle, Flask, PencilSimple,
 } from '@phosphor-icons/react'
 import { format } from 'date-fns'
 import { cn } from '../lib/utils'
 import { SYMPTOM_DEFS } from '../data/symptomsData'
-import type { SymptomCategory } from '../data/symptomsData'
+import type { SymptomCategory, SymptomDef } from '../data/symptomsData'
 import { SymptomsChart } from '../components/SymptomsChart'
 import { CycleLengthChart } from '../components/tracker/CycleLengthChart'
 import { useStore } from '../store/useStore'
 import { TrackerSkeleton } from '../components/skeletons/TrackerSkeleton'
-import { toast } from 'sonner'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 const SYMPTOM_ICONS: Record<string, React.ElementType> = {
   'flow-light': DropSimple,
@@ -29,6 +35,15 @@ const SYMPTOM_ICONS: Record<string, React.ElementType> = {
   'phys-fatigue': Moon,
   'phys-tender': HandHeart,
   'phys-acne': Sparkle,
+  'pcos-hirsutism': Sparkle,
+  'pcos-oily': Waves,
+  'pcos-hairloss': Moon,
+  'endo-pelvicpain': Pulse,
+  'endo-painsex': HandHeart,
+  'endo-backache': Brain,
+  'peri-hotflash': Fire,
+  'peri-nightsweat': Waves,
+  'peri-brainfog': Brain,
 }
 
 function SymptomCategoryList({ 
@@ -37,16 +52,18 @@ function SymptomCategoryList({
   activeSymptoms, 
   toggleSymptom,
   isSaving,
-  readOnly = false
+  readOnly = false,
+  availableSymptoms
 }: { 
   category: SymptomCategory, 
   IconComponent: React.ElementType, 
   activeSymptoms: Set<string>, 
   toggleSymptom: (id: string) => void,
   isSaving: boolean,
-  readOnly?: boolean
+  readOnly?: boolean,
+  availableSymptoms: SymptomDef[]
 }) {
-  const items = SYMPTOM_DEFS.filter((s) => s.category === category)
+  const items = availableSymptoms.filter((s) => s.category === category)
   if (items.length === 0) return null
 
   return (
@@ -131,13 +148,13 @@ function SymptomCategoryList({
 }
 
 export function SymptomsView() {
-  const { addLog, getLogForDate, isSaving, user, partnerStatus } = useStore()
+  const { addLog, getLogForDate, isSaving, user, partnerStatus, requestDetailedAccessAction, customSymptoms, settings } = useStore()
   const [isLoading, setIsLoading] = useState(true)
   const [requestSent, setRequestSent] = useState(false)
 
-  const handleRequestAccess = () => {
+  const handleRequestAccess = async () => {
     setRequestSent(true)
-    toast.success("Access request sent! Your partner will receive a notification to enable detailed sharing.")
+    await requestDetailedAccessAction()
   }
 
   useEffect(() => {
@@ -150,6 +167,15 @@ export function SymptomsView() {
   const todayKey = useMemo(() => format(new Date(), 'yyyy-MM-dd'), [])
 
   const currentLog = getLogForDate(todayKey)
+
+  const availableSymptoms = useMemo(() => {
+    return [...SYMPTOM_DEFS, ...customSymptoms].filter(s => {
+      if (s.id.startsWith('pcos-') && settings.conditionOptimization !== 'pcos') return false;
+      if (s.id.startsWith('endo-') && settings.conditionOptimization !== 'endometriosis') return false;
+      if (s.id.startsWith('peri-') && settings.conditionOptimization !== 'perimenopause') return false;
+      return true;
+    });
+  }, [customSymptoms, settings.conditionOptimization]);
   const isPartner = user?.role === 'partner'
 
   const activeSymptoms = useMemo(() => {
@@ -172,7 +198,7 @@ export function SymptomsView() {
     const next = new Set(activeSymptoms)
     if (next.has(id)) next.delete(id)
     else next.add(id)
-    await addLog(todayKey, Array.from(next))
+    await addLog(todayKey, Array.from(next), currentLog?.lhLevel ?? null, currentLog?.mucus ?? null)
   }
 
   return (
@@ -205,6 +231,116 @@ export function SymptomsView() {
         </p>
       </header>
 
+      {/* Symptothermal NFP Indicators Panel */}
+      <section className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-normal tracking-tight text-foreground">
+            Symptothermal NFP Indicators
+          </h2>
+          <span className="text-[9px] font-normal uppercase tracking-[0.2em] bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] px-3 py-1 rounded-full border border-[var(--mf-accent)]/20">
+            Evidence-Based NFP
+          </span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* LH Ovulation Test Card */}
+          <div className="dash-panel p-6 flex flex-col justify-between">
+            <div className="flex items-start justify-between w-full">
+              <div className="space-y-1 flex-1">
+                <span className="text-[10px] font-normal uppercase tracking-[0.1em] text-muted-foreground block">LH Ovulation Test</span>
+                {isPartner ? (
+                  <h4 className="text-2xl font-normal text-[var(--mf-text-strong)] capitalize mt-1">
+                    {partnerStatus?.cycle?.lhLevel ? partnerStatus.cycle.lhLevel : 'Not logged'}
+                  </h4>
+                ) : (
+                  <div className="mt-1">
+                    <Select
+                      value={currentLog?.lhLevel ?? "not-logged"}
+                      onValueChange={async (value) => {
+                        const val = value === "not-logged" ? null : value;
+                        await addLog(todayKey, currentLog?.symptoms ?? [], val, currentLog?.mucus ?? null);
+                      }}
+                    >
+                      <SelectTrigger 
+                        title={currentLog?.lhLevel && currentLog.lhLevel !== 'not-logged' ? "Click to edit LH result" : "Click to select LH result"}
+                        className={cn(
+                          "border-none p-0 bg-transparent hover:bg-transparent h-auto focus-visible:ring-0 focus:ring-0 flex items-center gap-1 cursor-pointer text-left shadow-none outline-none focus-visible:ring-offset-0 focus:ring-offset-0 select-none data-[placeholder]:text-muted-foreground group/trigger",
+                          (currentLog?.lhLevel && currentLog.lhLevel !== 'not-logged') 
+                            ? "text-2xl font-normal text-[var(--mf-text-strong)] hover:text-[var(--mf-accent)] transition-colors capitalize [&_svg]:hidden border-b border-dashed border-muted-foreground/30 hover:border-[var(--mf-accent)]/50 pb-0.5" 
+                            : "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-normal border border-border/50 hover:bg-muted/20 text-muted-foreground transition-colors [&_svg]:hidden"
+                        )}
+                      >
+                        <SelectValue placeholder="➕ Not logged" />
+                        {(currentLog?.lhLevel && currentLog.lhLevel !== 'not-logged') && (
+                          <PencilSimple size={14} className="opacity-60 group-hover/trigger:opacity-100 transition-opacity text-muted-foreground group-hover/trigger:text-[var(--mf-accent)] shrink-0 ml-1.5" />
+                        )}
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border border-border bg-card">
+                        <SelectItem value="not-logged" className="text-muted-foreground">➕ Not logged</SelectItem>
+                        <SelectItem value="negative">Negative</SelectItem>
+                        <SelectItem value="positive">Positive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+              <div className="size-10 rounded-2xl bg-pink-500/10 flex items-center justify-center shrink-0">
+                <Flask size={22} className="text-pink-500" />
+              </div>
+            </div>
+          </div>
+
+          {/* Cervical Mucus Card */}
+          <div className="dash-panel p-6 flex flex-col justify-between">
+            <div className="flex items-start justify-between w-full">
+              <div className="space-y-1 flex-1">
+                <span className="text-[10px] font-normal uppercase tracking-[0.1em] text-muted-foreground block">Cervical Mucus Consistency</span>
+                {isPartner ? (
+                  <h4 className="text-2xl font-normal text-[var(--mf-text-strong)] capitalize mt-1">
+                    {partnerStatus?.cycle?.mucus ? partnerStatus.cycle.mucus.replace('-', ' ') : 'Not logged'}
+                  </h4>
+                ) : (
+                  <div className="mt-1">
+                    <Select
+                      value={currentLog?.mucus ?? "not-logged"}
+                      onValueChange={async (value) => {
+                        const val = value === "not-logged" ? null : value;
+                        await addLog(todayKey, currentLog?.symptoms ?? [], currentLog?.lhLevel ?? null, val);
+                      }}
+                    >
+                      <SelectTrigger 
+                        title={currentLog?.mucus && currentLog.mucus !== 'not-logged' ? "Click to edit cervical mucus" : "Click to select consistency"}
+                        className={cn(
+                          "border-none p-0 bg-transparent hover:bg-transparent h-auto focus-visible:ring-0 focus:ring-0 flex items-center gap-1 cursor-pointer text-left shadow-none outline-none focus-visible:ring-offset-0 focus:ring-offset-0 select-none data-[placeholder]:text-muted-foreground group/trigger",
+                          (currentLog?.mucus && currentLog.mucus !== 'not-logged') 
+                            ? "text-2xl font-normal text-[var(--mf-text-strong)] hover:text-[var(--mf-accent)] transition-colors capitalize [&_svg]:hidden border-b border-dashed border-muted-foreground/30 hover:border-[var(--mf-accent)]/50 pb-0.5" 
+                            : "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-normal border border-border/50 hover:bg-muted/20 text-muted-foreground transition-colors [&_svg]:hidden"
+                        )}
+                      >
+                        <SelectValue placeholder="➕ Not logged" />
+                        {(currentLog?.mucus && currentLog.mucus !== 'not-logged') && (
+                          <PencilSimple size={14} className="opacity-60 group-hover/trigger:opacity-100 transition-opacity text-muted-foreground group-hover/trigger:text-[var(--mf-accent)] shrink-0 ml-1.5" />
+                        )}
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border border-border bg-card">
+                        <SelectItem value="not-logged" className="text-muted-foreground">➕ Not logged</SelectItem>
+                        <SelectItem value="dry">Dry</SelectItem>
+                        <SelectItem value="sticky">Sticky</SelectItem>
+                        <SelectItem value="creamy">Creamy</SelectItem>
+                        <SelectItem value="egg-white">Egg White (Fertile)</SelectItem>
+                        <SelectItem value="watery">Watery</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+              <div className="size-10 flex items-center justify-center shrink-0">
+                <img src="/images/water.png" alt="" className="size-8 object-contain" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section aria-labelledby="today-log-title" className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 id="today-log-title" className="text-lg font-normal tracking-tight text-foreground">
@@ -234,7 +370,7 @@ export function SymptomsView() {
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                   {['Flow', 'Mood', 'Physical'].map((cat) => {
-                    const catSymptoms = SYMPTOM_DEFS.filter(
+                    const catSymptoms = [...SYMPTOM_DEFS, ...customSymptoms].filter(
                       (s) => s.category === cat && activeSymptoms.has(s.id)
                     )
                     if (catSymptoms.length === 0) return null
@@ -291,9 +427,9 @@ export function SymptomsView() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <SymptomCategoryList category="Physical" IconComponent={Pulse} activeSymptoms={activeSymptoms} toggleSymptom={toggleSymptom} isSaving={isSaving} readOnly={isPartner} />
-            <SymptomCategoryList category="Mood" IconComponent={Pill} activeSymptoms={activeSymptoms} toggleSymptom={toggleSymptom} isSaving={isSaving} readOnly={isPartner} />
-            <SymptomCategoryList category="Flow" IconComponent={Drop} activeSymptoms={activeSymptoms} toggleSymptom={toggleSymptom} isSaving={isSaving} readOnly={isPartner} />
+            <SymptomCategoryList category="Physical" IconComponent={Pulse} activeSymptoms={activeSymptoms} toggleSymptom={toggleSymptom} isSaving={isSaving} readOnly={isPartner} availableSymptoms={availableSymptoms} />
+            <SymptomCategoryList category="Mood" IconComponent={Pill} activeSymptoms={activeSymptoms} toggleSymptom={toggleSymptom} isSaving={isSaving} readOnly={isPartner} availableSymptoms={availableSymptoms} />
+            <SymptomCategoryList category="Flow" IconComponent={Drop} activeSymptoms={activeSymptoms} toggleSymptom={toggleSymptom} isSaving={isSaving} readOnly={isPartner} availableSymptoms={availableSymptoms} />
           </div>
         )}
       </section>

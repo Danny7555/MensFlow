@@ -41,12 +41,12 @@ const itemVariants: Variants = {
 export function InsightsView() {
   const { isAuthenticated, openAuthModal } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
-  const { logs, customSymptoms, user } = useStore()
+  const { logs, customSymptoms, user, requestDetailedAccessAction } = useStore()
   const [requestSent, setRequestSent] = useState(false)
 
-  const handleRequestAccess = () => {
+  const handleRequestAccess = async () => {
     setRequestSent(true)
-    toast.success("Access request sent! Your partner will receive a notification to enable detailed sharing.")
+    await requestDetailedAccessAction()
   }
 
   useEffect(() => {

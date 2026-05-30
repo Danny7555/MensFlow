@@ -13,6 +13,7 @@ interface CycleWheelProps {
   fertileEnd: number;
   upcomingStart: number;
   upcomingEnd: number;
+  fertileColor?: string;
   onSelectDay: (day: number) => void;
   onHoverDay: (day: number | null) => void;
 }
@@ -46,6 +47,7 @@ export function CycleWheel({
   fertileEnd,
   upcomingStart,
   upcomingEnd,
+  fertileColor,
   onSelectDay,
   onHoverDay,
 }: CycleWheelProps) {
@@ -156,7 +158,7 @@ export function CycleWheel({
         <path
           d={fertilePath}
           fill="none"
-          stroke="#26899e"
+          stroke={fertileColor ?? "#26899e"}
           strokeWidth="6"
           strokeLinecap="round"
           opacity={activeDay >= fertileStart && activeDay <= fertileEnd ? 1 : 0.8}

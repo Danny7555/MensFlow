@@ -9,6 +9,8 @@ export type ApiSymptomLog = {
   symptoms: string[]
   water?: number
   weight?: number
+  lhLevel?: string | null
+  mucus?: string | null
 }
 
 export type ApiCustomSymptom = {
@@ -23,8 +25,8 @@ export const logsApi = {
   getAll: () =>
     get<ApiSymptomLog[]>('/logs'),
 
-  upsert: (date: string, symptoms?: string[], water?: number, weight?: number) =>
-    post<ApiSymptomLog>('/logs', { date, symptoms, water, weight }),
+  upsert: (date: string, symptoms?: string[], water?: number, weight?: number, lhLevel?: string | null, mucus?: string | null) =>
+    post<ApiSymptomLog>('/logs', { date, symptoms, water, weight, lhLevel, mucus }),
 
   clearAll: () =>
     del<{ success: boolean }>('/logs'),

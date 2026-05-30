@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { Bell, CaretLeft, CheckCircle, Info, WarningCircle, EnvelopeSimple, Flame, Sliders } from "@phosphor-icons/react"
 import { useNavigate } from "react-router-dom"
 import { format } from "date-fns"
@@ -58,6 +58,60 @@ export function NotificationsView() {
   const [alertPermission, setAlertPermission] = useState<NotificationPermission>(
     typeof Notification !== 'undefined' ? Notification.permission : 'default'
   )
+
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [guestRequest, setGuestRequest] = useState(
+    localStorage.getItem('mensflow_guest_pending_access_request') === 'true'
+  )
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setGuestRequest(localStorage.getItem('mensflow_guest_pending_access_request') === 'true')
+    }
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
+  }, [])
+
+  const isPendingRequest = user?.role === 'lady' && (
+    settings.privacyPendingAccessRequest || guestRequest
+  )
+
+  const handleApproveRequest = async () => {
+    setIsProcessing(true)
+    try {
+      if (guestRequest) {
+        localStorage.removeItem('mensflow_guest_pending_access_request')
+        setGuestRequest(false)
+        window.dispatchEvent(new Event('storage'))
+        await updateSettings({ privacyShareCycleDetails: true })
+      } else {
+        await updateSettings({ privacyShareCycleDetails: true, privacyPendingAccessRequest: false })
+      }
+      toast.success("Access granted! Your partner can now view detailed cycle metrics.")
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to approve request.")
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  const handleDeclineRequest = async () => {
+    setIsProcessing(true)
+    try {
+      if (guestRequest) {
+        localStorage.removeItem('mensflow_guest_pending_access_request')
+        setGuestRequest(false)
+        window.dispatchEvent(new Event('storage'))
+      } else {
+        await updateSettings({ privacyPendingAccessRequest: false })
+      }
+      toast.success("Access request declined.")
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to decline request.")
+    } finally {
+      setIsProcessing(false)
+    }
+  }
 
   const requestNotificationPermission = async () => {
     if (typeof Notification === 'undefined') {
@@ -318,6 +372,40 @@ export function NotificationsView() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           {/* Left Column: Notification list */}
           <div className="lg:col-span-2 flex flex-col gap-4">
+            {isPendingRequest && (
+              <div className="p-6 rounded-[24px] border-2 border-pink-500/30 bg-pink-500/5 backdrop-blur-md flex flex-col md:flex-row gap-4 justify-between items-start md:items-center animate-in fade-in slide-in-from-top-3 duration-300 mb-2">
+                <div className="flex gap-4 items-start">
+                  <div className="size-12 rounded-full bg-pink-500/10 text-pink-500 flex items-center justify-center shrink-0">
+                    <Bell size={24} weight="fill" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-base text-[var(--mf-text-strong)] mb-1">
+                      Detailed Cycle Access Requested
+                    </h3>
+                    <p className="text-xs md:text-sm text-[var(--mf-muted)] leading-relaxed max-w-xl">
+                      {partnerStatus?.partner?.name || 'Your partner'} is requesting permission to view your cycle metrics, logs, and analytics. Do you want to share your detailed data?
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 shrink-0 self-stretch md:self-auto justify-end">
+                  <button
+                    onClick={handleDeclineRequest}
+                    disabled={isProcessing}
+                    className="px-4 py-2 text-xs font-semibold rounded-xl bg-[var(--mf-hover)] hover:bg-[var(--mf-active)] text-[var(--mf-text-strong)] transition-all cursor-pointer disabled:opacity-50 active-squish"
+                  >
+                    Decline
+                  </button>
+                  <button
+                    onClick={handleApproveRequest}
+                    disabled={isProcessing}
+                    className="px-5 py-2 text-xs font-semibold rounded-xl bg-pink-500 hover:bg-pink-600 text-white shadow-lg shadow-pink-500/20 hover:shadow-pink-500/35 transition-all cursor-pointer disabled:opacity-50 active-squish"
+                  >
+                    Approve & Share
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs uppercase font-semibold text-[var(--mf-muted)] tracking-wider">
                 History

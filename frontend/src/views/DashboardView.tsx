@@ -240,7 +240,7 @@ function TourTooltip({
 }
 
 export function DashboardView() {
-  const { dashboard: ownDashboard, partnerStatus, fetchPartnerStatus, updateDashboard: update, isSaving, user, pairPartner } = useStore()
+  const { dashboard: ownDashboard, partnerStatus, fetchPartnerStatus, updateDashboard: update, isSaving, user, pairPartner, requestDetailedAccessAction, settings } = useStore()
   const { logout, isAuthenticated, openAuthModal } = useAuth()
   const { data: dailyGuidance } = useDailyGuidance()
 
@@ -248,9 +248,9 @@ export function DashboardView() {
   const [isDashboardPairing, setIsDashboardPairing] = useState(false)
   const [requestSent, setRequestSent] = useState(false)
 
-  const handleRequestAccess = () => {
+  const handleRequestAccess = async () => {
     setRequestSent(true)
-    toast.success("Access request sent! Your partner will receive a notification to enable detailed sharing.")
+    await requestDetailedAccessAction()
   }
 
   const [isMobile, setIsMobile] = useState(false)
@@ -698,7 +698,7 @@ export function DashboardView() {
       <main className="flo-main-container pb-32 px-4 md:px-0 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
         <div className="flo-content-inner">
           <div className="flo-dashboard-top mb-6 md:mb-8">
-            <StoriesSection />
+            {!settings.hideDailyStoriesAndTips && <StoriesSection />}
           </div>
 
           {/* Pairing Alert Banner */}
@@ -760,14 +760,16 @@ export function DashboardView() {
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 md:gap-8 w-full min-w-0">
               {/* Left Column: Primary Empathy & Playbook Tools */}
               <div className="flex flex-col gap-6 md:gap-8 min-w-0">
-                <div className="w-full min-w-0">
-                  <DailyTipCard
-                    phaseLabel={phase}
-                    tipCompleted={tipCompleted}
-                    setTipCompleted={setTipCompleted}
-                    aiTip={aiTip}
-                  />
-                </div>
+                {!settings.hideDailyStoriesAndTips && (
+                  <div className="w-full min-w-0">
+                    <DailyTipCard
+                      phaseLabel={phase}
+                      tipCompleted={tipCompleted}
+                      setTipCompleted={setTipCompleted}
+                      aiTip={aiTip}
+                    />
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 min-w-0">
                   <ConnectionChecklistCard />
@@ -854,14 +856,16 @@ export function DashboardView() {
                 </section>
 
                 <div className="flo-today-plan flex flex-col gap-6 md:gap-8 w-full min-w-0">
-                  <div className="w-full min-w-0">
-                    <DailyTipCard
-                      phaseLabel={phase}
-                      tipCompleted={tipCompleted}
-                      setTipCompleted={setTipCompleted}
-                      aiTip={aiTip}
-                    />
-                  </div>
+                  {!settings.hideDailyStoriesAndTips && (
+                    <div className="w-full min-w-0">
+                      <DailyTipCard
+                        phaseLabel={phase}
+                        tipCompleted={tipCompleted}
+                        setTipCompleted={setTipCompleted}
+                        aiTip={aiTip}
+                      />
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 min-w-0">
                     <PrimaryInsightCard 

@@ -621,6 +621,7 @@ Make sure to generate:
 1. One interesting "scientificInsight" starting with "Did you know?".
 2. One action-oriented "dailyTip" with a concise title and details on how the partner can support them today.
 3. Three highly specific "wellnessTips" (one category of nutrition, movement, rest, or mind per tip) matching this cycle phase or Any phase.
+4.Don't answer questions outside menstrual health related questions
 Return ONLY valid JSON. No markdown backticks, no wrapping other than the JSON object itself, no comments.`;
 
   try {

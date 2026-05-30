@@ -124,6 +124,11 @@ function toSettings(settings: SettingsDocument): ISettings {
     cycleAvgLengthDays: settings.cycleAvgLengthDays,
     cycleShowFertileWindow: settings.cycleShowFertileWindow,
     privacyShareCycleDetails: settings.privacyShareCycleDetails,
+    privacyPendingAccessRequest: settings.privacyPendingAccessRequest,
+    privacyStrictLocalOnly: settings.privacyStrictLocalOnly,
+    conditionOptimization: settings.conditionOptimization,
+    disableAIPopups: settings.disableAIPopups,
+    hideDailyStoriesAndTips: settings.hideDailyStoriesAndTips,
   };
 }
 

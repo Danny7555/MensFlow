@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { format } from "date-fns"
 import { useStore } from "@/store/useStore"
 import { SYMPTOM_DEFS, type SymptomDef } from "@/data/symptomsData"
@@ -115,11 +115,21 @@ function QuizOption({ text, selected, showResult, correct, onClick }: QuizOption
 
 export function SymptomLogger() {
   const { addLog, getLogForDate, isSaving, customSymptoms } = useStore()
+  const [showAll, setShowAll] = useState(false)
   const todayDate = format(new Date(), 'yyyy-MM-dd')
   const existingLog = getLogForDate(todayDate)
   const currentSymptoms = existingLog ? existingLog.symptoms : []
 
   const checkInSymptoms = [...SYMPTOM_DEFS, ...customSymptoms].filter(sym => sym.category !== 'Flow')
+
+  const displayedSymptoms = useMemo(() => {
+    if (showAll) return checkInSymptoms
+    // Always keep active/logged symptoms visible first, then pad with inactive ones up to a limit of 12
+    const active = checkInSymptoms.filter(sym => currentSymptoms.includes(sym.id))
+    const inactive = checkInSymptoms.filter(sym => !currentSymptoms.includes(sym.id))
+    const combined = [...active, ...inactive]
+    return combined.slice(0, 12)
+  }, [checkInSymptoms, currentSymptoms, showAll])
 
   const toggleSymptom = async (id: string, label: string) => {
     if (isSaving) return
@@ -145,11 +155,20 @@ export function SymptomLogger() {
       <div>
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-lg font-normal text-[var(--mf-text-strong)] tracking-tight">How is your day going?</h3>
+          {checkInSymptoms.length > 12 && (
+            <button 
+              type="button"
+              onClick={() => setShowAll(!showAll)}
+              className="text-xs text-[var(--mf-accent)] hover:underline cursor-pointer font-normal border-none bg-transparent p-0 outline-none"
+            >
+              {showAll ? "Show less" : "See all"}
+            </button>
+          )}
         </div>
         <p className="text-xs text-muted-foreground mb-5">Tap to record your current symptoms or moods instantly. Your daily trends will update automatically.</p>
 
         <div className="flex flex-wrap justify-start gap-3 pb-4">
-          {checkInSymptoms.map((sym) => (
+          {displayedSymptoms.map((sym) => (
             <div key={sym.id} className="flex-none">
               <SymptomBubble
                 sym={sym}

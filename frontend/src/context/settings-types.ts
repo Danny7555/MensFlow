@@ -31,6 +31,10 @@ export type MensFlowSettings = {
   cycleShowFertileWindow: boolean
   privacyShareCycleDetails: boolean
   privacyPendingAccessRequest: boolean
+  privacyStrictLocalOnly: boolean
+  conditionOptimization: 'none' | 'pcos' | 'endometriosis' | 'perimenopause'
+  disableAIPopups: boolean
+  hideDailyStoriesAndTips: boolean
 }
 
 export const DEFAULT_SETTINGS: MensFlowSettings = {
@@ -59,4 +63,8 @@ export const DEFAULT_SETTINGS: MensFlowSettings = {
   cycleShowFertileWindow: true,
   privacyShareCycleDetails: true,
   privacyPendingAccessRequest: false,
+  privacyStrictLocalOnly: false,
+  conditionOptimization: 'none',
+  disableAIPopups: false,
+  hideDailyStoriesAndTips: false,
 }

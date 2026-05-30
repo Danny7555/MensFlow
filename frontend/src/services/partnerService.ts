@@ -20,6 +20,10 @@ export type ApiPartnerStatus = {
     hormoneTrend: string
     bodySignals: string
     symptoms?: string[]
+    water?: number
+    weight?: number
+    bbt?: number | null
+    mucus?: string | null
     cycleVariationDays?: number
     isAtypical?: boolean
     scientificInsight?: string
@@ -56,6 +60,9 @@ export const partnerApi = {
 
   disconnect: () =>
     post<{ success: boolean }>('/partner/disconnect', {}),
+
+  requestAccess: () =>
+    post<{ success: boolean }>('/partner/request-access', {}),
 
   sendPing: (pingId: string, label: string, message: string) =>
     post<{ success: boolean; ping: ApiPing }>('/partner/ping', { pingId, label, message }),

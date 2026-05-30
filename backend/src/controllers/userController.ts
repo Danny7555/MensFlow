@@ -65,6 +65,10 @@ export async function updateSettings(req: AuthRequest, res: Response, next: Next
       cycleShowFertileWindow: optionalBoolean(body, 'cycleShowFertileWindow'),
       privacyShareCycleDetails: optionalBoolean(body, 'privacyShareCycleDetails'),
       privacyPendingAccessRequest: optionalBoolean(body, 'privacyPendingAccessRequest'),
+      privacyStrictLocalOnly: optionalBoolean(body, 'privacyStrictLocalOnly'),
+      conditionOptimization: optionalOneOf(body, 'conditionOptimization', ['none', 'pcos', 'endometriosis', 'perimenopause'] as const),
+      disableAIPopups: optionalBoolean(body, 'disableAIPopups'),
+      hideDailyStoriesAndTips: optionalBoolean(body, 'hideDailyStoriesAndTips'),
     });
 
     const settings = await userService.updateUserSettings(req.user!.id, patch);

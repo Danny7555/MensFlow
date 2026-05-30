@@ -3,15 +3,14 @@ import { Sparkle } from '@phosphor-icons/react'
 import { HormoneLegend } from './HormoneLegend'
 import { BiologicalSnapshot } from './BiologicalSnapshot'
 import { EmpathySupportGuide } from './EmpathySupportGuide'
-import { HormoneWaveChart } from './HormoneWaveChart'
 import { useStore } from '../../store/useStore'
 
 const getDayInsight = (activeDay: number) => {
   if (activeDay <= 5) {
     return {
       phase: 'Menstrual Phase (Days 1-5)',
-      estrogen: 'Low',
-      progesterone: 'Low',
+      estrogen: 'Low (19–83 pg/mL)',
+      progesterone: 'Low (<0.1–0.8 ng/mL)',
       accentColor: '#f43f5e',
       description: 'Her body is shedding the uterine lining. Energy is naturally at its lowest.',
       supportTip: 'Offer a heating pad, prepare warm meals (soups/tea), and prioritize low-key nights in. Do not expect high physical activity.',
@@ -20,8 +19,8 @@ const getDayInsight = (activeDay: number) => {
   if (activeDay <= 9) {
     return {
       phase: 'Early Follicular Phase (Days 6-9)',
-      estrogen: 'Rising steadily',
-      progesterone: 'Low',
+      estrogen: 'Rising (83–200 pg/mL)',
+      progesterone: 'Low (0.1–0.8 ng/mL)',
       accentColor: '#0d9488',
       description: 'Estrogen is climbing, boosting her energy, mood, and cognitive sharpness.',
       supportTip: 'Great time to plan social activities, try new dates, or tackle collaborative projects. She is feeling more outgoing!',
@@ -30,8 +29,8 @@ const getDayInsight = (activeDay: number) => {
   if (activeDay <= 16) {
     return {
       phase: 'Ovulatory Phase / Fertile Window (Days 10-16)',
-      estrogen: 'Peaking high',
-      progesterone: 'Low but starting to rise',
+      estrogen: 'Peak Surge (200–400 pg/mL)',
+      progesterone: 'Low to Rising (0.1–1.5 ng/mL)',
       accentColor: '#0ea5e9',
       description: 'Estrogen reaches its highest peak. She is in her fertile window and likely feels high confidence.',
       supportTip: 'Compliment her, schedule special romantic date nights, and enjoy her peak social and physical energy window.',
@@ -40,8 +39,8 @@ const getDayInsight = (activeDay: number) => {
   if (activeDay <= 22) {
     return {
       phase: 'Mid-Luteal Phase (Days 17-22)',
-      estrogen: 'Moderate second peak',
-      progesterone: 'Peaking high',
+      estrogen: 'Moderate Second Peak (100–250 pg/mL)',
+      progesterone: 'Peak Surge (2.0–25.0 ng/mL)',
       accentColor: '#d97706',
       description: 'Progesterone is peaking, which can make her feel calm, nesty, or slightly sleepy.',
       supportTip: 'Keep things cozy at home. Cook a comfort meal together. Understand if she prefers a quiet night over going out.',
@@ -49,8 +48,8 @@ const getDayInsight = (activeDay: number) => {
   }
   return {
     phase: 'Late Luteal / PMS Phase (Days 23-28)',
-    estrogen: 'Crashing low',
-    progesterone: 'Crashing low',
+    estrogen: 'Falling (19–100 pg/mL)',
+    progesterone: 'Falling (0.5–5.0 ng/mL)',
     accentColor: '#6b7280',
     description: 'Hormones drop sharply. This sudden shift often triggers fatigue, cravings, and mood fluctuations.',
     supportTip: 'Be extra patient. Bring her favorite snacks (like dark chocolate), handle chores without asking, and avoid starting heavy arguments.',
@@ -116,15 +115,6 @@ export function HormoneWave() {
         <div className="shrink-0 pt-0 md:pt-2">
           <HormoneLegend />
         </div>
-      </div>
-
-      {/* SVG Waves Container */}
-      <div className="relative mb-4 bg-[var(--mf-hover)]/20 rounded-2xl p-1.5 border border-[var(--mf-border)]/30 transition-all duration-500">
-        <HormoneWaveChart
-          activeDay={activeDay}
-          setActiveDay={setActiveDay}
-          accentColor={dayInsight.accentColor}
-        />
       </div>
 
       {/* Scrub Slider */}

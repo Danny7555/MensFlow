@@ -55,6 +55,10 @@ export interface ISettings {
   cycleShowFertileWindow: boolean;
   privacyShareCycleDetails: boolean;
   privacyPendingAccessRequest: boolean;
+  privacyStrictLocalOnly: boolean;
+  conditionOptimization: 'none' | 'pcos' | 'endometriosis' | 'perimenopause';
+  disableAIPopups: boolean;
+  hideDailyStoriesAndTips: boolean;
 }
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────
@@ -85,6 +89,8 @@ export interface ISymptomLog {
   symptoms: string[];
   water?: number;
   weight?: number;
+  lhLevel?: string | null;
+  mucus?: string | null;
 }
 
 // ─── Custom Symptom ──────────────────────────────────────────────────────────

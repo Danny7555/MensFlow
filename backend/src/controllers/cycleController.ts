@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../interfaces';
 import * as cycleService from '../services/cycleService';
-import { assertObjectId, isoDate, objectRecord, requiredString, stringArray, optionalNumber } from '../utils/validation';
+import { assertObjectId, isoDate, objectRecord, requiredString, stringArray, optionalNumber, optionalString } from '../utils/validation';
 
 export async function getLogs(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   try {
@@ -24,8 +24,10 @@ export async function addLog(req: AuthRequest, res: Response, next: NextFunction
     
     const water = optionalNumber(body, 'water', { min: 0, max: 10000 });
     const weight = optionalNumber(body, 'weight', { min: 0, max: 500 });
+    const lhLevel = optionalString(body, 'lhLevel', { max: 50, nullable: true });
+    const mucus = optionalString(body, 'mucus', { max: 50, nullable: true });
 
-    const log = await cycleService.upsertSymptomLog(req.user!.id, date, symptoms, water, weight);
+    const log = await cycleService.upsertSymptomLog(req.user!.id, date, symptoms, water, weight, lhLevel, mucus);
     res.json(log);
   } catch (err) {
     next(err);

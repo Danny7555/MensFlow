@@ -450,6 +450,18 @@ function GeneralPanel({
         checked={settings.privacyDefaultTemporaryChat}
         onChange={(v) => updateSettings({ privacyDefaultTemporaryChat: v })}
       />
+      <ToggleRow
+        label="Disable Proactive AI Chatbot Suggestions"
+        description="Turns off automated pop-up questions and upsell prompts from the AI helper."
+        checked={settings.disableAIPopups}
+        onChange={(v) => updateSettings({ disableAIPopups: v })}
+      />
+      <ToggleRow
+        label="Hide Daily Stories & Education"
+        description="Simplifies your dashboard layout by completely hiding educational playbooks and content cards."
+        checked={settings.hideDailyStoriesAndTips}
+        onChange={(v) => updateSettings({ hideDailyStoriesAndTips: v })}
+      />
 
       {/* Partner Connection Settings */}
       {!isGuest && (
@@ -466,7 +478,12 @@ function GeneralPanel({
               label="Share Detailed Cycle Metrics"
               description="Allow your partner to see your cycle tracker wheel, daily water/weight tracking, and logged symptoms. When disabled, they only see phase support checklists and empathy translators."
               checked={settings.privacyShareCycleDetails}
-              onChange={(v) => updateSettings({ privacyShareCycleDetails: v })}
+              onChange={(v) => {
+                updateSettings({ 
+                  privacyShareCycleDetails: v, 
+                  ...(v ? { privacyPendingAccessRequest: false } : {}) 
+                })
+              }}
             />
           )}
 
@@ -626,6 +643,18 @@ function PersonalizationPanel({
         checked={settings.cycleShowFertileWindow}
         onChange={(v) => updateSettings({ cycleShowFertileWindow: v })}
       />
+      <SelectRow
+        label="Condition Optimization Profile"
+        description="Tailor cycle modeling, predictions, and tips for specific conditions (PCOS, Endometriosis, or Perimenopause)."
+        value={settings.conditionOptimization}
+        onChange={(v) => updateSettings({ conditionOptimization: v as any })}
+        options={[
+          { value: 'none', label: 'None (Standard predictions)' },
+          { value: 'pcos', label: 'PCOS Optimization' },
+          { value: 'endometriosis', label: 'Endometriosis Optimization' },
+          { value: 'perimenopause', label: 'Perimenopause Transition' },
+        ]}
+      />
     </>
   )
 }
@@ -667,6 +696,25 @@ function DataControlsPanel({
         checked={settings.privacyShareAnalytics}
         onChange={(v) => updateSettings({ privacyShareAnalytics: v })}
       />
+      <ToggleRow
+        label="Strict Local-Only Storage (Offline Mode)"
+        description="Disable all cloud database synchronizations. Your cycle metrics, daily logs, and preferences will remain strictly inside this browser/device."
+        checked={settings.privacyStrictLocalOnly}
+        onChange={(v) => {
+          updateSettings({ privacyStrictLocalOnly: v })
+          if (v) {
+            toast.warning("Local-Only Mode Enabled", {
+              description: "Your health records are now saved strictly on this device and won't sync to the cloud database.",
+              duration: 5000,
+            })
+          } else {
+            toast.success("Database Sync Restored", {
+              description: "Future updates will sync with your account cloud profile.",
+              duration: 4000,
+            })
+          }
+        }}
+      />
       <p className="settings-panel-intro">
         Export or delete data stored locally in this browser.
       </p>
@@ -705,6 +753,15 @@ function DataControlsPanel({
         >
           Erase local MensFlow data
         </button>
+      </div>
+      <div className="mt-8 p-6 rounded-3xl bg-[var(--mf-accent-soft)]/20 border border-[var(--mf-accent-border)] space-y-3">
+        <h4 className="text-sm font-semibold text-[var(--mf-text-strong)] flex items-center gap-2">
+          <ShieldCheck size={18} className="text-[var(--mf-accent)]" />
+          <span>Ironclad Data Privacy Pledge</span>
+        </h4>
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          MensFlow is a privacy-first, 100% free period tracker. We strictly avoid third-party data sharing, do not sell user health data to advertisers, and employ no tracking cookies. Your cycle information remains secure under your absolute control.
+        </p>
       </div>
     </>
   )

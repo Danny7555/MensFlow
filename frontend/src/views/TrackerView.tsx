@@ -18,7 +18,6 @@ import {
 
 import { useStore } from "@/store/useStore"
 import { TrackerSkeleton } from "@/components/skeletons/TrackerSkeleton"
-import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
 type TrackerState = {
@@ -49,15 +48,15 @@ function trackerReducer(state: TrackerState, action: TrackerAction): TrackerStat
 
 export function TrackerView() {
   const navigate = useNavigate()
-  const { isSaving, dashboard: ownDashboard, partnerStatus, user, invitePartner, fetchPartnerStatus, fetchLogs } = useStore()
+  const { isSaving, dashboard: ownDashboard, partnerStatus, user, invitePartner, fetchPartnerStatus, fetchLogs, requestDetailedAccessAction } = useStore()
   const { isAuthenticated, openAuthModal } = useAuth()
   const [inviteEmail, setInviteEmail] = useState('')
   const [isInviting, setIsInviting] = useState(false)
   const [requestSent, setRequestSent] = useState(false)
 
-  const handleRequestAccess = () => {
+  const handleRequestAccess = async () => {
     setRequestSent(true)
-    toast.success("Access request sent! Your partner will receive a notification to enable detailed sharing.")
+    await requestDetailedAccessAction()
   }
 
   const showRestrictedView = user?.role === 'partner' && partnerStatus?.paired && partnerStatus?.privacyShareCycleDetails === false

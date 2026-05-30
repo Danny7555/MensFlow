@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { format } from "date-fns"
 import {
   Dialog,
@@ -9,9 +9,10 @@ import {
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import { SYMPTOM_DEFS, type SymptomCategory } from "@/data/symptomsData"
-import { Drop, Smiley, Pulse, Bed, Check } from "@phosphor-icons/react"
+import { Drop, Smiley, Pulse, Bed, Check, Sparkle, Waves, Moon, HandHeart, Brain, Fire } from "@phosphor-icons/react"
 import { useStore } from "@/store/useStore"
 import { toast } from "sonner"
+import { useMemo } from "react"
 
 interface LogSymptomsModalProps {
   isOpen: boolean
@@ -20,15 +21,34 @@ interface LogSymptomsModalProps {
   activeDate: Date
 }
 
+const SYMPTOM_ICONS: Record<string, React.ElementType> = {
+  'pcos-hirsutism': Sparkle,
+  'pcos-oily': Waves,
+  'pcos-hairloss': Moon,
+  'endo-pelvicpain': Pulse,
+  'endo-painsex': HandHeart,
+  'endo-backache': Brain,
+  'peri-hotflash': Fire,
+  'peri-nightsweat': Waves,
+  'peri-brainfog': Brain,
+}
+
 export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }: LogSymptomsModalProps) {
-  const { addLog, getLogForDate, isSaving, customSymptoms, addCustomSymptom, user } = useStore()
+  const { addLog, getLogForDate, isSaving, customSymptoms, addCustomSymptom, user, settings } = useStore()
   const isPartner = user?.role === 'partner'
   const dateKey = format(activeDate, 'yyyy-MM-dd')
-  const [selectedSymptoms, setSelectedSymptoms] = useState<Set<string>>(() => {
-    if (!isOpen) return new Set()
-    const existing = getLogForDate(dateKey)
-    return existing ? new Set(existing.symptoms) : new Set()
-  })
+  const [selectedSymptoms, setSelectedSymptoms] = useState<Set<string>>(new Set())
+  const [lhLevelVal, setLhLevelVal] = useState<string | null>(null)
+  const [mucusVal, setMucusVal] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (isOpen) {
+      const existing = getLogForDate(dateKey)
+      setSelectedSymptoms(existing ? new Set(existing.symptoms) : new Set())
+      setLhLevelVal(existing?.lhLevel !== undefined ? existing.lhLevel : null)
+      setMucusVal(existing?.mucus !== undefined ? existing.mucus : null)
+    }
+  }, [isOpen, dateKey])
 
   const [newSymptomName, setNewSymptomName] = useState("")
   const [newSymptomCat, setNewSymptomCat] = useState<SymptomCategory>("Physical")
@@ -50,7 +70,8 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
   }
 
   const handleSave = async () => {
-    await addLog(dateKey, Array.from(selectedSymptoms))
+    const success = await addLog(dateKey, Array.from(selectedSymptoms), lhLevelVal, mucusVal)
+    if (!success) return
 
     // Check if user logged a 'flow' symptom to trigger the toast
     const loggedFlow = Array.from(selectedSymptoms).some(s => s.startsWith('flow-'))
@@ -98,7 +119,17 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
     'life-pill': '/images/pill_3d.png',
   }
 
-  const allSymptoms = [...SYMPTOM_DEFS, ...customSymptoms]
+  const allSymptoms = useMemo(() => {
+    return [...SYMPTOM_DEFS, ...customSymptoms].filter(s => {
+      // If symptom is pcos-specific, only show if optimization is pcos
+      if (s.id.startsWith('pcos-') && settings.conditionOptimization !== 'pcos') return false;
+      // If symptom is endo-specific, only show if optimization is endometriosis
+      if (s.id.startsWith('endo-') && settings.conditionOptimization !== 'endometriosis') return false;
+      // If symptom is peri-specific, only show if optimization is perimenopause
+      if (s.id.startsWith('peri-') && settings.conditionOptimization !== 'perimenopause') return false;
+      return true;
+    });
+  }, [customSymptoms, settings.conditionOptimization]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -149,11 +180,17 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
                             <img src={imgSrc} alt="" className="size-6 rounded-full object-cover" />
                           ) : (
                             <div className={cn("size-6 rounded-full flex items-center justify-center bg-muted/50")}>
-                               <cat.icon size={14} className={isActive ? (
-                                  s.id === 'flow-medium' ? "text-rose-600 dark:text-rose-400" :
-                                  s.id === 'flow-heavy' ? "text-red-700 dark:text-red-400" :
-                                  "text-[var(--mf-accent)]"
-                               ) : "text-muted-foreground/40"} />
+                               {(() => {
+                                 const CustomIcon = SYMPTOM_ICONS[s.id]
+                                 const Icon = CustomIcon || cat.icon
+                                 return (
+                                   <Icon size={14} className={isActive ? (
+                                      s.id === 'flow-medium' ? "text-rose-600 dark:text-rose-400" :
+                                      s.id === 'flow-heavy' ? "text-red-700 dark:text-red-400" :
+                                      "text-[var(--mf-accent)]"
+                                   ) : "text-muted-foreground/40"} />
+                                 )
+                               })()}
                             </div>
                           )}
                           <span className="truncate">{s.label}</span>
@@ -165,6 +202,57 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
                 </div>
               )
             })}
+
+            {/* Specialized NFP / Fertility Indicators */}
+            <div className="pt-4 border-t border-border mt-4 space-y-4">
+              <div className="flex items-center gap-2 px-1">
+                <Sparkle className="size-4 text-[#e07a5f]" />
+                <span className="text-xs font-normal uppercase tracking-widest text-muted-foreground">Fertility & NFP Indicators</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* LH Level */}
+                <div className="space-y-1.5">
+                  <label className="text-xs text-muted-foreground block">LH Ovulation Test</label>
+                  {isPartner ? (
+                    <div className="h-10 px-3 rounded-xl bg-muted/30 border border-transparent text-sm flex items-center text-[var(--mf-text-strong)] capitalize">
+                      {lhLevelVal !== null ? lhLevelVal : <span className="text-muted-foreground/60 italic">Not logged</span>}
+                    </div>
+                  ) : (
+                    <select
+                      value={lhLevelVal ?? ''}
+                      onChange={(e) => setLhLevelVal(e.target.value || null)}
+                      className="w-full h-10 px-3 rounded-xl bg-muted/50 border-none outline-none text-sm text-[var(--mf-text-strong)] focus:ring-1 ring-[var(--mf-accent)] capitalize"
+                    >
+                      <option value="">Select Result</option>
+                      <option value="negative">Negative</option>
+                      <option value="positive">Positive</option>
+                    </select>
+                  )}
+                </div>
+                {/* Cervical Mucus */}
+                <div className="space-y-1.5">
+                  <label className="text-xs text-muted-foreground block">Cervical Mucus</label>
+                  {isPartner ? (
+                    <div className="h-10 px-3 rounded-xl bg-muted/30 border border-transparent text-sm flex items-center text-[var(--mf-text-strong)] capitalize">
+                      {mucusVal !== null ? mucusVal.replace('-', ' ') : <span className="text-muted-foreground/60 italic">Not logged</span>}
+                    </div>
+                  ) : (
+                    <select
+                      value={mucusVal ?? ''}
+                      onChange={(e) => setMucusVal(e.target.value || null)}
+                      className="w-full h-10 px-3 rounded-xl bg-muted/50 border-none outline-none text-sm text-[var(--mf-text-strong)] focus:ring-1 ring-[var(--mf-accent)]"
+                    >
+                      <option value="">Select Consistency</option>
+                      <option value="dry">Dry</option>
+                      <option value="sticky">Sticky</option>
+                      <option value="creamy">Creamy</option>
+                      <option value="egg-white">Egg White (Fertile)</option>
+                      <option value="watery">Watery</option>
+                    </select>
+                  )}
+                </div>
+              </div>
+            </div>
 
             {/* Add Custom Symptom Form */}
             {!isPartner && (

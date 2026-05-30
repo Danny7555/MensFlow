@@ -13,6 +13,8 @@ export type SymptomLog = {
   symptoms: string[]
   water?: number
   weight?: number
+  lhLevel?: string | null
+  mucus?: string | null
 }
 
 export type AppUser = {
@@ -52,6 +54,8 @@ interface AppState {
       symptoms?: string[]
       water?: number
       weight?: number
+      lhLevel?: string | null
+      mucus?: string | null
       cycleVariationDays?: number
       isAtypical?: boolean
       scientificInsight?: string
@@ -80,8 +84,8 @@ interface AppState {
   resetSettings: () => void
 
   // Logs
-  addLog: (date: string, symptoms: string[]) => Promise<void>
-  updateDailyMetrics: (date: string, water?: number, weight?: number) => Promise<void>
+  addLog: (date: string, symptoms: string[], lhLevel?: string | null, mucus?: string | null) => Promise<boolean>
+  updateDailyMetrics: (date: string, water?: number, weight?: number, lhLevel?: string | null, mucus?: string | null) => Promise<boolean>
   getLogForDate: (date: string) => SymptomLog | undefined
   fetchLogs: () => Promise<void>
   clearLogs: () => Promise<void>
@@ -98,6 +102,7 @@ interface AppState {
   pairPartner: (partnerCode: string) => Promise<void>
   invitePartner: (email: string) => Promise<void>
   disconnectPartnerAction: () => Promise<void>
+  requestDetailedAccessAction: () => Promise<void>
 
   // Confirmation / Alerts
   confirmDialog: {
@@ -254,7 +259,9 @@ export const useStore = create<AppState>()((set, get) => ({
         ? { cycleAvgLengthDays: patch.typicalCycleDays }
         : null
 
-      if (isLoggedIn()) {
+      const isLocalOnly = get().settings.privacyStrictLocalOnly
+
+      if (isLoggedIn() && !isLocalOnly) {
         const updated = await userApi.updateDashboard(patch)
         set((state) => ({
           dashboard: {
@@ -332,7 +339,9 @@ export const useStore = create<AppState>()((set, get) => ({
         : state.dashboard,
     }))
 
-    if (isLoggedIn()) {
+    const isLocalOnly = get().settings.privacyStrictLocalOnly
+
+    if (isLoggedIn() && !isLocalOnly) {
       try {
         await userApi.updateSettings(patch)
         if (dashboardPatch) {
@@ -354,61 +363,79 @@ export const useStore = create<AppState>()((set, get) => ({
     }
   },
 
-  addLog: async (date, symptoms) => {
+  addLog: async (date, symptoms, lhLevel, mucus) => {
     set({ isSaving: true })
     try {
       const existing = get().logs.find((l) => l.date === date)
       const targetWater = existing?.water
       const targetWeight = existing?.weight
+      const targetLhLevel = lhLevel !== undefined ? lhLevel : existing?.lhLevel
+      const targetMucus = mucus !== undefined ? mucus : existing?.mucus
 
-      if (isLoggedIn()) {
-        const log = await logsApi.upsert(date, symptoms, targetWater, targetWeight)
+      const isLocalOnly = get().settings.privacyStrictLocalOnly
+
+      if (isLoggedIn() && !isLocalOnly) {
+        const log = await logsApi.upsert(date, symptoms, targetWater, targetWeight, targetLhLevel, targetMucus)
         set((state) => ({
           logs: [
             ...state.logs.filter((l) => l.date !== date),
-            { date: log.date, symptoms: log.symptoms, water: log.water, weight: log.weight },
+            { date: log.date, symptoms: log.symptoms, water: log.water, weight: log.weight, lhLevel: log.lhLevel, mucus: log.mucus },
           ],
         }))
       } else {
         set((state) => ({
           logs: [
             ...state.logs.filter((l) => l.date !== date),
-            { date, symptoms, water: targetWater ?? 1000, weight: targetWeight ?? 62.5 },
+            { date, symptoms, water: targetWater ?? 1000, weight: targetWeight ?? 62.5, lhLevel: targetLhLevel ?? null, mucus: targetMucus ?? null },
           ],
         }))
       }
+      return true;
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save log');
+      return false;
     } finally {
       set({ isSaving: false })
     }
   },
 
-  updateDailyMetrics: async (date, water, weight) => {
+  updateDailyMetrics: async (date, water, weight, lhLevel, mucus) => {
     set({ isSaving: true })
     try {
       const existing = get().logs.find((l) => l.date === date)
       const existingSymptoms = existing?.symptoms ?? []
       const existingWater = existing?.water ?? 1000
       const existingWeight = existing?.weight ?? 62.5
+      const existingLhLevel = existing?.lhLevel ?? null
+      const existingMucus = existing?.mucus ?? null
 
       const targetWater = water !== undefined ? water : existingWater
       const targetWeight = weight !== undefined ? weight : existingWeight
+      const targetLhLevel = lhLevel !== undefined ? lhLevel : existingLhLevel
+      const targetMucus = mucus !== undefined ? mucus : existingMucus
 
-      if (isLoggedIn()) {
-        const log = await logsApi.upsert(date, undefined, targetWater, targetWeight)
+      const isLocalOnly = get().settings.privacyStrictLocalOnly
+
+      if (isLoggedIn() && !isLocalOnly) {
+        const log = await logsApi.upsert(date, undefined, targetWater, targetWeight, targetLhLevel, targetMucus)
         set((state) => ({
           logs: [
             ...state.logs.filter((l) => l.date !== date),
-            { date: log.date, symptoms: log.symptoms, water: log.water, weight: log.weight },
+            { date: log.date, symptoms: log.symptoms, water: log.water, weight: log.weight, lhLevel: log.lhLevel, mucus: log.mucus },
           ],
         }))
       } else {
         set((state) => ({
           logs: [
             ...state.logs.filter((l) => l.date !== date),
-            { date, symptoms: existingSymptoms, water: targetWater, weight: targetWeight },
+            { date, symptoms: existingSymptoms, water: targetWater, weight: targetWeight, lhLevel: targetLhLevel, mucus: targetMucus },
           ],
         }))
       }
+      return true;
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to update daily metrics');
+      return false;
     } finally {
       set({ isSaving: false })
     }
@@ -566,6 +593,24 @@ export const useStore = create<AppState>()((set, get) => ({
       toast.error(err instanceof Error ? err.message : 'Failed to disconnect from partner')
     } finally {
       set({ isSaving: false })
+    }
+  },
+
+  requestDetailedAccessAction: async () => {
+    if (isLoggedIn()) {
+      set({ isSaving: true })
+      try {
+        await partnerApi.requestAccess()
+        toast.success("Access request sent! Your partner will receive a notification to enable detailed sharing.")
+      } catch (err: unknown) {
+        toast.error(err instanceof Error ? err.message : 'Failed to send access request')
+      } finally {
+        set({ isSaving: false })
+      }
+    } else {
+      localStorage.setItem('mensflow_guest_pending_access_request', 'true')
+      window.dispatchEvent(new Event('storage'))
+      toast.success("Access request sent! Your partner will receive a notification to enable detailed sharing.")
     }
   },
 }))

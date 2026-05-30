@@ -6,6 +6,8 @@ export interface SymptomLogDocument extends Document {
   symptoms: string[];
   water?: number;
   weight?: number;
+  lhLevel?: string | null;
+  mucus?: string | null;
 }
 
 const SymptomLogSchema = new Schema<SymptomLogDocument>({
@@ -14,6 +16,8 @@ const SymptomLogSchema = new Schema<SymptomLogDocument>({
   symptoms: { type: [String], default: [] },
   water: { type: Number, default: 1000 },
   weight: { type: Number, default: 62.5 },
+  lhLevel: { type: String, default: null },
+  mucus: { type: String, default: null },
 });
 
 SymptomLogSchema.index({ userId: 1, date: 1 }, { unique: true });

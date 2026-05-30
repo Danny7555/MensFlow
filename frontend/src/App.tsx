@@ -214,7 +214,22 @@ import { resolveEffectiveTheme } from './lib/theme'
 function DynamicToaster() {
   const themeMode = useStore((state) => state.settings.themeMode)
   const resolved = resolveEffectiveTheme(themeMode)
-  return <Toaster position="top-right" richColors theme={resolved} className="mt-14" />
+  return (
+    <Toaster 
+      position="top-center" 
+      richColors 
+      theme={resolved} 
+      className="mt-14" 
+      toastOptions={{
+        style: {
+          maxWidth: 'none',
+          width: 'max-content',
+          paddingTop: '8px',
+          paddingBottom: '8px',
+        }
+      }}
+    />
+  )
 }
 
 import { GlobalModalContainer } from './components/GlobalModalContainer'

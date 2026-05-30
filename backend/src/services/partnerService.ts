@@ -130,6 +130,8 @@ export async function getPartnerStatus(userId: string): Promise<object> {
             symptoms,
             water: latestLog?.water !== undefined ? latestLog.water : 1000,
             weight: latestLog?.weight !== undefined ? latestLog.weight : 62.5,
+            lhLevel: latestLog?.lhLevel !== undefined ? latestLog.lhLevel : null,
+            mucus: latestLog?.mucus !== undefined ? latestLog.mucus : null,
             scientificInsight: partnerDash.scientificInsight || '',
             dailyTip: partnerDash.dailyTip || { title: '', desc: '' },
           }
@@ -144,6 +146,8 @@ export async function getPartnerStatus(userId: string): Promise<object> {
             symptoms: [], // Redacted
             water: 1000, // Redacted
             weight: 62.5, // Redacted
+            lhLevel: null, // Redacted
+            mucus: null, // Redacted
             scientificInsight: 'Detailed insight kept private by your partner.', // Redacted
             dailyTip: { title: 'Empathy Mode Active', desc: 'Focus on supportive gestures and empathy translator tips below!' },
           }

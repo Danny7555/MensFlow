@@ -26,6 +26,10 @@ export interface SettingsDocument extends Document {
   cycleShowFertileWindow: boolean;
   privacyShareCycleDetails: boolean;
   privacyPendingAccessRequest: boolean;
+  privacyStrictLocalOnly: boolean;
+  conditionOptimization: 'none' | 'pcos' | 'endometriosis' | 'perimenopause';
+  disableAIPopups: boolean;
+  hideDailyStoriesAndTips: boolean;
 }
 
 const SettingsSchema = new Schema<SettingsDocument>({
@@ -54,6 +58,10 @@ const SettingsSchema = new Schema<SettingsDocument>({
   cycleShowFertileWindow: { type: Boolean, default: true },
   privacyShareCycleDetails: { type: Boolean, default: true },
   privacyPendingAccessRequest: { type: Boolean, default: false },
+  privacyStrictLocalOnly: { type: Boolean, default: false },
+  conditionOptimization: { type: String, enum: ['none', 'pcos', 'endometriosis', 'perimenopause'], default: 'none' },
+  disableAIPopups: { type: Boolean, default: false },
+  hideDailyStoriesAndTips: { type: Boolean, default: false },
 });
 
 export const Settings = model<SettingsDocument>('Settings', SettingsSchema);

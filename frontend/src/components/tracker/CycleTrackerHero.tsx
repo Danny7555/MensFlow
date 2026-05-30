@@ -94,7 +94,7 @@ export function CycleTrackerHero({
   onHoverDay,
   data: propData,
 }: CycleTrackerHeroProps) {
-  const { dashboard: storeData, user } = useStore()
+  const { dashboard: storeData, user, settings, logs } = useStore()
   const data = propData || storeData
   const isPartner = user?.role === 'partner'
   
@@ -139,15 +139,32 @@ export function CycleTrackerHero({
 
   const modes = ['Period', 'Conception', 'Pregnancy', 'Perimenopause'];
 
-  const cycleLength = data.typicalCycleDays;
+  const cycleLength = data.typicalCycleDays || 28;
 
   const periodLength = 5;
   const predictedPeriodLength = 2; 
-  const fertileStart = 10;
-  const fertileEnd = 16;
-  const ovulationDay = 14;
-  const upcomingStart = 23;
-  const upcomingEnd = 27;
+
+  const standardOvulation = cycleLength - 14;
+
+  const { fertileStart, fertileEnd, ovulationDay } = useMemo(() => {
+    let start = standardOvulation - 4; // Day 10 for L=28
+    let end = standardOvulation + 2;   // Day 16 for L=28
+    let ovDay = standardOvulation;      // Day 14 for L=28
+
+    if (settings.conditionOptimization === 'pcos') {
+      start = 10;
+      end = Math.min(24, cycleLength - 4);
+      ovDay = -1; // Unpredictable
+    } else if (settings.conditionOptimization === 'perimenopause') {
+      start = 9;
+      end = Math.min(22, cycleLength - 6);
+      ovDay = -1; // Unpredictable
+    }
+    return { fertileStart: start, fertileEnd: end, ovulationDay: ovDay };
+  }, [standardOvulation, cycleLength, settings.conditionOptimization]);
+
+  const upcomingStart = cycleLength - 5;
+  const upcomingEnd = cycleLength - 1;
 
   const today = useMemo(() => startOfDay(new Date()), []);
 
@@ -160,6 +177,12 @@ export function CycleTrackerHero({
     if (day <= periodLength) return { label: 'Period', color: '#dc2626', phase: 'Menstrual Phase' };
     if (day <= periodLength + predictedPeriodLength) return { label: 'Luteal', color: '#ffc7c8', phase: 'Follicular Phase' };
     if (day >= fertileStart && day <= fertileEnd) {
+       if (settings.conditionOptimization === 'pcos') {
+         return { label: 'Variable Fertile', color: '#8b5cf6', phase: 'Irregular Fertile Window' };
+       }
+       if (settings.conditionOptimization === 'perimenopause') {
+         return { label: 'Erratic Fertile', color: '#f59e0b', phase: 'Unpredictable Fertile Window' };
+       }
        if (day === ovulationDay) return { label: 'Ovulation', color: '#26899e', phase: 'Fertile Window' };
        return { label: 'Fertile', color: '#26899e', phase: 'Fertile Window' };
     }
@@ -170,23 +193,39 @@ export function CycleTrackerHero({
   const activeDay = hoveredDay ?? selectedDay;
   const activeInfo = getDayInfo(activeDay);
   const activeDate = getDayDate(activeDay);
+  const activeDateStr = format(activeDate, 'yyyy-MM-dd')
+  const activeLog = logs.find((l) => l.date === activeDateStr)
+
+  const getPcosTooltipText = () => {
+    switch (settings.conditionOptimization) {
+      case 'pcos':
+        return "PCOS Optimization Active. Predicting variable ovulation windows based on irregular cycle modeling."
+      case 'endometriosis':
+        return "Endometriosis Pain Logging Active. Tracking daily inflammation levels."
+      case 'perimenopause':
+        return "Perimenopause Transition Active. Monitoring hormonal shifts and hot flashes."
+      default:
+        return "This represents your current phase in the menstrual cycle based on your logs."
+    }
+  }
 
   return (
     <div className="cycle-tracker-hero relative">
-      <div className="cycle-tracker-mode">
+      <div className="cycle-tracker-mode flex flex-wrap items-center gap-2">
         {isPartner ? (
           <div className="mode-chip cursor-default bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 font-normal text-xs tracking-wider flex items-center gap-1.5">
             <img src="/images/heart.png" alt="" className="size-3.5 object-contain animate-pulse" />
             <span>Partner Empathy Mode</span>
           </div>
         ) : (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="mode-chip">
-                Mode: MensFlow {trackingMode}
-                <CaretDown size={14} weight="regular" />
-              </button>
-            </DropdownMenuTrigger>
+          <>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="mode-chip">
+                  Mode: {trackingMode === 'Conception' ? 'Conception (NFP)' : `MensFlow ${trackingMode}`}
+                  <CaretDown size={14} weight="regular" />
+                </button>
+              </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56 bg-card border-border">
               {modes.map((m) => (
                 <DropdownMenuItem 
@@ -199,6 +238,12 @@ export function CycleTrackerHero({
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
+          {settings.conditionOptimization !== 'none' && (
+            <div className="px-2.5 py-1 rounded-full text-[10px] font-normal uppercase tracking-wider bg-rose-500/10 text-rose-500 dark:text-rose-400 border border-rose-500/25">
+              {settings.conditionOptimization.toUpperCase()} MODE
+            </div>
+          )}
+          </>
         )}
       </div>
 
@@ -215,6 +260,11 @@ export function CycleTrackerHero({
             fertileEnd={fertileEnd}
             upcomingStart={upcomingStart}
             upcomingEnd={upcomingEnd}
+            fertileColor={
+              settings.conditionOptimization === 'pcos' ? '#8b5cf6' :
+              settings.conditionOptimization === 'perimenopause' ? '#f59e0b' :
+              '#26899e'
+            }
             onSelectDay={(day) => {
               if (isControlled && onSelectDay) onSelectDay(day)
               else dispatch({ type: 'SET_SELECTED_DAY', payload: day })
@@ -234,7 +284,18 @@ export function CycleTrackerHero({
                     color: activeInfo.color,
                   }}
                 >
-                 {activeDay >= fertileStart && activeDay <= fertileEnd ? 'High' : 'Low'} pregnancy chance
+                 {trackingMode === 'Conception'
+                   ? (activeDay >= fertileStart && activeDay <= fertileEnd 
+                      ? (settings.conditionOptimization === 'pcos' || settings.conditionOptimization === 'perimenopause'
+                         ? 'Variable Fertility Window (Monitor BBT/Mucus)' 
+                         : 'Peak fertility window (Symptothermal NFP)') 
+                      : 'Non-fertile phase (NFP prediction)')
+                   : (activeDay >= fertileStart && activeDay <= fertileEnd 
+                      ? (settings.conditionOptimization === 'pcos' || settings.conditionOptimization === 'perimenopause'
+                         ? 'Unpredictable pregnancy chance' 
+                         : 'High pregnancy chance') 
+                      : 'Low pregnancy chance')
+                 }
                </span>
             </div>
 
@@ -245,6 +306,23 @@ export function CycleTrackerHero({
                 : activeInfo.phase
               }
             </h2>
+            {/* Symptothermal indicators */}
+            {activeLog && (activeLog.lhLevel !== undefined && activeLog.lhLevel !== null || activeLog.mucus) && (
+              <div className="flex justify-center gap-2 mt-1 mb-2 animate-in fade-in duration-300">
+                {activeLog.lhLevel !== undefined && activeLog.lhLevel !== null && (
+                  <span className="text-[10px] font-medium bg-[#e07a5f]/15 text-[#e07a5f] border border-[#e07a5f]/25 px-2 py-0.5 rounded-full flex items-center gap-1 capitalize">
+                    <span>🧪</span>
+                    <span>LH: {activeLog.lhLevel}</span>
+                  </span>
+                )}
+                {activeLog.mucus && (
+                  <span className="text-[10px] font-medium bg-[#26899e]/15 text-[#26899e] border border-[#26899e]/25 px-2 py-0.5 rounded-full flex items-center gap-1.5 capitalize">
+                    <img src="/images/water.png" alt="" className="w-3 h-3 object-contain shrink-0" />
+                    <span>{activeLog.mucus.replace('-', ' ')}</span>
+                  </span>
+                )}
+              </div>
+            )}
             <div className="viz-fertile-status" style={{ color: activeInfo.color }}>
               <span className="flex items-center gap-1">
                 {activeInfo.label} 
@@ -258,7 +336,7 @@ export function CycleTrackerHero({
                     <TooltipContent side="bottom" className="max-w-[200px] text-xs">
                       {isPartner
                         ? "This represents your partner's current phase in her cycle based on her details."
-                        : "This represents your current phase in the menstrual cycle based on your logs."
+                        : getPcosTooltipText()
                       }
                     </TooltipContent>
                   </Tooltip>
