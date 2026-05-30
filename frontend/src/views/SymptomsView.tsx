@@ -207,11 +207,88 @@ export function SymptomsView() {
             {activeSymptoms.size} symptoms logged
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <SymptomCategoryList category="Physical" IconComponent={Pulse} activeSymptoms={activeSymptoms} toggleSymptom={toggleSymptom} isSaving={isSaving} readOnly={isPartner} />
-          <SymptomCategoryList category="Mood" IconComponent={Pill} activeSymptoms={activeSymptoms} toggleSymptom={toggleSymptom} isSaving={isSaving} readOnly={isPartner} />
-          <SymptomCategoryList category="Flow" IconComponent={Drop} activeSymptoms={activeSymptoms} toggleSymptom={toggleSymptom} isSaving={isSaving} readOnly={isPartner} />
-        </div>
+
+        {isPartner ? (
+          <div className="dash-panel p-8 rounded-[2rem] bg-[var(--mf-card)] border border-[var(--mf-border)]">
+            {activeSymptoms.size === 0 ? (
+              <div className="text-center py-8 space-y-4">
+                <div className="size-16 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center mx-auto text-emerald-600 dark:text-emerald-400">
+                  <Pulse size={32} />
+                </div>
+                <h3 className="text-base font-normal text-[var(--mf-text-strong)]">No Symptoms Logged</h3>
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                  {partnerStatus?.partner?.name || 'Your partner'} has not logged any symptoms for today yet.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-8">
+                <p className="text-xs text-muted-foreground">
+                  Here is what {partnerStatus?.partner?.name || 'your partner'} logged today:
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                  {['Flow', 'Mood', 'Physical'].map((cat) => {
+                    const catSymptoms = SYMPTOM_DEFS.filter(
+                      (s) => s.category === cat && activeSymptoms.has(s.id)
+                    )
+                    if (catSymptoms.length === 0) return null
+
+                    const IconComponent = cat === 'Physical' ? Pulse : cat === 'Mood' ? Pill : Drop
+                    const imgMap: Record<string, string> = {
+                      'mood-happy': '/images/happy.jpg',
+                      'mood-sad': '/images/sad.jpg',
+                      'mood-irritable': '/images/angry.jpg',
+                      'mood-anxious': '/images/anxious.jpg',
+                      'mood-calm': '/images/calm.jpg',
+                      'phys-cramps': '/images/cramps.jpg',
+                      'phys-fatigue': '/images/fatique.jpg',
+                      'phys-bloating': '/images/bloat.jpg',
+                      'phys-headache': '/images/headache.jpg',
+                      'phys-acne': '/images/acne.jpg',
+                      'phys-tender': '/images/tender.jpg',
+                    }
+
+                    return (
+                      <div key={cat} className="space-y-4 p-5 rounded-2xl bg-muted/20 border border-border/50">
+                        <h4 className="text-xs font-normal tracking-wider text-muted-foreground uppercase flex items-center gap-1.5">
+                          <IconComponent size={16} className="text-[var(--mf-accent)]" />
+                          {cat}
+                        </h4>
+                        <div className="flex flex-col gap-2">
+                          {catSymptoms.map((symptom) => (
+                            <div 
+                              key={symptom.id} 
+                              className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-card border border-border text-sm font-normal text-[var(--mf-text-strong)]"
+                            >
+                              {imgMap[symptom.id] ? (
+                                <img src={imgMap[symptom.id]} alt="" className="size-6 rounded-full object-cover" />
+                              ) : SYMPTOM_ICONS[symptom.id] ? (
+                                (() => {
+                                  const Icon = SYMPTOM_ICONS[symptom.id]
+                                  return (
+                                    <span className="text-[var(--mf-accent)]">
+                                      <Icon size={16} />
+                                    </span>
+                                  )
+                                })()
+                              ) : null}
+                              <span>{symptom.label}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <SymptomCategoryList category="Physical" IconComponent={Pulse} activeSymptoms={activeSymptoms} toggleSymptom={toggleSymptom} isSaving={isSaving} readOnly={isPartner} />
+            <SymptomCategoryList category="Mood" IconComponent={Pill} activeSymptoms={activeSymptoms} toggleSymptom={toggleSymptom} isSaving={isSaving} readOnly={isPartner} />
+            <SymptomCategoryList category="Flow" IconComponent={Drop} activeSymptoms={activeSymptoms} toggleSymptom={toggleSymptom} isSaving={isSaving} readOnly={isPartner} />
+          </div>
+        )}
       </section>
 
       {!isPartner ? (
