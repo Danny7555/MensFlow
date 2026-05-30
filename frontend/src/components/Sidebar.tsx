@@ -17,7 +17,6 @@ import {
   SidebarSimple,
   SignOut,
   Users,
-  Sparkle,
   Lock,
 } from '@phosphor-icons/react'
 import type { SectionId } from '../types/nav'

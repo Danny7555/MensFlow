@@ -538,7 +538,7 @@ export function SyncView() {
                           <span>Send Instant Ping</span>
                         </>
                       )}
-                    </m.button>
+                    </button>
                   </div>
                 )}
               </div>
