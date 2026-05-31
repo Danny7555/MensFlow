@@ -21,31 +21,63 @@ function generateOtpCode(): string {
 
 function buildOtpEmailHtml(name: string, code: string, expiryMins: number): string {
   const digits = code.split('').map(d =>
-    `<span style="display:inline-block;width:44px;height:56px;line-height:56px;text-align:center;font-size:28px;font-weight:700;color:#1a0a14;background:#f8f0f5;border:2px solid #f0d8e8;border-radius:12px;margin:0 4px;">${d}</span>`
+    `<span class="digit-box" style="display:inline-block;width:40px;height:52px;line-height:52px;text-align:center;font-size:26px;font-weight:700;color:#1a0a14;background:#f8f0f5;border:2px solid #f0d8e8;border-radius:12px;margin:0 3px;">${d}</span>`
   ).join('');
 
   return `
 <!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>MensFlow Verification Code</title></head>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>MensFlow Verification Code</title>
+  <style>
+    @media only screen and (max-width: 520px) {
+      .main-table {
+        padding: 20px 0 !important;
+      }
+      .main-card {
+        width: 100% !important;
+        border-radius: 16px !important;
+      }
+      .header-td {
+        padding: 20px 24px !important;
+      }
+      .content-td {
+        padding: 28px 20px 20px !important;
+      }
+      .footer-td {
+        padding: 16px 20px 20px !important;
+      }
+      .digit-box {
+        width: 34px !important;
+        height: 46px !important;
+        line-height: 46px !important;
+        font-size: 22px !important;
+        margin: 0 2px !important;
+        border-radius: 8px !important;
+      }
+    }
+  </style>
+</head>
 <body style="margin:0;padding:0;background:#f8f0f5;font-family:'Segoe UI',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8f0f5;padding:40px 0;">
+  <table class="main-table" width="100%" cellpadding="0" cellspacing="0" style="background:#f8f0f5;padding:40px 0;">
     <tr><td align="center">
-      <table width="520" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:24px;overflow:hidden;box-shadow:0 4px 24px rgba(220,80,130,0.08);">
+      <table class="main-card" width="520" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:24px;overflow:hidden;box-shadow:0 4px 24px rgba(220,80,130,0.08);width:100%;max-width:520px;">
         <tr>
-          <td style="background:linear-gradient(135deg,#e84393,#f472b6);padding:28px 36px;">
+          <td class="header-td" style="background:linear-gradient(135deg,#e84393,#f472b6);padding:28px 36px;">
             <span style="font-size:22px;font-weight:700;color:#fff;letter-spacing:-0.5px;">MensFlow</span>
             <span style="font-size:11px;color:rgba(255,255,255,0.7);margin-left:8px;text-transform:uppercase;letter-spacing:0.15em;">Security</span>
           </td>
         </tr>
         <tr>
-          <td style="padding:36px 36px 28px;">
+          <td class="content-td" style="padding:36px 36px 28px;">
             <p style="margin:0 0 6px;font-size:13px;color:#9b6b86;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;">Hi, ${name}</p>
             <h1 style="margin:0 0 12px;font-size:20px;font-weight:700;color:#1a0a14;">Your verification code</h1>
             <p style="margin:0 0 28px;font-size:14px;color:#5c3d52;line-height:1.6;">
               Enter this code in MensFlow to verify your identity. It expires in <strong>${expiryMins} minutes</strong>.
             </p>
-            <div style="text-align:center;margin:0 0 28px;">${digits}</div>
+            <div style="text-align:center;margin:0 0 28px;white-space:nowrap;word-break:keep-all;">${digits}</div>
             <p style="margin:0;font-size:12px;color:#b09ba8;line-height:1.5;">
               If you didn't request this code, you can safely ignore this email.<br/>
               Never share your verification code with anyone.
@@ -53,7 +85,7 @@ function buildOtpEmailHtml(name: string, code: string, expiryMins: number): stri
           </td>
         </tr>
         <tr>
-          <td style="padding:16px 36px 24px;border-top:1px solid #f3e4ed;">
+          <td class="footer-td" style="padding:16px 36px 24px;border-top:1px solid #f3e4ed;">
             <p style="margin:0;font-size:11px;color:#b09ba8;">© MensFlow — <a href="https://mensflow.app/settings" style="color:#e84393;text-decoration:none;">Manage security settings</a></p>
           </td>
         </tr>
