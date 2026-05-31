@@ -50,8 +50,8 @@ export function DailyTipCard({ phaseLabel, tipCompleted, setTipCompleted, varian
       className="flo-card flo-card--featured overflow-hidden flex flex-col group relative !p-5 md:!p-6 xl:!p-8"
     >
       <div className="flex flex-col md:flex-row md:items-center justify-between w-full gap-4 md:gap-5 xl:gap-8 ">
-        <div className="shrink-0 size-10 md:size-12 flex items-center justify-center">
-          <img src="/images/star.png" alt="" className="size-6 md:size-7 object-contain" />
+        <div className="shrink-0 size-12 md:size-14 flex items-center justify-center">
+          <img src="/images/star.png" alt="" className="size-8 md:size-9 object-contain" />
         </div>
 
         <div className="flex-1 flex flex-col min-w-0 md:pl-4 xl:pl-6">
