@@ -36,6 +36,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [otpPending, setOtpPending] = useState(false)
   const [otpToken, setOtpToken] = useState<string | null>(null)
   const [otpEmail, setOtpEmail] = useState('')
+  // Remember where the user was when they opened the auth modal,
+  // so we can return them there after login/register instead of always /dashboard.
+  const [returnTo, setReturnTo] = useState<string | null>(null)
+  // Incrementing key forces AuthModal to fully remount every time it opens,
+  // preventing stale internal state (mode, form fields) from persisting.
+  const [modalKey, setModalKey] = useState(0)
 
   // ── Rehydrate store from API on mount if token exists ──────────────────────
   useEffect(() => {
@@ -156,11 +162,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       store.fetchPartnerStatus()
     ]).catch(err => console.error('Failed to load user data', err))
 
-    navigate(profile.user.isOnboarded
-      ? (profile.user.accessLevel === 'educational' ? '/education' : '/dashboard')
-      : '/onboarding'
-    )
-  }, [navigate, hydrate])
+    // If user opened auth from a specific page (e.g. /sync), return there.
+    // Otherwise default to the standard post-auth landing.
+    if (profile.user.isOnboarded) {
+      const target = returnTo && returnTo !== '/' && returnTo !== '/onboarding' 
+        ? returnTo 
+        : (profile.user.accessLevel === 'educational' ? '/education' : '/dashboard')
+      setReturnTo(null)
+      navigate(target)
+    } else {
+      setReturnTo(null)
+      navigate('/onboarding')
+    }
+  }, [navigate, hydrate, returnTo])
 
   // ── Login ──────────────────────────────────────────────────────────────────
   const login = useCallback(async (username: string, password: string) => {
@@ -258,6 +272,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const openAuthModal = useCallback((initialMode: 'login' | 'register' = 'login') => {
     setInitialAuthMode(initialMode)
+    // Remember where the user is so we can return them after auth
+    setReturnTo(window.location.pathname)
+    // Reset any stale OTP state from a previous abandoned flow
+    setOtpPending(false)
+    setOtpToken(null)
+    setOtpEmail('')
+    setModalKey(k => k + 1)
     setAuthModalOpen(true)
   }, [])
 
@@ -281,12 +302,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider value={value}>
       {children}
       <AuthModal
+        key={modalKey}
         open={authModalOpen}
         isLoading={state.isLoading}
         initialMode={initialAuthMode}
         preFillName={initialAuthMode === 'register' ? (useStore.getState().user.name || '') : ''}
         onClose={() => {
-          if (!otpPending) setAuthModalOpen(false)
+          // Allow closing even if OTP is pending — user can always
+          // dismiss the modal and start a fresh flow later.
+          setAuthModalOpen(false)
+          setOtpPending(false)
+          setOtpToken(null)
+          setOtpEmail('')
         }}
         onLogin={login}
         onRegister={register}

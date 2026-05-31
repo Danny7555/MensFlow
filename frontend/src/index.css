@@ -1163,3 +1163,32 @@
 .partner-theme[data-theme='dark'] .dashboard-flo-theme {
   background: var(--mf-main-bg) !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Global: Remove all shadows & hover effects
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Kill every box-shadow and text-shadow */
+*,
+*::before,
+*::after {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+/* Remove all transitions so hover changes don't animate */
+* {
+  transition: none !important;
+}
+
+/* Neutralise hover transforms and filters */
+*:hover {
+  transform: none !important;
+  filter: none !important;
+}
+
+/* Keep focus-visible styles intact for accessibility */
+*:focus-visible {
+  outline: 2px solid var(--mf-ring);
+  outline-offset: 2px;
+}

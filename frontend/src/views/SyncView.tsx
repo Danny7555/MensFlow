@@ -372,18 +372,15 @@ export function SyncView() {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="dashboard-flo-theme relative overflow-hidden"
+      className="dashboard-flo-theme relative overflow-hidden min-h-screen"
     >
-
-
       <main className="flo-main-container pb-32 relative z-10">
         <div className="flo-content-inner">
           
-          <m.div variants={itemVariants} className="flo-dashboard-top mb-12">
+          <m.div variants={itemVariants} className="flo-dashboard-top mb-6 md:mb-10 lg:mb-12">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div className="max-w-xl">
-                
-                <h1 className="text-4xl font-normal tracking-tight text-[var(--mf-text-strong)] leading-[1.1]">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-normal tracking-tight text-[var(--mf-text-strong)] leading-[1.1]">
                   Partner Sync & <br />
                   <span className="text-[var(--mf-accent)]">Empathy Hub</span>
                 </h1>
@@ -396,16 +393,16 @@ export function SyncView() {
                 animate="animate"
                 className="hidden md:block shrink-0"
               >
-                <img src="/images/lady.png" alt="Empathy Hub Illustration" className="h-32 object-contain opacity-95" />
+                <img src="/images/lady.png" alt="Empathy Hub Illustration" className="h-32 lg:h-40 object-contain opacity-95" />
               </m.div>
             </div>
           </m.div>
 
-          <div className="flo-dashboard-grid">
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(380px,480px)_minmax(320px,1fr)] gap-6 lg:gap-8 xl:gap-10 items-start">
             
             {/* Left Column: Real-Time Ping Card */}
-            <m.section variants={itemVariants} className="flo-dashboard-left">
-              <div className="flo-card p-8 relative overflow-hidden transition-all duration-300">
+            <m.section variants={itemVariants} className="flex flex-col gap-6 self-start">
+              <div className="flo-card p-6 sm:p-8 relative overflow-hidden transition-all duration-300">
                 
                 <div className="flex flex-col items-center text-center">
                   <m.div 
@@ -416,7 +413,7 @@ export function SyncView() {
                     <img src="/images/heart.png" alt="" className="size-8 object-contain" />
                   </m.div>
 
-                  <h2 className="text-xl font-normal tracking-tight text-[var(--mf-text-strong)]">
+                  <h2 className="text-lg sm:text-xl font-normal tracking-tight text-[var(--mf-text-strong)]">
                     {user?.role === 'partner' ? 'Send supportive update' : 'Send Real-Time Check-In'}
                   </h2>
                   <p className="text-[11.5px] text-[var(--mf-muted)] mt-2 max-w-xs leading-relaxed">
@@ -445,7 +442,7 @@ export function SyncView() {
                     </p>
                     <button 
                       onClick={() => { setSent(false); setSelected(null); }}
-                      className="mt-5 text-xs text-[var(--mf-accent)] hover:underline font-normal"
+                      className="mt-5 text-xs text-[var(--mf-accent)] hover:underline font-normal bg-transparent border-0 cursor-pointer"
                     >
                       Send another update
                     </button>
@@ -457,14 +454,14 @@ export function SyncView() {
                         {user?.role === 'partner' ? 'Choose Your Supportive Action:' : 'Choose Your Current Feeling:'}
                       </span>
                       
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
                         {options.map((opt) => (
                           <button
                             key={opt.id}
                             onClick={() => setSelected(opt.id)}
                             type="button"
                             className={cn(
-                              "relative overflow-hidden aspect-[4/3] rounded-2xl border text-left p-3.5 transition-all flex flex-col justify-between outline-none group",
+                              "relative overflow-hidden aspect-[4/3] rounded-2xl border text-left p-3 sm:p-3.5 transition-all flex flex-col justify-between outline-none group",
                               selected === opt.id
                                 ? "border-[var(--mf-accent)] ring-1 ring-[var(--mf-accent)]"
                                 : "border-[var(--mf-border)] hover:border-[var(--mf-accent-border)]"
@@ -495,7 +492,7 @@ export function SyncView() {
                     <button
                       onClick={handleSendPing}
                       disabled={!selected || isSending}
-                      className="w-full h-12 bg-[var(--mf-accent)] text-white rounded-2xl font-normal flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-xs transition-all !shadow-none"
+                      className="w-full h-12 bg-[var(--mf-accent)] text-white rounded-2xl font-normal flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-xs transition-all !shadow-none border-0 cursor-pointer"
                     >
                       {isSending ? (
                         <div className="flex items-center gap-2">
@@ -519,13 +516,11 @@ export function SyncView() {
               </div>
             </m.section>
 
-            {/* Right Column: Partner Chat */}
-            <m.section variants={itemVariants} className="flo-dashboard-right space-y-8">
+            {/* Right Column: Partner Chat & Support History */}
+            <m.section variants={itemVariants} className="flex flex-col gap-6 lg:gap-8 self-start min-w-0">
               {partnerStatus?.paired && <PartnerChat />}
               <SupportHistory />
             </m.section>
-
-
 
           </div>
         </div>

@@ -88,7 +88,7 @@ export function PartnerChat() {
   }
 
   return (
-    <div className="flo-card relative overflow-hidden transition-all duration-300 border border-[var(--mf-border)] !shadow-none p-5 flex flex-col min-h-[450px] max-h-[500px]">
+    <div className="flo-card relative overflow-hidden transition-all duration-300 border border-[var(--mf-border)] !shadow-none p-5 flex flex-col max-h-[500px]">
       
       {/* Header */}
       <div className="flex items-center justify-between pb-3.5 border-b border-[var(--mf-border)] mb-4">
@@ -112,13 +112,13 @@ export function PartnerChat() {
       </div>
 
       {/* Messages list */}
-      <div className="flex-1 overflow-y-auto pr-1 space-y-3 mb-3 scrollbar-thin">
+      <div className="overflow-y-auto pr-1 space-y-3 mb-3 scrollbar-thin">
         {messagesLoading && messages.length === 0 ? (
-          <div className="h-full flex items-center justify-center py-10">
+          <div className="flex items-center justify-center py-4">
             <CircleNotch size={24} className="animate-spin text-[var(--mf-muted)]" />
           </div>
         ) : messages.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center py-12 text-center">
+          <div className="flex flex-col items-center justify-center text-center">
             <div className="size-12 rounded-full bg-[var(--mf-hover)]/30 flex items-center justify-center mb-3">
               <ChatCircle size={22} className="text-[var(--mf-muted)]" />
             </div>

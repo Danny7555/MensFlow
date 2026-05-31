@@ -49,19 +49,8 @@ export function DailyTipCard({ phaseLabel, tipCompleted, setTipCompleted, varian
       className="flo-card flo-card--featured overflow-hidden flex flex-col group relative !p-5 md:!p-6 xl:!p-8"
     >
       <div className="flex flex-col md:flex-row md:items-center justify-between w-full gap-4 md:gap-5 xl:gap-8 ">
-        <div className="-mx-5 -mt-5 md:mt-0 md:mx-0 h-[100px] md:h-[120px] xl:h-[140px] md:w-[100px] xl:w-[130px] relative shrink-0 overflow-hidden rounded-b-3xl md:rounded-2xl">
-          <m.img 
-            animate={{ 
-              y: [0, -5, 0],
-              scale: [1.25, 1.3, 1.25]
-            }}
-            transition={{ 
-              duration: 4, 
-              repeat: Infinity, 
-              ease: "easeInOut" 
-            }}
-            src="/images/star.png" alt="Daily Tip" className="w-full h-full object-cover object-center" 
-          />
+        <div className="shrink-0 size-10 md:size-12 flex items-center justify-center">
+          <img src="/images/star.png" alt="" className="size-6 md:size-7 object-contain" />
         </div>
 
         <div className="flex-1 flex flex-col min-w-0 md:pl-4 xl:pl-6">
