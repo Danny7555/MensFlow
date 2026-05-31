@@ -357,7 +357,7 @@ export function NotificationsView() {
   }, [cycleInfo])
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-bottom-nav">
       <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-[var(--mf-border)]/50 px-6 py-4 flex items-center gap-4">
         <button 
           onClick={() => navigate(-1)}

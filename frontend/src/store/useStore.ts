@@ -573,16 +573,19 @@ export const useStore = create<AppState>()((set, get) => ({
   invitePartner: async (email) => {
     set({ isSaving: true })
     try {
-      const result = await partnerApi.invite(email)
+      const result = await partnerApi.invite(email) as { partnerFound: boolean; emailSent?: boolean; name?: string }
       if (result.partnerFound) {
         const profile = await userApi.getProfile()
         get().hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
         await get().fetchPartnerStatus()
         toast.success(`Partner found! Successfully paired with ${result.name}!`)
-      } else {
+      } else if (result.emailSent) {
         toast.success(`Invitation email sent to ${email}!`, {
-          description: `Once they sign up, they can pair with you using your code: ${get().user?.partnerCode || ''}`,
+          description: `Once they sign up, they can pair with you using your partner code: ${get().user?.partnerCode || ''}`,
         })
+      } else {
+        // Username typed but not found, or email with no account (shouldn't happen but guard it)
+        toast.error(`No MensFlow account found for "${email}". We've sent them an invite if it's an email address.`)
       }
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Failed to send invitation')

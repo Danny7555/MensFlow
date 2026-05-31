@@ -7,6 +7,7 @@ import {
   CaretRight, 
   Info,
   Flask,
+  CalendarPlus,
 } from '@phosphor-icons/react'
 import { format, addDays, startOfDay } from 'date-fns'
 import { toast } from 'sonner'
@@ -98,6 +99,9 @@ export function CycleTrackerHero({
   const { dashboard: storeData, user, settings, logs } = useStore()
   const data = propData || storeData
   const isPartner = user?.role === 'partner'
+
+  // Detect if this user has no cycle data at all (fresh account / no logs)
+  const hasNoCycleData = !data.lastPeriodStart && logs.length === 0
   
   const [state, dispatch] = useReducer(cycleTrackerReducer, {
     currentDay: 1,
@@ -212,6 +216,132 @@ export function CycleTrackerHero({
     }
   }
 
+  // --- Empty state for fresh users with no cycle data ---
+  if (hasNoCycleData && !isPartner) {
+    return (
+      <div className="cycle-tracker-hero relative">
+        <div className="cycle-tracker-mode flex flex-wrap items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="mode-chip">
+                Mode: {trackingMode === 'Conception' ? 'Conception (NFP)' : `MensFlow ${trackingMode}`}
+                <CaretDown size={14} weight="regular" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56 bg-card border-border">
+              {modes.map((m) => (
+                <DropdownMenuItem
+                  key={m}
+                  onClick={() => dispatch({ type: 'SET_TRACKING_MODE', payload: m })}
+                  className="text-sm font-regular focus:bg-[var(--mf-accent-soft)] focus:text-[var(--mf-accent)] cursor-pointer"
+                >
+                  {m}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        <div className="cycle-tracker-viz">
+          <div className="viz-ring-container">
+            {/* Ghost / dimmed wheel placeholder */}
+            <CycleWheel
+              cycleLength={28}
+              currentDay={1}
+              selectedDay={1}
+              hoveredDay={null}
+              periodLength={5}
+              predictedPeriodLength={2}
+              fertileStart={10}
+              fertileEnd={16}
+              upcomingStart={23}
+              upcomingEnd={27}
+              fertileColor="#26899e"
+              onSelectDay={() => {}}
+              onHoverDay={() => {}}
+              dimmed
+            />
+
+            {/* Overlay empty-state card */}
+            <div
+              className="viz-content"
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+            >
+              <div
+                className="animate-in fade-in zoom-in duration-500"
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  padding: '1.25rem 1rem',
+                  borderRadius: '1.25rem',
+                  background: 'color-mix(in srgb, var(--mf-accent) 8%, transparent)',
+                  border: '1px solid color-mix(in srgb, var(--mf-accent) 20%, transparent)',
+                  backdropFilter: 'blur(8px)',
+                  maxWidth: '220px',
+                  textAlign: 'center',
+                }}
+              >
+                <div
+                  style={{
+                    width: '2.5rem',
+                    height: '2.5rem',
+                    borderRadius: '50%',
+                    background: 'color-mix(in srgb, var(--mf-accent) 15%, transparent)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <CalendarPlus size={20} style={{ color: 'var(--mf-accent)' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                  <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--mf-accent)', lineHeight: 1.2 }}>
+                    No cycle data yet
+                  </p>
+                  <p style={{ fontSize: '0.65rem', opacity: 0.6, lineHeight: 1.4 }}>
+                    Log your first entry below to see your personalised cycle insights
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="viz-day-badge" style={{ opacity: 0.35 }}>
+              <div className="badge-inner">
+                <span className="badge-label">Day</span>
+                <span className="badge-value">–</span>
+                <span className="text-[10px] font-normal opacity-40 mt-0.5">–</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="cycle-tracker-mood-cta">
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => dispatch({ type: 'SET_LOG_MODAL_OPEN', payload: true })}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') dispatch({ type: 'SET_LOG_MODAL_OPEN', payload: true }) }}
+            className="mood-cta-card cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mf-accent)] rounded-2xl"
+          >
+            <img src="/images/exp.jpg" alt="" className="mood-cta-bg" />
+            <div className="mood-cta-overlay" />
+            <span className="mood-text pl-4">Log your first cycle entry</span>
+            <CaretRight size={20} className="caret-right group-hover:translate-x-1 transition-transform" />
+          </div>
+        </div>
+
+        <LogSymptomsModal
+          isOpen={isLogModalOpen}
+          onOpenChange={(open) => dispatch({ type: 'SET_LOG_MODAL_OPEN', payload: open })}
+          activeDay={1}
+          activeDate={today}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="cycle-tracker-hero relative">
       <div className="cycle-tracker-mode flex flex-wrap items-center gap-2">
@@ -279,28 +409,28 @@ export function CycleTrackerHero({
           />
 
           <div className="viz-content">
-            {/* Chance of pregnancy indicator - moved to top to avoid overlap */}
-            <div className="mb-6 animate-in fade-in zoom-in duration-700">
-                <span 
+            {/* Chance of pregnancy indicator — only shown when cycle data exists */}
+            {data.lastPeriodStart && (
+              <div className="mb-6 animate-in fade-in zoom-in duration-700">
+                <span
                   className="px-5 py-1.5 rounded-full text-[9px] font-normal uppercase tracking-widest transition-colors duration-300"
-                  style={{ 
-                    color: activeInfo.color,
-                  }}
+                  style={{ color: activeInfo.color }}
                 >
-                 {trackingMode === 'Conception'
-                   ? (activeDay >= fertileStart && activeDay <= fertileEnd 
-                      ? (settings.conditionOptimization === 'pcos' || settings.conditionOptimization === 'perimenopause'
-                         ? 'Variable Fertility Window (Monitor BBT/Mucus)' 
-                         : 'Peak fertility window (Symptothermal NFP)') 
-                      : 'Non-fertile phase (NFP prediction)')
-                   : (activeDay >= fertileStart && activeDay <= fertileEnd 
-                      ? (settings.conditionOptimization === 'pcos' || settings.conditionOptimization === 'perimenopause'
-                         ? 'Unpredictable pregnancy chance' 
-                         : 'High pregnancy chance') 
-                      : 'Low pregnancy chance')
-                 }
-               </span>
-            </div>
+                  {trackingMode === 'Conception'
+                    ? (activeDay >= fertileStart && activeDay <= fertileEnd
+                        ? (settings.conditionOptimization === 'pcos' || settings.conditionOptimization === 'perimenopause'
+                            ? 'Variable Fertility Window (Monitor BBT/Mucus)'
+                            : 'Peak fertility window (Symptothermal NFP)')
+                        : 'Non-fertile phase (NFP prediction)')
+                    : (activeDay >= fertileStart && activeDay <= fertileEnd
+                        ? (settings.conditionOptimization === 'pcos' || settings.conditionOptimization === 'perimenopause'
+                            ? 'Unpredictable pregnancy chance'
+                            : 'High pregnancy chance')
+                        : 'Low pregnancy chance')
+                  }
+                </span>
+              </div>
+            )}
 
             <p className="viz-today">{format(activeDate, 'EEEE, d MMM')}</p>
             <h2 className="viz-title" style={{ color: activeInfo.color }}>

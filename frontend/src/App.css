@@ -1628,7 +1628,7 @@
   }
 
   .settings-panel-body {
-    padding: 0 1rem 2rem;
+    padding: 0 1rem calc(88px + env(safe-area-inset-bottom) + 1rem);
   }
 }
 

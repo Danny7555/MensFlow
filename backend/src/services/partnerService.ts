@@ -6,6 +6,7 @@ import { Settings } from '../models/Settings';
 import { IPartnerPing, IPartnerChatMessage } from '../interfaces';
 import { httpError } from '../utils/http';
 import { generateUniquePartnerCode } from './authService';
+import { sendInviteEmail } from './emailService';
 
 
 // ─── Pairing ─────────────────────────────────────────────────────────────────
@@ -47,12 +48,41 @@ export async function pairWithPartner(
 export async function invitePartner(
   userId: string,
   emailOrUsername: string
-): Promise<{ id?: string; name?: string; alreadyPaired: boolean; partnerFound: boolean }> {
+): Promise<{ id?: string; name?: string; alreadyPaired: boolean; partnerFound: boolean; emailSent?: boolean }> {
   const normalized = emailOrUsername.toLowerCase().trim();
-  const partner = await User.findOne({ username: normalized });
+
+  // Look up by email OR username so both work
+  const partner = await User.findOne({
+    $or: [{ email: normalized }, { username: normalized }],
+  });
 
   if (!partner) {
-    return { alreadyPaired: false, partnerFound: false };
+    // No existing account — send an invite email if the input looks like an email
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized);
+    if (!isEmail) {
+      // Username that doesn't exist — just tell the frontend no match found
+      return { alreadyPaired: false, partnerFound: false, emailSent: false };
+    }
+
+    const invitingUser = await User.findById(userId).lean();
+    const inviterName = invitingUser?.name || 'Your partner';
+    const partnerCode = invitingUser?.partnerCode || '';
+    const appUrl = process.env.APP_URL || 'https://mensflow.app';
+    const signupLink = `${appUrl}/sync?code=${partnerCode}`;
+
+    try {
+      await sendInviteEmail({
+        toEmail: normalized,
+        inviterName,
+        signupLink,
+        partnerCode,
+      });
+    } catch (err) {
+      console.error('[invitePartner] Failed to send invite email:', err);
+      // Don't throw — the invite is still valid even if email fails
+    }
+
+    return { alreadyPaired: false, partnerFound: false, emailSent: true };
   }
 
   if (String(partner._id) === userId) {
@@ -70,7 +100,8 @@ export async function invitePartner(
     id: String(partner._id),
     name: partner.name,
     alreadyPaired: false,
-    partnerFound: true
+    partnerFound: true,
+    emailSent: false,
   };
 }
 
