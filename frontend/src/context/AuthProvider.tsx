@@ -284,7 +284,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         open={authModalOpen}
         isLoading={state.isLoading}
         initialMode={initialAuthMode}
-        preFillName={useStore.getState().user.name || ''}
+        preFillName={initialAuthMode === 'register' ? (useStore.getState().user.name || '') : ''}
         onClose={() => {
           if (!otpPending) setAuthModalOpen(false)
         }}
