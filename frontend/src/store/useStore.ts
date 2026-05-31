@@ -47,6 +47,7 @@ interface AppState {
       name: string
       avatar: string | null
       accessLevel: 'full' | 'educational'
+      lastActive?: number | null
     }
     cycle?: {
       lastPeriodStart: string

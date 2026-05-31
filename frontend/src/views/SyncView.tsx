@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { m } from 'framer-motion'
 import type { Variants } from 'framer-motion'
 import { Check, Sparkle, PaperPlaneTilt, LinkSimple, Copy, ArrowRight, Users, ChatCircle, Lock, ShareNetwork } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { PartnerChat } from '../components/dashboard/PartnerChat'
+import { PresenceBadge } from '../components/dashboard/PresenceBadge'
 import { useStore } from '../store/useStore'
 import {
   Dialog,
@@ -65,16 +66,7 @@ const itemVariants: Variants = {
   }
 }
 
-const floatVariants: Variants = {
-  animate: {
-    y: [0, -10, 0],
-    transition: {
-      duration: 5,
-      repeat: Infinity,
-      ease: "easeInOut"
-    }
-  }
-}
+
 
 function SupportHistory() {
   const { completedActions } = useStore()
@@ -119,6 +111,7 @@ function SupportHistory() {
 export function SyncView() {
   const { partnerStatus, fetchPartnerStatus, user, pairPartner } = useStore()
   const { isAuthenticated, openAuthModal } = useAuth()
+  const mainRef = useRef<HTMLElement>(null)
   const [selected, setSelected] = useState<string | null>(null)
   const [isSending, setIsSending] = useState(false)
   const [sent, setSent] = useState(false)
@@ -178,9 +171,18 @@ export function SyncView() {
     }
   }, [isAuthenticated, user?.role, fetchPartnerStatus])
 
-
-
-
+  // Always start at the top when this view opens
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0)
+    const appCanvas = document.querySelector('.app-canvas') as HTMLElement | null
+    if (appCanvas) appCanvas.scrollTop = 0
+    // Run again after layout settles in case SSR/SPA deferred paint
+    const id = requestAnimationFrame(() => {
+      window.scrollTo(0, 0)
+      if (appCanvas) appCanvas.scrollTop = 0
+    })
+    return () => cancelAnimationFrame(id)
+  }, [])
 
   const options = user?.role === 'partner' ? SUPPORT_PING_OPTIONS : STATUS_OPTIONS
 
@@ -223,7 +225,7 @@ export function SyncView() {
         variants={containerVariants}
         className="dashboard-flo-theme relative overflow-hidden min-h-screen"
       >
-        <main className="flo-main-container pb-32 relative z-10">
+        <main ref={mainRef} className="flo-main-container pb-32 relative z-10">
           <div className="flo-content-inner max-w-3xl mx-auto">
             {/* Hero Header */}
             <m.div variants={itemVariants} className="text-center pt-10 pb-8 space-y-4">
@@ -523,7 +525,7 @@ export function SyncView() {
       variants={containerVariants}
       className="dashboard-flo-theme relative overflow-hidden min-h-screen"
     >
-      <main className="flo-main-container pb-32 relative z-10">
+      <main ref={mainRef} className="flo-main-container pb-32 relative z-10">
         <div className="flo-content-inner">
           
           <m.div variants={itemVariants} className="flo-dashboard-top mb-6 md:mb-10 lg:mb-12">
@@ -536,14 +538,28 @@ export function SyncView() {
                 <p className="text-sm text-[var(--mf-muted)] mt-4 leading-relaxed max-w-lg">
                   Strengthen your relationship with real-time status pings, hormone decoding translators, and empathetic task sheets aligned with her cycle.
                 </p>
+                {partnerStatus?.partner && (
+                  <div className="flex items-center gap-3 mt-4 pt-3">
+                    <div className="flex items-center gap-2">
+                      <div className="size-7 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center overflow-hidden border border-[var(--mf-border)]">
+                        {partnerStatus.partner.avatar ? (
+                          <img src={partnerStatus.partner.avatar} alt="" className="size-full object-cover" />
+                        ) : (
+                          <img src="/images/girl.png" alt="" className="size-full object-cover" />
+                        )}
+                      </div>
+                      <span className="text-xs font-medium text-[var(--mf-text-strong)]">
+                        {partnerStatus.partner.name}
+                      </span>
+                    </div>
+                    <div className="h-4 w-px bg-[var(--mf-border)]" />
+                    <PresenceBadge lastActive={partnerStatus.partner.lastActive} partnerName={partnerStatus.partner.name} />
+                  </div>
+                )}
               </div>
-              <m.div 
-                variants={floatVariants}
-                animate="animate"
-                className="hidden md:block shrink-0"
-              >
-                <img src="/images/lady.png" alt="Empathy Hub Illustration" className="h-32 lg:h-40 object-contain opacity-95" />
-              </m.div>
+              <div className="hidden md:block shrink-0">
+                <img src="/images/lady.png" alt="Empathy Hub Illustration" className="h-32 lg:h-40 object-cover rounded-full opacity-95" />
+              </div>
             </div>
           </m.div>
 

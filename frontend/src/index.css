@@ -266,7 +266,64 @@
   html, body {
     @apply bg-background text-foreground;
     overflow-x: hidden;
+    scroll-behavior: smooth;
   }
+}
+
+/* Global focus-visible ring for keyboard accessibility */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--mf-accent) !important;
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+  /* Exclude text inputs/areas from global ring (they have their own focus styles) */
+  input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  [contenteditable]:focus-visible {
+    outline: none !important;
+  }
+  button:focus-visible,
+  a:focus-visible,
+  [tabindex]:focus-visible,
+  [role="button"]:focus-visible {
+    outline: 2px solid var(--mf-accent) !important;
+    outline-offset: 2px;
+  }
+}
+
+/* Scroll-to-top FAB */
+.scroll-top-btn {
+  position: fixed;
+  bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+  right: 1.5rem;
+  z-index: 45;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: var(--mf-card);
+  border: 1px solid var(--mf-border);
+  color: var(--mf-text-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transition: opacity 0.25s, transform 0.25s, box-shadow 0.25s;
+}
+.scroll-top-btn:hover {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.14);
+  transform: translateY(-2px);
+}
+.scroll-top-btn--hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(12px);
+}
+/* Push up when bottom nav is present */
+.pb-bottom-nav .scroll-top-btn {
+  bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
 }
 
 @layer utilities {

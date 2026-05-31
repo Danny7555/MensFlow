@@ -1,6 +1,6 @@
 import { useCallback, useState, lazy, Suspense } from 'react'
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
-import { LazyMotion, domAnimation } from 'framer-motion'
+import { LazyMotion, domAnimation, AnimatePresence as AP} from 'framer-motion'
 import { cn } from './lib/utils'
 import { ThemeSync } from './components/ThemeSync'
 import { Toaster } from 'sonner'
@@ -14,6 +14,7 @@ import { House, Target, Heartbeat, Bell, UserCircle, BookOpen, ChatCircle, Lock,
 import { useMediaQuery } from './hooks/useMediaQuery'
 import { useSmartPushNotifications } from './hooks/useSmartPushNotifications'
 import { PageLoader } from './components/skeletons/PageLoader'
+import { ScrollToTop } from './components/ScrollToTop'
 import { AccessGate } from './components/AccessGate'
 import { Button } from './components/ui/button'
 import { SECURITY_QUESTIONS } from './lib/constants'
@@ -411,7 +412,8 @@ function MainShell() {
 
           <main className={cn("app-canvas", isAuthenticated && isMobile && !location.pathname.startsWith('/onboarding') && "pb-bottom-nav")}>
             <Suspense fallback={<PageLoader />}>
-              <Routes>
+              <AP mode="wait">
+                <Routes location={location} key={location.pathname}>
                 {!isAuthenticated ? (
                   <>
                     <Route path="/" element={<LandingView />} />
@@ -464,7 +466,8 @@ function MainShell() {
                     <Route path="*" element={<NotFoundView />} />
                   </>
                 )}
-              </Routes>
+                </Routes>
+              </AP>
             </Suspense>
           </main>
         </div>
@@ -504,15 +507,18 @@ function MainShell() {
                   <House size={24} weight={location.pathname === '/dashboard' ? "fill" : "regular"} />
                   <span className="flo-nav-label">Home</span>
                 </button>
-                <button className="flo-nav-item" onClick={() => navigate('/insights')}>
-                  <Target size={24} />
+                <button 
+                  className={cn("flo-nav-item", (location.pathname === '/insights' || location.pathname === '/health-insights') && "flo-nav-item--active")}
+                  onClick={() => navigate('/insights')}
+                >
+                  <Target size={24} weight={(location.pathname === '/insights' || location.pathname === '/health-insights') ? "fill" : "regular"} />
                   <span className="flo-nav-label">Insights</span>
                 </button>
                 <button 
-                  className={cn("flo-nav-item", location.pathname === '/wellness-tips' && "flo-nav-item--active")}
-                  onClick={() => navigate('/wellness-tips')}
+                  className={cn("flo-nav-item", (location.pathname === '/tips' || location.pathname === '/wellness-tips') && "flo-nav-item--active")}
+                  onClick={() => navigate('/tips')}
                 >
-                  <Heartbeat size={24} weight={location.pathname === '/wellness-tips' ? "fill" : "light"} />
+                  <Heartbeat size={24} weight={(location.pathname === '/tips' || location.pathname === '/wellness-tips') ? "fill" : "light"} />
                   <span className="flo-nav-label">Wellness</span>
                 </button>
                 <button 
@@ -533,6 +539,7 @@ function MainShell() {
             )}
           </nav>
         )}
+        <ScrollToTop />
       </div>
     </ChatSessionContext.Provider>
   )

@@ -169,12 +169,39 @@ export async function getPartnerStatus(userId: string): Promise<object> {
     .distinct('actionId')
     .lean();
 
+  // Derive partner's last active time from their most recent ping or log
+  const partnerLastPing = await PartnerPing.findOne({ senderId: partner._id, receiverId: userId })
+    .sort({ timestamp: -1 })
+    .lean();
+  const partnerLastLog = await SymptomLog.findOne({ userId: partner._id })
+    .sort({ date: -1 })
+    .lean();
+  
+  let partnerLastActive: number | null = null;
+  if (partnerLastPing?.timestamp) {
+    partnerLastActive = Math.max(partnerLastActive ?? 0, partnerLastPing.timestamp);
+  }
+  if (partnerLastLog?.date) {
+    const logTs = new Date(partnerLastLog.date + 'T23:59:59').getTime();
+    if (!partnerLastActive || logTs > partnerLastActive) {
+      partnerLastActive = logTs;
+    }
+  }
+  // Also check partner chat messages as activity signal
+  const partnerLastMessage = await PartnerChatMessage.findOne({ senderId: partner._id, receiverId: userId })
+    .sort({ createdAt: -1 })
+    .lean();
+  if (partnerLastMessage?.createdAt && (!partnerLastActive || partnerLastMessage.createdAt > partnerLastActive)) {
+    partnerLastActive = partnerLastMessage.createdAt;
+  }
+
   return {
     paired: true,
     partner: {
       name: partner.name,
       avatar: partner.avatar,
       accessLevel: partner.accessLevel,
+      lastActive: partnerLastActive,
     },
     privacyShareCycleDetails: shareDetails,
     cycle: partnerDash

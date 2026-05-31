@@ -478,11 +478,11 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
     })
   }
 
-  // Lock Actions
-  const openLockModal = (sessionId: string, e: React.MouseEvent) => {
-    e.stopPropagation()
-    setLockModalSessionId(sessionId)
-  }
+  // // Lock Actions
+  // const openLockModal = (sessionId: string, e: React.MouseEvent) => {
+  //   e.stopPropagation()
+  //   setLockModalSessionId(sessionId)
+  // }
 
   const handleLockSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
