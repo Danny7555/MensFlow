@@ -149,7 +149,7 @@ export function OnboardingView() {
         navigate('/dashboard')
       }
     } else {
-      openAuthModal()
+      openAuthModal('register')
       navigate('/')
     }
   }, [answers.name, answers.role, answers.partner_code, answers.symptoms, answers.goal, answers.energy_consistency, answers.access_level, updateDashboard, completeOnboarding, isAuthenticated, navigate, openAuthModal, updateUser])
@@ -205,7 +205,7 @@ export function OnboardingView() {
 
   const handleNoThanks = useCallback(() => {
     completeOnboarding()
-    openAuthModal()
+    openAuthModal('register')
     navigate('/')
   }, [completeOnboarding, navigate, openAuthModal])
 

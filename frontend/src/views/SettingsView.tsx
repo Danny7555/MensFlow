@@ -1037,17 +1037,16 @@ function SecurityPanel({
     <>
       <div className="settings-field-row border-b border-border/50 pb-6 mb-6">
         <div className="settings-field-text">
-          <span className="settings-field-label">Multi-factor authentication (MFA)</span>
+          <span className="settings-field-label">Email OTP Verification</span>
           <p className="settings-field-desc">
-            Require a second step to sign in to your MensFlow account.
+            When enabled, a 6-digit code is emailed to you every time you sign in or create an account.
+            Adds a second layer of security beyond your password.
           </p>
         </div>
-        <MfaSetupModal
-          trigger={
-            <Button variant="outline" className="rounded-xl">
-              Set up
-            </Button>
-          }
+        <ToggleRow
+          label=""
+          checked={settings.otpEnabled}
+          onChange={(v) => updateSettings({ otpEnabled: v })}
         />
       </div>
 

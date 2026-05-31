@@ -30,6 +30,7 @@ export interface SettingsDocument extends Document {
   conditionOptimization: 'none' | 'pcos' | 'endometriosis' | 'perimenopause';
   disableAIPopups: boolean;
   hideDailyStoriesAndTips: boolean;
+  otpEnabled: boolean;
 }
 
 const SettingsSchema = new Schema<SettingsDocument>({
@@ -62,6 +63,7 @@ const SettingsSchema = new Schema<SettingsDocument>({
   conditionOptimization: { type: String, enum: ['none', 'pcos', 'endometriosis', 'perimenopause'], default: 'none' },
   disableAIPopups: { type: Boolean, default: false },
   hideDailyStoriesAndTips: { type: Boolean, default: false },
+  otpEnabled: { type: Boolean, default: true },
 });
 
 export const Settings = model<SettingsDocument>('Settings', SettingsSchema);

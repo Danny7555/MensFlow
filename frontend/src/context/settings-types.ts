@@ -35,6 +35,8 @@ export type MensFlowSettings = {
   conditionOptimization: 'none' | 'pcos' | 'endometriosis' | 'perimenopause'
   disableAIPopups: boolean
   hideDailyStoriesAndTips: boolean
+  /** Two-factor authentication via email OTP */
+  otpEnabled: boolean
 }
 
 export const DEFAULT_SETTINGS: MensFlowSettings = {
@@ -67,4 +69,5 @@ export const DEFAULT_SETTINGS: MensFlowSettings = {
   conditionOptimization: 'none',
   disableAIPopups: false,
   hideDailyStoriesAndTips: false,
+  otpEnabled: true,
 }

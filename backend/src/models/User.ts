@@ -2,6 +2,7 @@ import { Schema, model, Document } from 'mongoose';
 
 export interface UserDocument extends Document {
   username: string;
+  email: string | null;
   passwordHash: string;
   name: string;
   avatar: string | null;
@@ -14,11 +15,17 @@ export interface UserDocument extends Document {
   quizLastCompletedAt: string;
   quizCountToday: number;
   createdAt: Date;
+  // OTP / Two-factor auth
+  otpEnabled: boolean;
+  otpHash: string | null;
+  otpExpiry: Date | null;
+  otpTempToken: string | null;
 }
 
 const UserSchema = new Schema<UserDocument>(
   {
     username: { type: String, required: true, unique: true, trim: true, lowercase: true, maxlength: 120 },
+    email: { type: String, required: false, unique: true, sparse: true, trim: true, lowercase: true, maxlength: 254, default: null },
     passwordHash: { type: String, required: true },
     name: { type: String, required: true, trim: true, maxlength: 80 },
     avatar: { type: String, default: null, maxlength: 500 },
@@ -30,6 +37,11 @@ const UserSchema = new Schema<UserDocument>(
     xp: { type: Number, default: 0 },
     quizLastCompletedAt: { type: String, default: '' },
     quizCountToday: { type: Number, default: 0 },
+    // OTP / Two-factor auth
+    otpEnabled: { type: Boolean, default: true },
+    otpHash: { type: String, default: null },
+    otpExpiry: { type: Date, default: null },
+    otpTempToken: { type: String, default: null },
   },
   { timestamps: true }
 );

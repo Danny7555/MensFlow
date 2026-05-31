@@ -8,9 +8,9 @@ export type AuthContextValue = {
   isRehydrating: boolean
   user: ApiUser | null
   login: (username: string, password: string) => Promise<void>
-  register: (username: string, password: string, name: string) => Promise<void>
+  register: (username: string, email: string, password: string, name: string, role?: 'lady' | 'partner') => Promise<void>
   logout: () => void
-  openAuthModal: () => void
+  openAuthModal: (initialMode?: 'login' | 'register') => void
   completeOnboarding: () => void
 }
 

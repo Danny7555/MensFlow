@@ -15,6 +15,7 @@ import { setToken, clearToken, isLoggedIn } from '../lib/auth-token'
 import { useStore } from '../store/useStore'
 import { queryClient } from '../lib/queryClient'
 
+
 const getLocalOnboarding = () => sessionStorage.getItem('mf_onboarding') === 'true'
 const getLocalPartnerCode = () => sessionStorage.getItem('mf_partner_code')
 
@@ -30,6 +31,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isRehydrating: isLoggedIn(),
   })
   const [authModalOpen, setAuthModalOpen] = useState(false)
+  const [initialAuthMode, setInitialAuthMode] = useState<'login' | 'register'>('login')
+  // OTP flow state
+  const [otpPending, setOtpPending] = useState(false)
+  const [otpToken, setOtpToken] = useState<string | null>(null)
+  const [otpEmail, setOtpEmail] = useState('')
+  const [pendingUser, setPendingUser] = useState<ApiUser | null>(null)
 
   // ── Rehydrate store from API on mount if token exists ──────────────────────
   useEffect(() => {
@@ -95,172 +102,134 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(syncInterval)
   }, [state.isAuthenticated])
 
+  // ── Post-auth hydration helper ─────────────────────────────────────────────
+  const completeAuthFlow = useCallback(async (token: string, u: ApiUser) => {
+    setToken(token)
+    const localOnboarding = getLocalOnboarding()
+    const isOnboarded = u.isOnboarded || localOnboarding
+    setState(prev => ({ ...prev, user: u, onboardingCompleted: isOnboarded, isAuthenticated: true }))
+    setAuthModalOpen(false)
+    setOtpPending(false)
+    setOtpToken(null)
+    setOtpEmail('')
+    setPendingUser(null)
+
+    if (localOnboarding && !u.isOnboarded) {
+      const storeUser = useStore.getState().user
+      const patch: Partial<ApiUser> = { isOnboarded: true }
+      if (storeUser.name) patch.name = storeUser.name
+      if (storeUser.role) patch.role = storeUser.role
+      if (storeUser.accessLevel) patch.accessLevel = storeUser.accessLevel
+      await userApi.updateProfile(patch).catch(err => console.error('Failed to sync guest onboarding', err))
+
+      const storeDashboard = useStore.getState().dashboard
+      await userApi.updateDashboard({
+        lastPeriodStart: storeDashboard.lastPeriodStart,
+        typicalCycleDays: storeDashboard.typicalCycleDays,
+        phaseLabel: storeDashboard.phaseLabel,
+        hormoneTrend: storeDashboard.hormoneTrend,
+        bodySignals: storeDashboard.bodySignals,
+        guidanceLines: storeDashboard.guidanceLines,
+        cycleNotes: storeDashboard.cycleNotes,
+        cycleVariationDays: storeDashboard.cycleVariationDays,
+        isAtypical: storeDashboard.isAtypical,
+      }).catch(err => console.error('Failed to sync guest dashboard', err))
+    }
+
+    const profile = await userApi.getProfile()
+    setState(prev => ({ ...prev, onboardingCompleted: profile.user.isOnboarded }))
+    hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
+
+    const localPartnerCode = getLocalPartnerCode()
+    if (localPartnerCode) {
+      await useStore.getState().pairPartner(localPartnerCode).catch(err =>
+        console.error('Failed to auto-pair partner code', err)
+      )
+      sessionStorage.removeItem('mf_partner_code')
+    }
+
+    void queryClient.invalidateQueries({ queryKey: userKeys.profile })
+    void queryClient.invalidateQueries({ queryKey: chatKeys.sessions })
+
+    const store = useStore.getState()
+    await Promise.all([
+      store.fetchLogs(),
+      store.fetchCustomSymptoms(),
+      store.fetchPartnerStatus()
+    ]).catch(err => console.error('Failed to load user data', err))
+
+    navigate(profile.user.isOnboarded
+      ? (profile.user.accessLevel === 'educational' ? '/education' : '/dashboard')
+      : '/onboarding'
+    )
+  }, [navigate, hydrate])
+
   // ── Login ──────────────────────────────────────────────────────────────────
   const login = useCallback(async (username: string, password: string) => {
     setState(prev => ({ ...prev, isLoading: true }))
     try {
-      const { token, user: u } = await authApi.login(username, password)
-      setToken(token)
-      
-      const localOnboarding = getLocalOnboarding()
-      const isOnboarded = u.isOnboarded || localOnboarding
-      
-      setState(prev => ({
-        ...prev,
-        user: u,
-        onboardingCompleted: isOnboarded,
-        isAuthenticated: true,
-      }))
-      setAuthModalOpen(false)
-
-      if (localOnboarding && !u.isOnboarded) {
-        const storeUser = useStore.getState().user
-        const patch: Partial<ApiUser> = { isOnboarded: true }
-        if (storeUser.name) patch.name = storeUser.name
-        if (storeUser.role) patch.role = storeUser.role
-        if (storeUser.accessLevel) patch.accessLevel = storeUser.accessLevel
-        await userApi.updateProfile(patch).catch((err) => {
-          console.error('Failed to sync guest onboarding to backend during login', err)
-        })
-
-        const storeDashboard = useStore.getState().dashboard
-        await userApi.updateDashboard({
-          lastPeriodStart: storeDashboard.lastPeriodStart,
-          typicalCycleDays: storeDashboard.typicalCycleDays,
-          phaseLabel: storeDashboard.phaseLabel,
-          hormoneTrend: storeDashboard.hormoneTrend,
-          bodySignals: storeDashboard.bodySignals,
-          guidanceLines: storeDashboard.guidanceLines,
-          cycleNotes: storeDashboard.cycleNotes,
-          cycleVariationDays: storeDashboard.cycleVariationDays,
-          isAtypical: storeDashboard.isAtypical,
-        }).catch((err) => {
-          console.error('Failed to sync guest onboarding dashboard to backend during login', err)
-        })
+      const result = await authApi.login(username, password)
+      if (result.requiresOtp && result.otpToken) {
+        // OTP required — store temp token and show OTP step
+        setOtpToken(result.otpToken)
+        setOtpEmail(username)
+        setPendingUser(result.user)
+        setOtpPending(true)
+        return
       }
-
-      // Fetch full profile so the store is hydrated
-      const profile = await userApi.getProfile()
-      
-      setState(prev => ({
-        ...prev,
-        onboardingCompleted: profile.user.isOnboarded,
-      }))
-      hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
-
-      // Auto-pair if a partner code was entered during guest onboarding
-      const localPartnerCode = getLocalPartnerCode()
-      if (localPartnerCode) {
-        const store = useStore.getState()
-        await store.pairPartner(localPartnerCode).catch((err) => {
-          console.error('Failed to auto-pair partner code during login setup', err)
-        })
-        sessionStorage.removeItem('mf_partner_code')
-      }
-
-      // Invalidate only the affected data queries (targeted, not a full cache wipe)
-      void queryClient.invalidateQueries({ queryKey: userKeys.profile })
-      void queryClient.invalidateQueries({ queryKey: chatKeys.sessions })
-
-      // Fetch logs, custom symptoms, and partner status from backend database
-      const store = useStore.getState()
-      await Promise.all([
-        store.fetchLogs(),
-        store.fetchCustomSymptoms(),
-        store.fetchPartnerStatus()
-      ]).catch((err) => console.error('Failed to load user logs/status', err))
-
-      navigate(profile.user.isOnboarded ? (profile.user.accessLevel === 'educational' ? '/education' : '/dashboard') : '/onboarding')
+      if (!result.token) throw new Error('No token received')
+      await completeAuthFlow(result.token, result.user)
     } catch (err) {
       setState(prev => ({ ...prev, isLoading: false }))
       throw err
     } finally {
       setState(prev => ({ ...prev, isLoading: false }))
     }
-  }, [navigate, hydrate])
+  }, [completeAuthFlow])
 
   // ── Register ───────────────────────────────────────────────────────────────
-  const register = useCallback(async (username: string, password: string, name: string, role?: 'lady' | 'partner') => {
+  const register = useCallback(async (username: string, email: string, password: string, name: string, role?: 'lady' | 'partner') => {
     setState(prev => ({ ...prev, isLoading: true }))
     try {
-      const { token, user: u } = await authApi.register(username, password, name, role)
-      setToken(token)
-      
-      const localOnboarding = getLocalOnboarding()
-      const isOnboarded = u.isOnboarded || localOnboarding
-      
-      setState(prev => ({
-        ...prev,
-        user: u,
-        onboardingCompleted: isOnboarded,
-        isAuthenticated: true,
-      }))
-      setAuthModalOpen(false)
-
-      if (localOnboarding && !u.isOnboarded) {
-        const storeUser = useStore.getState().user
-        const patch: Partial<ApiUser> = { isOnboarded: true }
-        if (storeUser.name) patch.name = storeUser.name
-        if (storeUser.role) patch.role = storeUser.role
-        if (storeUser.accessLevel) patch.accessLevel = storeUser.accessLevel
-        await userApi.updateProfile(patch).catch((err) => {
-          console.error('Failed to sync guest onboarding to backend during registration', err)
-        })
-
-        const storeDashboard = useStore.getState().dashboard
-        await userApi.updateDashboard({
-          lastPeriodStart: storeDashboard.lastPeriodStart,
-          typicalCycleDays: storeDashboard.typicalCycleDays,
-          phaseLabel: storeDashboard.phaseLabel,
-          hormoneTrend: storeDashboard.hormoneTrend,
-          bodySignals: storeDashboard.bodySignals,
-          guidanceLines: storeDashboard.guidanceLines,
-          cycleNotes: storeDashboard.cycleNotes,
-          cycleVariationDays: storeDashboard.cycleVariationDays,
-          isAtypical: storeDashboard.isAtypical,
-        }).catch((err) => {
-          console.error('Failed to sync guest onboarding dashboard to backend during registration', err)
-        })
+      const result = await authApi.register(username, email, password, name, role)
+      if (result.requiresOtp && result.otpToken) {
+        setOtpToken(result.otpToken)
+        setOtpEmail(email)       // show the real email in the OTP modal
+        setPendingUser(result.user)
+        setOtpPending(true)
+        return
       }
-
-      const profile = await userApi.getProfile()
-      
-      setState(prev => ({
-        ...prev,
-        onboardingCompleted: profile.user.isOnboarded,
-      }))
-      hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
-
-      // Auto-pair if a partner code was entered during guest onboarding
-      const localPartnerCode = getLocalPartnerCode()
-      if (localPartnerCode) {
-        const store = useStore.getState()
-        await store.pairPartner(localPartnerCode).catch((err) => {
-          console.error('Failed to auto-pair partner code during registration setup', err)
-        })
-        sessionStorage.removeItem('mf_partner_code')
-      }
-
-      // Invalidate only the affected data queries (targeted, not a full cache wipe)
-      void queryClient.invalidateQueries({ queryKey: userKeys.profile })
-      void queryClient.invalidateQueries({ queryKey: chatKeys.sessions })
-
-      // Fetch logs, custom symptoms, and partner status from backend database
-      const store = useStore.getState()
-      await Promise.all([
-        store.fetchLogs(),
-        store.fetchCustomSymptoms(),
-        store.fetchPartnerStatus()
-      ]).catch((err) => console.error('Failed to load user logs/status', err))
-
-      navigate(profile.user.isOnboarded ? (profile.user.accessLevel === 'educational' ? '/education' : '/dashboard') : '/onboarding')
+      if (!result.token) throw new Error('No token received')
+      await completeAuthFlow(result.token, result.user)
     } catch (err) {
       setState(prev => ({ ...prev, isLoading: false }))
       throw err
     } finally {
       setState(prev => ({ ...prev, isLoading: false }))
     }
-  }, [navigate, hydrate])
+  }, [completeAuthFlow])
+
+  // ── Verify OTP ─────────────────────────────────────────────────────────────
+  const verifyOtp = useCallback(async (code: string) => {
+    if (!otpToken) return
+    setState(prev => ({ ...prev, isLoading: true }))
+    try {
+      const { token, user: u } = await authApi.verifyOtp(otpToken, code)
+      await completeAuthFlow(token, u)
+    } catch (err) {
+      setState(prev => ({ ...prev, isLoading: false }))
+      throw err
+    } finally {
+      setState(prev => ({ ...prev, isLoading: false }))
+    }
+  }, [otpToken, completeAuthFlow])
+
+  // ── Resend OTP ─────────────────────────────────────────────────────────────
+  const resendOtp = useCallback(async () => {
+    if (!otpToken) return
+    const result = await authApi.resendOtp(otpToken)
+    setOtpToken(result.otpToken)
+  }, [otpToken])
 
   // ── Logout ─────────────────────────────────────────────────────────────────
   const logout = useCallback(() => {
@@ -291,7 +260,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const openAuthModal = useCallback(() => setAuthModalOpen(true), [])
+  const openAuthModal = useCallback((initialMode: 'login' | 'register' = 'login') => {
+    setInitialAuthMode(initialMode)
+    setAuthModalOpen(true)
+  }, [])
 
   const value = useMemo(
     () => ({
@@ -315,9 +287,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       <AuthModal
         open={authModalOpen}
         isLoading={state.isLoading}
-        onClose={() => setAuthModalOpen(false)}
+        initialMode={initialAuthMode}
+        preFillName={useStore.getState().user.name || ''}
+        onClose={() => {
+          if (!otpPending) setAuthModalOpen(false)
+        }}
         onLogin={login}
         onRegister={register}
+        onVerifyOtp={verifyOtp}
+        onResendOtp={resendOtp}
+        otpMode={otpPending}
+        otpEmail={otpEmail}
       />
     </AuthContext.Provider>
   )

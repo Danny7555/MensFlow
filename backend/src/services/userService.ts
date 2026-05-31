@@ -29,6 +29,7 @@ export async function getUserProfile(
     user: {
       id: String(user._id),
       username: user.username,
+      email: user.email,
       name: user.name,
       avatar: user.avatar,
       accessLevel: user.accessLevel,
@@ -61,6 +62,7 @@ export async function updateUserProfile(
   return {
     id: String(user._id),
     username: user.username,
+    email: user.email,
     name: user.name,
     avatar: user.avatar,
     accessLevel: user.accessLevel,
@@ -188,6 +190,7 @@ function toSettings(settings: SettingsDocument): ISettings {
     conditionOptimization: settings.conditionOptimization,
     disableAIPopups: settings.disableAIPopups,
     hideDailyStoriesAndTips: settings.hideDailyStoriesAndTips,
+    otpEnabled: settings.otpEnabled ?? true,
   };
 }
 

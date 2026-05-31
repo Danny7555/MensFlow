@@ -7,6 +7,7 @@ import { isLoggedIn } from '../lib/auth-token'
 export type ApiUser = {
   id: string
   username: string
+  email: string | null
   name: string
   avatar: string | null
   accessLevel: 'full' | 'educational'
