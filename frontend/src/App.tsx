@@ -35,6 +35,17 @@ const LockedChatsView = lazy(() => import('./views/LockedChatsView').then(m => (
 const NotFoundView = lazy(() => import('./views/NotFoundView').then(m => ({ default: m.NotFoundView })))
 
 
+function ChatLockGate({ children }: { children: React.ReactNode }) {
+  const settings = useStore((s) => s.settings)
+  const location = useLocation()
+  // When privacy lock is on and user hasn't unlocked yet, force them to /locked-chats
+  // Already on /locked-chats? Let them through to avoid infinite loop
+  if (settings.privacyLockChats && location.pathname !== '/locked-chats') {
+    return <Navigate to="/locked-chats" replace />
+  }
+  return <>{children}</>
+}
+
 function MainShell() {
   const { isAuthenticated, onboardingCompleted, logout, openAuthModal, isRehydrating } = useAuth()
   const { settings, updateSettings, user } = useStore()
@@ -139,8 +150,9 @@ function MainShell() {
                     <Route path="/symptoms" element={<Navigate to="/" replace />} />
                     <Route path="/sync" element={<Navigate to="/" replace />} />
                     <Route path="/notifications" element={<Navigate to="/" replace />} />
-                    <Route path="/locked-chats" element={<Navigate to="/" replace />} />
                     <Route path="/history" element={<Navigate to="/" replace />} />
+                    {/* locked-chats is available regardless of auth (LockedChatsView handles its own gating) */}
+                    <Route path="/locked-chats" element={<LockedChatsView />} />
                     <Route path="*" element={<NotFoundView />} />
                   </>
                 ) : (
@@ -157,7 +169,7 @@ function MainShell() {
                     />
                     <Route path="/onboarding" element={<OnboardingView />} />
                     <Route path="/dashboard" element={<AccessGate><DashboardView /></AccessGate>} />
-                    <Route path="/ask" element={<ChatView />} />
+                    <Route path="/ask" element={<ChatLockGate><ChatView /></ChatLockGate>} />
                     <Route path="/settings" element={<SettingsView onLogout={handleLogout} />} />
                     <Route path="/insights" element={<AccessGate><InsightsView /></AccessGate>} />
                     <Route path="/health-insights" element={<Navigate to="/insights" replace />} />
