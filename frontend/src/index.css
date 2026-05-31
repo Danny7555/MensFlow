@@ -127,15 +127,15 @@
   --mf-text: #3d3a43;
   --mf-text-strong: #0c0a10;
   --mf-muted: #6f6a76;
-  --mf-main-bg: #fffafc;
-  --mf-sidebar-bg: #fff5f8;
-  --mf-elevated: #fafafa;
+  --mf-main-bg: #fdf6f9;
+  --mf-sidebar-bg: #fef7fa;
+  --mf-elevated: #f5f0f3;
   --mf-card: #ffffff;
   --mf-card-rgb: 255, 255, 255;
   --mf-composer-bg: #fdf8fa;
-  --mf-border: #f0e6ea;
-  --mf-border-rgb: 240, 230, 234;
-  --mf-border-strong: #e6d3db;
+  --mf-border: #d4bcc9;
+  --mf-border-rgb: 212, 188, 201;
+  --mf-border-strong: #c2a3b4;
   --mf-hover: rgba(255, 107, 139, 0.04);
   --mf-active: rgba(255, 107, 139, 0.08);
   --mf-accent: #ff6b8b;
@@ -1120,71 +1120,25 @@
 
 /* ─── Partner Empathy Support Theme ────────────────────────────────────────── */
 
+/* Partner theme — warm plum accent that complements the main pink palette */
 [data-theme='light'] .partner-theme,
 .partner-theme[data-theme='light'] {
-  --mf-accent: #0f766e;
-  --mf-accent-rgb: 15, 118, 110;
-  --mf-accent-hover: #0d9488;
-  --mf-accent-soft: rgba(15, 118, 110, 0.12);
-  --mf-accent-border: rgba(15, 118, 110, 0.25);
-  --mf-main-bg: #f2faf8;
-  --mf-sidebar-bg: #ecf7f5;
-  --mf-composer-bg: #f5fcfb;
-  --mf-border: #e2f5f1;
-  --mf-border-strong: #cbeee7;
-  --mf-hover: rgba(15, 118, 110, 0.04);
-  --mf-active: rgba(15, 118, 110, 0.08);
-  --mf-ring: rgba(15, 118, 110, 0.4);
+  --mf-accent: #7c3aed;
+  --mf-accent-rgb: 124, 58, 237;
+  --mf-accent-hover: #6d28d9;
+  --mf-accent-soft: rgba(124, 58, 237, 0.12);
+  --mf-accent-border: rgba(124, 58, 237, 0.25);
+  --mf-ring: rgba(124, 58, 237, 0.4);
 }
 
 [data-theme='dark'] .partner-theme,
 .partner-theme[data-theme='dark'] {
-  --mf-accent: #2dd4bf;
-  --mf-accent-rgb: 45, 212, 191;
-  --mf-accent-hover: #5eead4;
-  --mf-accent-soft: rgba(45, 212, 191, 0.15);
-  --mf-accent-border: rgba(45, 212, 191, 0.35);
-  --mf-main-bg: #1a1318;
-  --mf-sidebar-bg: #1f161d;
-  --mf-elevated: #251a22;
-  --mf-card: #1f161d;
-  --mf-card-rgb: 31, 22, 29;
-  --mf-composer-bg: #251a22;
-  --mf-border: #362430;
-  --mf-border-rgb: 54, 36, 48;
-  --mf-border-strong: #4f3547;
-  --mf-hover: rgba(45, 212, 191, 0.08);
-  --mf-active: rgba(45, 212, 191, 0.15);
-  --mf-ring: rgba(45, 212, 191, 0.45);
-}
-
-/* Make partner dashboard background solid dark in dark mode */
-[data-theme='dark'] .partner-theme .dashboard-flo-theme,
-.partner-theme[data-theme='dark'] .dashboard-flo-theme {
-  background: var(--mf-main-bg) !important;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════
-   Global: Remove all shadows & hover effects
-   ═══════════════════════════════════════════════════════════════════════ */
-
-/* Kill every box-shadow and text-shadow */
-*,
-*::before,
-*::after {
-  box-shadow: none !important;
-  text-shadow: none !important;
-}
-
-/* Remove all transitions so hover changes don't animate */
-* {
-  transition: none !important;
-}
-
-/* Neutralise hover transforms and filters */
-*:hover {
-  transform: none !important;
-  filter: none !important;
+  --mf-accent: #a78bfa;
+  --mf-accent-rgb: 167, 139, 250;
+  --mf-accent-hover: #c4b5fd;
+  --mf-accent-soft: rgba(167, 139, 250, 0.15);
+  --mf-accent-border: rgba(167, 139, 250, 0.35);
+  --mf-ring: rgba(167, 139, 250, 0.45);
 }
 
 /* Keep focus-visible styles intact for accessibility */
