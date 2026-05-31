@@ -615,7 +615,7 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
                 </div>
                 
                 <div className="chat-session-actions">
-                  {!s.isLocked && (
+                  {/* {!s.isLocked && (
                     <button
                       type="button"
                       className="chat-session-action-btn"
@@ -624,10 +624,10 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
                     >
                       <Lock size={14} />
                     </button>
-                  )}
+                  )} */}
                   <button
                     type="button"
-                    className="chat-session-action-btn hover:text-rose-500"
+                    className="chat-session-action-btn"
                     title="Delete Chat"
                     onClick={(e) => deleteSession(s.sessionId, e)}
                   >
@@ -658,7 +658,7 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             {activeSessionId && !sessions.find((s) => s.sessionId === activeSessionId)?.isLocked && (
               <button
                 type="button"
@@ -675,7 +675,7 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
                 Locked
               </span>
             )}
-          </div>
+          </div> */}
         </div>
 
         {/* Chat Content Body */}

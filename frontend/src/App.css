@@ -4604,8 +4604,8 @@
   width: 100%;
   padding: 0.75rem;
   border-radius: 10px;
-  background: var(--mf-accent);
-  color: #fff;
+  background: var(--mf-text-strong);
+  color: var(--background);
   font-weight: 500;
   font-size: 0.9rem;
   cursor: pointer;
@@ -4613,15 +4613,23 @@
   border: none;
 }
 
+.chat-lock-btn:hover {
+  background: var(--mf-muted);
+}
+
 
 
 .chat-lock-forgot {
   font-size: 0.75rem;
-  color: var(--mf-accent);
+  color: var(--mf-muted);
   cursor: pointer;
   text-decoration: underline;
   background: transparent;
   border: none;
+}
+
+.chat-lock-forgot:hover {
+  color: var(--mf-text-strong);
 }
 
 /* Modal overlays */
