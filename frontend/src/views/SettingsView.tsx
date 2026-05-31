@@ -1,6 +1,7 @@
 import type { ComponentType, ReactNode } from 'react'
 import { useState, useEffect } from 'react'
 import { useStore } from '../store/useStore'
+import { useAuth } from '../context/useAuth'
 import { SettingsSkeleton } from '../components/skeletons/SettingsSkeleton'
 import {
   ArrowCounterClockwise,
@@ -477,9 +478,11 @@ function GeneralPanel({
       {!isGuest && (
         <div className="mt-8 pt-6 border-t border-[var(--mf-border)] space-y-6">
           <div>
-            <span className="text-xs font-semibold text-[var(--mf-text-strong)] uppercase tracking-wider block mb-1">Partner Connection</span>
+            <span className="text-xs font-normal text-[var(--mf-text-strong)] uppercase tracking-wider block mb-1">Partner Connection</span>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              MensFlow lets you sync your cycle dashboard with a partner. Share your code to let them see predictions, or enter theirs to pair.
+              {user?.role === 'partner'
+                ? 'Enter your partner\'s code to sync with her cycle and send daily care updates.'
+                : 'Share your code with your partner so they can connect and support you.'}
             </p>
           </div>
 
@@ -497,12 +500,70 @@ function GeneralPanel({
             />
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Left side: Your pairing code */}
+          {partnerStatus?.paired ? (
+            /* ── Already paired: show connected partner for both roles ── */
             <div className="p-4 rounded-2xl bg-[var(--mf-composer-bg)] border border-[var(--mf-border)] space-y-3">
-              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground block">Your Pairing Code</span>
+              <span className="text-[10px] font-normal uppercase tracking-widest text-muted-foreground block">Connected Partner</span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="size-10 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center overflow-hidden border border-[var(--mf-border)]">
+                    {partnerStatus.partner?.avatar ? (
+                      <img src={partnerStatus.partner.avatar} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-base font-normal text-[var(--mf-accent)]">
+                        {partnerStatus.partner?.name?.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-normal text-[var(--mf-text-strong)]">{partnerStatus.partner?.name}</span>
+                    <span className="text-[10px] text-muted-foreground">
+                        {partnerStatus.privacyShareCycleDetails !== false ? 'Full cycle details' : 'Phase info only'}
+                      </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  disabled={isDisconnecting}
+                  onClick={handleDisconnect}
+                  className="text-xs font-normal text-rose-500 hover:text-rose-600 hover:underline px-3 py-1.5 rounded-lg border border-rose-500/20 hover:bg-rose-500/5 transition-all"
+                >
+                  {isDisconnecting ? 'Disconnecting...' : 'Disconnect'}
+                </button>
+              </div>
+            </div>
+          ) : user?.role === 'partner' ? (
+            /* ── Partner: enter lady's code ── */
+            <div className="p-4 rounded-2xl bg-[var(--mf-composer-bg)] border border-[var(--mf-border)] space-y-3">
+              <span className="text-[10px] font-normal uppercase tracking-widest text-muted-foreground block">Enter Partner's Code</span>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="e.g. XY82HA"
+                  value={partnerCodeInput}
+                  onChange={(e) => setPartnerCodeInput(e.target.value.toUpperCase())}
+                  className="bg-white dark:bg-white/5 border border-[var(--mf-border)] rounded-xl px-4 py-2 text-sm font-mono tracking-wider focus:outline-none focus:ring-1 focus:ring-[var(--mf-accent)] w-full uppercase"
+                  maxLength={6}
+                />
+                <button
+                  type="button"
+                  disabled={isPairing || !partnerCodeInput.trim()}
+                  onClick={handlePair}
+                  className="flex items-center justify-center gap-2 text-xs font-normal bg-[var(--mf-accent)] text-white hover:opacity-90 py-2 px-4 rounded-xl transition-all duration-300 active:scale-95 disabled:opacity-50 shrink-0"
+                >
+                  {isPairing ? 'Pairing...' : 'Connect'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* ── Lady: show her code to share ── */
+            <div className="p-4 rounded-2xl bg-[var(--mf-composer-bg)] border border-[var(--mf-border)] space-y-3">
+              <span className="text-[10px] font-normal uppercase tracking-widest text-muted-foreground block">Your Pairing Code</span>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Share this with your partner. They'll enter it on their Sync or Settings page to connect.
+              </p>
               <div className="flex items-center gap-3">
-                <span className="text-2xl font-mono font-bold tracking-wider text-[var(--mf-text-strong)] bg-white dark:bg-white/5 px-4 py-2 rounded-xl border border-[var(--mf-border)] select-all">
+                <span className="text-2xl font-mono font-normal tracking-wider text-[var(--mf-text-strong)] bg-white dark:bg-white/5 px-4 py-2 rounded-xl border border-[var(--mf-border)] select-all flex-1 text-center">
                   {user?.partnerCode ?? '------'}
                 </span>
                 <button
@@ -510,73 +571,18 @@ function GeneralPanel({
                   onClick={() => {
                     if (user?.partnerCode) {
                       navigator.clipboard.writeText(user.partnerCode)
-                      toast.success("Pairing code copied!", {
-                        description: "Send this code to your partner so they can pair with you."
+                      toast.success('Code copied!', {
+                        description: 'Send this to your partner so they can connect with you.',
                       })
                     }
                   }}
-                  className="flex items-center justify-center gap-2 text-xs font-medium bg-[var(--mf-accent)] text-white hover:opacity-90 py-2.5 px-4 rounded-xl transition-all duration-300 active:scale-95"
+                  className="flex items-center justify-center gap-2 text-xs font-normal bg-[var(--mf-accent)] text-white hover:opacity-90 py-2.5 px-4 rounded-xl transition-all duration-300 active:scale-95"
                 >
-                  Copy Code
+                  Copy
                 </button>
               </div>
             </div>
-
-            {/* Right side: Pair status or input */}
-            <div className="p-4 rounded-2xl bg-[var(--mf-composer-bg)] border border-[var(--mf-border)] flex flex-col justify-between min-h-[120px]">
-              {partnerStatus?.paired ? (
-                <div className="space-y-4">
-                  <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground block">Connected Partner</span>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="size-10 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center overflow-hidden border border-[var(--mf-border)]">
-                        {partnerStatus.partner?.avatar ? (
-                          <img src={partnerStatus.partner.avatar} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="text-base font-semibold text-[var(--mf-accent)]">
-                            {partnerStatus.partner?.name?.charAt(0).toUpperCase()}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-semibold text-[var(--mf-text-strong)]">{partnerStatus.partner?.name}</span>
-                        <span className="text-[10px] text-muted-foreground capitalize">{partnerStatus.partner?.accessLevel} access</span>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      disabled={isDisconnecting}
-                      onClick={handleDisconnect}
-                      className="text-xs font-semibold text-rose-500 hover:text-rose-600 hover:underline px-3 py-1.5 rounded-lg border border-rose-500/20 hover:bg-rose-500/5 transition-all"
-                    >
-                      {isDisconnecting ? 'Disconnecting...' : 'Disconnect'}
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-3 flex-1 flex flex-col justify-center">
-                  <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground block">Enter Partner Code</span>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="e.g. XY82HA"
-                      value={partnerCodeInput}
-                      onChange={(e) => setPartnerCodeInput(e.target.value.toUpperCase())}
-                      className="bg-white dark:bg-white/5 border border-[var(--mf-border)] rounded-xl px-4 py-2 text-sm font-mono tracking-wider focus:outline-none focus:ring-1 focus:ring-[var(--mf-accent)] w-full uppercase"
-                    />
-                    <button
-                      type="button"
-                      disabled={isPairing || !partnerCodeInput.trim()}
-                      onClick={handlePair}
-                      className="flex items-center justify-center gap-2 text-xs font-semibold bg-[var(--mf-accent)] text-white hover:opacity-90 py-2 px-4 rounded-xl transition-all duration-300 active:scale-95 disabled:opacity-50 shrink-0"
-                    >
-                      {isPairing ? 'Pairing...' : 'Connect'}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+          )}
         </div>
       )}
     </>
@@ -1119,12 +1125,14 @@ function ParentalPanel() {
 function AccountPanel({
   isGuest,
   user,
+  email,
   updateUser,
   onLogin,
   onLogout,
 }: {
   isGuest: boolean
   user: AppUser
+  email?: string | null
   updateUser: (patch: Partial<AppUser>) => void
   onLogin?: () => void
   onLogout?: () => void
@@ -1211,7 +1219,9 @@ function AccountPanel({
                   placeholder="Enter your name"
                 />
               </div>
-              <p className="settings-account-email ml-1">session@mensflow.local</p>
+              {email && (
+                <p className="settings-account-email ml-1">{email}</p>
+              )}
               
               <div className="mt-6 pt-4 border-t border-border/50">
                 <SelectRow
@@ -1274,7 +1284,7 @@ function AccountPanel({
               Sign out
             </h3>
             <p className="settings-logout-desc">
-              Ends this demo session on this device. Saved chats stay in the browser until you clear them under Data controls.
+              You'll be signed out on this device. Your data stays safe in your account.
             </p>
             {onLogout && (
               <button type="button" className="btn btn-logout" onClick={onLogout}>
@@ -1306,6 +1316,7 @@ export function SettingsView({
       .withOptions({ shallow: false })
   )
   const { settings, updateSettings, resetSettings, user, updateUser, resetStore, showConfirm } = useStore()
+  const { user: authUser } = useAuth()
 
   const handleRoleChange = async (newRole: 'lady' | 'partner') => {
     const toastId = toast.loading("Reconfiguring workspace perspective...")
@@ -1469,6 +1480,7 @@ export function SettingsView({
         <AccountPanel
           isGuest={!!isGuest}
           user={user}
+          email={authUser?.email}
           updateUser={async (patch) => {
             if (patch.role !== undefined && patch.role !== user.role) {
               await handleRoleChange(patch.role)

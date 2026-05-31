@@ -25,8 +25,8 @@ export function getPhaseFromDay(cycleDay: number, cycleLen = 28): CyclePhase {
   const fertileEnd = ovulationDay + 2
   const pmsStart = safeCycleLen - 4  // last 5 days (days cycleLen-4 through cycleLen)
 
-  if (cycleDay <= periodLength) return 'menstrual'
-  if (cycleDay <= periodLength + predictedPeriodLength) return 'follicular'
+  // Days 1-7 are all considered menstrual (1-5 active flow, 6-7 light/fading flow)
+  if (cycleDay <= periodLength + predictedPeriodLength) return 'menstrual'
   if (cycleDay >= fertileStart && cycleDay <= fertileEnd) return 'fertile'
   if (cycleDay >= pmsStart) return 'luteal'
   return 'follicular'
@@ -53,28 +53,28 @@ export function getPhaseInfo(phase: CyclePhase): PhaseInfo {
         label: 'Menstrual',
         color: '#f43f5e',
         bgColor: 'rgba(244, 63, 94, 0.1)',
-        description: 'Time for rest and deep restoration.'
+        description: 'Rest and restore. Your body is releasing and renewing.'
       }
     case 'follicular':
       return {
         label: 'Follicular',
         color: '#0d9488',
         bgColor: 'rgba(13, 148, 136, 0.1)',
-        description: 'Energy is rising. Great for new ideas.'
+        description: 'Energy is rising. Great time for new ideas and plans.'
       }
     case 'fertile':
       return {
         label: 'Ovulatory',
-        color: '#0ea5e9',
-        bgColor: 'rgba(14, 165, 233, 0.1)',
-        description: 'Peak social and physical energy.'
+        color: '#26899e',
+        bgColor: 'rgba(38, 137, 158, 0.1)',
+        description: 'Peak social and physical energy. Highest fertility window.'
       }
     case 'luteal':
       return {
         label: 'Luteal',
         color: '#d97706',
         bgColor: 'rgba(217, 119, 6, 0.1)',
-        description: 'Focus on calm and comfort.'
+        description: 'Pre-period phase. Prioritise calm, comfort, and self-care.'
       }
     default:
       return {

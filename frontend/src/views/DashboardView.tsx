@@ -507,6 +507,11 @@ export function DashboardView() {
     return <DashboardSkeleton />
   }
 
+  // While partner status is still loading (null = API in-flight), show skeleton to avoid flash of unpaired screen
+  if (user?.role === 'partner' && isAuthenticated && partnerStatus === null) {
+    return <DashboardSkeleton />
+  }
+
   if (user?.role === 'partner' && (!partnerStatus || !partnerStatus.paired)) {
     return (
       <div className="dashboard-flo-theme relative overflow-hidden min-h-screen animate-in fade-in duration-700">

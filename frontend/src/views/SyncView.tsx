@@ -189,11 +189,8 @@ export function SyncView() {
         variants={containerVariants}
         className="dashboard-flo-theme relative overflow-hidden min-h-screen"
       >
-
-
         <main className="flo-main-container pb-32 relative z-10">
           <div className="flo-content-inner max-w-3xl mx-auto">
-
             {/* Hero Header */}
             <m.div variants={itemVariants} className="text-center pt-10 pb-8 space-y-4">
               <div className="inline-block mb-2">
@@ -217,26 +214,30 @@ export function SyncView() {
               </h1>
               <p className="text-sm text-[var(--mf-muted)] max-w-md mx-auto leading-relaxed">
                 {user?.role === 'partner'
-                  ? 'Pair with your partner to see her cycle phases, receive daily care checklists, and send real-time supportive updates.'
-                  : 'Invite your partner to sync cycles, share mood check-ins, and build daily care routines together.'}
+                  ? 'Enter the code your partner shared with you to sync cycles and start receiving daily care checklists.'
+                  : 'Share your unique code with your partner so they can sync with your cycle and support you better.'}
               </p>
             </m.div>
 
-            {/* How it works */}
+            {/* How it works — role-aware */}
             <m.div variants={itemVariants} className="mb-8">
               <div className="flo-card p-6 border border-[var(--mf-border)] !shadow-none">
                 <h3 className="text-xs font-normal uppercase tracking-[0.15em] text-muted-foreground mb-6 text-center">
-                  How to Sync in 3 Easy Steps
+                  How it works
                 </h3>
                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 relative">
                   {/* Decorative connecting line for desktop */}
                   <div className="hidden md:block absolute top-7 left-[15%] right-[15%] h-[1px] bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-pink-500/20 z-0" />
-                  
-                  {[
+
+                  {(user?.role === 'partner' ? [
+                    { step: '1', title: 'Get the code', desc: "Ask your partner to open her Sync page and copy her code", icon: Copy },
+                    { step: '2', title: 'Enter it below', desc: 'Paste or type the 6-character code in the field below', icon: LinkSimple },
+                    { step: '3', title: "You're connected!", desc: 'See her cycle phases and send real-time care updates', icon: PaperPlaneTilt },
+                  ] : [
                     { step: '1', title: 'Copy your code', desc: 'Get your unique 6-character code below', icon: Copy },
-                    { step: '2', title: 'Share it', desc: 'Send the code to your partner via message', icon: PaperPlaneTilt },
-                    { step: '3', title: 'Connect', desc: 'They enter it and you sync instantly', icon: LinkSimple },
-                  ].map(({ step, title, desc, icon: Icon }) => (
+                    { step: '2', title: 'Share it', desc: 'Send the code to your partner via message or any app', icon: PaperPlaneTilt },
+                    { step: '3', title: 'They connect', desc: 'Your partner enters it on their Sync page — done!', icon: LinkSimple },
+                  ]).map(({ step, title, desc, icon: Icon }) => (
                     <div key={step} className="flex-1 flex flex-col items-center text-center relative z-10 group">
                       <div className="size-14 rounded-2xl bg-[var(--mf-card)] border border-[var(--mf-border)] text-[var(--mf-accent)] flex items-center justify-center mb-3">
                         <Icon size={20} weight="bold" />
@@ -252,18 +253,16 @@ export function SyncView() {
               </div>
             </m.div>
 
-            {/* Pairing cards */}
+            {/* Pairing card — role-aware */}
             {!isAuthenticated ? (
-              <div
-                className="flo-card p-8 border border-[var(--mf-border)] !shadow-none text-center space-y-6 relative overflow-hidden max-w-xl mx-auto"
-              >
+              <div className="flo-card p-8 border border-[var(--mf-border)] !shadow-none text-center space-y-6 relative overflow-hidden max-w-xl mx-auto">
                 <div className="relative z-10 space-y-4">
                   <div className="size-12 rounded-2xl bg-pink-500/10 flex items-center justify-center mx-auto text-pink-500 animate-pulse">
                     <Users size={24} weight="bold" />
                   </div>
-                  <h3 className="text-lg font-normal text-[var(--mf-text-strong)]">Pairing requires an account</h3>
+                  <h3 className="text-lg font-normal text-[var(--mf-text-strong)]">Sign in to connect</h3>
                   <p className="text-xs text-[var(--mf-muted)] max-w-sm mx-auto leading-relaxed">
-                    Create an account or sign in to generate a secure pairing code and start syncing with your partner.
+                    Sign in or create an account to sync cycles with your partner.
                   </p>
                   <button
                     onClick={() => openAuthModal()}
@@ -274,87 +273,84 @@ export function SyncView() {
                   </button>
                 </div>
               </div>
-            ) : (
-              <m.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Your code card */}
-                <div className="flo-card p-6 border border-[var(--mf-border)] !shadow-none space-y-4 relative overflow-hidden">
-                  <div className="relative z-10 space-y-4 flex-1 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="size-7 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-500">
-                          <Copy size={14} weight="bold" />
-                        </div>
-                        <span className="text-xs font-normal text-[var(--mf-text-strong)]">Your Pairing Code</span>
-                      </div>
-                      <p className="text-[11px] text-[var(--mf-muted)] leading-relaxed">
-                        Share this code with your partner. They'll enter it on their Partner Sync page to connect with you.
-                      </p>
+            ) : user?.role === 'partner' ? (
+              /* ── Partner: enter lady's code ── */
+              <m.div variants={itemVariants} className="max-w-md mx-auto">
+                <div className="flo-card p-6 border border-[var(--mf-border)] !shadow-none space-y-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="size-7 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500">
+                      <LinkSimple size={14} weight="bold" />
                     </div>
-                    <div className="flex items-center gap-3 mt-auto">
-                      <span className="text-2xl font-mono font-normal tracking-[0.3em] text-[var(--mf-text-strong)] bg-[var(--mf-composer-bg)] px-4 py-2.5 rounded-xl border border-[var(--mf-border)] select-all flex-1 text-center">
-                        {user?.partnerCode ?? '- - - - - -'}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (user?.partnerCode) {
-                            navigator.clipboard.writeText(user.partnerCode)
-                            toast.success('Pairing code copied!', {
-                              description: 'Send this code to your partner so they can connect with you.',
-                            })
-                          }
-                        }}
-                        className="size-11 shrink-0 rounded-xl bg-[var(--mf-accent)] text-white hover:opacity-90 flex items-center justify-center transition-all active:scale-95 border-0 cursor-pointer"
-                      >
-                        <Copy size={18} weight="bold" />
-                      </button>
-                    </div>
+                    <span className="text-xs font-normal text-[var(--mf-text-strong)]">Enter your partner's code</span>
+                  </div>
+                  <p className="text-[11px] text-[var(--mf-muted)] leading-relaxed">
+                    Your partner has a unique 6-character code on her Sync page. Enter it here to connect.
+                  </p>
+                  <div className="space-y-3">
+                    <input
+                      type="text"
+                      placeholder="e.g. XY82HA"
+                      value={partnerCodeInput}
+                      onChange={(e) => setPartnerCodeInput(e.target.value.toUpperCase())}
+                      className="w-full bg-[var(--mf-composer-bg)] border border-[var(--mf-border)] rounded-xl px-4 py-3 text-base font-mono tracking-[0.3em] text-center font-normal focus:outline-none focus:ring-2 focus:ring-[var(--mf-accent)]/50 focus:border-[var(--mf-accent)] uppercase text-[var(--mf-text-strong)] transition-all text-sm"
+                      maxLength={6}
+                    />
+                    <button
+                      type="button"
+                      disabled={isPairing || !partnerCodeInput.trim()}
+                      onClick={handlePair}
+                      className="w-full h-11 bg-[var(--mf-accent)] text-white rounded-xl font-normal text-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:opacity-95 border-0 cursor-pointer"
+                    >
+                      {isPairing ? (
+                        <m.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
+                          <Sparkle size={16} weight="bold" />
+                        </m.div>
+                      ) : (
+                        <>
+                          <LinkSimple size={16} weight="bold" />
+                          <span>Connect with Partner</span>
+                          <ArrowRight size={14} weight="bold" />
+                        </>
+                      )}
+                    </button>
                   </div>
                 </div>
-
-                {/* Enter partner's code */}
-                <div className="flo-card p-6 border border-[var(--mf-border)] !shadow-none space-y-4 relative overflow-hidden">
-                  <div className="relative z-10 space-y-4 flex-1 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="size-7 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500">
-                          <LinkSimple size={14} weight="bold" />
-                        </div>
-                        <span className="text-xs font-normal text-[var(--mf-text-strong)]">Enter Partner's Code</span>
-                      </div>
-                      <p className="text-[11px] text-[var(--mf-muted)] leading-relaxed">
-                        Got a code from your partner? Enter it below to pair and start syncing your cycles together.
-                      </p>
+              </m.div>
+            ) : (
+              /* ── Lady: show her code to share ── */
+              <m.div variants={itemVariants} className="max-w-md mx-auto">
+                <div className="flo-card p-6 border border-[var(--mf-border)] !shadow-none space-y-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="size-7 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-500">
+                      <Copy size={14} weight="bold" />
                     </div>
-                    <div className="space-y-3 mt-auto">
-                      <input
-                        type="text"
-                        placeholder="e.g. XY82HA"
-                        value={partnerCodeInput}
-                        onChange={(e) => setPartnerCodeInput(e.target.value.toUpperCase())}
-                        className="w-full bg-[var(--mf-composer-bg)] border border-[var(--mf-border)] rounded-xl px-4 py-3 text-base font-mono tracking-[0.3em] text-center font-normal focus:outline-none focus:ring-2 focus:ring-[var(--mf-accent)]/50 focus:border-[var(--mf-accent)] uppercase text-[var(--mf-text-strong)] transition-all text-sm"
-                        maxLength={6}
-                      />
-                      <button
-                        type="button"
-                        disabled={isPairing || !partnerCodeInput.trim()}
-                        onClick={handlePair}
-                        className="w-full h-11 bg-[var(--mf-accent)] text-white rounded-xl font-normal text-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:opacity-95 border-0 cursor-pointer"
-                      >
-                        {isPairing ? (
-                          <m.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
-                            <Sparkle size={16} weight="bold" />
-                          </m.div>
-                        ) : (
-                          <>
-                            <LinkSimple size={16} weight="bold" />
-                            <span>Connect with Partner</span>
-                            <ArrowRight size={14} weight="bold" />
-                          </>
-                        )}
-                      </button>
-                    </div>
+                    <span className="text-xs font-normal text-[var(--mf-text-strong)]">Your Pairing Code</span>
                   </div>
+                  <p className="text-[11px] text-[var(--mf-muted)] leading-relaxed">
+                    Share this code with your partner. They'll enter it on their Partner Sync page to connect with you.
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl font-mono font-normal tracking-[0.3em] text-[var(--mf-text-strong)] bg-[var(--mf-composer-bg)] px-4 py-2.5 rounded-xl border border-[var(--mf-border)] select-all flex-1 text-center">
+                      {user?.partnerCode ?? '— — — — — —'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (user?.partnerCode) {
+                          navigator.clipboard.writeText(user.partnerCode)
+                          toast.success('Code copied!', {
+                            description: 'Send this to your partner so they can connect with you.',
+                          })
+                        }
+                      }}
+                      className="size-11 shrink-0 rounded-xl bg-[var(--mf-accent)] text-white hover:opacity-90 flex items-center justify-center transition-all active:scale-95 border-0 cursor-pointer"
+                    >
+                      <Copy size={18} weight="bold" />
+                    </button>
+                  </div>
+                  <p className="text-[10.5px] text-[var(--mf-muted)] text-center pt-1">
+                    Once your partner enters this code, you'll both be connected automatically.
+                  </p>
                 </div>
               </m.div>
             )}
@@ -386,16 +382,7 @@ export function SyncView() {
           <m.div variants={itemVariants} className="flo-dashboard-top mb-12">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div className="max-w-xl">
-                <div className="flex items-center gap-3 mb-3">
-                  <m.img 
-                    animate={{ rotate: [0, 10, -10, 0] }}
-                    transition={{ duration: 4, repeat: Infinity }}
-                    src="/images/star.png" alt="Star" className="size-5 object-contain" 
-                  />
-                  <span className="text-[10px] font-normal uppercase tracking-[0.15em] bg-pink-500/10 text-pink-500 px-3 py-1 rounded-full border border-pink-500/20">
-                    Interactive Hub
-                  </span>
-                </div>
+                
                 <h1 className="text-4xl font-normal tracking-tight text-[var(--mf-text-strong)] leading-[1.1]">
                   Partner Sync & <br />
                   <span className="text-[var(--mf-accent)]">Empathy Hub</span>

@@ -14,16 +14,28 @@ export async function pairWithPartner(
   userId: string,
   partnerCode: string
 ): Promise<{ id: string; name: string }> {
+  const user = await User.findById(userId);
+  if (!user) throw httpError('User not found', 404);
+
   const partner = await User.findOne({ partnerCode: partnerCode.toUpperCase() });
 
   if (!partner) {
-    throw httpError('Invalid partner code — partner not found', 404);
+    throw httpError('Invalid code — no account found with that code', 404);
   }
   if (String(partner._id) === userId) {
     throw httpError('You cannot pair with yourself', 400);
   }
   if (partner.partnerId && String(partner.partnerId) !== userId) {
     throw httpError('This partner is already paired with someone else', 400);
+  }
+
+  // Role compatibility check: must be opposite roles (lady ↔ partner)
+  if (user.role === partner.role) {
+    if (user.role === 'lady') {
+      throw httpError('This code belongs to another lady. Only a partner account can connect using your code.', 400);
+    } else {
+      throw httpError('This code belongs to another partner account. Ask your partner (lady) to share her code instead.', 400);
+    }
   }
 
   await User.findByIdAndUpdate(userId, { partnerId: partner._id });

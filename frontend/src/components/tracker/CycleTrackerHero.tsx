@@ -177,8 +177,8 @@ export function CycleTrackerHero({
   };
 
   const getDayInfo = (day: number) => {
-    if (day <= periodLength) return { label: 'Period', color: '#dc2626', phase: 'Menstrual Phase' };
-    if (day <= periodLength + predictedPeriodLength) return { label: 'Luteal', color: '#ffc7c8', phase: 'Follicular Phase' };
+    if (day <= periodLength) return { label: 'Period', color: '#f43f5e', phase: 'Menstrual Phase' };
+    if (day <= periodLength + predictedPeriodLength) return { label: 'Light Flow', color: '#fda4af', phase: 'Late Menstrual' };
     if (day >= fertileStart && day <= fertileEnd) {
        if (settings.conditionOptimization === 'pcos') {
          return { label: 'Variable Fertile', color: '#8b5cf6', phase: 'Irregular Fertile Window' };
@@ -186,11 +186,11 @@ export function CycleTrackerHero({
        if (settings.conditionOptimization === 'perimenopause') {
          return { label: 'Erratic Fertile', color: '#f59e0b', phase: 'Unpredictable Fertile Window' };
        }
-       if (day === ovulationDay) return { label: 'Ovulation', color: '#26899e', phase: 'Fertile Window' };
+       if (day === ovulationDay) return { label: 'Ovulation', color: '#26899e', phase: 'Peak Fertile Day' };
        return { label: 'Fertile', color: '#26899e', phase: 'Fertile Window' };
     }
-    if (day >= upcomingStart) return { label: 'Upcoming', color: '#999', phase: 'Luteal Phase' };
-    return { label: 'Stable', color: '#aaa', phase: 'Follicular Phase' };
+    if (day >= upcomingStart) return { label: 'Pre-Period', color: '#d97706', phase: 'Luteal / PMS Phase' };
+    return { label: 'Follicular', color: '#0d9488', phase: 'Follicular Phase' };
   };
 
   const activeDay = hoveredDay ?? selectedDay;
