@@ -357,8 +357,8 @@ export function NotificationsView() {
   }, [cycleInfo])
 
   return (
-    <div className="min-h-screen bg-[var(--mf-main-bg)] pb-20">
-      <header className="sticky top-0 z-10 bg-[var(--mf-main-bg)]/80 backdrop-blur-xl border-b border-[var(--mf-border)]/50 px-6 py-4 flex items-center gap-4">
+    <div className="min-h-screen bg-background pb-20">
+      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-[var(--mf-border)]/50 px-6 py-4 flex items-center gap-4">
         <button 
           onClick={() => navigate(-1)}
           className="size-10 flex items-center justify-center rounded-full bg-[var(--mf-hover)] hover:bg-[var(--mf-active)] text-[var(--mf-text-strong)] transition-all active-squish cursor-pointer"
@@ -557,6 +557,24 @@ export function NotificationsView() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col gap-0.5 text-left">
+                    <span className="text-xs font-medium text-[var(--mf-text-strong)]">Email Reminders</span>
+                    <span className="text-[10px] text-[var(--mf-muted)]">Daily emails for period & ovulation</span>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      className="sr-only peer"
+                      checked={settings.notificationsEmail}
+                      onChange={(e) => {
+                        updateSettings({ notificationsEmail: e.target.checked })
+                        playNotificationSound()
+                      }}
+                    />
+                    <div className="w-9 h-5 bg-[var(--mf-border-strong)] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-[var(--mf-border-strong)] after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--mf-accent)]"></div>
+                  </label>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col gap-0.5 text-left">
                     <span className="text-xs font-medium text-[var(--mf-text-strong)]">Cycle Reminders</span>
                     <span className="text-[10px] text-[var(--mf-muted)]">Phase alerts & tracking</span>
                   </div>
@@ -573,6 +591,7 @@ export function NotificationsView() {
                     <div className="w-9 h-5 bg-[var(--mf-border-strong)] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-[var(--mf-border-strong)] after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--mf-accent)]"></div>
                   </label>
                 </div>
+
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col gap-0.5 text-left">
                     <span className="text-xs font-medium text-[var(--mf-text-strong)]">Product Alerts</span>

@@ -159,6 +159,7 @@
 
 [data-theme='dark'] {
   color-scheme: dark;
+  --background: #1a1318;
   --mf-text: #c9c4d1;
   --mf-text-strong: #f4f2f8;
   --mf-muted: #9d96a8;
@@ -221,7 +222,7 @@
   }
 
   [data-theme='dark'] {
-    --background: oklch(0.145 0 0);
+    --background: #1a1318;
     --foreground: oklch(0.985 0 0);
     --card: oklch(0.145 0 0);
     --card-foreground: oklch(0.985 0 0);

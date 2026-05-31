@@ -3,7 +3,7 @@
   height: 100svh;
   width: 100%;
   overflow: hidden;
-  background: var(--mf-main-bg);
+  background: var(--background);
   color: var(--mf-text);
 }
 
@@ -3855,9 +3855,11 @@
 }
 
 /* Partner dark mode should have a solid tracker/dashboard background */
+[data-theme='dark'] .dashboard-flo-theme,
+.dashboard-flo-theme[data-theme='dark'],
 [data-theme='dark'] .partner-theme .dashboard-flo-theme,
-.partner-theme [data-theme='dark'] .dashboard-flo-theme {
-  background: var(--mf-main-bg) !important;
+.partner-theme[data-theme='dark'] .dashboard-flo-theme {
+  background: var(--background) !important;
   background-image: none !important;
 }
 

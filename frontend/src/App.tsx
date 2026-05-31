@@ -12,6 +12,7 @@ import { Header } from './components/Header'
 import { Sidebar } from './components/Sidebar'
 import { House, Target, Heartbeat, Bell, UserCircle, BookOpen, ChatCircle } from '@phosphor-icons/react'
 import { useMediaQuery } from './hooks/useMediaQuery'
+import { useSmartPushNotifications } from './hooks/useSmartPushNotifications'
 import { PageLoader } from './components/skeletons/PageLoader'
 import { AccessGate } from './components/AccessGate'
 import './App.css'
@@ -42,6 +43,9 @@ function MainShell() {
   const isMobile = useMediaQuery('(max-width: 768px)')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [temporaryChat, setTemporaryChat] = useState(false)
+
+  // Fire smart browser push notifications based on real cycle data
+  useSmartPushNotifications()
 
   const handleLogout = useCallback(() => {
     logout()
