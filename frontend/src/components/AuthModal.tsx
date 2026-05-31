@@ -208,8 +208,8 @@ export function AuthModal({
           </button>
 
           <div className="flex flex-col items-center text-center mb-6">
-            <div className="size-14 rounded-2xl bg-pink-500/10 flex items-center justify-center mb-4">
-              <EnvelopeSimple size={28} weight="duotone" className="text-pink-500" />
+            <div className="size-14 rounded-2xl bg-pink-500/10 flex items-center justify-center mb-4 transition-all duration-300">
+              <EnvelopeSimple size={28} weight="duotone" className="text-pink-500 animate-pulse" />
             </div>
             <h1 id="otp-modal-title" className="auth-modal-title auth-modal-title--gpt mb-1">
               Check your email
@@ -221,7 +221,7 @@ export function AuthModal({
 
           <div className={`flex flex-col items-center gap-6 ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}>
             {/* 6 digit input boxes */}
-            <div className="flex gap-2.5" role="group" aria-label="Verification code">
+            <div className="otp-container" role="group" aria-label="Verification code">
               {otpDigits.map((digit, i) => (
                 <input
                   key={i}
@@ -233,22 +233,14 @@ export function AuthModal({
                   onChange={e => handleOtpChange(i, e.target.value)}
                   onKeyDown={e => handleOtpKeyDown(i, e)}
                   aria-label={`Digit ${i + 1}`}
-                  className={`
-                    w-11 h-14 rounded-xl border-2 text-center text-xl font-bold
-                    bg-[var(--mf-hover)] text-[var(--mf-text-strong)]
-                    outline-none transition-all duration-150
-                    ${digit
-                      ? 'border-pink-500 shadow-[0_0_0_3px_rgba(236,72,153,0.15)]'
-                      : 'border-[var(--mf-border)] focus:border-pink-400 focus:shadow-[0_0_0_3px_rgba(236,72,153,0.1)]'
-                    }
-                  `}
+                  className={`otp-digit-input ${digit ? 'has-value' : ''}`}
                 />
               ))}
             </div>
 
             <button
               type="button"
-              className="auth-modal-continue-main flex items-center justify-center gap-2 w-full"
+              className="auth-modal-continue-main flex items-center justify-center gap-2 w-full active-squish"
               onClick={handleOtpSubmit}
               disabled={isLoading || code.length !== 6}
             >
@@ -276,7 +268,7 @@ export function AuthModal({
 
             <button
               type="button"
-              className="auth-modal-demo-text flex items-center gap-1.5"
+              className="auth-modal-demo-text flex items-center justify-center gap-1.5 w-full mx-auto"
               onClick={() => switchMode('login')}
             >
               <ArrowLeft size={14} /> Back to sign in
