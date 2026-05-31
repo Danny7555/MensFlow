@@ -227,7 +227,7 @@ export function CalendarView() {
                   <h3 className="text-xl font-normal mb-2">Track your patterns</h3>
                   <p className="text-muted-foreground text-sm mb-6">Unlock period editing, symptom logging, and historical calendar views by signing in.</p>
                   <button 
-                    onClick={openAuthModal}
+                    onClick={() => openAuthModal()}
                     className="btn btn-primary px-8 py-3 rounded-full"
                   >
                     Log in to access
@@ -416,7 +416,7 @@ function DetailSheet({ selectedDate, isAuthenticated, onOpenAuth }: { selectedDa
         {!isAuthenticated && (
           <div className="absolute inset-0 bg-white/60 dark:bg-card/60 backdrop-blur-[2px] z-30 flex items-center justify-center">
             <button 
-              onClick={onOpenAuth}
+              onClick={() => onOpenAuth()}
               className="text-sm font-normal text-[var(--mf-accent)] hover:underline"
             >
               Login to log data

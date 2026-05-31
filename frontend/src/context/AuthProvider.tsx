@@ -36,7 +36,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [otpPending, setOtpPending] = useState(false)
   const [otpToken, setOtpToken] = useState<string | null>(null)
   const [otpEmail, setOtpEmail] = useState('')
-  const [pendingUser, setPendingUser] = useState<ApiUser | null>(null)
 
   // ── Rehydrate store from API on mount if token exists ──────────────────────
   useEffect(() => {
@@ -112,7 +111,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setOtpPending(false)
     setOtpToken(null)
     setOtpEmail('')
-    setPendingUser(null)
 
     if (localOnboarding && !u.isOnboarded) {
       const storeUser = useStore.getState().user
@@ -173,7 +171,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // OTP required — store temp token and show OTP step
         setOtpToken(result.otpToken)
         setOtpEmail(username)
-        setPendingUser(result.user)
         setOtpPending(true)
         return
       }
@@ -195,7 +192,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (result.requiresOtp && result.otpToken) {
         setOtpToken(result.otpToken)
         setOtpEmail(email)       // show the real email in the OTP modal
-        setPendingUser(result.user)
         setOtpPending(true)
         return
       }

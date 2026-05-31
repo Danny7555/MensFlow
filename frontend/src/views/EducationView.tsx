@@ -157,7 +157,7 @@ export function EducationView() {
                 <h3 className="text-xl font-normal mb-2">Read all guides</h3>
                 <p className="text-muted-foreground text-sm mb-6">Unlock our full library of expert-reviewed menstrual health guides by signing in.</p>
                 <button 
-                  onClick={openAuthModal}
+                  onClick={() => openAuthModal()}
                   className="btn btn-primary px-8 py-3 rounded-full"
                 >
                   Log in to access

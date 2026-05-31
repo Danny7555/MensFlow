@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { m, AnimatePresence } from 'framer-motion'
+import { m } from 'framer-motion'
 import type { Variants } from 'framer-motion'
 import { Check, Sparkle, PaperPlaneTilt, LinkSimple, Copy, ArrowRight, Users, ChatCircle, Lock } from '@phosphor-icons/react'
 import { toast } from 'sonner'
@@ -151,10 +151,7 @@ export function SyncView() {
     return ownDashboard
   }, [user?.role, partnerStatus, ownDashboard])
 
-  const phase = useMemo(() => {
-    const cycleDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
-    return getPhaseFromDay(cycleDay, data.typicalCycleDays)
-  }, [data.lastPeriodStart, data.typicalCycleDays])
+
 
 
   const options = user?.role === 'partner' ? SUPPORT_PING_OPTIONS : STATUS_OPTIONS
@@ -198,20 +195,14 @@ export function SyncView() {
         variants={containerVariants}
         className="dashboard-flo-theme relative overflow-hidden min-h-screen"
       >
-        {/* Ambient background */}
-        <div className="absolute -top-40 -right-40 size-[500px] rounded-full bg-gradient-to-br from-pink-500/10 to-purple-500/5 blur-[120px] pointer-events-none" />
-        <div className="absolute -bottom-20 -left-20 size-[400px] rounded-full bg-gradient-to-tr from-rose-500/8 to-transparent blur-[100px] pointer-events-none" />
+
 
         <main className="flo-main-container pb-32 relative z-10">
           <div className="flo-content-inner max-w-3xl mx-auto">
 
             {/* Hero Header */}
             <m.div variants={itemVariants} className="text-center pt-10 pb-8 space-y-4">
-              <m.div
-                animate={{ y: [0, -12, 0], rotate: [0, 3, -3, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                className="inline-block mb-2"
-              >
+              <div className="inline-block mb-2">
                 <div className="relative">
                   <div className="size-24 rounded-full bg-gradient-to-br from-pink-400 to-rose-600 flex items-center justify-center shadow-xl shadow-pink-500/20">
                     <Users size={40} weight="duotone" className="text-white" />
@@ -220,7 +211,7 @@ export function SyncView() {
                     <LinkSimple size={14} weight="bold" className="text-white" />
                   </div>
                 </div>
-              </m.div>
+              </div>
 
               <div>
                 <span className="text-[10px] font-semibold uppercase tracking-[0.2em] bg-pink-500/10 text-pink-500 dark:text-pink-400 px-3 py-1 rounded-full border border-pink-500/20">
@@ -238,27 +229,39 @@ export function SyncView() {
             </m.div>
 
             {/* How it works */}
-            <m.div variants={itemVariants} className="grid grid-cols-3 gap-4 mb-8">
-              {[
-                { step: '1', title: 'Copy your code', desc: 'Get your unique 6-character code below', icon: Copy },
-                { step: '2', title: 'Share it', desc: 'Send the code to your partner via message', icon: PaperPlaneTilt },
-                { step: '3', title: 'Connect', desc: 'They enter it and you sync instantly', icon: LinkSimple },
-              ].map(({ step, title, desc, icon: Icon }) => (
-                <div key={step} className="p-4 rounded-2xl bg-[var(--mf-composer-bg)] border border-[var(--mf-border)] text-center space-y-2">
-                  <div className="size-8 rounded-full bg-[var(--mf-accent)]/10 text-[var(--mf-accent)] flex items-center justify-center mx-auto">
-                    <Icon size={16} weight="bold" />
-                  </div>
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Step {step}</p>
-                  <p className="text-xs font-medium text-[var(--mf-text-strong)]">{title}</p>
-                  <p className="text-[10px] text-[var(--mf-muted)] leading-relaxed">{desc}</p>
+            <m.div variants={itemVariants} className="mb-8">
+              <div className="flo-card p-6 border border-[var(--mf-border)] !shadow-none">
+                <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground mb-6 text-center">
+                  How to Sync in 3 Easy Steps
+                </h3>
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 relative">
+                  {/* Decorative connecting line for desktop */}
+                  <div className="hidden md:block absolute top-7 left-[15%] right-[15%] h-[1px] bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-pink-500/20 z-0" />
+                  
+                  {[
+                    { step: '1', title: 'Copy your code', desc: 'Get your unique 6-character code below', icon: Copy },
+                    { step: '2', title: 'Share it', desc: 'Send the code to your partner via message', icon: PaperPlaneTilt },
+                    { step: '3', title: 'Connect', desc: 'They enter it and you sync instantly', icon: LinkSimple },
+                  ].map(({ step, title, desc, icon: Icon }) => (
+                    <div key={step} className="flex-1 flex flex-col items-center text-center relative z-10 group">
+                      <div className="size-14 rounded-2xl bg-[var(--mf-card)] border border-[var(--mf-border)] shadow-sm text-[var(--mf-accent)] flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-105">
+                        <Icon size={20} weight="bold" />
+                      </div>
+                      <div className="size-5 rounded-full bg-pink-500/10 text-pink-500 text-[10px] font-bold flex items-center justify-center mb-2">
+                        {step}
+                      </div>
+                      <p className="text-xs font-semibold text-[var(--mf-text-strong)]">{title}</p>
+                      <p className="text-[11px] text-[var(--mf-muted)] leading-relaxed max-w-[180px] mt-1">{desc}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
             </m.div>
 
             {/* Pairing cards */}
             {!isAuthenticated ? (
               <div
-                className="p-8 rounded-[2rem] bg-[var(--mf-card)] border border-[var(--mf-border)] text-center space-y-6 relative overflow-hidden max-w-xl mx-auto"
+                className="flo-card p-8 border border-[var(--mf-border)] !shadow-none text-center space-y-6 relative overflow-hidden max-w-xl mx-auto"
               >
                 <div className="relative z-10 space-y-4">
                   <div className="size-12 rounded-2xl bg-pink-500/10 flex items-center justify-center mx-auto text-pink-500 animate-pulse">
@@ -269,7 +272,7 @@ export function SyncView() {
                     Create an account or sign in to generate a secure pairing code and start syncing with your partner.
                   </p>
                   <button
-                    onClick={openAuthModal}
+                    onClick={() => openAuthModal()}
                     className="inline-flex items-center gap-2 bg-[var(--mf-accent)] text-white hover:opacity-95 px-6 py-3 rounded-xl text-xs font-normal transition-all cursor-pointer border-0 outline-none"
                   >
                     <span>Sign In or Sign Up</span>
@@ -280,19 +283,21 @@ export function SyncView() {
             ) : (
               <m.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Your code card */}
-                <div className="p-6 rounded-[1.5rem] bg-[var(--mf-card)] border border-[var(--mf-border)] space-y-4 relative overflow-hidden">
-                  <div className="relative z-10 space-y-4">
-                    <div className="flex items-center gap-2">
-                      <div className="size-7 rounded-xl bg-pink-500/10 flex items-center justify-center">
-                        <Copy size={14} weight="bold" className="text-pink-500" />
+                <div className="flo-card p-6 border border-[var(--mf-border)] !shadow-none space-y-4 relative overflow-hidden">
+                  <div className="relative z-10 space-y-4 flex-1 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="size-7 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-500">
+                          <Copy size={14} weight="bold" />
+                        </div>
+                        <span className="text-xs font-semibold text-[var(--mf-text-strong)]">Your Pairing Code</span>
                       </div>
-                      <span className="text-xs font-normal text-[var(--mf-text-strong)]">Your Pairing Code</span>
+                      <p className="text-[11px] text-[var(--mf-muted)] leading-relaxed">
+                        Share this code with your partner. They'll enter it on their Partner Sync page to connect with you.
+                      </p>
                     </div>
-                    <p className="text-[11px] text-[var(--mf-muted)] leading-relaxed">
-                      Share this code with your partner. They'll enter it on their Partner Sync page to connect with you.
-                    </p>
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl font-mono font-normal tracking-[0.3em] text-[var(--mf-text-strong)] bg-white dark:bg-white/5 px-4 py-2.5 rounded-xl border border-[var(--mf-border)] select-all flex-1 text-center">
+                    <div className="flex items-center gap-3 mt-auto">
+                      <span className="text-2xl font-mono font-bold tracking-[0.3em] text-[var(--mf-text-strong)] bg-[var(--mf-composer-bg)] px-4 py-2.5 rounded-xl border border-[var(--mf-border)] select-all flex-1 text-center">
                         {user?.partnerCode ?? '- - - - - -'}
                       </span>
                       <button
@@ -305,7 +310,7 @@ export function SyncView() {
                             })
                           }
                         }}
-                        className="size-11 shrink-0 rounded-xl bg-[var(--mf-accent)] text-white hover:opacity-90 flex items-center justify-center transition-all active:scale-95"
+                        className="size-11 shrink-0 rounded-xl bg-[var(--mf-accent)] text-white hover:opacity-90 flex items-center justify-center transition-all active:scale-95 border-0 cursor-pointer"
                       >
                         <Copy size={18} weight="bold" />
                       </button>
@@ -314,31 +319,33 @@ export function SyncView() {
                 </div>
 
                 {/* Enter partner's code */}
-                <div className="p-6 rounded-[1.5rem] bg-[var(--mf-card)] border border-[var(--mf-border)] space-y-4 relative overflow-hidden">
-                  <div className="relative z-10 space-y-4">
-                    <div className="flex items-center gap-2">
-                      <div className="size-7 rounded-xl bg-purple-500/10 flex items-center justify-center">
-                        <LinkSimple size={14} weight="bold" className="text-purple-500" />
+                <div className="flo-card p-6 border border-[var(--mf-border)] !shadow-none space-y-4 relative overflow-hidden">
+                  <div className="relative z-10 space-y-4 flex-1 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="size-7 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500">
+                          <LinkSimple size={14} weight="bold" />
+                        </div>
+                        <span className="text-xs font-semibold text-[var(--mf-text-strong)]">Enter Partner's Code</span>
                       </div>
-                      <span className="text-xs font-normal text-[var(--mf-text-strong)]">Enter Partner's Code</span>
+                      <p className="text-[11px] text-[var(--mf-muted)] leading-relaxed">
+                        Got a code from your partner? Enter it below to pair and start syncing your cycles together.
+                      </p>
                     </div>
-                    <p className="text-[11px] text-[var(--mf-muted)] leading-relaxed">
-                      Got a code from your partner? Enter it below to pair and start syncing your cycles together.
-                    </p>
-                    <div className="space-y-3">
+                    <div className="space-y-3 mt-auto">
                       <input
                         type="text"
                         placeholder="e.g. XY82HA"
                         value={partnerCodeInput}
                         onChange={(e) => setPartnerCodeInput(e.target.value.toUpperCase())}
-                        className="w-full bg-white dark:bg-white/5 border border-[var(--mf-border)] rounded-xl px-4 py-3 text-base font-mono tracking-[0.3em] text-center font-normal focus:outline-none focus:ring-2 focus:ring-[var(--mf-accent)]/50 focus:border-[var(--mf-accent)] uppercase text-[var(--mf-text-strong)] transition-all text-sm"
+                        className="w-full bg-[var(--mf-composer-bg)] border border-[var(--mf-border)] rounded-xl px-4 py-3 text-base font-mono tracking-[0.3em] text-center font-bold focus:outline-none focus:ring-2 focus:ring-[var(--mf-accent)]/50 focus:border-[var(--mf-accent)] uppercase text-[var(--mf-text-strong)] transition-all text-sm"
                         maxLength={6}
                       />
                       <button
                         type="button"
                         disabled={isPairing || !partnerCodeInput.trim()}
                         onClick={handlePair}
-                        className="w-full h-11 bg-[var(--mf-accent)] text-white rounded-xl font-normal text-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:opacity-95"
+                        className="w-full h-11 bg-[var(--mf-accent)] text-white rounded-xl font-medium text-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:opacity-95 border-0 cursor-pointer"
                       >
                         {isPairing ? (
                           <m.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
@@ -377,23 +384,7 @@ export function SyncView() {
       variants={containerVariants}
       className="dashboard-flo-theme relative overflow-hidden"
     >
-      {/* Dynamic Background Glow - Softer and more subtle */}
-      <AnimatePresence mode="wait">
-        <m.div 
-          key={phase}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.4 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 1.5 }}
-          className={cn(
-            "absolute -top-[10%] -left-[10%] w-[120%] h-[120%] blur-[120px] pointer-events-none z-0",
-            phase === 'menstrual' && "bg-gradient-radial from-rose-500/10 via-transparent to-transparent",
-            phase === 'follicular' && "bg-gradient-radial from-teal-500/10 via-transparent to-transparent",
-            phase === 'fertile' && "bg-gradient-radial from-sky-500/10 via-transparent to-transparent",
-            phase === 'luteal' && "bg-gradient-radial from-amber-500/10 via-transparent to-transparent"
-          )} 
-        />
-      </AnimatePresence>
+
 
       <main className="flo-main-container pb-32 relative z-10">
         <div className="flo-content-inner">

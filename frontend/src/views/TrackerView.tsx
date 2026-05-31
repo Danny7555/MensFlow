@@ -232,7 +232,7 @@ export function TrackerView() {
                     <h3 className="text-xl font-normal mb-2">Unlock your full history</h3>
                     <p className="text-muted-foreground text-sm mb-6">Log in to see your past cycles, personalized tips, and partner sharing features.</p>
                     <button 
-                       onClick={openAuthModal}
+                       onClick={() => openAuthModal()}
                       className="btn btn-primary px-8 py-3 rounded-full"
                     >
                       Log in to access

@@ -516,7 +516,7 @@ export function DashboardView() {
             <span>You are previewing MensFlow as a guest. Your data is stored locally.</span>
             <button 
               type="button"
-              onClick={openAuthModal}
+              onClick={() => openAuthModal()}
               className="bg-white text-[var(--mf-accent)] px-3 py-1 rounded-full text-[11px] font-normal hover:bg-opacity-95 transition-all active:scale-95 cursor-pointer ml-1"
             >
               Create account
@@ -676,7 +676,7 @@ export function DashboardView() {
           <span>You are previewing MensFlow as a guest. Your data is stored locally.</span>
           <button 
             type="button"
-            onClick={openAuthModal}
+            onClick={() => openAuthModal()}
             className="bg-white text-[var(--mf-accent)] px-3 py-1 rounded-full text-[11px] font-normal hover:bg-opacity-95 transition-all active:scale-95 cursor-pointer ml-1"
           >
             Create account

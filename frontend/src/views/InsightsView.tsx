@@ -226,7 +226,7 @@ export function InsightsView() {
                     <h3 className="text-xl font-normal mb-2">Detailed AI Insights</h3>
                     <p className="text-muted-foreground text-sm mb-6">Unlock deeper patterns, AI-driven correlations, and symptom history by signing in.</p>
                     <button 
-                      onClick={openAuthModal}
+                      onClick={() => openAuthModal()}
                       className="btn btn-primary px-8 py-3 rounded-full"
                     >
                       Log in to access
