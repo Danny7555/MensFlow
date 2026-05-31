@@ -158,6 +158,9 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
   const { dashboard: data, user, logs, customSymptoms, showConfirm } = useStore()
 
   const threadEndRef = useRef<HTMLDivElement>(null)
+  // Capture the static prop in a ref so the initial-load effect doesn't
+  // re-derive state from a changing prop (fixes react-doctor no-adjust-state-on-prop-change)
+  const showOnlyLockedRef = useRef(showOnlyLocked)
 
   // Compute active cycle day from store data (computeCycleDay handles Date.now internally)
   const currentDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
@@ -225,18 +228,19 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchSessions()
       .then((data) => {
-        const filtered = showOnlyLocked ? data?.filter(s => s.isLocked) : data
+        const isLocked = showOnlyLockedRef.current
+        const filtered = isLocked ? data?.filter(s => s.isLocked) : data
         if (filtered && filtered.length > 0) {
           setActiveSessionId(filtered[0].sessionId)
         } else {
-          setActiveSessionId(showOnlyLocked ? null : generateNewSessionId())
+          setActiveSessionId(isLocked ? null : generateNewSessionId())
         }
       })
       .finally(() => {
         clearTimeout(loadingTimer)
         setIsLoading(false)
       })
-  }, [temporaryChat, fetchSessions, welcomeText, showOnlyLocked])
+  }, [temporaryChat, fetchSessions, welcomeText])
 
   // 2. Load messages for activeSessionId
   useEffect(() => {

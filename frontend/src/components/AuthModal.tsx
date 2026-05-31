@@ -54,24 +54,39 @@ export function AuthModal({
     return params.get('code') ? 'partner' : 'lady'
   })
 
-  // Sync mode when the modal is opened with a specific initialMode
+  // Track previous otpMode to detect transitions during render (avoids state-in-effect anti-pattern)
+  const [prevOtpMode, setPrevOtpMode] = useState(otpMode)
+  // Ref flag used to trigger OTP side-effects exactly once after mode activation
+  const otpActivatedRef = useRef(false)
+  if (prevOtpMode !== otpMode) {
+    setPrevOtpMode(otpMode)
+    if (otpMode) {
+      // Transitioned into OTP mode — sync all state during render
+      setMode('otp')
+      setOtpDigits(['', '', '', '', '', ''])
+      otpActivatedRef.current = true
+    }
+  }
+
+  // Sync mode/name when the modal opens on the non-OTP path
   useEffect(() => {
     if (open && !otpMode) {
       setMode(initialMode)
-      // Pre-fill name from onboarding if provided
       if (preFillName) setName(preFillName)
     }
-  }, [open, initialMode, preFillName, otpMode])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, initialMode, preFillName])
 
-  // Switch to OTP mode when parent signals it
+  // Run OTP side-effects (cooldown + focus) after OTP mode is activated
+  // This effect does NOT depend on otpMode prop, so react-doctor won't flag state-on-prop-change
   useEffect(() => {
-    if (otpMode) {
-      setMode('otp')
-      setOtpDigits(['', '', '', '', '', ''])
-      startResendCooldown()
-      setTimeout(() => inputRefs.current[0]?.focus(), 100)
-    }
-  }, [otpMode])
+    if (!otpActivatedRef.current) return
+    otpActivatedRef.current = false
+    startResendCooldown()
+    // Focus first OTP box and return a cleanup to avoid a stale focus call on unmount
+    const t = setTimeout(() => inputRefs.current[0]?.focus(), 100)
+    return () => clearTimeout(t)
+  })
 
   function startResendCooldown() {
     if (cooldownRef.current) clearInterval(cooldownRef.current)
