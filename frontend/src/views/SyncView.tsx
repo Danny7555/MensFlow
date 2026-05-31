@@ -1,10 +1,17 @@
 import { useState, useEffect } from 'react'
 import { m } from 'framer-motion'
 import type { Variants } from 'framer-motion'
-import { Check, Sparkle, PaperPlaneTilt, LinkSimple, Copy, ArrowRight, Users, ChatCircle, Lock } from '@phosphor-icons/react'
+import { Check, Sparkle, PaperPlaneTilt, LinkSimple, Copy, ArrowRight, Users, ChatCircle, Lock, ShareNetwork } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { PartnerChat } from '../components/dashboard/PartnerChat'
 import { useStore } from '../store/useStore'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../components/ui/dialog"
 
 
 import { useAuth } from '../context/useAuth'
@@ -117,6 +124,10 @@ export function SyncView() {
   const [sent, setSent] = useState(false)
   const [partnerCodeInput, setPartnerCodeInput] = useState('')
   const [isPairing, setIsPairing] = useState(false)
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [isInviting, setIsInviting] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   // Pre-fill pairing code from URL query param if present
   useEffect(() => {
@@ -136,6 +147,29 @@ export function SyncView() {
     await pairPartner(partnerCodeInput.trim())
     setPartnerCodeInput('')
     setIsPairing(false)
+  }
+
+  const inviteUrl = `${window.location.origin}/sync?code=${user?.partnerCode || ''}`
+  const copyLink = () => {
+    navigator.clipboard.writeText(inviteUrl)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleSendInvite = async () => {
+    const email = inviteEmail.trim()
+    if (!email) return
+    setIsInviting(true)
+    try {
+      await useStore.getState().invitePartner(email)
+      setInviteEmail('')
+      setIsInviteModalOpen(false)
+      toast.success('Invitation sent!')
+    } catch {
+      // Handled in store
+    } finally {
+      setIsInviting(false)
+    }
   }
 
   useEffect(() => {
@@ -355,6 +389,32 @@ export function SyncView() {
               </m.div>
             )}
 
+            {/* Invite partner banner — lady only, authenticated, unpaired */}
+            {isAuthenticated && user?.role === 'lady' && (
+              <m.div variants={itemVariants} className="mt-10 w-full max-w-2xl mx-auto px-4 sm:px-0">
+                <div 
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setIsInviteModalOpen(true)}
+                  onKeyDown={(e) => e.key === 'Enter' && setIsInviteModalOpen(true)}
+                  className="bg-gradient-to-r from-[var(--mf-accent)] to-[#be185d] rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 text-white flex flex-col items-center sm:flex-row justify-between gap-4 sm:gap-6 overflow-hidden relative group cursor-pointer"
+                >
+                  <div className="z-10 text-center sm:text-left space-y-2 sm:space-y-3">
+                    <h3 className="text-lg sm:text-xl md:text-2xl font-semibold tracking-tight leading-snug">Share your cycle with a partner</h3>
+                    <p className="text-white/80 text-sm max-w-[460px] leading-relaxed">
+                      Invite your partner to view your cycle phases and symptoms to improve communication and support.
+                    </p>
+                  </div>
+                  <button className="z-10 w-full sm:w-auto px-6 sm:px-8 py-3 bg-white text-[var(--mf-accent)] rounded-xl font-semibold text-sm hover:brightness-95 transition-all shrink-0">
+                    Invite Partner
+                  </button>
+                  <div className="absolute right-[-20px] top-[-20px] opacity-10 group-hover:scale-110 transition-transform duration-700">
+                     <img src="/images/girl.png" alt="" className="size-48 sm:size-64 object-contain rotate-[-15deg]" />
+                  </div>
+                </div>
+              </m.div>
+            )}
+
             {/* Trust note */}
             <m.p variants={itemVariants} className="text-center text-[10px] text-muted-foreground mt-6">
               <Lock size={12} aria-hidden="true" className="inline-block mr-1" />
@@ -362,6 +422,95 @@ export function SyncView() {
             </m.p>
 
           </div>
+
+          {/* Invite Partner Dialog */}
+          <Dialog open={isInviteModalOpen} onOpenChange={setIsInviteModalOpen}>
+            <DialogContent className="sm:max-w-[480px] w-[calc(100%-32px)] p-0 overflow-hidden border border-border rounded-2xl sm:rounded-3xl bg-background">
+              <div className="p-5 sm:p-6 md:p-8">
+                <DialogHeader className="mb-4">
+                  <div className="size-12 rounded-xl bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-3">
+                    <ShareNetwork size={24} weight="duotone" />
+                  </div>
+                  <DialogTitle className="text-lg sm:text-xl font-semibold tracking-tight">Invite your partner</DialogTitle>
+                  <DialogDescription className="text-sm text-muted-foreground pt-1.5 leading-relaxed">
+                    Shared access allows your partner to see your cycle phases, symptoms, and daily insights.
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-5">
+                  <div className="space-y-2.5">
+                    <label 
+                      htmlFor="partner-email"
+                      className="text-xs sm:text-sm font-medium uppercase tracking-wider text-muted-foreground"
+                    >
+                      Partner's Email
+                    </label>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <input 
+                        id="partner-email"
+                        type="email" 
+                        placeholder="email@example.com"
+                        value={inviteEmail}
+                        onChange={(e) => setInviteEmail(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleSendInvite() }}
+                        disabled={isInviting}
+                        className="flex-1 h-12 px-4 rounded-xl bg-muted/50 border border-border focus:border-[var(--mf-accent-border)] focus:bg-background transition-all outline-none text-sm"
+                      />
+                      <button 
+                        onClick={handleSendInvite}
+                        disabled={isInviting || !inviteEmail.trim()}
+                        className="h-12 px-6 bg-[var(--mf-accent)] text-white rounded-xl text-sm font-medium hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                      >
+                        {isInviting ? 'Inviting...' : 'Invite'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs tracking-widest uppercase">
+                      <span className="bg-background px-4 text-muted-foreground font-medium">Or use a link</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    <div className="flex items-center gap-2 p-3 rounded-xl bg-muted/30 border transition-colors">
+                      <span className="flex-1 truncate text-xs sm:text-sm text-muted-foreground font-mono select-all">
+                        {inviteUrl}
+                      </span>
+                      <button 
+                        onClick={copyLink}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-background border rounded-lg text-xs font-medium hover:bg-muted transition-colors shrink-0"
+                      >
+                        {copied ? (
+                          <>
+                            <Check size={12} className="text-green-500" weight="bold" />
+                            <span>Copied!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy size={12} />
+                            <span>Copy</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                    <p className="text-xs text-muted-foreground text-center">
+                      This link expires in 24 hours. Your partner will need their own account.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-muted/30 px-5 sm:px-6 py-4 flex items-center gap-3 border-t">
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  You can manage or revoke access anytime from <span className="text-foreground font-medium">Account Settings</span>.
+                </p>
+              </div>
+            </DialogContent>
+          </Dialog>
         </main>
       </m.div>
     )
@@ -524,6 +673,95 @@ export function SyncView() {
 
           </div>
         </div>
+
+        {/* Invite Partner Dialog */}
+        <Dialog open={isInviteModalOpen} onOpenChange={setIsInviteModalOpen}>
+          <DialogContent className="sm:max-w-[480px] w-[calc(100%-32px)] p-0 overflow-hidden border border-border rounded-2xl sm:rounded-3xl bg-background">
+            <div className="p-5 sm:p-6 md:p-8">
+              <DialogHeader className="mb-4">
+                <div className="size-12 rounded-xl bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-3">
+                  <ShareNetwork size={24} weight="duotone" />
+                </div>
+                <DialogTitle className="text-lg sm:text-xl font-semibold tracking-tight">Invite your partner</DialogTitle>
+                <DialogDescription className="text-sm text-muted-foreground pt-1.5 leading-relaxed">
+                  Shared access allows your partner to see your cycle phases, symptoms, and daily insights.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-5">
+                <div className="space-y-2.5">
+                  <label 
+                    htmlFor="partner-email-paired"
+                    className="text-xs sm:text-sm font-medium uppercase tracking-wider text-muted-foreground"
+                  >
+                    Partner's Email
+                  </label>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <input 
+                      id="partner-email-paired"
+                      type="email" 
+                      placeholder="email@example.com"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') handleSendInvite() }}
+                      disabled={isInviting}
+                      className="flex-1 h-12 px-4 rounded-xl bg-muted/50 border border-border focus:border-[var(--mf-accent-border)] focus:bg-background transition-all outline-none text-sm"
+                    />
+                    <button 
+                      onClick={handleSendInvite}
+                      disabled={isInviting || !inviteEmail.trim()}
+                      className="h-12 px-6 bg-[var(--mf-accent)] text-white rounded-xl text-sm font-medium hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                    >
+                      {isInviting ? 'Inviting...' : 'Invite'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs tracking-widest uppercase">
+                    <span className="bg-background px-4 text-muted-foreground font-medium">Or use a link</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2.5">
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-muted/30 border transition-colors">
+                    <span className="flex-1 truncate text-xs sm:text-sm text-muted-foreground font-mono select-all">
+                      {inviteUrl}
+                    </span>
+                    <button 
+                      onClick={copyLink}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-background border rounded-lg text-xs font-medium hover:bg-muted transition-colors shrink-0"
+                    >
+                      {copied ? (
+                        <>
+                          <Check size={12} className="text-green-500" weight="bold" />
+                          <span>Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={12} />
+                          <span>Copy</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <p className="text-xs text-muted-foreground text-center">
+                    This link expires in 24 hours. Your partner will need their own account.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-muted/30 px-5 sm:px-6 py-4 flex items-center gap-3 border-t">
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                You can manage or revoke access anytime from <span className="text-foreground font-medium">Account Settings</span>.
+              </p>
+            </div>
+          </DialogContent>
+        </Dialog>
       </main>
     </m.div>
   )

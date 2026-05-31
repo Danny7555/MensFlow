@@ -17,23 +17,23 @@ interface BiologicalSnapshotProps {
 export function BiologicalSnapshot({ estrogen, progesterone, description }: BiologicalSnapshotProps) {
   return (
     <div className="flex flex-col h-full">
-      <h4 className="text-[9px] md:text-[10px] font-medium text-[var(--mf-muted)] uppercase tracking-[0.15em] mb-3 flex items-center gap-2">
-        <div className="size-4 rounded-md bg-pink-500/10 flex items-center justify-center text-pink-500">
-          <Info size={10} weight="bold" />
+      <h4 className="text-xs text-[var(--mf-muted)] uppercase tracking-[0.1em] mb-2 flex items-center gap-2">
+        <div className="size-4.5 rounded-lg bg-pink-500/10 flex items-center justify-center text-pink-500">
+          <Info size={12} weight="bold" />
         </div>
         Biological Snapshot
       </h4>
       
       <div className="space-y-2">
-        <div className="bg-[var(--mf-card)]/40 border border-[var(--mf-border)]/50 rounded-[12px] p-2 md:p-2.5 transition-all hover:bg-[var(--mf-card)]/60">
+        <div className="bg-[var(--mf-card)]/40 rounded-lg p-2.5 transition-all hover:bg-[var(--mf-card)]/60">
           <div className="flex justify-between items-center mb-1.5">
             <div className="flex items-center gap-2">
-              <div className="size-5.5 md:size-6 rounded-full bg-pink-500/10 flex items-center justify-center text-pink-500">
-                <Drop size={12} weight="fill" className="scale-90 md:scale-100" />
+              <div className="size-5 rounded-full bg-pink-500/10 flex items-center justify-center text-pink-500">
+                <Drop size={13} weight="fill" />
               </div>
-              <span className="text-[10.5px] md:text-[11px] text-[var(--mf-text-strong)] font-normal">Estrogen Level</span>
+              <span className="text-sm text-[var(--mf-text-strong)]">Estrogen Level</span>
             </div>
-            <span className="text-[10.5px] md:text-[11px] font-medium text-pink-500">{estrogen}</span>
+            <span className="text-sm text-pink-500">{estrogen}</span>
           </div>
           
           <div className="flex items-center gap-1 h-1 w-full">
@@ -53,15 +53,15 @@ export function BiologicalSnapshot({ estrogen, progesterone, description }: Biol
           </div>
         </div>
 
-        <div className="bg-[var(--mf-card)]/40 border border-[var(--mf-border)]/50 rounded-[12px] p-2 md:p-2.5 transition-all hover:bg-[var(--mf-card)]/60">
+        <div className="bg-[var(--mf-card)]/40 rounded-lg p-2.5 transition-all hover:bg-[var(--mf-card)]/60">
           <div className="flex justify-between items-center mb-1.5">
             <div className="flex items-center gap-2">
-              <div className="size-5.5 md:size-6 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-500">
-                <Waveform size={12} weight="bold" className="scale-90 md:scale-100" />
+              <div className="size-5 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-500">
+                <Waveform size={13} weight="bold" />
               </div>
-              <span className="text-[10.5px] md:text-[11px] text-[var(--mf-text-strong)] font-normal">Progesterone Level</span>
+              <span className="text-sm text-[var(--mf-text-strong)]">Progesterone Level</span>
             </div>
-            <span className="text-[10.5px] md:text-[11px] font-medium text-violet-500">{progesterone}</span>
+            <span className="text-sm text-violet-500">{progesterone}</span>
           </div>
           
           <div className="flex items-center gap-1 h-1 w-full">
@@ -81,12 +81,12 @@ export function BiologicalSnapshot({ estrogen, progesterone, description }: Biol
           </div>
         </div>
 
-        <div className="mt-3 pt-3 border-t border-[var(--mf-border)]/30">
-          <div className="flex items-center gap-1.5 mb-1.5">
-            <Sparkle size={10} className="text-pink-500" weight="fill" />
-            <span className="text-[9px] font-medium text-pink-600 dark:text-pink-400 uppercase tracking-wider">Phase Insight:</span>
+        <div className="pt-2 border-t border-[var(--mf-border)]/30">
+          <div className="flex items-center gap-1.5 mb-1">
+            <Sparkle size={11} className="text-pink-500" weight="fill" />
+            <span className="text-xs text-pink-600 dark:text-pink-400 uppercase tracking-wider">Phase Insight</span>
           </div>
-          <p className="text-[var(--mf-text-strong)] leading-relaxed text-[10.5px] font-normal">
+          <p className="text-[var(--mf-text-strong)] leading-relaxed text-sm">
             {description}
           </p>
         </div>

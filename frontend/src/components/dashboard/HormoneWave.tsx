@@ -112,33 +112,33 @@ export function HormoneWave() {
   const dayInsight = useMemo(() => getDayInsight(activeDay, cycleLen), [activeDay, cycleLen])
 
   return (
-    <div className="flo-card p-4 md:p-5 relative overflow-hidden group transition-all duration-500 mb-6 border border-[var(--mf-border)]/60 !shadow-none">
+    <div className="flo-card p-4 lg:p-5 relative overflow-hidden group transition-all duration-500 mb-4 border border-[var(--mf-border)]/60 !shadow-none">
       
-      <div className="relative z-10 flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
+      <div className="relative z-10 flex flex-col md:flex-row md:items-start justify-between gap-3 mb-4">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20">
-              <span className="text-[9px] md:text-[10px] font-medium text-pink-600 dark:text-pink-400 uppercase tracking-[0.15em]">
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-500/10">
+              <span className="text-xs text-pink-600 dark:text-pink-400 uppercase tracking-[0.1em]">
                 Hormone Matrix
               </span>
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--mf-hover)] border border-[var(--mf-border)]">
-              <Sparkle size={10} weight="fill" className="text-amber-500" />
-              <span className="text-[9px] md:text-[10px] text-[var(--mf-muted)] font-medium">Interactive Timeline</span>
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--mf-hover)]">
+              <Sparkle size={12} weight="fill" className="text-amber-500" />
+              <span className="text-xs text-[var(--mf-muted)]">Interactive Timeline</span>
             </div>
           </div>
           
-          <h3 className="text-lg md:text-xl font-medium text-[var(--mf-text-strong)] tracking-tight leading-none mb-2">
+          <h3 className="text-lg sm:text-xl font-medium text-[var(--mf-text-strong)] tracking-tight leading-tight mb-1.5">
             Estrogen & Progesterone Trends
           </h3>
-          <p className="text-[10.5px] md:text-[11px] text-[var(--mf-muted)] max-w-xl leading-relaxed font-normal">
-            <span className="font-medium text-[var(--mf-text-strong)]">Hormone Guide:</span> Estrogen drives physical energy, positive mood, and social confidence. Progesterone promotes physical relaxation and calm, but its drop can trigger premenstrual sensitivity.
+          <p className="text-sm text-[var(--mf-muted)] max-w-2xl leading-relaxed">
+            <span className="text-[var(--mf-text-strong)]">Hormone Guide:</span> Estrogen drives physical energy, positive mood, and social confidence. Progesterone promotes physical relaxation and calm, but its drop can trigger premenstrual sensitivity.
           </p>
         </div>
       </div>
 
       {/* Scrub Slider */}
-      <div className="relative z-10 flex flex-col gap-2.5 mb-5 px-1">
+      <div className="relative z-10 flex flex-col gap-2 mb-4 px-1">
         <style>{`
           .hormone-range-input {
             -webkit-appearance: none;
@@ -170,29 +170,26 @@ export function HormoneWave() {
           }
         `}</style>
         
-        <div className="flex justify-between items-end mb-1">
+        <div className="flex justify-between items-end mb-0.5 gap-2">
           <div className="flex flex-col gap-0.5">
-            <span className="text-[9px] md:text-[10px] font-medium text-[var(--mf-muted)] uppercase tracking-widest">Timeline Position</span>
-            <span className="text-xs md:text-sm font-medium text-[var(--mf-text-strong)] flex items-center gap-2">
+            <span className="text-xs text-[var(--mf-muted)] uppercase tracking-wider">Timeline Position</span>
+            <span className="text-sm font-medium text-[var(--mf-text-strong)]">
               Day {activeDay} of {cycleLen}
             </span>
           </div>
           
           <div
-            className="px-3 md:px-4 py-1 md:py-1.5 rounded-xl border transition-all duration-500 flex items-center gap-2"
+            className="px-3 py-1 rounded-lg transition-all duration-500 flex items-center gap-2 text-xs tracking-tight shrink-0"
             style={{
               color: dayInsight.accentColor,
-              borderColor: `${dayInsight.accentColor}25`,
-              backgroundColor: `${dayInsight.accentColor}08`
+              backgroundColor: `${dayInsight.accentColor}0d`
             }}
           >
-            <span className="text-[10px] md:text-[11px] font-medium tracking-tight uppercase">
-              {dayInsight.phase}
-            </span>
+            {dayInsight.phase}
           </div>
         </div>
         
-        <div className="relative pt-2">
+        <div className="relative pt-1">
           <input
             type="range"
             min="1"
@@ -203,7 +200,7 @@ export function HormoneWave() {
           />
         </div>
         
-        <div className="flex justify-between text-[10px] text-[var(--mf-muted)] px-1 font-normal opacity-60">
+        <div className="flex justify-between text-xs text-[var(--mf-muted)] px-0.5">
           <span>Day 1</span>
           <span>Day {Math.round(cycleLen * 0.25)}</span>
           <span className="text-[var(--mf-text-strong)] font-medium">Day {ovulationDay} (Ovulation)</span>
@@ -213,15 +210,15 @@ export function HormoneWave() {
       </div>
 
       {/* Info Output Dashboard */}
-      <div className="relative z-10 grid grid-cols-1 md:grid-cols-[1.3fr_1fr] gap-0 rounded-[16px] bg-[var(--mf-card)] border border-[var(--mf-border)] overflow-hidden">
-        <div className="p-3 md:p-4">
+      <div className="relative z-10 grid grid-cols-1 md:grid-cols-[1.3fr_1fr] gap-0 rounded-xl bg-[var(--mf-card)] border border-[var(--mf-border)] overflow-hidden">
+        <div className="p-3.5 lg:p-4">
           <BiologicalSnapshot
             estrogen={dayInsight.estrogen}
             progesterone={dayInsight.progesterone}
             description={dayInsight.description}
           />
         </div>
-        <div className="p-3 md:p-4 bg-[var(--mf-hover)]/[0.03]">
+        <div className="p-3.5 lg:p-4 bg-[var(--mf-hover)]/[0.03]">
           <EmpathySupportGuide
             supportTip={dayInsight.supportTip}
           />

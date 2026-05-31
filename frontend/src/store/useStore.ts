@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+ import { create } from 'zustand'
 import { type DashboardSnapshot, DEFAULT_DASHBOARD } from '../lib/dashboardStorage'
 import { DEFAULT_SETTINGS, type MensFlowSettings } from '../context/settings-types'
 import { type SymptomDef, type SymptomCategory } from '../data/symptomsData'
@@ -34,7 +34,7 @@ interface AppState {
   dashboard: DashboardSnapshot
   settings: MensFlowSettings
   logs: SymptomLog[]
-  user: { name: string; avatar?: string | null; accessLevel?: 'full' | 'educational'; isOnboarded?: boolean; role?: 'lady' | 'partner'; partnerCode?: string; partnerId?: string | null; xp?: number; quizLastCompletedAt?: string; quizCountToday?: number }
+  user: { id?: string; name: string; avatar?: string | null; accessLevel?: 'full' | 'educational'; isOnboarded?: boolean; role?: 'lady' | 'partner'; partnerCode?: string; partnerId?: string | null; xp?: number; quizLastCompletedAt?: string; quizCountToday?: number }
   customSymptoms: SymptomDef[]
   isSaving: boolean
   completedActions: string[]
@@ -73,6 +73,10 @@ interface AppState {
       lastActionDate: string
     }
   } | null
+
+  notificationCount: number
+  incrementNotificationCount: () => void
+  resetNotificationCount: () => void
 
   // Lifecycle
   hydrate: (data: { user: ApiUser; settings: ApiSettings; dashboard: ApiDashboard }) => void
@@ -142,6 +146,10 @@ export const useStore = create<AppState>()((set, get) => ({
   lastActionDate: '',
   partnerStatus: null,
 
+  notificationCount: 0,
+  incrementNotificationCount: () => set((state) => ({ notificationCount: state.notificationCount + 1 })),
+  resetNotificationCount: () => set({ notificationCount: 0 }),
+
   confirmDialog: {
     isOpen: false,
     title: '',
@@ -196,6 +204,7 @@ export const useStore = create<AppState>()((set, get) => ({
   hydrate: ({ user, settings, dashboard }) => {
     set({
       user: {
+        id: user.id,
         name: user.name,
         avatar: user.avatar,
         accessLevel: user.accessLevel,

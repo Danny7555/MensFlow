@@ -129,7 +129,7 @@ export function PartnerChat() {
           </div>
         ) : (
           messages.map((msg) => {
-            const isMe = msg.senderId === user.partnerId
+            const isMe = msg.senderId === user.id
             return (
               <div 
                 key={msg.id} 

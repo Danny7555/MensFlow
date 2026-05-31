@@ -69,10 +69,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         void queryClient.invalidateQueries({ queryKey: userKeys.profile })
         void queryClient.invalidateQueries({ queryKey: chatKeys.sessions })
       })
-      .catch(() => {
-        // Token expired or invalid — clear it
-        clearToken()
-        setState(prev => ({ ...prev, isAuthenticated: false }))
+      .catch((err) => {
+        // Only log out on explicit 401 (token expired/invalid).
+        // Network errors, timeouts, or server downtime should NOT
+        // log the user out — the JWT in localStorage is still valid.
+        if (err instanceof Error && 'status' in err && (err as { status: number }).status === 401) {
+          clearToken()
+          setState(prev => ({ ...prev, isAuthenticated: false }))
+        } else {
+          console.warn('[AuthProvider] Rehydration failed (network/server issue) — keeping session alive', err)
+          // User stays authenticated with whatever stale data they had;
+          // background sync interval will retry automatically.
+        }
       })
       .finally(() => {
         setState(prev => ({ ...prev, isRehydrating: false }))
