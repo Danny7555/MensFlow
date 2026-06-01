@@ -4766,19 +4766,69 @@
     bottom: 0;
     left: 0;
     right: 0;
-    height: 72px;
-    background: rgba(var(--mf-card-rgb, 255, 255, 255), 0.75);
-    backdrop-filter: blur(24px) saturate(200%);
-    -webkit-backdrop-filter: blur(24px) saturate(200%);
-    border-top: 1px solid rgba(var(--mf-border-rgb, 240, 230, 234), 0.5);
+    height: auto;
+    min-height: 60px;
+    background: var(--mf-main-bg);
+    border-top: 1px solid var(--mf-border);
     justify-content: space-around;
-    padding: 0 0.5rem calc(0.5rem + env(safe-area-inset-bottom));
-    z-index: 1000;
+    align-items: flex-end;
+    padding: 0.5rem 0.5rem calc(0.5rem + env(safe-area-inset-bottom));
+    z-index: 100;
+    gap: 0;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
   }
 
   [data-theme='dark'] .flo-bottom-nav {
-    background: rgba(var(--mf-card-rgb, 31, 22, 29), 0.65);
-    border-top: 1px solid rgba(var(--mf-border-rgb, 54, 36, 48), 0.6);
+    background: var(--mf-main-bg);
+    border-top: 1px solid var(--mf-border);
+  }
+
+  /* iOS-style nav items */
+  .flo-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    flex: 1;
+    min-height: 50px;
+    border: none;
+    background: transparent;
+    color: var(--mf-muted);
+    font: inherit;
+    font-size: 0.7rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+    text-align: center;
+    line-height: 1.2;
+    padding: 0.35rem 0.25rem;
+    border-radius: 8px;
+  }
+
+  .flo-nav-item:active {
+    background: rgba(var(--mf-accent-rgb, 255, 107, 139), 0.08);
+  }
+
+  .flo-nav-item.flo-nav-item--active {
+    color: var(--mf-accent);
+    font-weight: 600;
+  }
+
+  .flo-nav-item svg {
+    width: 24px;
+    height: 24px;
+    display: block;
+  }
+
+  .flo-nav-label {
+    display: block;
+    font-size: 0.65rem;
+    line-height: 1;
+    white-space: nowrap;
   }
 
   .flo-grid {
@@ -4841,6 +4891,24 @@
   .flo-card {
     padding: 1.15rem;
     border-radius: 20px;
+    gap: 0.5rem;
+  }
+
+  /* Mobile-specific card responsive improvements */
+  .flo-card h3,
+  .flo-card h4 {
+    font-size: 0.95rem;
+    line-height: 1.3;
+  }
+
+  .flo-card p {
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+
+  /* Symptom bubble adjustments for mobile */
+  .flo-card .flex-wrap {
+    gap: 0.5rem !important;
   }
 
   .flo-main-container {
@@ -5629,5 +5697,170 @@
     font-size: 1rem !important;
     border-radius: 8px !important;
     border-width: 1.5px !important;
+  }
+}
+
+/* ========================================
+   iOS-Specific Global Styles
+   ======================================== */
+
+/* iOS momentum scrolling */
+@media (max-width: 768px) {
+  * {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+
+  button,
+  a,
+  [role="button"] {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  input,
+  textarea,
+  select {
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  textarea {
+    border-radius: 12px;
+    padding: 0.75rem;
+    font-size: 16px;
+    line-height: 1.5;
+    min-height: 44px;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select {
+    min-height: 44px;
+    padding: 0.65rem 0.85rem;
+    font-size: 16px;
+    border-radius: 12px;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  select {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1.25rem;
+    padding-right: 2.5rem;
+  }
+
+  /* iOS momentum scrolling for all scroll containers */
+  [class*="scroll"],
+  .app-canvas,
+  .chat-thread,
+  .sidebar-nav {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* iOS-style dividers */
+  hr {
+    border: none;
+    border-top: 1px solid var(--mf-border);
+    margin: 1rem 0;
+  }
+
+  /* Prevent double-tap zoom on iOS */
+  html {
+    -webkit-user-select: none;
+    -webkit-user-scalable: no;
+  }
+
+  body {
+    -webkit-user-select: none;
+    -webkit-user-scalable: no;
+  }
+
+  /* Prevent viewport zoom on iOS input focus */
+  input:focus,
+  textarea:focus,
+  select:focus {
+    font-size: 16px;
+    zoom: 1;
+  }
+
+  /* iOS-style shadows */
+  .shadow-sm {
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  }
+
+  .shadow {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  }
+
+  .shadow-md {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+
+  .shadow-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+
+  /* iOS transition improvements */
+  * {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
+
+  /* Remove transitions for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* iOS-specific focus states */
+  button:focus,
+  a:focus,
+  [role="button"]:focus {
+    outline: 2px solid var(--mf-accent);
+    outline-offset: 2px;
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus {
+    outline: 2px solid var(--mf-accent);
+    outline-offset: 2px;
+  }
+
+  /* iOS landscape mode adjustments */
+  @media (max-width: 768px) and (orientation: landscape) {
+    .top-header {
+      height: 44px;
+      padding: 0 0.75rem;
+    }
+
+    .mobile-nav-bar {
+      height: 44px;
+      min-height: 44px;
+    }
+
+    .mobile-nav-item {
+      min-height: 44px;
+    }
+
+    .chat-thread {
+      padding: 0.5rem 1rem;
+    }
+  }
+
+  /* iPhone notch support */
+  @supports (padding: max(0px)) {
+    .app-shell {
+      padding-top: max(0, env(safe-area-inset-top));
+      padding-bottom: max(0, env(safe-area-inset-bottom));
+    }
   }
 }

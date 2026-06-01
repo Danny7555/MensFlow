@@ -151,21 +151,25 @@ export function SymptomLogger() {
   return (
     <div className="flo-card flo-card--prominent overflow-hidden flex flex-col justify-between h-full animate-in fade-in slide-in-from-bottom-4 duration-500 delay-400">
       <div>
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-lg font-normal text-[var(--mf-text-strong)] tracking-tight">How is your day going?</h3>
+        {/* Header: Title + See All button - responsive layout */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3 gap-2 md:gap-0">
+          <h3 className="text-base md:text-lg font-normal text-[var(--mf-text-strong)] tracking-tight flex-1">How is your day going?</h3>
           {checkInSymptoms.length > 12 && (
             <button 
               type="button"
               onClick={() => setShowAll(!showAll)}
-              className="text-xs text-[var(--mf-accent)] hover:underline cursor-pointer font-normal border-none bg-transparent p-0 outline-none"
+              className="text-xs text-[var(--mf-accent)] hover:underline cursor-pointer font-normal border-none bg-transparent p-0 outline-none self-start md:self-auto"
             >
               {showAll ? "Show less" : "See all"}
             </button>
           )}
         </div>
-        <p className="text-xs text-muted-foreground mb-5">Tap to record your current symptoms or moods instantly. Your daily trends will update automatically.</p>
+        
+        {/* Description text - better line-height and sizing for mobile */}
+        <p className="text-xs md:text-xs text-muted-foreground mb-4 md:mb-5 leading-relaxed">Tap to record your current symptoms or moods instantly. Your daily trends will update automatically.</p>
 
-        <div className="flex flex-wrap justify-start gap-3 pb-4">
+        {/* Symptom bubbles - responsive grid */}
+        <div className="flex flex-wrap justify-start gap-2 md:gap-3 pb-4">
           {displayedSymptoms.map((sym) => (
             <div key={sym.id} className="flex-none">
               <SymptomBubble
