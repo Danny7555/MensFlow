@@ -1,10 +1,9 @@
 import { toast } from 'sonner'
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api'
+import { post } from './apiClient'
 
 /**
  * Sends a reminder email via the backend Nodemailer service.
- * Requires the user to be authenticated (JWT token stored in localStorage).
+ * Requires the user to be authenticated.
  */
 export async function sendEmailReminder(
   toEmail: string,
@@ -12,32 +11,17 @@ export async function sendEmailReminder(
   reminderTitle: string,
   reminderMessage: string
 ): Promise<boolean> {
-  const token = localStorage.getItem('mensflow_token')
-
-  if (!token) {
-    toast.error('You must be logged in to send email reminders.')
-    return false
-  }
-
   try {
-    const res = await fetch(`${API_BASE}/email/send`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ toEmail, toName, reminderTitle, reminderMessage }),
+    const result = await post<{ success: boolean; previewUrl?: string | null }>('/email/send', {
+      toEmail,
+      toName,
+      reminderTitle,
+      reminderMessage,
     })
 
-    const json = await res.json().catch(() => ({}))
-
-    if (!res.ok) {
-      throw new Error(json.error || `Server responded with ${res.status}`)
-    }
-
     // In development, Nodemailer falls back to Ethereal — log the preview link
-    if (json.previewUrl) {
-      console.info('[Email] Preview your email at:', json.previewUrl)
+    if (result.previewUrl) {
+      console.info('[Email] Preview your email at:', result.previewUrl)
     }
 
     toast.success('Email reminder sent!', {

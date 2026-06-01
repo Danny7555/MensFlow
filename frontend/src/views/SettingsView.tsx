@@ -1,5 +1,5 @@
 import type { ComponentType, ReactNode } from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useStore } from '../store/useStore'
 import { useAuth } from '../context/useAuth'
 import {
@@ -1246,10 +1246,33 @@ function AccountPanel({
   isGuest: boolean
   user: AppUser
   email?: string | null
-  updateUser: (patch: Partial<AppUser>) => void
+  updateUser: (patch: Partial<AppUser>) => Promise<void>
   onLogin?: () => void
   onLogout?: () => void
 }) {
+  const [nameDraft, setNameDraft] = useState(user?.name ?? '')
+  const [isUpdatingName, setIsUpdatingName] = useState(false)
+  const displayEmail = email || 'No email address on this account'
+  const trimmedName = nameDraft.trim()
+  const nameChanged = trimmedName !== (user?.name ?? '').trim()
+
+  useEffect(() => {
+    setNameDraft(user?.name ?? '')
+  }, [user?.name])
+
+  const handleUpdateName = async () => {
+    if (!trimmedName || !nameChanged || isUpdatingName) return
+    setIsUpdatingName(true)
+    try {
+      await updateUser({ name: trimmedName })
+      toast.success("Name updated successfully.")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update name.")
+    } finally {
+      setIsUpdatingName(false)
+    }
+  }
+
   return (
     <>
       {isGuest ? (
@@ -1323,18 +1346,40 @@ function AccountPanel({
             <div className="flex-1 w-full max-w-sm space-y-4">
               <div className="space-y-1.5">
                 <label htmlFor="user-name-input" className="text-xs font-medium uppercase tracking-widest text-muted-foreground ml-1">Your Name</label>
-                <input
-                  id="user-name-input"
-                  type="text"
-                  value={user?.name ?? ''}
-                  onChange={(e) => updateUser({ name: e.target.value })}
-                  className="w-full h-12 px-4 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-1 focus:ring-[var(--mf-accent)] transition-all outline-none text-base font-medium"
-                  placeholder="Enter your name"
-                />
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    id="user-name-input"
+                    type="text"
+                    value={nameDraft}
+                    onChange={(e) => setNameDraft(e.target.value)}
+                    className="w-full h-12 px-4 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-1 focus:ring-[var(--mf-accent)] transition-all outline-none text-base font-medium"
+                    placeholder="Enter your name"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleUpdateName}
+                    disabled={!trimmedName || !nameChanged || isUpdatingName}
+                    className="btn btn-primary h-12 px-5 rounded-xl shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isUpdatingName ? 'Updating' : 'Update'}
+                  </button>
+                </div>
               </div>
-              {email && (
-                <p className="settings-account-email ml-1">{email}</p>
-              )}
+              <div className="space-y-1.5">
+                <label htmlFor="user-email-input" className="text-xs font-medium uppercase tracking-widest text-muted-foreground ml-1">Email Address</label>
+                <div className="relative">
+                  <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                  <input
+                    id="user-email-input"
+                    type="email"
+                    value={displayEmail}
+                    readOnly
+                    aria-readonly="true"
+                    className="w-full h-12 pl-11 pr-4 rounded-xl bg-muted/60 border border-border text-muted-foreground cursor-not-allowed outline-none text-sm font-medium"
+                  />
+                </div>
+                <p className="settings-account-email ml-1">Email is locked for account security.</p>
+              </div>
               
               <div className="mt-6 pt-4 border-t border-border/50">
                 <SelectRow
@@ -1599,7 +1644,7 @@ export function SettingsView({
         <AccountPanel
           isGuest={!!isGuest}
           user={user}
-          email={authUser?.email}
+          email={authUser?.email ?? user.email}
           updateUser={async (patch) => {
             if (patch.role !== undefined && patch.role !== user.role) {
               await handleRoleChange(patch.role)

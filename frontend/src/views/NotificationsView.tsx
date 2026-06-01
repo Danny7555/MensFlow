@@ -328,8 +328,12 @@ export function NotificationsView() {
   }, [data.lastPeriodStart, data.typicalCycleDays, settings.notificationsCycleReminders, settings.notificationsProduct, logs, supportStreak, user?.role, partnerStatus])
 
   const handleEmailReminder = async (notif: Notification) => {
-    const emailTo = authUser?.username || 'user@example.com'
-    const nameTo = authUser?.name || 'Partner'
+    const emailTo = user?.email
+    if (!emailTo) {
+      toast.error("Your account does not have an email address for reminders.")
+      return
+    }
+    const nameTo = authUser?.name || user?.name || 'User'
     setSendingId(notif.id)
     try {
       await sendEmailReminder(emailTo, nameTo, notif.title, notif.message)

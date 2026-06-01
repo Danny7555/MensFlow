@@ -18,6 +18,8 @@ export type SymptomLog = {
 }
 
 export type AppUser = {
+  id?: string
+  email?: string | null
   name: string
   avatar?: string | null
   accessLevel?: 'full' | 'educational'
@@ -34,7 +36,7 @@ interface AppState {
   dashboard: DashboardSnapshot
   settings: MensFlowSettings
   logs: SymptomLog[]
-  user: { id?: string; name: string; avatar?: string | null; accessLevel?: 'full' | 'educational'; isOnboarded?: boolean; role?: 'lady' | 'partner'; partnerCode?: string; partnerId?: string | null; xp?: number; quizLastCompletedAt?: string; quizCountToday?: number }
+  user: AppUser
   customSymptoms: SymptomDef[]
   isSaving: boolean
   completedActions: string[]
@@ -133,7 +135,7 @@ interface AppState {
   submitQuizAttemptAction: (date: string, correct: boolean) => Promise<void>
 }
 
-const DEFAULT_USER = { name: '', avatar: null, accessLevel: 'full' as const, isOnboarded: false, role: 'lady' as const, partnerCode: '', partnerId: null, xp: 0, quizLastCompletedAt: '', quizCountToday: 0 }
+const DEFAULT_USER = { id: undefined, email: null, name: '', avatar: null, accessLevel: 'full' as const, isOnboarded: false, role: 'lady' as const, partnerCode: '', partnerId: null, xp: 0, quizLastCompletedAt: '', quizCountToday: 0 }
 
 export const useStore = create<AppState>()((set, get) => ({
   dashboard: DEFAULT_DASHBOARD,
@@ -206,6 +208,7 @@ export const useStore = create<AppState>()((set, get) => ({
     set({
       user: {
         id: user.id,
+        email: user.email,
         name: user.name,
         avatar: user.avatar,
         accessLevel: user.accessLevel,
@@ -320,6 +323,7 @@ export const useStore = create<AppState>()((set, get) => ({
         set((state) => ({
           user: {
             ...state.user,
+            email: updated.email,
             name: updated.name,
             avatar: updated.avatar,
             accessLevel: updated.accessLevel,
