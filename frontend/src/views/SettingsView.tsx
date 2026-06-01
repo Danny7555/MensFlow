@@ -1,5 +1,5 @@
 import type { ComponentType, ReactNode } from 'react'
-import { useEffect, useState } from 'react'
+import { useState, useRef } from 'react'
 import { useStore } from '../store/useStore'
 import { useAuth } from '../context/useAuth'
 import {
@@ -1252,24 +1252,44 @@ function AccountPanel({
 }) {
   const [nameDraft, setNameDraft] = useState(user?.name ?? '')
   const [isUpdatingName, setIsUpdatingName] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
   const displayEmail = email || 'No email address on this account'
   const trimmedName = nameDraft.trim()
   const nameChanged = trimmedName !== (user?.name ?? '').trim()
+  const MAX_NAME_LENGTH = 80
+  const nameLength = nameDraft.length
+  const isNameValid = trimmedName.length > 0 && trimmedName.length <= MAX_NAME_LENGTH
 
-  useEffect(() => {
-    setNameDraft(user?.name ?? '')
-  }, [user?.name])
+  // Update name draft when user name changes
+  const currentUserName = user?.name ?? ''
+  const prevUserNameRef = useRef(currentUserName)
+  
+  if (prevUserNameRef.current !== currentUserName) {
+    prevUserNameRef.current = currentUserName
+    setNameDraft(currentUserName)
+  }
 
   const handleUpdateName = async () => {
-    if (!trimmedName || !nameChanged || isUpdatingName) return
+    if (!trimmedName || !nameChanged || isUpdatingName || !isNameValid) return
     setIsUpdatingName(true)
     try {
       await updateUser({ name: trimmedName })
+      setShowSuccess(true)
+      setTimeout(() => setShowSuccess(false), 3000)
       toast.success("Name updated successfully.")
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to update name.")
     } finally {
       setIsUpdatingName(false)
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && isNameValid && nameChanged) {
+      handleUpdateName()
+    }
+    if (e.key === 'Escape') {
+      setNameDraft(user?.name ?? '')
     }
   }
 
@@ -1345,24 +1365,78 @@ function AccountPanel({
             </div>
             <div className="flex-1 w-full max-w-sm space-y-4">
               <div className="space-y-1.5">
-                <label htmlFor="user-name-input" className="text-xs font-medium uppercase tracking-widest text-muted-foreground ml-1">Your Name</label>
+                <div className="flex items-center justify-between">
+                  <label htmlFor="user-name-input" className="text-xs font-medium uppercase tracking-widest text-muted-foreground ml-1">Your Name</label>
+                  <div className="flex items-center gap-2">
+                    {showSuccess && (
+                      <span className="text-xs font-medium text-green-600 flex items-center gap-1">
+                        <CheckCircle size={12} weight="bold" />
+                        Updated
+                      </span>
+                    )}
+                    <span className={`text-xs font-medium ${nameLength > MAX_NAME_LENGTH ? 'text-red-500' : 'text-muted-foreground'}`}>
+                      {nameLength}/{MAX_NAME_LENGTH}
+                    </span>
+                  </div>
+                </div>
                 <div className="flex flex-col sm:flex-row gap-2">
-                  <input
-                    id="user-name-input"
-                    type="text"
-                    value={nameDraft}
-                    onChange={(e) => setNameDraft(e.target.value)}
-                    className="w-full h-12 px-4 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-1 focus:ring-[var(--mf-accent)] transition-all outline-none text-base font-medium"
-                    placeholder="Enter your name"
-                  />
+                  <div className="relative flex-1">
+                    <input
+                      id="user-name-input"
+                      type="text"
+                      value={nameDraft}
+                      onChange={(e) => setNameDraft(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      className={`w-full h-12 px-4 rounded-xl border transition-all outline-none text-base font-medium ${
+                        !isNameValid && nameDraft.length > 0
+                          ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                          : nameChanged
+                          ? 'border-[var(--mf-accent-border)] bg-[var(--mf-accent-soft)] focus:border-[var(--mf-accent)] focus:ring-1 focus:ring-[var(--mf-accent)]'
+                          : 'bg-muted border-border focus:border-[var(--mf-accent-border)] focus:ring-1 focus:ring-[var(--mf-accent)]'
+                      }`}
+                      placeholder="Enter your name"
+                      aria-invalid={!isNameValid}
+                      aria-describedby="name-hint"
+                    />
+                    {nameChanged && (
+                      <button
+                        type="button"
+                        onClick={() => setNameDraft(user?.name ?? '')}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        aria-label="Reset name"
+                      >
+                        <ArrowCounterClockwise size={16} />
+                      </button>
+                    )}
+                  </div>
                   <button
                     type="button"
                     onClick={handleUpdateName}
-                    disabled={!trimmedName || !nameChanged || isUpdatingName}
-                    className="btn btn-primary h-12 px-5 rounded-xl shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={!isNameValid || !nameChanged || isUpdatingName}
+                    className={`btn h-12 px-5 rounded-xl shrink-0 transition-all ${
+                      isNameValid && nameChanged
+                        ? 'btn-primary hover:scale-[1.02] active:scale-[0.98]'
+                        : 'bg-muted text-muted-foreground cursor-not-allowed'
+                    } ${isUpdatingName ? 'opacity-70' : ''}`}
                   >
-                    {isUpdatingName ? 'Updating' : 'Update'}
+                    {isUpdatingName ? (
+                      <span className="flex items-center gap-2">
+                        <span className="animate-spin rounded-full size-3 border-2 border-current border-t-transparent"></span>
+                        Updating
+                      </span>
+                    ) : (
+                      'Update'
+                    )}
                   </button>
+                </div>
+                <div id="name-hint" className="text-xs text-muted-foreground ml-1">
+                  {!isNameValid && nameDraft.length > 0 ? (
+                    <span className="text-red-500">Name must be between 1 and {MAX_NAME_LENGTH} characters</span>
+                  ) : nameChanged ? (
+                    <span className="text-[var(--mf-accent)]">Press Enter to save or Escape to cancel</span>
+                  ) : (
+                    'Edit your display name here'
+                  )}
                 </div>
               </div>
               <div className="space-y-1.5">

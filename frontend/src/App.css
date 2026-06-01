@@ -1562,6 +1562,62 @@
   color: var(--mf-muted);
 }
 
+/* Name update success animation */
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(-4px); }
+  15% { opacity: 1; transform: translateY(0); }
+  85% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-4px); }
+}
+
+.name-update-success {
+  animation: fadeInOut 3s ease-in-out;
+}
+
+/* Input validation states */
+.input-valid {
+  border-color: var(--mf-accent-border) !important;
+  background-color: var(--mf-accent-soft) !important;
+}
+
+.input-invalid {
+  border-color: #f87171 !important;
+  background-color: #fef2f2 !important;
+}
+
+.input-valid:focus {
+  border-color: var(--mf-accent) !important;
+  box-shadow: 0 0 0 1px var(--mf-accent-soft) !important;
+}
+
+.input-invalid:focus {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 1px #fee2e2 !important;
+}
+
+/* Character counter */
+.char-counter {
+  font-variant-numeric: tabular-nums;
+  transition: color 0.2s ease;
+}
+
+.char-counter-warning {
+  color: #f59e0b;
+}
+
+.char-counter-error {
+  color: #ef4444;
+}
+
+/* Reset button */
+.reset-name-btn {
+  transition: all 0.2s ease;
+}
+
+.reset-name-btn:hover {
+  transform: rotate(-30deg);
+}
+
 .settings-logout-card {
   padding: 1.1rem 1.15rem;
   border-radius: 12px;
