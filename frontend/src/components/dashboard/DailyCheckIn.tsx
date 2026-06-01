@@ -42,12 +42,12 @@ function SymptomBubble({ sym, active, onClick }: SymptomBubbleProps) {
       type="button"
       onClick={onClick}
       className={cn(
-        "flex flex-col items-center gap-2 p-3 min-w-[76px] transition-all duration-300 active:scale-95 outline-none group",
+        "flex flex-col items-center gap-1 md:gap-2 p-2 md:p-3 min-w-[60px] md:min-w-[76px] transition-all duration-300 active:scale-95 outline-none group flex-1 max-w-[70px] md:max-w-none md:flex-none",
         active ? "scale-102" : ""
       )}
     >
       <div className={cn(
-        "w-12 h-12 rounded-full flex items-center justify-center relative transition-all overflow-hidden border-2 group-hover:scale-110",
+        "w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center relative transition-all overflow-hidden border-2 group-hover:scale-110",
         active ? "border-[var(--mf-accent)]" : "border-transparent group-hover:border-[var(--mf-accent)]"
       )}>
         {imgUrl ? (
@@ -66,7 +66,7 @@ function SymptomBubble({ sym, active, onClick }: SymptomBubbleProps) {
         )}
       </div>
       <span className={cn(
-        "text-[10px] font-normal text-center whitespace-normal text-balance leading-tight w-[76px] transition-colors",
+        "text-[9px] md:text-[10px] font-normal text-center whitespace-normal text-balance leading-tight w-[60px] md:w-[76px] transition-colors",
         active ? "text-[var(--mf-accent)]" : "text-[var(--mf-text-strong)] group-hover:text-[var(--mf-accent)]"
       )}>
         {sym.label}
@@ -151,33 +151,28 @@ export function SymptomLogger() {
   return (
     <div className="flo-card flo-card--prominent overflow-hidden flex flex-col justify-between h-full animate-in fade-in slide-in-from-bottom-4 duration-500 delay-400">
       <div>
-        {/* Header: Title + See All button - responsive layout */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3 gap-2 md:gap-0">
-          <h3 className="text-base md:text-lg font-normal text-[var(--mf-text-strong)] tracking-tight flex-1">How is your day going?</h3>
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <h3 className="text-base md:text-lg font-normal text-[var(--mf-text-strong)] tracking-tight leading-tight">How is your day going?</h3>
           {checkInSymptoms.length > 12 && (
             <button 
               type="button"
               onClick={() => setShowAll(!showAll)}
-              className="text-xs text-[var(--mf-accent)] hover:underline cursor-pointer font-normal border-none bg-transparent p-0 outline-none self-start md:self-auto"
+              className="text-xs text-[var(--mf-accent)] hover:underline cursor-pointer font-normal border-none bg-transparent p-0 outline-none flex-shrink-0 whitespace-nowrap"
             >
               {showAll ? "Show less" : "See all"}
             </button>
           )}
         </div>
-        
-        {/* Description text - better line-height and sizing for mobile */}
-        <p className="text-xs md:text-xs text-muted-foreground mb-4 md:mb-5 leading-relaxed">Tap to record your current symptoms or moods instantly. Your daily trends will update automatically.</p>
+        <p className="text-xs md:text-xs text-muted-foreground mb-3 md:mb-5 leading-relaxed">Tap to record your current symptoms or moods instantly. Your daily trends will update automatically.</p>
 
-        {/* Symptom bubbles - responsive grid */}
         <div className="flex flex-wrap justify-start gap-2 md:gap-3 pb-4">
           {displayedSymptoms.map((sym) => (
-            <div key={sym.id} className="flex-none">
-              <SymptomBubble
-                sym={sym}
-                active={currentSymptoms.includes(sym.id)}
-                onClick={() => toggleSymptom(sym.id, sym.label)}
-              />
-            </div>
+            <SymptomBubble
+              key={sym.id}
+              sym={sym}
+              active={currentSymptoms.includes(sym.id)}
+              onClick={() => toggleSymptom(sym.id, sym.label)}
+            />
           ))}
         </div>
       </div>
