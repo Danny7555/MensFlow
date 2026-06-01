@@ -623,8 +623,12 @@ export const useStore = create<AppState>()((set, get) => ({
     if (isLoggedIn()) {
       set({ isSaving: true })
       try {
-        await partnerApi.requestAccess()
-        toast.success("Access request sent! Your partner will receive a notification to enable detailed sharing.")
+        const result = await partnerApi.requestAccess()
+        toast.success(result.alreadyPending ? "Access request already pending." : "Access request sent!", {
+          description: result.emailQueued
+            ? "Your partner received an in-app notification and an email."
+            : "Your partner received an in-app notification to enable detailed sharing.",
+        })
       } catch (err: unknown) {
         toast.error(err instanceof Error ? err.message : 'Failed to send access request')
       } finally {

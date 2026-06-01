@@ -82,8 +82,8 @@ export async function toggleAction(req: AuthRequest, res: Response, next: NextFu
 
 export async function requestDetailedAccess(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   try {
-    await partnerService.requestDetailedAccess(req.user!.id);
-    res.json({ success: true });
+    const result = await partnerService.requestDetailedAccess(req.user!.id);
+    res.json({ success: true, ...result });
   } catch (err) {
     next(err);
   }
@@ -118,4 +118,3 @@ export async function suggestReplies(req: AuthRequest, res: Response, next: Next
     next(err);
   }
 }
-

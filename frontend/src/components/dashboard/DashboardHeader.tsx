@@ -40,6 +40,7 @@ export function DashboardHeader({
   notificationCount,
 }: DashboardHeaderProps) {
   const [now, setNow] = useState(new Date())
+  const unreadNotifications = notificationCount ?? 0
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -124,9 +125,9 @@ export function DashboardHeader({
         <m.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
           <Link to="/notifications" className="flo-icon-btn hidden md:flex hover:bg-muted/50 transition-colors relative" aria-label="Notifications">
             <Bell size={24} weight="light" />
-            {(notificationCount ?? 0) > 0 && (
+            {unreadNotifications > 0 && (
               <span className="absolute -top-1 -right-1 size-5 rounded-full bg-[var(--mf-accent)] text-white text-[10px] font-bold flex items-center justify-center shadow-lg shadow-[var(--mf-accent)]/30 animate-in fade-in zoom-in-95 duration-200">
-                {notificationCount > 99 ? '99+' : notificationCount}
+                {unreadNotifications > 99 ? '99+' : unreadNotifications}
               </span>
             )}
           </Link>

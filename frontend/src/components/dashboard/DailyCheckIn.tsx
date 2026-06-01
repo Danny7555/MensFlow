@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react"
+import { useState } from "react"
 import { format } from "date-fns"
 import { useStore } from "@/store/useStore"
 import { SYMPTOM_DEFS, type SymptomDef } from "@/data/symptomsData"
@@ -118,18 +118,16 @@ export function SymptomLogger() {
   const [showAll, setShowAll] = useState(false)
   const todayDate = format(new Date(), 'yyyy-MM-dd')
   const existingLog = getLogForDate(todayDate)
-  const currentSymptoms = existingLog ? existingLog.symptoms : []
-
+  const currentSymptoms = existingLog?.symptoms ?? []
   const checkInSymptoms = [...SYMPTOM_DEFS, ...customSymptoms].filter(sym => sym.category !== 'Flow')
-
-  const displayedSymptoms = useMemo(() => {
+  const displayedSymptoms = (() => {
     if (showAll) return checkInSymptoms
     // Always keep active/logged symptoms visible first, then pad with inactive ones up to a limit of 12
     const active = checkInSymptoms.filter(sym => currentSymptoms.includes(sym.id))
     const inactive = checkInSymptoms.filter(sym => !currentSymptoms.includes(sym.id))
     const combined = [...active, ...inactive]
     return combined.slice(0, 12)
-  }, [checkInSymptoms, currentSymptoms, showAll])
+  })()
 
   const toggleSymptom = async (id: string, label: string) => {
     if (isSaving) return
@@ -196,12 +194,9 @@ export function DailyQuiz() {
   const [activeStep, setActiveStep] = useState<number>(dbQuizCount)
   const [selectedQuizAnswer, setSelectedQuizAnswer] = useState<number | null>(null)
 
-  // Sync activeStep with DB state ONLY on initial load or when quiz answer is null (meaning not showing explanation)
-  useEffect(() => {
-    if (selectedQuizAnswer === null) {
-      setActiveStep(dbQuizCount)
-    }
-  }, [dbQuizCount, selectedQuizAnswer])
+  if (selectedQuizAnswer === null && activeStep !== dbQuizCount) {
+    setActiveStep(dbQuizCount)
+  }
 
   const quizzes = [
     {

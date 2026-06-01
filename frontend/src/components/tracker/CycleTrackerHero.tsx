@@ -223,7 +223,7 @@ export function CycleTrackerHero({
         <div className="cycle-tracker-mode flex flex-wrap items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="mode-chip">
+              <button type="button" className="mode-chip">
                 Mode: {trackingMode === 'Conception' ? 'Conception (NFP)' : `MensFlow ${trackingMode}`}
                 <CaretDown size={14} weight="regular" />
               </button>
@@ -354,7 +354,7 @@ export function CycleTrackerHero({
           <>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="mode-chip">
+                <button type="button" className="mode-chip">
                   Mode: {trackingMode === 'Conception' ? 'Conception (NFP)' : `MensFlow ${trackingMode}`}
                   <CaretDown size={14} weight="regular" />
                 </button>
@@ -462,7 +462,7 @@ export function CycleTrackerHero({
                 {activeDay === currentDay && (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <button className="hover:opacity-70 transition-opacity">
+                      <button type="button" className="hover:opacity-70 transition-opacity">
                         <Info size={14} />
                       </button>
                     </TooltipTrigger>

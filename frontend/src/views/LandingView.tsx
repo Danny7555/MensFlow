@@ -92,7 +92,7 @@ export function LandingView() {
                 <p className="text-[10px] text-muted-foreground">Guest preview session</p>
               </div>
             </div>
-            <button 
+            <button type="button" 
               onClick={() => openAuthModal()}
               className="text-xs font-semibold text-primary hover:text-primary/90 bg-primary/5 hover:bg-primary/10 px-3 py-1.5 rounded-full cursor-pointer transition-all"
             >
@@ -141,7 +141,7 @@ export function LandingView() {
                           </p>
                         </>
                       )}
-                      <button 
+                      <button type="button" 
                         onClick={() => openAuthModal()}
                         className="text-left font-semibold text-[var(--mf-accent)] hover:underline self-start cursor-pointer"
                       >
@@ -214,7 +214,7 @@ export function LandingView() {
               <span>or</span>
             </div>
 
-            <button 
+            <button type="button" 
               onClick={() => navigate('/onboarding')}
               className="landing-primary-cta"
             >

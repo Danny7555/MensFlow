@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { WifiHigh, WifiSlash } from '@phosphor-icons/react'
 import { useRelativeTime } from '../../hooks/useRelativeTime'
 
@@ -11,12 +12,18 @@ interface PresenceBadgeProps {
  * recently active (within last 24 hours), or away (older than 24 hours or unknown).
  * Displays a relative time label like "Active 2 mins ago" or "Last seen 3 days ago".
  */
-export function PresenceBadge({ lastActive, partnerName }: PresenceBadgeProps) {
+export function PresenceBadge({ lastActive }: PresenceBadgeProps) {
   const relativeTime = useRelativeTime(lastActive)
+  const [now, setNow] = useState(() => Date.now())
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 30_000)
+    return () => clearInterval(interval)
+  }, [])
 
   // Determine online status
-  const isOnline = lastActive ? (Date.now() - lastActive) < 5 * 60 * 1000 : false
-  const isRecentlyActive = lastActive ? (Date.now() - lastActive) < 24 * 60 * 60 * 1000 : false
+  const isOnline = lastActive ? (now - lastActive) < 5 * 60 * 1000 : false
+  const isRecentlyActive = lastActive ? (now - lastActive) < 24 * 60 * 60 * 1000 : false
 
   if (!lastActive) {
     return (

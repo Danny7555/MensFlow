@@ -1,7 +1,9 @@
 import { User } from '../models/User';
 import { Settings, SettingsDocument } from '../models/Settings';
 import { Dashboard, DashboardDocument } from '../models/Dashboard';
+import { PartnerPing } from '../models/Partner';
 import { IUser, ISettings, IDashboard } from '../interfaces';
+import { sendReminderEmail } from './emailService';
 
 export async function getUserProfile(
   userId: string
@@ -133,6 +135,7 @@ export async function updateUserSettings(
   userId: string,
   patch: Partial<ISettings>
 ): Promise<ISettings> {
+  const previousSettings = await Settings.findOne({ userId }).lean();
   const settings = await Settings.findOneAndUpdate(
     { userId },
     { $set: patch, $setOnInsert: { userId } },
@@ -141,6 +144,17 @@ export async function updateUserSettings(
   if (!settings) {
     throw Object.assign(new Error('Unable to update settings'), { status: 500 });
   }
+
+  if (
+    previousSettings?.privacyPendingAccessRequest &&
+    patch.privacyPendingAccessRequest === false
+  ) {
+    const decision = patch.privacyShareCycleDetails === true ? 'granted' : 'declined';
+    void notifyAccessDecision(userId, decision).catch((err) => {
+      console.error('[updateUserSettings] Failed to notify partner access decision:', err);
+    });
+  }
+
   return toSettings(settings);
 }
 
@@ -213,4 +227,39 @@ function toDashboard(dashboard: DashboardDocument): IDashboard {
 
 function defaultLastPeriodStart(): string {
   return new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+async function notifyAccessDecision(userId: string, decision: 'granted' | 'declined'): Promise<void> {
+  const user = await User.findById(userId).lean();
+  if (!user?.partnerId) return;
+
+  const [partner, partnerSettings] = await Promise.all([
+    User.findById(user.partnerId).lean(),
+    Settings.findOne({ userId: user.partnerId }).lean(),
+  ]);
+  if (!partner) return;
+
+  const granted = decision === 'granted';
+  const label = granted ? 'Access Granted' : 'Access Declined';
+  const message = granted
+    ? `${user.name} approved detailed cycle sharing.`
+    : `${user.name} declined detailed cycle sharing for now.`;
+
+  await PartnerPing.create({
+    senderId: userId,
+    receiverId: user.partnerId,
+    pingId: granted ? 'access-granted-ping' : 'access-declined-ping',
+    label,
+    message,
+    timestamp: Date.now(),
+  });
+
+  if (partner.email && partnerSettings?.notificationsEmail) {
+    await sendReminderEmail({
+      toEmail: partner.email,
+      toName: partner.name,
+      reminderTitle: label,
+      reminderMessage: message,
+    });
+  }
 }

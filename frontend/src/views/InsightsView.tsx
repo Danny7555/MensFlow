@@ -197,13 +197,13 @@ export function InsightsView() {
                   <p className="text-xs text-muted-foreground font-normal">Download a complete CSV log of your cycle metrics or print/save a beautifully formatted PDF report for doctor consultations.</p>
                 </div>
                 <div className="flex flex-wrap gap-3">
-                  <button 
+                  <button type="button" 
                     onClick={handleExportCSV}
                     className="px-5 py-2.5 rounded-full border border-border text-xs font-normal hover:bg-muted transition-colors"
                   >
                     Download CSV
                   </button>
-                  <button 
+                  <button type="button" 
                     onClick={handlePrintPDF}
                     className="px-5 py-2.5 rounded-full bg-[var(--mf-accent)] text-white text-xs font-normal hover:brightness-105 transition-all"
                   >
@@ -225,7 +225,7 @@ export function InsightsView() {
                    <div className="bg-card border border-border p-8 rounded-3xl text-center max-w-[400px] mx-auto">
                     <h3 className="text-xl font-normal mb-2">Detailed AI Insights</h3>
                     <p className="text-muted-foreground text-sm mb-6">Unlock deeper patterns, AI-driven correlations, and symptom history by signing in.</p>
-                    <button 
+                    <button type="button" 
                       onClick={() => openAuthModal()}
                       className="btn btn-primary px-8 py-3 rounded-full"
                     >

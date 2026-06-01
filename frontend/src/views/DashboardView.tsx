@@ -93,7 +93,7 @@ function QuickEmpathyBoostCard({ ladyName, isAuthenticated }: QuickEmpathyBoostC
         {options.map((opt) => {
           const isPending = activePing === opt.id
           return (
-            <button
+            <button type="button"
               key={opt.id}
               onClick={() => handleSendPing(opt.id, opt.label, opt.message)}
               disabled={activePing !== null}
@@ -125,7 +125,7 @@ function QuickEmpathyBoostCard({ ladyName, isAuthenticated }: QuickEmpathyBoostC
   )
 }
 
-function AmbientBackground(_props: { phase: any; isPartner?: boolean }) {
+function AmbientBackground(_props: { phase: ReturnType<typeof getPhaseFromDay>; isPartner?: boolean }) {
   return null;
 }
 
@@ -912,7 +912,7 @@ export function DashboardView() {
 
       {/* Persistent Interaction Trigger */}
       {user?.role !== 'partner' && (
-        <button 
+        <button type="button" 
           className="flo-fab"
           onClick={() => dispatch({ type: 'TOGGLE_LOG', payload: true })}
         >

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useRef, useState } from "react"
 import { format } from "date-fns"
 import {
   Dialog,
@@ -40,15 +40,17 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
   const [selectedSymptoms, setSelectedSymptoms] = useState<Set<string>>(new Set())
   const [lhLevelVal, setLhLevelVal] = useState<string | null>(null)
   const [mucusVal, setMucusVal] = useState<string | null>(null)
+  const loadedDateKeyRef = useRef<string | null>(null)
 
-  useEffect(() => {
-    if (isOpen) {
-      const existing = getLogForDate(dateKey)
-      setSelectedSymptoms(existing ? new Set(existing.symptoms) : new Set())
-      setLhLevelVal(existing?.lhLevel !== undefined ? existing.lhLevel : null)
-      setMucusVal(existing?.mucus !== undefined ? existing.mucus : null)
-    }
-  }, [isOpen, dateKey])
+  if (isOpen && loadedDateKeyRef.current !== dateKey) {
+    const existing = getLogForDate(dateKey)
+    loadedDateKeyRef.current = dateKey
+    setSelectedSymptoms(existing ? new Set(existing.symptoms) : new Set())
+    setLhLevelVal(existing?.lhLevel !== undefined ? existing.lhLevel : null)
+    setMucusVal(existing?.mucus !== undefined ? existing.mucus : null)
+  } else if (!isOpen && loadedDateKeyRef.current !== null) {
+    loadedDateKeyRef.current = null
+  }
 
   const [newSymptomName, setNewSymptomName] = useState("")
   const [newSymptomCat, setNewSymptomCat] = useState<SymptomCategory>("Physical")

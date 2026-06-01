@@ -284,7 +284,7 @@ export function QuickLogCard({ onViewAll }: { onViewAll: () => void }) {
     <m.div variants={itemVariants} className="flo-card flo-card--prominent h-full quick-log-card">
       <div className="flo-card-top mb-6">
         <p className="flo-card-title">Quick Log</p>
-        <button 
+        <button type="button" 
           className="text-[var(--mf-accent)] text-xs font-normal flex items-center gap-1 hover:opacity-80 transition-opacity"
           onClick={onViewAll}
         >
@@ -300,7 +300,7 @@ export function QuickLogCard({ onViewAll }: { onViewAll: () => void }) {
             { label: 'Cravings', img: '/images/cravings.png' },
             { label: 'More', icon: <Plus size={20} weight="bold" /> },
           ].map(action => (
-            <button 
+            <button type="button" 
               key={action.label} 
               className="flex flex-col items-center gap-2 transition-all group outline-none"
               onClick={onViewAll}

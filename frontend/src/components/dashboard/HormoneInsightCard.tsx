@@ -47,7 +47,7 @@ export function HormoneInsightCard({ variants, phaseLabel, aiInsightText }: Horm
         </div>
       </div>
       
-      <button className="text-[var(--mf-accent)] text-xs font-normal mt-6 pt-4 border-t border-[var(--mf-border)] flex items-center justify-between hover:gap-2 transition-all w-full">
+      <button type="button" className="text-[var(--mf-accent)] text-xs font-normal mt-6 pt-4 border-t border-[var(--mf-border)] flex items-center justify-between hover:gap-2 transition-all w-full">
         <span>Read medical research</span>
         <CaretRight size={12} />
       </button>

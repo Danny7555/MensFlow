@@ -190,7 +190,7 @@ export function TrackerView() {
                   <div className="relative z-30 pointer-events-auto bg-card border border-border p-8 rounded-3xl text-center max-w-[400px] mx-auto mt-24">
                     <h3 className="text-xl font-normal mb-2">Unlock your full history</h3>
                     <p className="text-muted-foreground text-sm mb-6">Log in to see your past cycles, personalized tips, and partner sharing features.</p>
-                    <button 
+                    <button type="button" 
                        onClick={() => openAuthModal()}
                       className="btn btn-primary px-8 py-3 rounded-full"
                     >

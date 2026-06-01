@@ -47,7 +47,6 @@ export function useSmartPushNotifications() {
   const { dashboard: ownDashboard, user, partnerStatus, settings, logs } = useStore()
   const hasRun = useRef(false)
 
-  // eslint-disable-next-line react-doctor/effect-needs-cleanup -- false positive: cleanup IS returned via `return () => timers.forEach(clearTimeout)` below; the static matcher misses nested setTimeout calls inside conditionals
   useEffect(() => {
     // Collect timer handles so we can cancel them if the effect reruns or unmounts
     const timers: ReturnType<typeof setTimeout>[] = []

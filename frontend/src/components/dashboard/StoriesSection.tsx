@@ -16,7 +16,7 @@ export function StoriesSection() {
     <section className="flo-stories-section">
       <div className="flo-stories-container">
         {stories.map((story) => (
-          <button 
+          <button type="button" 
             key={story.label} 
             className="flo-story-circle cursor-pointer appearance-none bg-transparent border-none p-0 outline-none hover:scale-105 transition-transform"
             onClick={() => navigate(story.route)}

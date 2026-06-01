@@ -55,11 +55,11 @@ export function AuthModal({
   })
 
   // Track previous otpMode to detect transitions during render (avoids state-in-effect anti-pattern)
-  const [prevOtpMode, setPrevOtpMode] = useState(otpMode)
+  const prevOtpModeRef = useRef(otpMode)
   // Ref flag used to trigger OTP side-effects exactly once after mode activation
   const otpActivatedRef = useRef(false)
-  if (prevOtpMode !== otpMode) {
-    setPrevOtpMode(otpMode)
+  if (prevOtpModeRef.current !== otpMode) {
+    prevOtpModeRef.current = otpMode
     if (otpMode) {
       // Transitioned into OTP mode — sync all state during render
       setMode('otp')
@@ -68,14 +68,22 @@ export function AuthModal({
     }
   }
 
-  // Sync mode/name when the modal opens on the non-OTP path
-  useEffect(() => {
-    if (open && !otpMode) {
-      setMode(initialMode)
-      if (preFillName) setName(preFillName)
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, initialMode, preFillName])
+  const openSyncStateRef = useRef({ open, initialMode, preFillName })
+  if (
+    open &&
+    !otpMode &&
+    (
+      openSyncStateRef.current.open !== open ||
+      openSyncStateRef.current.initialMode !== initialMode ||
+      openSyncStateRef.current.preFillName !== preFillName
+    )
+  ) {
+    openSyncStateRef.current = { open, initialMode, preFillName }
+    setMode(initialMode)
+    if (preFillName) setName(preFillName)
+  } else if (openSyncStateRef.current.open !== open) {
+    openSyncStateRef.current = { open, initialMode, preFillName }
+  }
 
   // Run OTP side-effects (cooldown + focus) after OTP mode is activated
   // This effect does NOT depend on otpMode prop, so react-doctor won't flag state-on-prop-change
@@ -140,7 +148,7 @@ export function AuthModal({
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Something went wrong')
     }
-  }, [isLoading, username, password, name, email, mode, onLogin, onRegister, role, reset])
+  }, [isLoading, username, password, name, email, mode, onLogin, onRegister, preFillName, role, reset])
 
   // ── OTP digit input handling ───────────────────────────────────────────────
   const handleOtpChange = useCallback((index: number, value: string) => {

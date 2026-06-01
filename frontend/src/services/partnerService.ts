@@ -70,7 +70,7 @@ export const partnerApi = {
     post<{ success: boolean }>('/partner/disconnect', {}),
 
   requestAccess: () =>
-    post<{ success: boolean }>('/partner/request-access', {}),
+    post<{ success: boolean; alreadyPending: boolean; emailQueued: boolean }>('/partner/request-access', {}),
 
   sendPing: (pingId: string, label: string, message: string) =>
     post<{ success: boolean; ping: ApiPing }>('/partner/ping', { pingId, label, message }),
@@ -190,4 +190,3 @@ export function usePartnerChatSuggestionsQuery() {
     staleTime: 5000,
   })
 }
-

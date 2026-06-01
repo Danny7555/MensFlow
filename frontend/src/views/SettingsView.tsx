@@ -193,7 +193,7 @@ function MfaSetupModal({ trigger }: { trigger: ReactNode }) {
 
           {step === 'choice' && (
             <div className="grid gap-3">
-              <button
+              <button type="button"
                 onClick={() => { setMethod('app'); setStep('setup'); }}
                 className="flex items-center gap-4 p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors text-left group"
               >
@@ -206,7 +206,7 @@ function MfaSetupModal({ trigger }: { trigger: ReactNode }) {
                 </div>
                 <CaretRight size={16} className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </button>
-              <button
+              <button type="button"
                 onClick={() => { setMethod('sms'); setStep('setup'); }}
                 className="flex items-center gap-4 p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors text-left group"
               >
@@ -274,7 +274,7 @@ function MfaSetupModal({ trigger }: { trigger: ReactNode }) {
                 >
                   Verify code
                 </Button>
-                <button className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors py-2">
+                <button type="button" className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors py-2">
                   Didn't receive a code? Resend
                 </button>
               </div>
@@ -663,7 +663,7 @@ function PersonalizationPanel({
         label="Condition Optimization Profile"
         description="Tailor cycle modeling, predictions, and tips for specific conditions (PCOS, Endometriosis, or Perimenopause)."
         value={settings.conditionOptimization}
-        onChange={(v) => updateSettings({ conditionOptimization: v as any })}
+        onChange={(v) => updateSettings({ conditionOptimization: v as MensFlowSettings['conditionOptimization'] })}
         options={[
           { value: 'none', label: 'None (Standard predictions)' },
           { value: 'pcos', label: 'PCOS Optimization' },
@@ -1330,7 +1330,7 @@ export function SettingsView({
         description: `Dashboard layout updated to ${newRole === 'lady' ? 'self-tracking' : 'partner support'}.`,
         duration: 3000
       })
-    } catch (err) {
+    } catch {
       toast.error("Failed to switch role.", { id: toastId })
     }
   }

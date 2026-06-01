@@ -75,6 +75,7 @@ export function QueryErrorToast() {
             <p className="mf-toast-message">{toast.message}</p>
           </div>
           <button
+            type="button"
             className="mf-toast-dismiss"
             onClick={() => dismiss(toast.id)}
             aria-label="Dismiss notification"

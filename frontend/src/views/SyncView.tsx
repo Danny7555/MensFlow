@@ -300,7 +300,7 @@ export function SyncView() {
                   <p className="text-xs text-[var(--mf-muted)] max-w-sm mx-auto leading-relaxed">
                     Sign in or create an account to sync cycles with your partner.
                   </p>
-                  <button
+                  <button type="button"
                     onClick={() => openAuthModal()}
                     className="inline-flex items-center gap-2 bg-[var(--mf-accent)] text-white hover:opacity-95 px-6 py-3 rounded-xl text-xs font-normal transition-all cursor-pointer border-0 outline-none"
                   >
@@ -407,7 +407,7 @@ export function SyncView() {
                       Invite your partner to view your cycle phases and symptoms to improve communication and support.
                     </p>
                   </div>
-                  <button className="z-10 w-full sm:w-auto px-6 sm:px-8 py-3 bg-white text-[var(--mf-accent)] rounded-xl font-semibold text-sm hover:brightness-95 transition-all shrink-0">
+                  <button type="button" className="z-10 w-full sm:w-auto px-6 sm:px-8 py-3 bg-white text-[var(--mf-accent)] rounded-xl font-semibold text-sm hover:brightness-95 transition-all shrink-0">
                     Invite Partner
                   </button>
                   <div className="absolute right-[-20px] top-[-20px] opacity-10 group-hover:scale-110 transition-transform duration-700">
@@ -458,7 +458,7 @@ export function SyncView() {
                         disabled={isInviting}
                         className="flex-1 h-12 px-4 rounded-xl bg-muted/50 border border-border focus:border-[var(--mf-accent-border)] focus:bg-background transition-all outline-none text-sm"
                       />
-                      <button 
+                      <button type="button" 
                         onClick={handleSendInvite}
                         disabled={isInviting || !inviteEmail.trim()}
                         className="h-12 px-6 bg-[var(--mf-accent)] text-white rounded-xl text-sm font-medium hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
@@ -482,7 +482,7 @@ export function SyncView() {
                       <span className="flex-1 truncate text-xs sm:text-sm text-muted-foreground font-mono select-all">
                         {inviteUrl}
                       </span>
-                      <button 
+                      <button type="button" 
                         onClick={copyLink}
                         className="flex items-center gap-1.5 px-3 py-1.5 bg-background border rounded-lg text-xs font-medium hover:bg-muted transition-colors shrink-0"
                       >
@@ -605,7 +605,7 @@ export function SyncView() {
                         ? 'Your partner has been notified. Keep up the supportive gestures!'
                         : 'Your partner has been notified. They can now view actions to support you during your phase.'}
                     </p>
-                    <button 
+                    <button type="button" 
                       onClick={() => { setSent(false); setSelected(null); }}
                       className="mt-5 text-xs text-[var(--mf-accent)] hover:underline font-normal bg-transparent border-0 cursor-pointer"
                     >
@@ -654,7 +654,7 @@ export function SyncView() {
                       </div>
                     </div>
 
-                    <button
+                    <button type="button"
                       onClick={handleSendPing}
                       disabled={!selected || isSending}
                       className="w-full h-12 bg-[var(--mf-accent)] text-white rounded-2xl font-normal flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-xs transition-all !shadow-none border-0 cursor-pointer"
@@ -723,7 +723,7 @@ export function SyncView() {
                       disabled={isInviting}
                       className="flex-1 h-12 px-4 rounded-xl bg-muted/50 border border-border focus:border-[var(--mf-accent-border)] focus:bg-background transition-all outline-none text-sm"
                     />
-                    <button 
+                    <button type="button" 
                       onClick={handleSendInvite}
                       disabled={isInviting || !inviteEmail.trim()}
                       className="h-12 px-6 bg-[var(--mf-accent)] text-white rounded-xl text-sm font-medium hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
@@ -747,7 +747,7 @@ export function SyncView() {
                     <span className="flex-1 truncate text-xs sm:text-sm text-muted-foreground font-mono select-all">
                       {inviteUrl}
                     </span>
-                    <button 
+                    <button type="button" 
                       onClick={copyLink}
                       className="flex items-center gap-1.5 px-3 py-1.5 bg-background border rounded-lg text-xs font-medium hover:bg-muted transition-colors shrink-0"
                     >

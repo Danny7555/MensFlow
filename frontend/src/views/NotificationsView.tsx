@@ -360,7 +360,7 @@ export function NotificationsView() {
   return (
     <div className="min-h-screen bg-background pb-bottom-nav">
       <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-[var(--mf-border)]/50 px-6 py-4 flex items-center gap-4">
-        <button 
+        <button type="button" 
           onClick={() => navigate(-1)}
           className="size-10 flex items-center justify-center rounded-full bg-[var(--mf-hover)] hover:bg-[var(--mf-active)] text-[var(--mf-text-strong)] transition-all active-squish cursor-pointer"
         >
@@ -387,14 +387,14 @@ export function NotificationsView() {
               </div>
             </div>
             <div className="flex items-center gap-3 shrink-0 self-stretch md:self-auto justify-end">
-              <button
+              <button type="button"
                 onClick={handleDeclineRequest}
                 disabled={isProcessing}
                 className="px-4 py-2 text-xs font-semibold rounded-xl bg-[var(--mf-hover)] hover:bg-[var(--mf-active)] text-[var(--mf-text-strong)] transition-all cursor-pointer disabled:opacity-50 active-squish"
               >
                 Decline
               </button>
-              <button
+              <button type="button"
                 onClick={handleApproveRequest}
                 disabled={isProcessing}
                 className="px-5 py-2 text-xs font-semibold rounded-xl bg-pink-500 hover:bg-pink-600 text-white shadow-lg shadow-pink-500/20 hover:shadow-pink-500/35 transition-all cursor-pointer disabled:opacity-50 active-squish"
@@ -469,7 +469,7 @@ export function NotificationsView() {
                     </div>
 
                     <div className="flex items-center gap-2.5 shrink-0 self-center">
-                      <button
+                      <button type="button"
                         onClick={() => handleEmailReminder(notification)}
                         disabled={sendingId !== null}
                         className="size-9 rounded-full border border-[var(--mf-border)] bg-[var(--mf-card)] hover:bg-[var(--mf-hover)] hover:border-[var(--mf-border-strong)] text-[var(--mf-muted)] hover:text-[var(--mf-text-strong)] flex items-center justify-center transition-all cursor-pointer disabled:opacity-50 active-squish"
@@ -645,14 +645,14 @@ export function NotificationsView() {
                 </div>
 
                 {alertPermission !== 'granted' ? (
-                  <button
+                  <button type="button"
                     onClick={requestNotificationPermission}
                     className="w-full text-xs font-semibold bg-[var(--mf-accent)]/10 hover:bg-[var(--mf-accent)]/20 text-[var(--mf-accent)] border border-[var(--mf-accent)]/20 py-2.5 rounded-xl transition-all cursor-pointer text-center active-squish"
                   >
                     Enable Browser Alerts
                   </button>
                 ) : (
-                  <button
+                  <button type="button"
                     onClick={triggerTestNotification}
                     className="w-full text-xs font-semibold bg-[var(--mf-hover)] hover:bg-[var(--mf-active)] text-[var(--mf-text-strong)] border border-[var(--mf-border)] py-2.5 rounded-xl transition-all cursor-pointer text-center active-squish"
                   >

@@ -818,7 +818,7 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
                 </span>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <button className="ml-1 p-0.5 hover:bg-black/10 rounded-full transition-colors flex items-center justify-center" aria-label="More information">
+                    <button type="button" className="ml-1 p-0.5 hover:bg-black/10 rounded-full transition-colors flex items-center justify-center" aria-label="More information">
                       <Question size={14} weight="bold" className="opacity-60" />
                     </button>
                   </TooltipTrigger>

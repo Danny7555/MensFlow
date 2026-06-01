@@ -6,7 +6,7 @@ import { Settings } from '../models/Settings';
 import { IPartnerPing, IPartnerChatMessage } from '../interfaces';
 import { httpError } from '../utils/http';
 import { generateUniquePartnerCode } from './authService';
-import { sendInviteEmail } from './emailService';
+import { sendInviteEmail, sendReminderEmail } from './emailService';
 
 
 // ─── Pairing ─────────────────────────────────────────────────────────────────
@@ -39,8 +39,10 @@ export async function pairWithPartner(
     }
   }
 
-  await User.findByIdAndUpdate(userId, { partnerId: partner._id });
-  await User.findByIdAndUpdate(partner._id, { partnerId: userId });
+  await Promise.all([
+    User.findByIdAndUpdate(userId, { partnerId: partner._id }),
+    User.findByIdAndUpdate(partner._id, { partnerId: userId }),
+  ]);
 
   return { id: String(partner._id), name: partner.name };
 }
@@ -93,8 +95,18 @@ export async function invitePartner(
     throw httpError('This partner is already paired with someone else', 400);
   }
 
-  await User.findByIdAndUpdate(userId, { partnerId: partner._id });
-  await User.findByIdAndUpdate(partner._id, { partnerId: userId });
+  const user = await User.findById(userId).lean();
+  if (!user) {
+    throw httpError('User not found', 404);
+  }
+  if (user.role === partner.role) {
+    throw httpError('Partner accounts must connect to lady accounts, and lady accounts must connect to partner accounts.', 400);
+  }
+
+  await Promise.all([
+    User.findByIdAndUpdate(userId, { partnerId: partner._id }),
+    User.findByIdAndUpdate(partner._id, { partnerId: userId }),
+  ]);
 
   return {
     id: String(partner._id),
@@ -142,18 +154,33 @@ export async function getPartnerStatus(userId: string): Promise<object> {
     return { paired: false };
   }
 
-  const partnerDash = await Dashboard.findOne({ userId: partner._id }).lean();
   const today = todayString();
   const yesterday = yesterdayString();
 
-  const latestLog = await SymptomLog.findOne({ userId: partner._id, date: today }).lean();
-  const symptoms = latestLog?.symptoms ?? [];
+  const [
+    partnerDash,
+    latestLog,
+    partnerSettings,
+    initialStreakDoc,
+    completedToday,
+    partnerLastPing,
+    partnerLastLog,
+    partnerLastMessage,
+  ] = await Promise.all([
+    Dashboard.findOne({ userId: partner._id }).lean(),
+    SymptomLog.findOne({ userId: partner._id, date: today }).lean(),
+    Settings.findOne({ userId: partner._id }).lean(),
+    SupportStreak.findOne({ userId }).lean(),
+    SupportAction.find({ userId, completedAt: today }).distinct('actionId'),
+    PartnerPing.findOne({ senderId: partner._id, receiverId: userId }).sort({ timestamp: -1 }).lean(),
+    SymptomLog.findOne({ userId: partner._id }).sort({ date: -1 }).lean(),
+    PartnerChatMessage.findOne({ senderId: partner._id, receiverId: userId }).sort({ createdAt: -1 }).lean(),
+  ]);
 
-  // Load partner's settings to check detailed cycle sharing permissions
-  const partnerSettings = await Settings.findOne({ userId: partner._id }).lean();
+  const symptoms = latestLog?.symptoms ?? [];
   const shareDetails = partnerSettings ? partnerSettings.privacyShareCycleDetails !== false : true;
 
-  let streakDoc = await SupportStreak.findOne({ userId }).lean();
+  let streakDoc = initialStreakDoc;
   if (!streakDoc) {
     await SupportStreak.create({ userId });
     streakDoc = { streak: 0, lastActionDate: '' } as any;
@@ -165,18 +192,7 @@ export async function getPartnerStatus(userId: string): Promise<object> {
     currentStreak = 0;
   }
 
-  const completedToday = await SupportAction.find({ userId, completedAt: today })
-    .distinct('actionId')
-    .lean();
-
-  // Derive partner's last active time from their most recent ping or log
-  const partnerLastPing = await PartnerPing.findOne({ senderId: partner._id, receiverId: userId })
-    .sort({ timestamp: -1 })
-    .lean();
-  const partnerLastLog = await SymptomLog.findOne({ userId: partner._id })
-    .sort({ date: -1 })
-    .lean();
-  
+  // Derive partner's last active time from their most recent ping, log, or message.
   let partnerLastActive: number | null = null;
   if (partnerLastPing?.timestamp) {
     partnerLastActive = Math.max(partnerLastActive ?? 0, partnerLastPing.timestamp);
@@ -187,10 +203,6 @@ export async function getPartnerStatus(userId: string): Promise<object> {
       partnerLastActive = logTs;
     }
   }
-  // Also check partner chat messages as activity signal
-  const partnerLastMessage = await PartnerChatMessage.findOne({ senderId: partner._id, receiverId: userId })
-    .sort({ createdAt: -1 })
-    .lean();
   if (partnerLastMessage?.createdAt && (!partnerLastActive || partnerLastMessage.createdAt > partnerLastActive)) {
     partnerLastActive = partnerLastMessage.createdAt;
   }
@@ -360,21 +372,48 @@ function yesterdayString(): string {
   return d.toISOString().split('T')[0];
 }
 
-export async function requestDetailedAccess(userId: string): Promise<void> {
-  const user = await User.findById(userId);
+export async function requestDetailedAccess(userId: string): Promise<{ alreadyPending: boolean; emailQueued: boolean }> {
+  const user = await User.findById(userId).lean();
   if (!user?.partnerId) {
     throw httpError('You must pair with a partner before requesting detailed access', 400);
   }
+  if (user.role !== 'partner') {
+    throw httpError('Only partner accounts can request detailed cycle access', 400);
+  }
 
-  // Update Lady's Settings (privacyPendingAccessRequest = true)
+  const [recipient, previousSettings] = await Promise.all([
+    User.findById(user.partnerId).lean(),
+    Settings.findOne({ userId: user.partnerId }).lean(),
+  ]);
+  if (!recipient) {
+    throw httpError('Paired partner account not found', 404);
+  }
+
+  const alreadyPending = previousSettings?.privacyPendingAccessRequest === true;
   await Settings.findOneAndUpdate(
     { userId: user.partnerId },
-    { privacyPendingAccessRequest: true }
+    { $set: { privacyPendingAccessRequest: true }, $setOnInsert: { userId: user.partnerId } },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
   );
 
-  // Send a PartnerPing so she gets notified instantly
+  if (alreadyPending) {
+    return { alreadyPending: true, emailQueued: false };
+  }
+
   const partnerName = user.name || 'Your partner';
   await sendPing(userId, 'access-request-ping', 'Access Request', `${partnerName} has requested detailed cycle access.`);
+
+  const emailQueued = Boolean(recipient.email && previousSettings?.notificationsEmail);
+  if (emailQueued && recipient.email) {
+    void sendReminderEmail({
+      toEmail: recipient.email,
+      toName: recipient.name,
+      reminderTitle: 'Detailed cycle access requested',
+      reminderMessage: `${partnerName} asked to view detailed cycle metrics, symptoms, and analytics. Open MensFlow Notifications to approve or decline.`,
+    }).catch((err) => console.error('[requestDetailedAccess] Failed to send access request email:', err));
+  }
+
+  return { alreadyPending: false, emailQueued };
 }
 
 // ─── Partner Direct Chat ──────────────────────────────────────────────────────
@@ -576,4 +615,3 @@ Example format:
     return fallbackSuggestions.slice(0, 3);
   }
 }
-

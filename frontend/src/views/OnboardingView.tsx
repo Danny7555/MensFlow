@@ -311,7 +311,7 @@ export function OnboardingView() {
                             : (answers[question.id] || []).includes(option.value)
 
                           return (
-                            <button
+                            <button type="button"
                               key={option.value}
                               onClick={() => selectOption(option.value)}
                               className={cn(
