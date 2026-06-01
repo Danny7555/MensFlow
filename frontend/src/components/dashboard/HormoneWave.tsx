@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
-import { Sparkle } from '@phosphor-icons/react'
-import { BiologicalSnapshot } from './BiologicalSnapshot'
-import { EmpathySupportGuide } from './EmpathySupportGuide'
+import { Sparkle, Drop, Waveform } from '@phosphor-icons/react'
+
 import { useStore } from '../../store/useStore'
 
 const getDayInsight = (activeDay: number, cycleLen: number = 28) => {
@@ -76,7 +75,6 @@ export function HormoneWave() {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (data?.lastPeriodStart) {
-        // Prefer computed day from actual date — same noon-anchored method as computeCycleDay()
         const safeLen = Math.max(1, cycleLen || 28)
         const start = new Date(`${data.lastPeriodStart}T12:00:00`)
         if (!Number.isNaN(+start)) {
@@ -86,7 +84,6 @@ export function HormoneWave() {
           return
         }
       }
-      // Fallback: use phaseLabel to estimate a representative day
       if (data?.phaseLabel) {
         const norm = data.phaseLabel.toLowerCase()
         if (norm.includes('menstrual')) {
@@ -107,123 +104,181 @@ export function HormoneWave() {
     return () => clearTimeout(timer)
   }, [data?.lastPeriodStart, data?.phaseLabel, cycleLen])
 
-
-  // Phase & Insight information
   const dayInsight = useMemo(() => getDayInsight(activeDay, cycleLen), [activeDay, cycleLen])
 
   return (
-    <div className="flo-card p-4 lg:p-5 relative overflow-hidden group transition-all duration-500 mb-4 border border-[var(--mf-border)]/60 !shadow-none">
+    <div className="hormone-matrix-card">
       
-      <div className="relative z-10 flex flex-col md:flex-row md:items-start justify-between gap-3 mb-4">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-500/10">
-              <span className="text-xs text-pink-600 dark:text-pink-400 uppercase tracking-[0.1em]">
-                Hormone Matrix
-              </span>
+      {/* Header Section */}
+      <div className="hormone-header">
+        <div className="hormone-badges">
+          <div className="badge badge-pink">
+            Hormone Matrix
+          </div>
+          <div className="badge badge-sparkle">
+            <Sparkle size={12} weight="fill" />
+            Interactive Timeline
+          </div>
+        </div>
+        
+        <h2 className="hormone-title">
+          Estrogen & Progesterone Trends
+        </h2>
+        
+        <div className="hormone-guide">
+          <span className="guide-label">Hormone Guide:</span>
+          <div className="guide-items">
+            <div className="guide-item">
+              <span className="guide-dot estrogen-dot"></span>
+              <span className="guide-text">Estrogen drives energy, positive mood, and social confidence</span>
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--mf-hover)]">
-              <Sparkle size={12} weight="fill" className="text-amber-500" />
-              <span className="text-xs text-[var(--mf-muted)]">Interactive Timeline</span>
+            <div className="guide-item">
+              <span className="guide-dot progesterone-dot"></span>
+              <span className="guide-text">Progesterone promotes relaxation and calm</span>
             </div>
           </div>
-          
-          <h3 className="text-lg sm:text-xl font-medium text-[var(--mf-text-strong)] tracking-tight leading-tight mb-1.5">
-            Estrogen & Progesterone Trends
-          </h3>
-          <p className="text-sm text-[var(--mf-muted)] max-w-2xl leading-relaxed">
-            <span className="text-[var(--mf-text-strong)]">Hormone Guide:</span> Estrogen drives physical energy, positive mood, and social confidence. Progesterone promotes physical relaxation and calm, but its drop can trigger premenstrual sensitivity.
-          </p>
         </div>
       </div>
 
-      {/* Scrub Slider */}
-      <div className="relative z-10 flex flex-col gap-2 mb-4 px-1">
-        <style>{`
-          .hormone-range-input {
-            -webkit-appearance: none;
-            height: 4px;
-            background: ${dayInsight.accentColor}25;
-            border-radius: 10px;
-          }
-          .hormone-range-input::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            border-radius: 10px;
-            background: #ffffff;
-            border: 2px solid ${dayInsight.accentColor};
-            cursor: pointer;
-            transition: all 0.2s ease;
-          }
-          .hormone-range-input::-webkit-slider-thumb:hover {
-            background: ${dayInsight.accentColor}10;
-          }
-          .hormone-range-input::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            border-radius: 10px;
-            background: #ffffff;
-            border: 2px solid ${dayInsight.accentColor};
-            cursor: pointer;
-          }
-        `}</style>
-        
-        <div className="flex justify-between items-end mb-0.5 gap-2">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-xs text-[var(--mf-muted)] uppercase tracking-wider">Timeline Position</span>
-            <span className="text-sm font-medium text-[var(--mf-text-strong)]">
-              Day {activeDay} of {cycleLen}
+      {/* Timeline Section */}
+      <div className="timeline-section">
+        <div className="timeline-header">
+          <div className="timeline-position">
+            <span className="position-label">Timeline Position</span>
+            <span className="position-value">
+              Day <span className="current-day">{activeDay}</span> of {cycleLen}
             </span>
           </div>
           
-          <div
-            className="px-3 py-1 rounded-lg transition-all duration-500 flex items-center gap-2 text-xs tracking-tight shrink-0"
-            style={{
-              color: dayInsight.accentColor,
-              backgroundColor: `${dayInsight.accentColor}0d`
-            }}
-          >
+          <div className="phase-indicator" style={{ backgroundColor: `${dayInsight.accentColor}15`, color: dayInsight.accentColor }}>
             {dayInsight.phase}
           </div>
         </div>
         
-        <div className="relative pt-1">
+        {/* Timeline Slider */}
+        <div className="timeline-slider">
           <input
             type="range"
             min="1"
             max={cycleLen}
             value={activeDay}
             onChange={(e) => setActiveDay(parseInt(e.target.value))}
-            className="hormone-range-input w-full cursor-pointer focus:outline-none"
+            className="hormone-slider"
+            style={{
+              background: `linear-gradient(to right, ${dayInsight.accentColor}40 0%, ${dayInsight.accentColor}40 ${(activeDay / cycleLen) * 100}%, #e5e7eb ${(activeDay / cycleLen) * 100}%, #e5e7eb 100%)`
+            }}
           />
-        </div>
-        
-        <div className="flex justify-between text-xs text-[var(--mf-muted)] px-0.5">
-          <span>Day 1</span>
-          <span>Day {Math.round(cycleLen * 0.25)}</span>
-          <span className="text-[var(--mf-text-strong)] font-medium">Day {ovulationDay} (Ovulation)</span>
-          <span>Day {Math.round(cycleLen * 0.75)}</span>
-          <span>Day {cycleLen}</span>
+          
+          <div className="timeline-markers">
+            <div className="marker">
+              <span className="marker-label">Day 1</span>
+              <div className="marker-dot"></div>
+            </div>
+            <div className="marker">
+              <span className="marker-label">Day {Math.round(cycleLen * 0.25)}</span>
+              <div className="marker-dot"></div>
+            </div>
+            <div className="marker marker-highlight">
+              <span className="marker-label">Day {ovulationDay} (Ovulation)</span>
+              <div className="marker-dot ovulation-dot"></div>
+            </div>
+            <div className="marker">
+              <span className="marker-label">Day {Math.round(cycleLen * 0.75)}</span>
+              <div className="marker-dot"></div>
+            </div>
+            <div className="marker">
+              <span className="marker-label">Day {cycleLen}</span>
+              <div className="marker-dot"></div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Info Output Dashboard */}
-      <div className="relative z-10 grid grid-cols-1 md:grid-cols-[1.3fr_1fr] gap-0 rounded-xl bg-[var(--mf-card)] border border-[var(--mf-border)] overflow-hidden">
-        <div className="p-3.5 lg:p-4">
-          <BiologicalSnapshot
-            estrogen={dayInsight.estrogen}
-            progesterone={dayInsight.progesterone}
-            description={dayInsight.description}
-          />
+      {/* Hormone Levels Section */}
+      <div className="hormone-levels-section">
+        <div className="hormone-card">
+          <div className="hormone-header">
+            <div className="hormone-icon estrogen-icon">
+              <Drop size={16} weight="fill" />
+            </div>
+            <div className="hormone-info">
+              <h3 className="hormone-name">Estrogen Level</h3>
+              <div className="hormone-value">{dayInsight.estrogen}</div>
+            </div>
+          </div>
+          
+          <div className="hormone-visual">
+            <div className="hormone-bar">
+              <div 
+                className="hormone-fill estrogen-fill"
+                style={{ 
+                  width: `${getHormonePercentage(dayInsight.estrogen)}%`,
+                  backgroundColor: dayInsight.accentColor
+                }}
+              ></div>
+            </div>
+            <div className="hormone-scale">
+              <span>Low</span>
+              <span>Medium</span>
+              <span>High</span>
+            </div>
+          </div>
         </div>
-        <div className="p-3.5 lg:p-4 bg-[var(--mf-hover)]/[0.03]">
-          <EmpathySupportGuide
-            supportTip={dayInsight.supportTip}
-          />
+        
+        <div className="hormone-card">
+          <div className="hormone-header">
+            <div className="hormone-icon progesterone-icon">
+              <Waveform size={16} weight="bold" />
+            </div>
+            <div className="hormone-info">
+              <h3 className="hormone-name">Progesterone Level</h3>
+              <div className="hormone-value">{dayInsight.progesterone}</div>
+            </div>
+          </div>
+          
+          <div className="hormone-visual">
+            <div className="hormone-bar">
+              <div 
+                className="hormone-fill progesterone-fill"
+                style={{ 
+                  width: `${getHormonePercentage(dayInsight.progesterone)}%`,
+                  backgroundColor: dayInsight.accentColor
+                }}
+              ></div>
+            </div>
+            <div className="hormone-scale">
+              <span>Low</span>
+              <span>Medium</span>
+              <span>High</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Phase Insight Section */}
+      <div className="phase-insight-section">
+        <div className="phase-card">
+          <h3 className="phase-title">Phase Insight</h3>
+          <p className="phase-description">{dayInsight.description}</p>
+        </div>
+        
+        <div className="support-card">
+          <h3 className="support-title">Empathy Support Guide</h3>
+          <div className="support-content">
+            <div className="support-icon">💝</div>
+            <p className="support-tip">{dayInsight.supportTip}</p>
+          </div>
         </div>
       </div>
     </div>
   )
+}
+
+// Helper function to convert hormone level text to percentage
+function getHormonePercentage(levelText: string): number {
+  const lower = levelText.toLowerCase()
+  if (lower.includes('low') || lower.includes('falling')) return 25
+  if (lower.includes('rising') || lower.includes('moderate')) return 50
+  if (lower.includes('peak') || lower.includes('high')) return 75
+  return 33
 }

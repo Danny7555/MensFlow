@@ -7,6 +7,30 @@
   color: var(--mf-text);
 }
 
+/* iOS safe area support */
+@supports (padding: max(0px)) {
+  @media (max-width: 768px) {
+    .app-shell {
+      padding-top: max(0px, env(safe-area-inset-top));
+      padding-left: max(0px, env(safe-area-inset-left));
+      padding-right: max(0px, env(safe-area-inset-right));
+      padding-bottom: max(0px, env(safe-area-inset-bottom));
+    }
+
+    .top-header {
+      padding-top: max(0.5rem, calc(0.5rem + env(safe-area-inset-top)));
+    }
+
+    .chat-composer-dock {
+      padding-bottom: max(1.25rem, calc(1.25rem + env(safe-area-inset-bottom)));
+    }
+
+    .mobile-nav-bar {
+      padding-bottom: max(1rem, calc(0.5rem + env(safe-area-inset-bottom)));
+    }
+  }
+}
+
 .glass-morphism {
   background: rgba(var(--mf-card-rgb, 255, 255, 255), 0.75) !important;
   backdrop-filter: blur(24px) saturate(200%);
@@ -33,6 +57,11 @@
   width: 100%;
 }
 
+@media (max-width: 768px) {
+  .app-main {
+    position: relative;
+  }
+}
 
 .app-canvas {
   flex: 1;
@@ -40,6 +69,8 @@
   flex-direction: column;
   min-height: 0;
   overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  /* iOS momentum scrolling */
 }
 
 /* Sidebar */
@@ -198,12 +229,6 @@
 }
 
 @media (max-width: 768px) {
-  .sidebar-rail-toggle {
-    display: none;
-  }
-}
-
-@media (max-width: 768px) {
   .sidebar {
     position: fixed;
     left: 0;
@@ -211,8 +236,9 @@
     bottom: 0;
     width: min(288px, 86vw);
     transform: translateX(-100%);
-    transition: transform 0.2s ease;
+    transition: transform 0.22s ease;
     box-shadow: var(--mf-shadow);
+    z-index: 50;
   }
 
   .sidebar.sidebar--collapsed {
@@ -251,13 +277,20 @@
   border-bottom: 1px solid var(--mf-border);
   background: var(--mf-main-bg);
   height: 56px;
+  -webkit-app-region: drag;
+  user-select: none;
 }
 
-@media (min-width: 768px) {
+/* iOS-specific header styling */
+@media (max-width: 768px) {
   .top-header {
-    height: 60px;
-    padding: 0 1.5rem;
-    gap: 1rem;
+    height: 52px;
+    padding: 0 1rem;
+    gap: 0.5rem;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    border-bottom: 1px solid var(--mf-border);
+    background: var(--mf-main-bg);
   }
 }
 
@@ -313,6 +346,81 @@
   }
 }
 
+/* iOS Mobile Navigation Bar */
+.mobile-nav-bar {
+  display: none;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-around;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-top: 1px solid var(--mf-border);
+  background: var(--mf-main-bg);
+  height: auto;
+  min-height: 60px;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-nav-bar {
+    display: flex;
+  }
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  flex: 1;
+  min-height: 50px;
+  border: none;
+  background: transparent;
+  color: var(--mf-muted);
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.mobile-nav-item:active {
+  background: rgba(var(--mf-accent-rgb, 255, 107, 139), 0.08);
+  border-radius: 8px;
+}
+
+.mobile-nav-item.active {
+  color: var(--mf-accent);
+}
+
+.mobile-nav-item svg {
+  font-size: 1.5rem;
+  width: 24px;
+  height: 24px;
+}
+
+.mobile-nav-item.active svg {
+  font-weight: 600;
+}
+
+/* Add bottom padding to main content for mobile nav */
+@media (max-width: 768px) {
+  .app-main {
+    padding-bottom: 60px;
+  }
+}
+
 /* Buttons */
 .btn {
   border-radius: 999px;
@@ -325,6 +433,22 @@
   transition:
     background 0.15s ease,
     color 0.15s ease;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* iOS button sizing for better touch targets */
+@media (max-width: 768px) {
+  .btn {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem 1rem;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
 }
 
 .btn-primary {
@@ -367,6 +491,19 @@
   background: transparent;
   color: var(--mf-text);
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  transition: background 0.15s ease;
+}
+
+/* iOS icon button sizing for better touch targets */
+@media (max-width: 768px) {
+  .icon-btn {
+    min-width: 44px;
+    min-height: 44px;
+    width: 44px;
+    height: 44px;
+  }
 }
 
 
@@ -527,6 +664,15 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   width: 100%;
   box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+@media (max-width: 768px) {
+  .composer {
+    border-radius: 20px;
+    padding: 0.5rem 0.65rem;
+  }
 }
 
 .composer--minimal {
@@ -545,12 +691,18 @@
   background: transparent;
   color: var(--mf-text-strong);
   caret-color: var(--mf-accent);
+  -webkit-user-select: text;
+  user-select: text;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .composer-input {
     font-size: 16px;
-    /* Prevent iOS zoom */
+    /* Prevent iOS zoom on input focus */
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-user-select: text;
+    user-select: text;
   }
 }
 
@@ -800,12 +952,21 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  -webkit-overflow-scrolling: touch;
+  /* iOS momentum scrolling */
 }
 
 @media (min-width: 768px) {
   .chat-thread {
     padding: 1.5rem 1.5rem 8rem;
     gap: 1.25rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .chat-thread {
+    padding: 0.75rem 1rem 1rem;
+    gap: 0.75rem;
   }
 }
 
@@ -830,6 +991,15 @@
   border-radius: 12px;
   border: 1px solid var(--mf-border);
   background: var(--mf-card);
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+@media (max-width: 768px) {
+  .chat-bubble {
+    border-radius: 18px;
+    padding: 0.75rem 1rem;
+  }
 }
 
 .chat-bubble--user {
@@ -885,6 +1055,13 @@
 @media (min-width: 768px) {
   .dashboard {
     padding: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 1rem;
+    padding-bottom: 1.5rem;
   }
 }
 
@@ -987,10 +1164,478 @@
 }
 
 .placeholder-desc {
-  margin: 0;
-  font-size: 0.95rem;
-  line-height: 1.55;
+}
+
+/* Hormone Matrix Redesign - Lady Friendly UI */
+.hormone-matrix-card {
+  background: var(--mf-card);
+  border-radius: 16px;
+  border: 1px solid var(--mf-border);
+  padding: 1.25rem 1rem 1rem 1rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Header Section */
+.hormone-header {
+  margin-bottom: 1.75rem;
+}
+
+.hormone-badges {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.badge {
+  padding: 0.375rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 400;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.badge-pink {
+  background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+  color: white;
+}
+
+.badge-sparkle {
+  background: rgba(244, 114, 182, 0.1);
+  color: #ec4899;
+  border: 1px solid rgba(236, 72, 153, 0.2);
+}
+
+.hormone-title {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--mf-text-strong);
+  margin: 0 0 0.75rem 0;
+  line-height: 1.3;
+}
+
+.hormone-guide {
+  background: rgba(244, 114, 182, 0.05);
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgba(236, 72, 153, 0.1);
+  margin-bottom: 0.75rem;
+}
+
+.guide-label {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: #ec4899;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.guide-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.guide-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.guide-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.estrogen-dot {
+  background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+}
+
+.progesterone-dot {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+.guide-text {
+  font-size: 0.875rem;
+  color: var(--mf-text);
+  line-height: 1.4;
+}
+
+/* Timeline Section */
+.timeline-section {
+  margin-bottom: 1rem;
+}
+
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.timeline-position {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.position-label {
+  font-size: 0.75rem;
   color: var(--mf-muted);
+  font-weight: 400;
+}
+
+.position-value {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--mf-text-strong);
+}
+
+.current-day {
+  color: #ec4899;
+  font-weight: 500;
+}
+
+.phase-indicator {
+  padding: 0.375rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 400;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.timeline-slider {
+  margin-top: 0.5rem;
+}
+
+.hormone-slider {
+  width: 100%;
+  height: 8px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: #e5e7eb;
+  border-radius: 4px;
+  outline: none;
+  margin: 0;
+}
+
+.hormone-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: white;
+  border: 3px solid #ec4899;
+  cursor: pointer;
+}
+
+.timeline-markers {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  position: relative;
+}
+
+.marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  position: relative;
+  z-index: 1;
+}
+
+.marker-label {
+  font-size: 0.75rem;
+  color: var(--mf-muted);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.marker-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--mf-border);
+}
+
+.marker-highlight .marker-label {
+  color: #ec4899;
+  font-weight: 500;
+}
+
+.ovulation-dot {
+  background: #ec4899;
+  width: 12px;
+  height: 12px;
+  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.2);
+}
+
+/* Hormone Levels Section */
+.hormone-levels-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.hormone-card {
+  background: var(--mf-card);
+  border-radius: 12px;
+  padding: 0.75rem;
+  border: 1px solid var(--mf-border);
+}
+
+.hormone-card .hormone-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.hormone-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.estrogen-icon {
+  background: linear-gradient(135deg, rgba(244, 114, 182, 0.15) 0%, rgba(236, 72, 153, 0.15) 100%);
+  color: #ec4899;
+}
+
+.progesterone-icon {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(124, 58, 237, 0.15) 100%);
+  color: #7c3aed;
+}
+
+.hormone-info {
+  flex: 1;
+}
+
+.hormone-name {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--mf-muted);
+  margin: 0 0 0.125rem 0;
+}
+
+.hormone-value {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--mf-text-strong);
+  margin: 0;
+}
+
+.hormone-visual {
+  margin-top: 0.5rem;
+}
+
+.hormone-bar {
+  height: 12px;
+  background: var(--mf-hover);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 0.375rem;
+}
+
+.hormone-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.5s ease;
+}
+
+.hormone-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--mf-muted);
+  font-weight: 500;
+}
+
+/* Phase Insight Section */
+.phase-insight-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.phase-card, .support-card {
+  background: var(--mf-card);
+  border-radius: 12px;
+  padding: 0.75rem;
+  border: 1px solid var(--mf-border);
+}
+
+.phase-title, .support-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--mf-text-strong);
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.phase-description {
+  font-size: 0.875rem;
+  color: var(--mf-text);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.support-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.support-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.support-tip {
+  font-size: 0.875rem;
+  color: var(--mf-text);
+  line-height: 1.5;
+  margin: 0;
+  flex: 1;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hormone-levels-section,
+  .phase-insight-section {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .timeline-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .hormone-matrix-card {
+    padding: 1rem 0.75rem 0.75rem 0.75rem;
+  }
+  
+  .hormone-title {
+    font-size: 1.125rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .hormone-guide {
+    padding: 0.375rem 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .guide-label {
+    font-size: 0.75rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .guide-text {
+    font-size: 0.75rem;
+  }
+  
+  .position-label {
+    font-size: 0.6875rem;
+  }
+  
+  .position-value {
+    font-size: 0.875rem;
+  }
+  
+  .phase-indicator {
+    font-size: 0.6875rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  .hormone-card {
+    padding: 0.5rem;
+  }
+  
+  .hormone-name {
+    font-size: 0.75rem;
+  }
+  
+  .hormone-value {
+    font-size: 0.75rem;
+  }
+  
+  .phase-card, .support-card {
+    padding: 0.5rem;
+  }
+  
+  .phase-title, .support-title {
+    font-size: 0.75rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .phase-description, .support-tip {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hormone-badges {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .badge {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.6875rem;
+  }
+  
+  .guide-items {
+    gap: 0.5rem;
+  }
+  
+  .hormone-card .hormone-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .hormone-icon {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .hormone-bar {
+    height: 10px;
+  }
+  
+  .hormone-scale {
+    font-size: 0.6875rem;
+  }
+  
+  .timeline-markers {
+    gap: 0.25rem;
+  }
+  
+  .marker-label {
+    font-size: 0.6875rem;
+  }
 }
 
 /* Chat mode (header) — ChatGPT-style ephemeral toggle */
@@ -2388,6 +3033,10 @@
 
 .insights-section {
   margin-bottom: 1.75rem;
+}
+
+.insights-section:first-of-type {
+  margin-top: 1.5rem;
 }
 
 .insights-section-title {
