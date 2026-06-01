@@ -28,6 +28,24 @@ function sendBrowserPush(title: string, body: string, tag: string) {
   }
 }
 
+function isWithinQuietHours(start: string, end: string): boolean {
+  const toMinutes = (value: string) => {
+    const [hours, minutes] = value.split(':').map(Number)
+    if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null
+    return hours * 60 + minutes
+  }
+
+  const startMinutes = toMinutes(start)
+  const endMinutes = toMinutes(end)
+  if (startMinutes === null || endMinutes === null || startMinutes === endMinutes) return false
+
+  const now = new Date()
+  const current = now.getHours() * 60 + now.getMinutes()
+  return startMinutes < endMinutes
+    ? current >= startMinutes && current < endMinutes
+    : current >= startMinutes || current < endMinutes
+}
+
 // ─── Dedup: only fire each tag once per session ───────────────────────────────
 
 const firedTags = new Set<string>()
@@ -59,6 +77,14 @@ export function useSmartPushNotifications() {
         typeof Notification !== 'undefined' &&
         Notification.permission === 'granted'
     ) {
+      if (
+        settings.parentalControlsEnabled &&
+        settings.parentalQuietHoursEnabled &&
+        isWithinQuietHours(settings.parentalQuietHoursStart, settings.parentalQuietHoursEnd)
+      ) {
+        return () => timers.forEach(clearTimeout)
+      }
+
       hasRun.current = true
 
       const isPartner = user.role === 'partner'

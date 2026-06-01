@@ -205,6 +205,12 @@ function toSettings(settings: SettingsDocument): ISettings {
     disableAIPopups: settings.disableAIPopups,
     hideDailyStoriesAndTips: settings.hideDailyStoriesAndTips,
     otpEnabled: settings.otpEnabled ?? true,
+    parentalControlsEnabled: settings.parentalControlsEnabled ?? false,
+    parentalGuardianEmail: settings.parentalGuardianEmail ?? null,
+    parentalContentFilter: settings.parentalContentFilter ?? 'standard',
+    parentalQuietHoursEnabled: settings.parentalQuietHoursEnabled ?? false,
+    parentalQuietHoursStart: settings.parentalQuietHoursStart ?? '21:00',
+    parentalQuietHoursEnd: settings.parentalQuietHoursEnd ?? '06:00',
   };
 }
 

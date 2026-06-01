@@ -1,8 +1,7 @@
 import type { ComponentType, ReactNode } from 'react'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useStore } from '../store/useStore'
 import { useAuth } from '../context/useAuth'
-import { SettingsSkeleton } from '../components/skeletons/SettingsSkeleton'
 import {
   ArrowCounterClockwise,
   Bell,
@@ -47,6 +46,7 @@ import type {
   MensFlowSettings,
   ThemeMode,
 } from '../context/settings-types'
+import { DEFAULT_SETTINGS } from '../context/settings-types'
 import type { AppUser } from '../store/useStore'
 import {
   CHAT_STORAGE_KEY,
@@ -1110,15 +1110,128 @@ function SecurityPanel({
   )
 }
 
-function ParentalPanel() {
+function ParentalPanel({
+  settings,
+  updateSettings,
+}: {
+  settings: MensFlowSettings
+  updateSettings: (patch: Partial<MensFlowSettings>) => void
+}) {
+  const applyParentalEnabled = (enabled: boolean) => {
+    updateSettings({
+      parentalControlsEnabled: enabled,
+      ...(enabled
+        ? {
+            disableAIPopups: true,
+            notificationsProduct: false,
+          }
+        : {}),
+    })
+  }
+
+  const applyContentFilter = (value: MensFlowSettings['parentalContentFilter']) => {
+    updateSettings({
+      parentalContentFilter: value,
+      ...(value === 'restricted'
+        ? {
+            hideDailyStoriesAndTips: true,
+            disableAIPopups: true,
+            notificationsProduct: false,
+          }
+        : {}),
+    })
+  }
+
   return (
-    <div className="settings-placeholder-block">
-      <UsersThree size={40} weight="duotone" aria-hidden />
-      <p className="settings-placeholder-title">Parental controls</p>
-      <p className="settings-placeholder-desc">
-        Age gates and guardian-managed accounts can be enforced here for younger users.
+    <>
+      <p className="settings-panel-intro">
+        Guardian controls apply to this account immediately and sync with your cloud settings.
       </p>
-    </div>
+
+      <ToggleRow
+        label="Enable parental controls"
+        description="Turns on guardian-safe defaults for product prompts and optional restricted content."
+        checked={settings.parentalControlsEnabled}
+        onChange={applyParentalEnabled}
+      />
+
+      <div className="settings-field-row">
+        <div className="settings-field-text">
+          <span className="settings-field-label">Guardian email</span>
+          <p className="settings-field-desc">
+            Used as the contact for supervision and account recovery.
+          </p>
+        </div>
+        <input
+          type="email"
+          value={settings.parentalGuardianEmail ?? ''}
+          onChange={(e) => updateSettings({ parentalGuardianEmail: e.target.value.trim() || null })}
+          placeholder="guardian@example.com"
+          disabled={!settings.parentalControlsEnabled}
+          className="settings-select bg-none shadow-none min-w-[220px] h-9 px-3 disabled:opacity-50"
+          aria-label="Guardian email"
+        />
+      </div>
+
+      <SelectRow
+        label="Content filter"
+        description="Restricted mode hides daily stories and reduces proactive prompts."
+        value={settings.parentalContentFilter}
+        onChange={(v) => applyContentFilter(v as MensFlowSettings['parentalContentFilter'])}
+        options={[
+          { value: 'standard', label: 'Standard' },
+          { value: 'restricted', label: 'Restricted' },
+        ]}
+      />
+
+      <ToggleRow
+        label="Quiet hours"
+        description="Mutes cycle and wellness reminders during guardian-defined rest hours."
+        checked={settings.parentalQuietHoursEnabled}
+        disabled={!settings.parentalControlsEnabled}
+        onChange={(v) => updateSettings({ parentalQuietHoursEnabled: v })}
+      />
+
+      <div className="settings-field-row">
+        <div className="settings-field-text">
+          <span className="settings-field-label">Quiet hours window</span>
+          <p className="settings-field-desc">
+            Reminder nudges stay quiet between these times.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <input
+            type="time"
+            value={settings.parentalQuietHoursStart}
+            disabled={!settings.parentalControlsEnabled || !settings.parentalQuietHoursEnabled}
+            onChange={(e) => updateSettings({ parentalQuietHoursStart: e.target.value })}
+            className="settings-select bg-none shadow-none h-9 px-3 disabled:opacity-50"
+            aria-label="Quiet hours start"
+          />
+          <span className="text-xs text-muted-foreground">to</span>
+          <input
+            type="time"
+            value={settings.parentalQuietHoursEnd}
+            disabled={!settings.parentalControlsEnabled || !settings.parentalQuietHoursEnabled}
+            onChange={(e) => updateSettings({ parentalQuietHoursEnd: e.target.value })}
+            className="settings-select bg-none shadow-none h-9 px-3 disabled:opacity-50"
+            aria-label="Quiet hours end"
+          />
+        </div>
+      </div>
+
+      {settings.parentalControlsEnabled && (
+        <div className="mt-6 p-5 rounded-2xl bg-[var(--mf-accent-soft)]/20 border border-[var(--mf-accent-border)] space-y-2">
+          <div className="flex items-center gap-2 text-sm font-medium text-[var(--mf-text-strong)]">
+            <UsersThree size={18} weight="duotone" className="text-[var(--mf-accent)]" />
+            <span>Parental controls active</span>
+          </div>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Product surveys are off, proactive AI prompts are reduced, and quiet hours are available for reminder control.
+          </p>
+        </div>
+      )}
+    </>
   )
 }
 
@@ -1389,6 +1502,7 @@ export function SettingsView({
       description: 'Reset all MensFlow preferences to defaults? This cannot be undone.',
       onConfirm: () => {
         resetSettings()
+        updateSettings(DEFAULT_SETTINGS)
       }
     })
   }
@@ -1473,7 +1587,12 @@ export function SettingsView({
       )
       break
     case 'parental':
-      panel = <ParentalPanel />
+      panel = (
+        <ParentalPanel
+          settings={settings}
+          updateSettings={updateSettings}
+        />
+      )
       break
     case 'account':
       panel = (
@@ -1495,17 +1614,6 @@ export function SettingsView({
       break
     default:
       panel = null
-  }
-
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 500)
-    return () => clearTimeout(timer)
-  }, [])
-
-  if (isLoading) {
-    return <SettingsSkeleton />
   }
 
   return (

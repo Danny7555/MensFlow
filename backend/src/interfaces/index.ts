@@ -71,6 +71,12 @@ export interface ISettings {
   disableAIPopups: boolean;
   hideDailyStoriesAndTips: boolean;
   otpEnabled: boolean;
+  parentalControlsEnabled: boolean;
+  parentalGuardianEmail: string | null;
+  parentalContentFilter: 'standard' | 'restricted';
+  parentalQuietHoursEnabled: boolean;
+  parentalQuietHoursStart: string;
+  parentalQuietHoursEnd: string;
 }
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────
@@ -170,4 +176,3 @@ export interface IPartnerChatMessage {
   text: string;
   createdAt: number;
 }
-

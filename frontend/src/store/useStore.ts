@@ -351,6 +351,7 @@ export const useStore = create<AppState>()((set, get) => ({
     const dashboardPatch = patch.cycleAvgLengthDays !== undefined
       ? { typicalCycleDays: patch.cycleAvgLengthDays }
       : null
+    const wasLocalOnly = get().settings.privacyStrictLocalOnly
 
     set((state) => ({ 
       settings: { ...state.settings, ...patch },
@@ -359,9 +360,9 @@ export const useStore = create<AppState>()((set, get) => ({
         : state.dashboard,
     }))
 
-    const isLocalOnly = get().settings.privacyStrictLocalOnly
+    const shouldSync = isLoggedIn() && (!wasLocalOnly || patch.privacyStrictLocalOnly === false)
 
-    if (isLoggedIn() && !isLocalOnly) {
+    if (shouldSync) {
       try {
         await userApi.updateSettings(patch)
         if (dashboardPatch) {

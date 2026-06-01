@@ -69,6 +69,12 @@ export async function updateSettings(req: AuthRequest, res: Response, next: Next
       conditionOptimization: optionalOneOf(body, 'conditionOptimization', ['none', 'pcos', 'endometriosis', 'perimenopause'] as const),
       disableAIPopups: optionalBoolean(body, 'disableAIPopups'),
       hideDailyStoriesAndTips: optionalBoolean(body, 'hideDailyStoriesAndTips'),
+      parentalControlsEnabled: optionalBoolean(body, 'parentalControlsEnabled'),
+      parentalGuardianEmail: optionalString(body, 'parentalGuardianEmail', { max: 254, nullable: true, allowEmpty: true }),
+      parentalContentFilter: optionalOneOf(body, 'parentalContentFilter', ['standard', 'restricted'] as const),
+      parentalQuietHoursEnabled: optionalBoolean(body, 'parentalQuietHoursEnabled'),
+      parentalQuietHoursStart: optionalString(body, 'parentalQuietHoursStart', { max: 5 }),
+      parentalQuietHoursEnd: optionalString(body, 'parentalQuietHoursEnd', { max: 5 }),
     });
 
     const settings = await userService.updateUserSettings(req.user!.id, patch);

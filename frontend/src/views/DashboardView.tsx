@@ -136,7 +136,6 @@ type DashboardState = {
   isEditingGuidance: boolean
   mounted: boolean
   now: Date | null
-  isLoading: boolean
   tourRun: boolean
 }
 
@@ -146,7 +145,6 @@ type DashboardAction =
   | { type: 'TOGGLE_CUSTOMIZE'; payload?: boolean }
   | { type: 'TOGGLE_GUIDANCE'; payload?: boolean }
   | { type: 'MOUNT'; payload: { now: Date; tourRun: boolean } }
-  | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_TOUR_RUN'; payload: boolean }
 
 function dashboardReducer(state: DashboardState, action: DashboardAction): DashboardState {
@@ -156,7 +154,6 @@ function dashboardReducer(state: DashboardState, action: DashboardAction): Dashb
     case 'TOGGLE_CUSTOMIZE': return { ...state, isCustomizeOpen: action.payload ?? !state.isCustomizeOpen }
     case 'TOGGLE_GUIDANCE': return { ...state, isEditingGuidance: action.payload ?? !state.isEditingGuidance }
     case 'MOUNT': return { ...state, mounted: true, now: action.payload.now, tourRun: action.payload.tourRun }
-    case 'SET_LOADING': return { ...state, isLoading: action.payload }
     case 'SET_TOUR_RUN': return { ...state, tourRun: action.payload }
     default: return state
   }
@@ -335,10 +332,10 @@ export function DashboardView() {
   }, [user?.role, isMobile])
 
   useEffect(() => {
-    if (isAuthenticated && user?.role) {
+    if (isAuthenticated && user?.role && partnerStatus === null) {
       fetchPartnerStatus()
     }
-  }, [isAuthenticated, user?.role, fetchPartnerStatus])
+  }, [isAuthenticated, user?.role, partnerStatus, fetchPartnerStatus])
 
   const ctx = use(ChatSessionContext)
   const temporaryChat = ctx?.temporaryChat ?? false
@@ -352,7 +349,6 @@ export function DashboardView() {
     isEditingGuidance: false,
     mounted: false,
     now: null,
-    isLoading: isAuthenticated, // Only show skeleton for authenticated users loading their data
     tourRun: false
   })
 
@@ -448,17 +444,7 @@ export function DashboardView() {
         tourRun: !hasSeenTour && isAuthenticated,
       }
     })
-    // Only show skeleton briefly for authenticated sessions loading real data
-    if (isAuthenticated) {
-      const timer = setTimeout(() => {
-        dispatch({ type: 'SET_LOADING', payload: false })
-      }, 400)
-      return () => clearTimeout(timer)
-    } else {
-      dispatch({ type: 'SET_LOADING', payload: false })
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [isAuthenticated])
 
   const handleJoyrideCallback = (data: EventData) => {
     const { status } = data;
@@ -501,10 +487,6 @@ export function DashboardView() {
     const next = !temporaryChat
     setTemporaryChat(next)
     if (next) navigate('/ask')
-  }
-
-  if (state.isLoading) {
-    return <DashboardSkeleton />
   }
 
   // While partner status is still loading (null = API in-flight), show skeleton to avoid flash of unpaired screen

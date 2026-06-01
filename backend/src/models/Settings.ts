@@ -31,6 +31,12 @@ export interface SettingsDocument extends Document {
   disableAIPopups: boolean;
   hideDailyStoriesAndTips: boolean;
   otpEnabled: boolean;
+  parentalControlsEnabled: boolean;
+  parentalGuardianEmail: string | null;
+  parentalContentFilter: 'standard' | 'restricted';
+  parentalQuietHoursEnabled: boolean;
+  parentalQuietHoursStart: string;
+  parentalQuietHoursEnd: string;
 }
 
 const SettingsSchema = new Schema<SettingsDocument>({
@@ -64,6 +70,12 @@ const SettingsSchema = new Schema<SettingsDocument>({
   disableAIPopups: { type: Boolean, default: false },
   hideDailyStoriesAndTips: { type: Boolean, default: false },
   otpEnabled: { type: Boolean, default: true },
+  parentalControlsEnabled: { type: Boolean, default: false },
+  parentalGuardianEmail: { type: String, default: null, trim: true, lowercase: true, maxlength: 254 },
+  parentalContentFilter: { type: String, enum: ['standard', 'restricted'], default: 'standard' },
+  parentalQuietHoursEnabled: { type: Boolean, default: false },
+  parentalQuietHoursStart: { type: String, default: '21:00', match: /^([01]\d|2[0-3]):[0-5]\d$/ },
+  parentalQuietHoursEnd: { type: String, default: '06:00', match: /^([01]\d|2[0-3]):[0-5]\d$/ },
 });
 
 export const Settings = model<SettingsDocument>('Settings', SettingsSchema);

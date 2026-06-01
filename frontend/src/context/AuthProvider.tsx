@@ -45,46 +45,61 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // ── Rehydrate store from API on mount if token exists ──────────────────────
   useEffect(() => {
+    let cancelled = false
+
     if (!isLoggedIn()) {
       const t = setTimeout(() => setState(prev => ({ ...prev, isRehydrating: false })), 0)
       return () => clearTimeout(t)
     }
 
-    userApi.getProfile()
-      .then(({ user: u, settings, dashboard }) => {
+    async function rehydrate() {
+      try {
+        const { user: u, settings, dashboard } = await userApi.getProfile()
+        if (cancelled) return
+
         setState(prev => ({
           ...prev,
           user: u,
           onboardingCompleted: u.isOnboarded,
         }))
         hydrate({ user: u, settings, dashboard })
-        
-        // Fetch logs, custom symptoms, and partner status from backend database
+
         const store = useStore.getState()
-        store.fetchLogs().catch((err) => console.error('Failed to load logs', err))
-        store.fetchCustomSymptoms().catch((err) => console.error('Failed to load custom symptoms', err))
-        store.fetchPartnerStatus().catch((err) => console.error('Failed to load partner status', err))
+        await Promise.all([
+          store.fetchLogs(),
+          store.fetchCustomSymptoms(),
+          store.fetchPartnerStatus(),
+        ]).catch((err) => console.error('Failed to load user data', err))
 
         // Invalidate only the data queries that depend on the freshly-loaded profile
         void queryClient.invalidateQueries({ queryKey: userKeys.profile })
         void queryClient.invalidateQueries({ queryKey: chatKeys.sessions })
-      })
-      .catch((err) => {
+      } catch (err) {
         // Only log out on explicit 401 (token expired/invalid).
         // Network errors, timeouts, or server downtime should NOT
         // log the user out — the JWT in localStorage is still valid.
         if (err instanceof Error && 'status' in err && (err as { status: number }).status === 401) {
           clearToken()
-          setState(prev => ({ ...prev, isAuthenticated: false }))
+          if (!cancelled) {
+            setState(prev => ({ ...prev, isAuthenticated: false }))
+          }
         } else {
           console.warn('[AuthProvider] Rehydration failed (network/server issue) — keeping session alive', err)
           // User stays authenticated with whatever stale data they had;
           // background sync interval will retry automatically.
         }
-      })
-      .finally(() => {
-        setState(prev => ({ ...prev, isRehydrating: false }))
-      })
+      } finally {
+        if (!cancelled) {
+          setState(prev => ({ ...prev, isRehydrating: false }))
+        }
+      }
+    }
+
+    void rehydrate()
+
+    return () => {
+      cancelled = true
+    }
   }, [hydrate])
 
   // ── Auto-logout on token expiry (fired by apiClient on 401) ────────────────
@@ -104,7 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // ── Global Background Real-Time Synchronization (every 10s) ────────────────
   useEffect(() => {
-    if (!state.isAuthenticated) return
+    if (!state.isAuthenticated || state.isRehydrating) return
 
     const syncInterval = setInterval(() => {
       const store = useStore.getState()
@@ -113,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, 10000)
 
     return () => clearInterval(syncInterval)
-  }, [state.isAuthenticated])
+  }, [state.isAuthenticated, state.isRehydrating])
 
   // ── Post-auth hydration helper ─────────────────────────────────────────────
   const completeAuthFlow = useCallback(async (token: string, u: ApiUser) => {
