@@ -66,25 +66,20 @@ export function useSmartPushNotifications() {
   const hasRun = useRef(false)
 
   useEffect(() => {
-    // Collect timer handles so we can cancel them if the effect reruns or unmounts
-    const timers: ReturnType<typeof setTimeout>[] = []
+    const quietHoursActive =
+      settings.parentalControlsEnabled &&
+      settings.parentalQuietHoursEnabled &&
+      isWithinQuietHours(settings.parentalQuietHoursStart, settings.parentalQuietHoursEnd)
 
     // Wait until user data is available
     if (user &&
         !hasRun.current &&
         settings.notificationsPush &&
         settings.notificationsCycleReminders &&
+        !quietHoursActive &&
         typeof Notification !== 'undefined' &&
         Notification.permission === 'granted'
     ) {
-      if (
-        settings.parentalControlsEnabled &&
-        settings.parentalQuietHoursEnabled &&
-        isWithinQuietHours(settings.parentalQuietHoursStart, settings.parentalQuietHoursEnd)
-      ) {
-        return () => timers.forEach(clearTimeout)
-      }
-
       hasRun.current = true
 
       const isPartner = user.role === 'partner'
@@ -114,21 +109,19 @@ export function useSmartPushNotifications() {
           const tag = `period-soon-${daysLeft}`
           if (!firedTags.has(tag)) {
             firedTags.add(tag)
-            timers.push(setTimeout(() => {
-              if (isPartner) {
-                sendBrowserPush(
-                  `📅 Her period is in ${daysLeft} day${daysLeft === 1 ? '' : 's'}`,
-                  `${partnerName}'s next period is approaching. Day ${cycleDay} of ${cycleLen}. Prepare comfort essentials.`,
-                  tag
-                )
-              } else {
-                sendBrowserPush(
-                  `📅 Your period is ${daysLeft === 1 ? 'tomorrow!' : `in ${daysLeft} days`}`,
-                  `You're on Cycle Day ${cycleDay} of ${cycleLen}. Stock up on supplies and prioritise rest.`,
-                  tag
-                )
-              }
-            }, 3000)) // slight delay so app feels settled before popping
+            if (isPartner) {
+              sendBrowserPush(
+                `📅 Her period is in ${daysLeft} day${daysLeft === 1 ? '' : 's'}`,
+                `${partnerName}'s next period is approaching. Day ${cycleDay} of ${cycleLen}. Prepare comfort essentials.`,
+                tag
+              )
+            } else {
+              sendBrowserPush(
+                `📅 Your period is ${daysLeft === 1 ? 'tomorrow!' : `in ${daysLeft} days`}`,
+                `You're on Cycle Day ${cycleDay} of ${cycleLen}. Stock up on supplies and prioritise rest.`,
+                tag
+              )
+            }
           }
         }
 
@@ -138,25 +131,23 @@ export function useSmartPushNotifications() {
           const tag = atPeak ? 'ovulation-day' : `fertile-window-day-${cycleDay}`
           if (!firedTags.has(tag)) {
             firedTags.add(tag)
-            timers.push(setTimeout(() => {
-              if (isPartner) {
-                sendBrowserPush(
-                  atPeak ? `✨ Her ovulation day` : `🌸 She is in her fertile window`,
-                  atPeak
-                    ? `Today is ${partnerName}'s predicted ovulation day (Day ${cycleDay}). High energy and confidence expected!`
-                    : `${partnerName} is in her fertile window (Day ${cycleDay} of ${cycleLen}). Estrogen is peaking.`,
-                  tag
-                )
-              } else {
-                sendBrowserPush(
-                  atPeak ? `✨ Today is your ovulation day!` : `🌸 You are in your fertile window`,
-                  atPeak
-                    ? `Day ${cycleDay}: Estrogen is at its peak. Expect high energy, confidence, and social drive.`
-                    : `Day ${cycleDay} of ${cycleLen}: You're in your fertile window. Great time for exercise and creativity.`,
-                  tag
-                )
-              }
-            }, 5000))
+            if (isPartner) {
+              sendBrowserPush(
+                atPeak ? `✨ Her ovulation day` : `🌸 She is in her fertile window`,
+                atPeak
+                  ? `Today is ${partnerName}'s predicted ovulation day (Day ${cycleDay}). High energy and confidence expected!`
+                  : `${partnerName} is in her fertile window (Day ${cycleDay} of ${cycleLen}). Estrogen is peaking.`,
+                tag
+              )
+            } else {
+              sendBrowserPush(
+                atPeak ? `✨ Today is your ovulation day!` : `🌸 You are in your fertile window`,
+                atPeak
+                  ? `Day ${cycleDay}: Estrogen is at its peak. Expect high energy, confidence, and social drive.`
+                  : `Day ${cycleDay} of ${cycleLen}: You're in your fertile window. Great time for exercise and creativity.`,
+                tag
+              )
+            }
           }
         }
 
@@ -170,20 +161,15 @@ export function useSmartPushNotifications() {
             const tag = `daily-log-nudge-${todayStr}`
             if (!firedTags.has(tag)) {
               firedTags.add(tag)
-              timers.push(setTimeout(() => {
-                sendBrowserPush(
-                  `📝 Log your symptoms today`,
-                  `You haven't logged any symptoms for today (Cycle Day ${cycleDay}). Tracking keeps your predictions accurate.`,
-                  tag
-                )
-              }, 8000))
+              sendBrowserPush(
+                `📝 Log your symptoms today`,
+                `You haven't logged any symptoms for today (Cycle Day ${cycleDay}). Tracking keeps your predictions accurate.`,
+                tag
+              )
             }
           }
         }
       }
     }
-
-    // Always return cleanup — cancels any pending timers if effect reruns or unmounts
-    return () => timers.forEach(clearTimeout)
   }, [user, ownDashboard, partnerStatus, settings, logs])
 }

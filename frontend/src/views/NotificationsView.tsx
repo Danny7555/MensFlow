@@ -52,7 +52,7 @@ interface Notification {
 export function NotificationsView() {
   const navigate = useNavigate()
   const { user: authUser } = useAuth()
-  const { dashboard: data, settings, logs, supportStreak, partnerStatus, updateSettings, user } = useStore()
+  const { dashboard: data, settings, logs, supportStreak, partnerStatus, updateSettings, user, resetNotificationCount } = useStore()
   const [sendingId, setSendingId] = useState<string | null>(null)
   const [readIds, setReadIds] = useState<Set<string>>(new Set())
   
@@ -73,6 +73,10 @@ export function NotificationsView() {
     return () => window.removeEventListener('storage', handleStorageChange)
   }, [])
 
+  useEffect(() => {
+    resetNotificationCount()
+  }, [resetNotificationCount])
+
   const isPendingRequest = user?.role === 'lady' && (
     settings.privacyPendingAccessRequest || guestRequest
   )
@@ -88,6 +92,7 @@ export function NotificationsView() {
       } else {
         await updateSettings({ privacyShareCycleDetails: true, privacyPendingAccessRequest: false })
       }
+      resetNotificationCount()
       toast.success("Access granted! Your partner can now view detailed cycle metrics.")
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Failed to approve request.")
@@ -106,6 +111,7 @@ export function NotificationsView() {
       } else {
         await updateSettings({ privacyPendingAccessRequest: false })
       }
+      resetNotificationCount()
       toast.success("Access request declined.")
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Failed to decline request.")
@@ -416,7 +422,10 @@ export function NotificationsView() {
                 {notifications.some(n => !readIds.has(n.id)) && (
                   <button
                     type="button"
-                    onClick={() => setReadIds(new Set(notifications.map(n => n.id)))}
+                    onClick={() => {
+                      setReadIds(new Set(notifications.map(n => n.id)))
+                      resetNotificationCount()
+                    }}
                     className="text-[10px] font-semibold text-[var(--mf-accent)] hover:text-[var(--mf-accent-hover)] bg-[var(--mf-accent)]/8 hover:bg-[var(--mf-accent)]/15 px-2.5 py-1 rounded-full transition-all cursor-pointer active-squish flex items-center gap-1"
                   >
                     <Eye size={12} weight="bold" />

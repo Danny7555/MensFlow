@@ -148,13 +148,14 @@ function SymptomCategoryList({
 }
 
 export function SymptomsView() {
-  const { addLog, getLogForDate, isSaving, user, partnerStatus, requestDetailedAccessAction, customSymptoms, settings } = useStore()
+  const { addLog, getLogForDate, isSaving, user, partnerStatus, fetchPartnerStatus, requestDetailedAccessAction, customSymptoms, settings } = useStore()
   const [isLoading, setIsLoading] = useState(true)
   const [requestSent, setRequestSent] = useState(false)
 
   const handleRequestAccess = async () => {
     setRequestSent(true)
     await requestDetailedAccessAction()
+    await fetchPartnerStatus()
   }
 
   useEffect(() => {
@@ -177,6 +178,13 @@ export function SymptomsView() {
     });
   }, [customSymptoms, settings.conditionOptimization]);
   const isPartner = user?.role === 'partner'
+  const showRestrictedView = isPartner && partnerStatus?.paired && partnerStatus?.privacyShareCycleDetails === false
+
+  useEffect(() => {
+    if (isPartner && partnerStatus === null) {
+      void fetchPartnerStatus()
+    }
+  }, [isPartner, partnerStatus, fetchPartnerStatus])
 
   const activeSymptoms = useMemo(() => {
     if (isPartner) {
@@ -434,7 +442,7 @@ export function SymptomsView() {
         )}
       </section>
 
-      {!isPartner ? (
+      {!showRestrictedView ? (
         <section aria-labelledby="trends-title" className="space-y-6 pt-4">
           <h2 id="trends-title" className="text-lg font-normal tracking-tight text-foreground">
             Analytical Cycle Graphs & Trends

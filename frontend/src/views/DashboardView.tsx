@@ -237,7 +237,7 @@ function TourTooltip({
 }
 
 export function DashboardView() {
-  const { dashboard: ownDashboard, partnerStatus, fetchPartnerStatus, updateDashboard: update, isSaving, user, pairPartner, requestDetailedAccessAction, settings } = useStore()
+  const { dashboard: ownDashboard, partnerStatus, fetchPartnerStatus, updateDashboard: update, isSaving, user, pairPartner, requestDetailedAccessAction, settings, notificationCount, incrementNotificationCount } = useStore()
   const { logout, isAuthenticated, openAuthModal } = useAuth()
   const { data: dailyGuidance } = useDailyGuidance()
 
@@ -248,6 +248,7 @@ export function DashboardView() {
   const handleRequestAccess = async () => {
     setRequestSent(true)
     await requestDetailedAccessAction()
+    await fetchPartnerStatus()
   }
 
   const [isMobile, setIsMobile] = useState(false)
@@ -367,6 +368,7 @@ export function DashboardView() {
   useEffect(() => {
     let active = true
     const mountTime = Date.now()
+    const isAccessPing = (pingId?: string) => Boolean(pingId?.startsWith('access-'))
 
     const handlePingEvent = (e?: StorageEvent) => {
       if (e && e.key && e.key !== 'mensflow_partner_ping:v1') return
@@ -378,6 +380,11 @@ export function DashboardView() {
             const lastProcessed = localStorage.getItem('mensflow_last_ping_processed:v1')
             if (lastProcessed !== String(ping.timestamp)) {
               localStorage.setItem('mensflow_last_ping_processed:v1', String(ping.timestamp))
+              incrementNotificationCount()
+              if (isAccessPing(ping.pingId)) {
+                void fetchPartnerStatus()
+                setRequestSent(false)
+              }
               // Only toast if the message is fresh (sent after mount or within the last 15 seconds)
               if (ping.timestamp > mountTime - 15000) {
                 toast.info(user?.role === 'lady' ? "Support Update received!" : "Partner Update received!", {
@@ -410,6 +417,11 @@ export function DashboardView() {
               const lastProcessed = localStorage.getItem('mensflow_last_ping_processed:v1')
               if (lastProcessed !== String(ping.timestamp)) {
                 localStorage.setItem('mensflow_last_ping_processed:v1', String(ping.timestamp))
+                incrementNotificationCount()
+                if (isAccessPing(ping.pingId)) {
+                  void fetchPartnerStatus()
+                  setRequestSent(false)
+                }
                 // Only toast if the message is fresh (sent after mount or within the last 15 seconds)
                 if (ping.timestamp > mountTime - 15000) {
                   toast.info(user?.role === 'lady' ? "Support Update received!" : "Partner Update received!", {
@@ -433,7 +445,7 @@ export function DashboardView() {
       window.removeEventListener('storage', handlePingEvent as EventListener)
       if (interval) clearInterval(interval)
     }
-  }, [isAuthenticated, user?.role])
+  }, [isAuthenticated, user?.role, fetchPartnerStatus, incrementNotificationCount])
 
   useEffect(() => {
     const hasSeenTour = sessionStorage.getItem('mensflow_tour_completed')
@@ -468,6 +480,7 @@ export function DashboardView() {
 
   const currentDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
   const showRestrictedView = user?.role === 'partner' && partnerStatus?.paired && partnerStatus?.privacyShareCycleDetails === false
+  const dashboardNotificationCount = notificationCount + (user?.role === 'lady' && settings.privacyPendingAccessRequest ? 1 : 0)
   const [tipCompleted, setTipCompleted] = useState(false)
 
   const handleCopyGesture = (text: string, title: string) => {
@@ -519,6 +532,7 @@ export function DashboardView() {
           toggleTempChat={toggleTempChat}
           handleLogout={handleLogout}
           onStartTour={startTour}
+          notificationCount={dashboardNotificationCount}
         />
 
         <main className="flo-main-container pb-32 px-4 md:px-0 relative z-10 flex items-center justify-center">
@@ -680,6 +694,7 @@ export function DashboardView() {
         toggleTempChat={toggleTempChat}
         handleLogout={handleLogout}
         onStartTour={startTour}
+        notificationCount={dashboardNotificationCount}
       />
 
       <main className="flo-main-container pb-32 px-4 md:px-0 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">

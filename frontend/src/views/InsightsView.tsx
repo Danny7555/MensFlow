@@ -41,18 +41,27 @@ const itemVariants: Variants = {
 export function InsightsView() {
   const { isAuthenticated, openAuthModal } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
-  const { logs, customSymptoms, user, requestDetailedAccessAction } = useStore()
+  const { logs, customSymptoms, user, partnerStatus, fetchPartnerStatus, requestDetailedAccessAction } = useStore()
   const [requestSent, setRequestSent] = useState(false)
+  const isPartner = user?.role === 'partner'
+  const showRestrictedView = isPartner && partnerStatus?.paired && partnerStatus?.privacyShareCycleDetails === false
 
   const handleRequestAccess = async () => {
     setRequestSent(true)
     await requestDetailedAccessAction()
+    await fetchPartnerStatus()
   }
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 500)
     return () => clearTimeout(timer)
   }, [])
+
+  useEffect(() => {
+    if (isPartner && partnerStatus === null) {
+      void fetchPartnerStatus()
+    }
+  }, [isPartner, partnerStatus, fetchPartnerStatus])
 
   const handleExportCSV = () => {
     if (!logs || logs.length === 0) {
@@ -102,7 +111,7 @@ export function InsightsView() {
         <HormoneWave />
       </m.div>
 
-      {user?.role === 'partner' ? (
+      {showRestrictedView ? (
         <m.div variants={itemVariants} className="insights-section mt-8">
           <div className="bg-card border border-border p-6 sm:p-8 rounded-3xl text-center w-full max-w-[500px] mx-auto flex flex-col items-center">
             <div className="size-16 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center mb-6">
