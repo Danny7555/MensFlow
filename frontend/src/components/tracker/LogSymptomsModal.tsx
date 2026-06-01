@@ -1,4 +1,4 @@
-import { useRef, useState } from "react"
+import { useState } from "react"
 import { format } from "date-fns"
 import {
   Dialog,
@@ -40,16 +40,16 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
   const [selectedSymptoms, setSelectedSymptoms] = useState<Set<string>>(new Set())
   const [lhLevelVal, setLhLevelVal] = useState<string | null>(null)
   const [mucusVal, setMucusVal] = useState<string | null>(null)
-  const loadedDateKeyRef = useRef<string | null>(null)
+  const [loadedDateKey, setLoadedDateKey] = useState<string | null>(null)
 
-  if (isOpen && loadedDateKeyRef.current !== dateKey) {
+  if (isOpen && loadedDateKey !== dateKey) {
     const existing = getLogForDate(dateKey)
-    loadedDateKeyRef.current = dateKey
+    setLoadedDateKey(dateKey)
     setSelectedSymptoms(existing ? new Set(existing.symptoms) : new Set())
     setLhLevelVal(existing?.lhLevel !== undefined ? existing.lhLevel : null)
     setMucusVal(existing?.mucus !== undefined ? existing.mucus : null)
-  } else if (!isOpen && loadedDateKeyRef.current !== null) {
-    loadedDateKeyRef.current = null
+  } else if (!isOpen && loadedDateKey !== null) {
+    setLoadedDateKey(null)
   }
 
   const [newSymptomName, setNewSymptomName] = useState("")
