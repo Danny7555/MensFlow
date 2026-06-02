@@ -39,6 +39,7 @@ export async function getUserProfile(
       partnerCode: user.partnerCode,
       partnerId: user.partnerId ? String(user.partnerId) : null,
       role: user.role,
+      onboardingData: (user.onboardingData as Record<string, unknown>) || {},
       xp: user.xp || 0,
       quizLastCompletedAt: user.quizLastCompletedAt || '',
       quizCountToday: user.quizCountToday || 0,
@@ -50,7 +51,7 @@ export async function getUserProfile(
 
 export async function updateUserProfile(
   userId: string,
-  updates: { name?: string; avatar?: string | null; accessLevel?: 'full' | 'educational'; isOnboarded?: boolean; role?: 'lady' | 'partner' }
+  updates: { name?: string; avatar?: string | null; accessLevel?: 'full' | 'educational'; isOnboarded?: boolean; role?: 'lady' | 'partner'; onboardingData?: Record<string, unknown> }
 ): Promise<Partial<IUser>> {
   const user = await User.findByIdAndUpdate(userId, updates, {
     new: true,
@@ -72,6 +73,7 @@ export async function updateUserProfile(
     partnerCode: user.partnerCode,
     partnerId: user.partnerId ? String(user.partnerId) : null,
     role: user.role,
+    onboardingData: (user.onboardingData as Record<string, unknown>) || {},
     xp: user.xp || 0,
     quizLastCompletedAt: user.quizLastCompletedAt || '',
     quizCountToday: user.quizCountToday || 0,
@@ -125,6 +127,7 @@ export async function submitQuizAttempt(
     partnerCode: updatedUser.partnerCode,
     partnerId: updatedUser.partnerId ? String(updatedUser.partnerId) : null,
     role: updatedUser.role,
+    onboardingData: (updatedUser.onboardingData as Record<string, unknown>) || {},
     xp: updatedUser.xp || 0,
     quizLastCompletedAt: updatedUser.quizLastCompletedAt || '',
     quizCountToday: updatedUser.quizCountToday || 0,

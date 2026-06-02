@@ -25,6 +25,7 @@ export type AppUser = {
   accessLevel?: 'full' | 'educational'
   isOnboarded?: boolean
   role?: 'lady' | 'partner'
+  onboardingData?: Record<string, unknown>
   partnerCode?: string
   partnerId?: string | null
   xp?: number
@@ -89,7 +90,7 @@ interface AppState {
   updateDashboard: (patch: Partial<DashboardSnapshot>) => Promise<void>
 
   // User / Settings
-  updateUser: (patch: Partial<{ name: string; avatar: string | null; accessLevel: 'full' | 'educational'; isOnboarded: boolean; role: 'lady' | 'partner' }>) => Promise<void>
+  updateUser: (patch: Partial<{ name: string; avatar: string | null; accessLevel: 'full' | 'educational'; isOnboarded: boolean; role: 'lady' | 'partner'; onboardingData: Record<string, unknown> }>) => Promise<void>
   updateSettings: (patch: Partial<MensFlowSettings>) => Promise<void>
   resetSettings: () => void
 
@@ -135,7 +136,7 @@ interface AppState {
   submitQuizAttemptAction: (date: string, correct: boolean) => Promise<void>
 }
 
-const DEFAULT_USER = { id: undefined, email: null, name: '', avatar: null, accessLevel: 'full' as const, isOnboarded: false, role: 'lady' as const, partnerCode: '', partnerId: null, xp: 0, quizLastCompletedAt: '', quizCountToday: 0 }
+const DEFAULT_USER = { id: undefined, email: null, name: '', avatar: null, accessLevel: 'full' as const, isOnboarded: false, role: 'lady' as const, onboardingData: {}, partnerCode: '', partnerId: null, xp: 0, quizLastCompletedAt: '', quizCountToday: 0 }
 
 export const useStore = create<AppState>()((set, get) => ({
   dashboard: DEFAULT_DASHBOARD,
@@ -214,6 +215,7 @@ export const useStore = create<AppState>()((set, get) => ({
         accessLevel: user.accessLevel,
         isOnboarded: user.isOnboarded,
         role: user.role,
+        onboardingData: user.onboardingData || {},
         partnerCode: user.partnerCode,
         partnerId: user.partnerId,
         xp: user.xp || 0,
@@ -329,6 +331,7 @@ export const useStore = create<AppState>()((set, get) => ({
             accessLevel: updated.accessLevel,
             isOnboarded: updated.isOnboarded,
             role: updated.role,
+            onboardingData: updated.onboardingData || {},
             partnerCode: updated.partnerCode,
             partnerId: updated.partnerId,
             xp: updated.xp || 0,

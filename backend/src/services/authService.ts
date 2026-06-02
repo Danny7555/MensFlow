@@ -31,6 +31,7 @@ function userToResponse(user: InstanceType<typeof User>): Partial<IUser> {
     partnerCode: user.partnerCode,
     partnerId: user.partnerId ? String(user.partnerId) : null,
     role: user.role,
+    onboardingData: (user.onboardingData as Record<string, unknown>) || {},
     xp: user.xp || 0,
     quizLastCompletedAt: user.quizLastCompletedAt || '',
     quizCountToday: user.quizCountToday || 0,

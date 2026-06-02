@@ -30,6 +30,7 @@ export async function updateProfile(req: AuthRequest, res: Response, next: NextF
       accessLevel: optionalOneOf(body, 'accessLevel', ['full', 'educational'] as const),
       isOnboarded: optionalBoolean(body, 'isOnboarded'),
       role: optionalOneOf(body, 'role', ['lady', 'partner'] as const),
+      onboardingData: 'onboardingData' in body ? (body.onboardingData as Record<string, unknown> | undefined) : undefined,
     }));
     res.json({ user });
   } catch (err) {

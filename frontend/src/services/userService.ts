@@ -15,6 +15,7 @@ export type ApiUser = {
   partnerCode: string
   partnerId: string | null
   role: 'lady' | 'partner'
+  onboardingData: Record<string, unknown>
   xp: number
   quizLastCompletedAt: string
   quizCountToday: number
@@ -81,7 +82,7 @@ export const userApi = {
   getProfile: () =>
     get<{ user: ApiUser; settings: ApiSettings; dashboard: ApiDashboard }>('/user/profile'),
 
-  updateProfile: (patch: Partial<Pick<ApiUser, 'name' | 'avatar' | 'accessLevel' | 'isOnboarded' | 'role'>>) =>
+  updateProfile: (patch: Partial<Pick<ApiUser, 'name' | 'avatar' | 'accessLevel' | 'isOnboarded' | 'role' | 'onboardingData'>>) =>
     put<{ user: ApiUser }>('/user/profile', patch),
 
   updateSettings: (patch: Partial<ApiSettings>) =>
@@ -111,7 +112,7 @@ export function useUserProfile() {
 export function useUpdateProfileMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (patch: Partial<Pick<ApiUser, 'name' | 'avatar' | 'accessLevel' | 'isOnboarded' | 'role'>>) =>
+    mutationFn: (patch: Partial<Pick<ApiUser, 'name' | 'avatar' | 'accessLevel' | 'isOnboarded' | 'role' | 'onboardingData'>>) =>
       userApi.updateProfile(patch),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: userKeys.profile })
