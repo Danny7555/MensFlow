@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useRef, useMemo } from "react"
 import { format } from "date-fns"
 import {
   Dialog,
@@ -12,7 +12,34 @@ import { SYMPTOM_DEFS, type SymptomCategory } from "@/data/symptomsData"
 import { Drop, Smiley, Pulse, Bed, Check, Sparkle, Waves, Moon, HandHeart, Brain, Fire } from "@phosphor-icons/react"
 import { useStore } from "@/store/useStore"
 import { toast } from "sonner"
-import { useMemo } from "react"
+
+const categories = [
+  { name: "Flow", icon: Drop, color: "text-[#ff5a5f]", bgColor: "bg-[#ff5a5f]/10" },
+  { name: "Mood", icon: Smiley, color: "text-[#007e94]", bgColor: "bg-[#007e94]/10" },
+  { name: "Physical", icon: Pulse, color: "text-[#6fd0cd]", bgColor: "bg-[#6fd0cd]/10" },
+  { name: "Lifestyle", icon: Bed, color: "text-[#8b5cf6]", bgColor: "bg-[#8b5cf6]/10" },
+] as const
+
+const symptomImages: Record<string, string> = {
+  'flow-light': '/images/flow_light.png',
+  'flow-medium': '/images/flow_medium.png',
+  'flow-heavy': '/images/flow_heavy.png',
+  'mood-happy': '/images/happy.jpg',
+  'mood-sad': '/images/sad.jpg',
+  'mood-irritable': '/images/angry.jpg',
+  'mood-anxious': '/images/anxious.jpg',
+  'mood-calm': '/images/calm.jpg',
+  'phys-cramps': '/images/cramps.jpg',
+  'phys-fatigue': '/images/fatique.jpg',
+  'phys-bloating': '/images/bloat.jpg',
+  'phys-headache': '/images/headache.jpg',
+  'phys-acne': '/images/acne.jpg',
+  'phys-tender': '/images/tender.jpg',
+  'life-sleep': '/images/sleep_3d.png',
+  'life-bbt': '/images/bbt_3d.png',
+  'life-sex': '/images/sex_3d.png',
+  'life-pill': '/images/pill_3d.png',
+}
 
 interface LogSymptomsModalProps {
   isOpen: boolean
@@ -40,16 +67,16 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
   const [selectedSymptoms, setSelectedSymptoms] = useState<Set<string>>(new Set())
   const [lhLevelVal, setLhLevelVal] = useState<string | null>(null)
   const [mucusVal, setMucusVal] = useState<string | null>(null)
-  const [loadedDateKey, setLoadedDateKey] = useState<string | null>(null)
+  const loadedDateKeyRef = useRef<string | null>(null)
 
-  if (isOpen && loadedDateKey !== dateKey) {
+  if (isOpen && loadedDateKeyRef.current !== dateKey) {
     const existing = getLogForDate(dateKey)
-    setLoadedDateKey(dateKey)
+    loadedDateKeyRef.current = dateKey
     setSelectedSymptoms(existing ? new Set(existing.symptoms) : new Set())
     setLhLevelVal(existing?.lhLevel !== undefined ? existing.lhLevel : null)
     setMucusVal(existing?.mucus !== undefined ? existing.mucus : null)
-  } else if (!isOpen && loadedDateKey !== null) {
-    setLoadedDateKey(null)
+  } else if (!isOpen && loadedDateKeyRef.current !== null) {
+    loadedDateKeyRef.current = null
   }
 
   const [newSymptomName, setNewSymptomName] = useState("")
@@ -93,33 +120,7 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
     onOpenChange(false)
   }
 
-  const categories = [
-    { name: "Flow", icon: Drop, color: "text-[#ff5a5f]", bgColor: "bg-[#ff5a5f]/10" },
-    { name: "Mood", icon: Smiley, color: "text-[#007e94]", bgColor: "bg-[#007e94]/10" },
-    { name: "Physical", icon: Pulse, color: "text-[#6fd0cd]", bgColor: "bg-[#6fd0cd]/10" },
-    { name: "Lifestyle", icon: Bed, color: "text-[#8b5cf6]", bgColor: "bg-[#8b5cf6]/10" },
-  ] as const
 
-  const symptomImages: Record<string, string> = {
-    'flow-light': '/images/flow_light.png',
-    'flow-medium': '/images/flow_medium.png',
-    'flow-heavy': '/images/flow_heavy.png',
-    'mood-happy': '/images/happy.jpg',
-    'mood-sad': '/images/sad.jpg',
-    'mood-irritable': '/images/angry.jpg',
-    'mood-anxious': '/images/anxious.jpg',
-    'mood-calm': '/images/calm.jpg',
-    'phys-cramps': '/images/cramps.jpg',
-    'phys-fatigue': '/images/fatique.jpg',
-    'phys-bloating': '/images/bloat.jpg',
-    'phys-headache': '/images/headache.jpg',
-    'phys-acne': '/images/acne.jpg',
-    'phys-tender': '/images/tender.jpg',
-    'life-sleep': '/images/sleep_3d.png',
-    'life-bbt': '/images/bbt_3d.png',
-    'life-sex': '/images/sex_3d.png',
-    'life-pill': '/images/pill_3d.png',
-  }
 
   const allSymptoms = useMemo(() => {
     return [...SYMPTOM_DEFS, ...customSymptoms].filter(s => {
@@ -214,13 +215,14 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* LH Level */}
                 <div className="space-y-1.5">
-                  <label className="text-xs text-muted-foreground block">LH Ovulation Test</label>
+                  <label htmlFor="lh-select" className="text-xs text-muted-foreground block">LH Ovulation Test</label>
                   {isPartner ? (
-                    <div className="h-10 px-3 rounded-xl bg-muted/30 border border-transparent text-sm flex items-center text-[var(--mf-text-strong)] capitalize">
+                    <div id="lh-select" className="h-10 px-3 rounded-xl bg-muted/30 border border-transparent text-sm flex items-center text-[var(--mf-text-strong)] capitalize">
                       {lhLevelVal !== null ? lhLevelVal : <span className="text-muted-foreground/60 italic">Not logged</span>}
                     </div>
                   ) : (
                     <select
+                      id="lh-select"
                       value={lhLevelVal ?? ''}
                       onChange={(e) => setLhLevelVal(e.target.value || null)}
                       className="w-full h-10 px-3 rounded-xl bg-muted/50 border-none outline-none text-sm text-[var(--mf-text-strong)] focus:ring-1 ring-[var(--mf-accent)] capitalize"
@@ -233,13 +235,14 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
                 </div>
                 {/* Cervical Mucus */}
                 <div className="space-y-1.5">
-                  <label className="text-xs text-muted-foreground block">Cervical Mucus</label>
+                  <label htmlFor="mucus-select" className="text-xs text-muted-foreground block">Cervical Mucus</label>
                   {isPartner ? (
-                    <div className="h-10 px-3 rounded-xl bg-muted/30 border border-transparent text-sm flex items-center text-[var(--mf-text-strong)] capitalize">
+                    <div id="mucus-select" className="h-10 px-3 rounded-xl bg-muted/30 border border-transparent text-sm flex items-center text-[var(--mf-text-strong)] capitalize">
                       {mucusVal !== null ? mucusVal.replace('-', ' ') : <span className="text-muted-foreground/60 italic">Not logged</span>}
                     </div>
                   ) : (
                     <select
+                      id="mucus-select"
                       value={mucusVal ?? ''}
                       onChange={(e) => setMucusVal(e.target.value || null)}
                       className="w-full h-10 px-3 rounded-xl bg-muted/50 border-none outline-none text-sm text-[var(--mf-text-strong)] focus:ring-1 ring-[var(--mf-accent)]"
@@ -266,6 +269,7 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
                     placeholder="e.g. Backache, Caffeine log..."
                     value={newSymptomName}
                     onChange={(e) => setNewSymptomName(e.target.value)}
+                    aria-label="Custom symptom name"
                     className="flex-1 h-10 px-4 rounded-xl bg-muted/50 border-none outline-none focus:ring-1 ring-[var(--mf-accent)] text-sm transition-all"
                   />
                   <select
