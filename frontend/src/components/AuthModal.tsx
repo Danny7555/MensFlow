@@ -143,7 +143,7 @@ export function AuthModal({
     }
     try {
       if (mode === 'login') await onLogin(u, p)
-      else await onRegister(u, e, p, n, role)
+      else await onRegister(u, e, p, n || preFillName, role)
       reset()
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Something went wrong')
