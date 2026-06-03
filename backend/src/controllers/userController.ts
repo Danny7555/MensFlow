@@ -43,7 +43,7 @@ export async function updateSettings(req: AuthRequest, res: Response, next: Next
     const body = objectRecord(req.body);
     const patch: Partial<ISettings> = compact({
       themeMode: optionalOneOf(body, 'themeMode', ['light', 'dark', 'system'] as const),
-      contrastMode: optionalOneOf(body, 'contrastMode', ['system', 'standard'] as const),
+      contrastMode: optionalOneOf(body, 'contrastMode', ['system', 'standard', 'high'] as const),
       accentPreset: optionalOneOf(body, 'accentPreset', ['default', 'orchid', 'ocean'] as const),
       languageUi: optionalOneOf(body, 'languageUi', ['auto', 'en'] as const),
       spokenLanguage: optionalOneOf(body, 'spokenLanguage', ['auto', 'en-US'] as const),
@@ -121,6 +121,15 @@ export async function addUserXp(req: AuthRequest, res: Response, next: NextFunct
 
     const user = await userService.submitQuizAttempt(req.user!.id, date, correct);
     res.json({ success: true, user });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getLoginHistory(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const history = await userService.getUserLoginHistory(req.user!.id);
+    res.json(history);
   } catch (err) {
     next(err);
   }

@@ -11,6 +11,8 @@ router.get('/', cycleController.getLogs);
 router.post('/', cycleController.addLog);
 router.delete('/', cycleController.clearLogs);
 
+router.get('/review', cycleController.getMonthInReview);
+
 router.get('/custom', cycleController.getCustomSymptoms);
 router.post('/custom', cycleController.addCustomSymptom);
 router.delete('/custom/:id', cycleController.removeCustomSymptom);

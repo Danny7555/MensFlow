@@ -14,6 +14,8 @@ interface CycleWheelProps {
   upcomingStart: number;
   upcomingEnd: number;
   fertileColor?: string;
+  /** When false, hides the fertile window arc on the wheel. Defaults to true. */
+  showFertileWindow?: boolean;
   /** When true, renders the wheel as a dimmed, non-interactive placeholder (empty state) */
   dimmed?: boolean;
   onSelectDay: (day: number) => void;
@@ -50,6 +52,7 @@ export function CycleWheel({
   upcomingStart,
   upcomingEnd,
   fertileColor,
+  showFertileWindow = true,
   dimmed = false,
   onSelectDay,
   onHoverDay,
@@ -165,14 +168,16 @@ export function CycleWheel({
           strokeLinecap="round"
           opacity={activeDay > periodLength && activeDay <= periodLength + predictedPeriodLength ? 1 : 0.8}
         />
-        <path
-          d={fertilePath}
-          fill="none"
-          stroke={fertileColor ?? "#26899e"}
-          strokeWidth="6"
-          strokeLinecap="round"
-          opacity={activeDay >= fertileStart && activeDay <= fertileEnd ? 1 : 0.8}
-        />
+        {showFertileWindow && (
+          <path
+            d={fertilePath}
+            fill="none"
+            stroke={fertileColor ?? "#26899e"}
+            strokeWidth="6"
+            strokeLinecap="round"
+            opacity={activeDay >= fertileStart && activeDay <= fertileEnd ? 1 : 0.8}
+          />
+        )}
         <path d={upcomingPath} fill="none" stroke="currentColor" strokeWidth="6" className="opacity-20" strokeLinecap="round" />
       </g>
 

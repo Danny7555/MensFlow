@@ -1,4 +1,3 @@
-import { type CyclePhase } from './cycleUtils'
 import type { DashboardSnapshot } from './dashboardStorage'
 
 export type OnboardingAnswers = Record<string, unknown>
@@ -83,11 +82,6 @@ export function buildPersonalizedDashboard(answers: OnboardingAnswers): Partial<
     scientificInsight: buildScientificInsight(profile),
     dailyTip: buildDailyTip(profile),
   }
-}
-
-export function phaseLabel(phase: CyclePhase): string {
-  if (phase === 'fertile') return 'Ovulatory'
-  return `${phase.charAt(0).toUpperCase()}${phase.slice(1)}`
 }
 
 function buildCycleNotes(profile: PersonalizationProfile): string {

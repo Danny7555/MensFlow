@@ -244,3 +244,114 @@ export async function sendReminderEmail(opts: SendEmailOptions): Promise<{ succe
   console.log(`[Email] Message sent: ${info.messageId} → ${toEmail}`);
   return { success: true, previewUrl };
 }
+
+// ─── Guardian Notification Email ─────────────────────────────────────────────
+
+function buildGuardianEmailHtml(userName: string, guardianEmail: string): string {
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Guardian Supervision Enabled</title>
+</head>
+<body style="margin:0;padding:0;background:#f8f0f5;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8f0f5;padding:40px 0;">
+    <tr>
+      <td align="center">
+        <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:24px;overflow:hidden;box-shadow:0 4px 24px rgba(220,80,130,0.08);">
+          <!-- Header -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#e84393,#f472b6);padding:32px 40px;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td>
+                    <span style="font-size:22px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;">MensFlow</span>
+                    <span style="font-size:11px;color:rgba(255,255,255,0.7);margin-left:8px;text-transform:uppercase;letter-spacing:0.15em;">Parental Controls</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Body -->
+          <tr>
+            <td style="padding:36px 40px;">
+              <p style="margin:0 0 8px;font-size:14px;color:#9b6b86;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;">Supervision Alert 🛡️</p>
+              <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#1a0a14;line-height:1.3;">Guardian Supervision Enabled</h1>
+              <p style="margin:0 0 16px;font-size:15px;color:#5c3d52;line-height:1.65;">
+                Hello,
+              </p>
+              <p style="margin:0 0 20px;font-size:15px;color:#5c3d52;line-height:1.65;">
+                This email address (<strong>${guardianEmail}</strong>) has been designated as the contact for supervision and account recovery for <strong>${userName}</strong>'s MensFlow account.
+              </p>
+              <p style="margin:0 0 24px;font-size:15px;color:#5c3d52;line-height:1.65;">
+                As the registered guardian, this address will be used to authorize changes to parental control settings and assist in account access recovery.
+              </p>
+              <p style="margin:0;font-size:13px;color:#9b6b86;line-height:1.5;">
+                If you did not authorize this setup, or if you believe this was configured by mistake, please contact our support team immediately at <a href="mailto:support@mensflow.app" style="color:#e84393;text-decoration:none;font-weight:600;">support@mensflow.app</a>.
+              </p>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="padding:20px 40px 28px;border-top:1px solid #f3e4ed;">
+              <p style="margin:0;font-size:12px;color:#b09ba8;line-height:1.5;">
+                You received this because your email address was set as a Guardian contact in the MensFlow application settings.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim();
+}
+
+export interface SendGuardianEmailOptions {
+  toEmail: string;
+  userName: string;
+}
+
+export async function sendGuardianEmail(opts: SendGuardianEmailOptions): Promise<{ success: boolean; previewUrl?: string }> {
+  const { toEmail, userName } = opts;
+
+  const fromName = process.env.SMTP_FROM_NAME || 'MensFlow';
+  const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'no-reply@mensflow.app';
+  const html = buildGuardianEmailHtml(userName, toEmail);
+
+  let transporter = createTransporter();
+
+  let previewUrl: string | undefined;
+  if (!transporter) {
+    const testAccount = await nodemailer.createTestAccount();
+    transporter = nodemailer.createTransport({
+      host: 'smtp.ethereal.email',
+      port: 587,
+      secure: false,
+      auth: {
+        user: testAccount.user,
+        pass: testAccount.pass,
+      },
+    });
+  }
+
+  const info = await transporter.sendMail({
+    from: `"${fromName}" <${fromEmail}>`,
+    to: toEmail,
+    subject: `MensFlow: Guardian Supervision Enabled`,
+    html,
+    text: `Guardian Supervision Enabled\n\nHello,\n\nThis email address (${toEmail}) has been set as the contact for supervision and account recovery for ${userName}'s MensFlow account.\n\nIf you did not authorize this, please contact support@mensflow.app immediately.`,
+  });
+
+  const rawPreview = nodemailer.getTestMessageUrl(info);
+  if (rawPreview) {
+    previewUrl = String(rawPreview);
+    console.log(`[Email] Guardian preview URL: ${previewUrl}`);
+  }
+
+  console.log(`[Email] Guardian alert sent: ${info.messageId} → ${toEmail}`);
+  return { success: true, previewUrl };
+}

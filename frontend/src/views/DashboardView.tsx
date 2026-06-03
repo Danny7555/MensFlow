@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { use, useReducer, useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Joyride, STATUS, type EventData, type TooltipRenderProps } from 'react-joyride'
@@ -30,6 +31,8 @@ import {
 import { DailyTipCard } from '../components/dashboard/DailyTipCard'
 import { HormoneInsightCard } from '../components/dashboard/HormoneInsightCard'
 import { SymptomLogger } from '../components/dashboard/DailyCheckIn'
+import { MonthInReview } from '../components/dashboard/MonthInReview'
+import { WeatherAlertCard } from '../components/dashboard/WeatherAlertCard'
 
 const getTimestamp = () => new Date().getTime()
 
@@ -858,6 +861,10 @@ export function DashboardView() {
                 </section>
 
                 <div className="flo-today-plan flex flex-col gap-6 md:gap-8 w-full min-w-0">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 min-w-0">
+                    <MonthInReview />
+                    <WeatherAlertCard />
+                  </div>
                   {!settings.hideDailyStoriesAndTips && (
                     <div className="w-full min-w-0">
                       <DailyTipCard

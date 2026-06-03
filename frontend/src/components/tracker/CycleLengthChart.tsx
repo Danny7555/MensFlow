@@ -35,7 +35,7 @@ const chartConfig = {
 } satisfies ChartConfig
 
 const CHART_DOMAIN = [20, 35]
-const BAR_RADIUS = [6, 6, 0, 0] as const
+const BAR_RADIUS: [number, number, number, number] = [6, 6, 0, 0]
 
 export function CycleLengthChart() {
   return (

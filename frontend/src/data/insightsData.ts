@@ -36,18 +36,3 @@ export const INSIGHT_TRENDS_DUMMY: InsightTrend[] = [
     positive: true,
   },
 ]
-
-export const INSIGHT_METRICS_DUMMY: InsightMetric[] = [
-  {
-    id: 'm1',
-    title: 'Energy (self-report)',
-    bars: [40, 55, 48, 62, 50, 45, 58, 52],
-    caption: 'Last 8 check-ins — arbitrary scale for demo.',
-  },
-  {
-    id: 'm2',
-    title: 'Bloating (lower is better)',
-    bars: [30, 35, 45, 50, 48, 62, 55, 40],
-    caption: 'Peaks often mid–late luteal for many cycles.',
-  },
-]

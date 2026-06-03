@@ -155,6 +155,9 @@ export async function getPartnerStatus(userId: string): Promise<object> {
     return { paired: false };
   }
 
+  const partnerUserId = user.role === 'partner' ? userId : String(partner._id);
+  const ladyUserId = user.role === 'lady' ? userId : String(partner._id);
+
   const today = todayString();
   const yesterday = yesterdayString();
 
@@ -171,8 +174,8 @@ export async function getPartnerStatus(userId: string): Promise<object> {
     Dashboard.findOne({ userId: partner._id }).lean(),
     SymptomLog.findOne({ userId: partner._id, date: today }).lean(),
     Settings.findOne({ userId: partner._id }).lean(),
-    SupportStreak.findOne({ userId }).lean(),
-    SupportAction.find({ userId, completedAt: today }).distinct('actionId'),
+    SupportStreak.findOne({ userId: partnerUserId }).lean(),
+    SupportAction.find({ userId: partnerUserId, completedAt: today }).distinct('actionId'),
     PartnerPing.findOne({ senderId: partner._id, receiverId: userId }).sort({ timestamp: -1 }).lean(),
     SymptomLog.findOne({ userId: partner._id }).sort({ date: -1 }).lean(),
     PartnerChatMessage.findOne({ senderId: partner._id, receiverId: userId }).sort({ createdAt: -1 }).lean(),
@@ -189,13 +192,13 @@ export async function getPartnerStatus(userId: string): Promise<object> {
 
   let streakDoc = initialStreakDoc;
   if (!streakDoc) {
-    await SupportStreak.create({ userId });
+    await SupportStreak.create({ userId: partnerUserId });
     streakDoc = { streak: 0, lastActionDate: '' } as any;
   }
 
   let currentStreak = streakDoc!.streak;
   if (streakDoc!.lastActionDate && streakDoc!.lastActionDate !== today && streakDoc!.lastActionDate !== yesterday) {
-    await SupportStreak.findOneAndUpdate({ userId }, { streak: 0 });
+    await SupportStreak.findOneAndUpdate({ userId: partnerUserId }, { streak: 0 });
     currentStreak = 0;
   }
 
@@ -212,6 +215,18 @@ export async function getPartnerStatus(userId: string): Promise<object> {
   }
   if (partnerLastMessage?.createdAt && (!partnerLastActive || partnerLastMessage.createdAt > partnerLastActive)) {
     partnerLastActive = partnerLastMessage.createdAt;
+  }
+
+  const ladyDash = user.role === 'lady'
+    ? await Dashboard.findOne({ userId }).lean()
+    : partnerDash;
+  const cycleStart = ladyDash?.lastPeriodStart;
+  let totalActionsThisCycle = 0;
+  if (cycleStart) {
+    totalActionsThisCycle = await SupportAction.countDocuments({
+      userId: partnerUserId,
+      completedAt: { $gte: cycleStart }
+    });
   }
 
   return {
@@ -263,6 +278,7 @@ export async function getPartnerStatus(userId: string): Promise<object> {
       completedActions: completedToday,
       supportStreak: currentStreak,
       lastActionDate: streakDoc!.lastActionDate,
+      totalActionsThisCycle,
     },
   };
 }

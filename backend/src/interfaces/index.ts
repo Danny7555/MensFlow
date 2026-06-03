@@ -44,7 +44,7 @@ export interface AuthResponse {
 export interface ISettings {
   userId: string;
   themeMode: 'light' | 'dark' | 'system';
-  contrastMode: 'system' | 'standard';
+  contrastMode: 'system' | 'standard' | 'high';
   accentPreset: 'default' | 'orchid' | 'ocean';
   languageUi: 'auto' | 'en';
   spokenLanguage: 'auto' | 'en-US';

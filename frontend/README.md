@@ -10,6 +10,7 @@ Welcome to **MensFlow**, a premium, beautifully designed health application tail
 ## 📖 Table of Contents
 
 - [Project Overview & Mission Guide](../docs/project_overview.md) ( Ghanaian adolescent health context, MongoDB backend blueprint, and AI Engines )
+
 1. [Core Features](#-core-features)
 2. [MensFlow vs. Flo: What Makes It Unique?](#-mensflow-vs-flo-what-makes-it-unique)
 3. [Tech Stack & Architecture](#-tech-stack--architecture)
@@ -81,9 +82,12 @@ MensFlow is constructed with performance, stability, and pixel-perfection in min
 - **Styling Engine:** [Tailwind CSS v4](https://tailwindcss.com/) + Custom CSS variables.
 - **Routing:** [React Router v7](https://reactrouter.com/) for single-page routing and conditional navigation shells.
 - **State Management:** [Zustand](https://zustand-demo.pmnd.rs/) with localStorage persistence middleware.
+- **Data Fetching:** [TanStack Query](https://tanstack.com/query/latest) for async state management.
 - **Data Vis:** [Recharts](https://recharts.org/) for beautiful, responsive charts.
+- **UI Library:** Radix UI primitives + custom shadcn-style components.
+- **Date Handling:** [date-fns](https://date-fns.org/) for date utilities.
+- **Animations:** [Framer Motion](https://www.framer.com/motion/) + Tailwindcss Animate.
 - **Iconography:** [Phosphor Icons](https://phosphoricons.com/) and [Lucide React](https://lucide.dev/).
-- **Animations:** Built-in transition utilities using [Tailwindcss Animate](https://github.com/jamiebuilds/tailwindcss-animate) and custom hardware-accelerated CSS transforms.
 - **Tour System:** [React Joyride](https://react-joyride.com/) for step-by-step introduction overlays.
 
 ---
@@ -147,6 +151,50 @@ Manages configuration models.
 - **Privacy & Security:** Controls passcode encryption flags, security questions, custom passwords, and database clear procedures.
 - **Layout Tweaks:** Set dark/light modes, sidebar collapse behaviors, and mobile navigation overrides.
 
+### 8. Onboarding View (`OnboardingView.tsx`)
+
+First-time user setup flow.
+
+- **Partner Role Selection:** Choose "Lady" or "Partner" role to customize the experience.
+- **Cycle Setup:** Configure typical cycle length, period duration, and last period start date.
+
+### 9. Landing View (`LandingView.tsx`)
+
+Public-facing landing page with app introduction and authentication options.
+
+### 10. Education View (`EducationView.tsx`)
+
+Educational content about menstrual health, hormones, and wellness.
+
+### 11. Tips View (`TipsView.tsx`)
+
+Collections of phase-specific wellness tips and partner support suggestions.
+
+### 12. Notifications View (`NotificationsView.tsx`)
+
+Displays partner pings, access requests, and system alerts.
+
+### 13. Insights View (`InsightsView.tsx`)
+
+Analytics dashboard with trend summaries, correlation charts, and export functionality.
+
+- **Trend Summary:** Key metrics showing cycle consistency, symptom frequency, and wellness scores.
+- **Pattern Charts:** SymptomTrendsChart and InteractiveAreaChart visualizing data over time.
+- **Reports & Export:** CSV download and PDF export for doctor consultations.
+- **Partner Privacy:** View-only mode for partners with option to request detailed access.
+
+### 14. Tracker View (`TrackerView.tsx`)
+
+Comprehensive cycle tracking interface.
+
+- **Cycle Tracker Hero:** Visual cycle wheel with day selection.
+- **Cycle Statistics:** Summary metrics for current cycle.
+- **Cycle History:** Historical cycle lengths and patterns.
+- **Health Metrics:** Water intake, weight tracking, LH levels, cervical mucus.
+- **Cycle Logs:** Daily symptom logging with merge support.
+- **Cycle Tips:** Context-aware suggestions based on selected day.
+- **Privacy Gate:** Restricted view for partners without detailed access permission.
+
 ---
 
 ## 📂 Directory Layout
@@ -157,16 +205,18 @@ MensFlow/
 ├── src/
 │   ├── assets/             # Bundled visual assets & images
 │   ├── components/         # Reusable presentation & layout elements
-│   │   ├── dashboard/      # Daily logs, feed progress banners, quick tips, Emotion Translator
-│   │   ├── tracker/        # Hero grids, CycleWheel, custom Recharts graphs
-│   │   └── ui/             # Core UI atoms (cards, modals, dropdowns, buttons, inputs)
-│   ├── context/            # React global providers (Auth, Chat Session settings)
+│   │   ├── dashboard/      # Daily logs, feed progress banners, quick tips, Emotion Translator, Stories, Hormone Insight, Daily Tip, Feed Section
+│   │   ├── tracker/        # Hero grids, CycleWheel, CycleTips, CycleStatsHero, HealthMetrics, CycleHistory, CycleLogs
+│   │   ├── skeletons/      # Loading skeletons for Dashboard, Calendar, Chat, Insights, Tips, Settings, PageLoader
+│   │   └── ui/             # Core UI atoms (cards, modals, dropdowns, buttons, inputs, badge, select, tooltip, popover, dialog, calendar)
+│   ├── context/            # React global providers (Auth, Chat Session settings, Settings)
 │   ├── data/               # Static mock records & medical correlation maps (symptoms, education, tips)
 │   ├── hooks/              # Global custom hooks (e.g., useMediaQuery for responsive views)
 │   ├── lib/                # Shared utilities, constants, cycle formulas, theme solvers, and storage helpers
+│   ├── services/           # API clients (logsService, userService, partnerService)
 │   ├── store/              # Zustand state manager (useStore.ts)
 │   ├── types/              # Type definitions and interfaces
-│   ├── views/              # Page-level route views (Dashboard, Insights, Tracker, Calendar, Onboarding)
+│   ├── views/              # Page-level route views (Dashboard, Insights, Tracker, Calendar, Onboarding, Chat, Symptoms, Settings, Sync, LockedChats, Landing, Education, Tips, Notifications, Placeholder)
 │   ├── App.tsx             # Main routing engine, Shell layout, & Provider setups
 │   ├── App.css             # Main styling layer (overrides, page templates, custom grid frameworks)
 │   ├── index.css           # Tailwind base configuration, bespoke Design Tokens, & Dark Mode schemes
@@ -262,33 +312,95 @@ To simulate mobile haptics and keep the app feeling incredibly responsive, inter
 Global states (logs, dashboard statistics, user parameters, and persistent storage bindings) are centralized in [useStore.ts](src/store/useStore.ts).
 
 > [!TIP]
-> The store uses the Zustand `persist` middleware to automatically serialize/deserialize key states to local storage under the key `mensflow-storage`. It also simulates network latency (`1s` and `800ms`) on database saves to display premium loading overlays seamlessly across pages.
+> The store uses the Zustand `persist` middleware to automatically serialize/deserialize key states to local storage under the key `mensflow-storage`. State sync to backend is controlled by `privacyStrictLocalOnly` setting. API services are in `src/services/`.
+
+**Store Interface:**
 
 ```typescript
+export type SymptomLog = {
+  date: string;
+  symptoms: string[];
+  water?: number;
+  weight?: number;
+  lhLevel?: string | null;
+  mucus?: string | null;
+};
+
 interface AppState {
   dashboard: DashboardSnapshot;
   settings: MensFlowSettings;
   logs: SymptomLog[];
-  user: { name: string };
+  user: AppUser;
   customSymptoms: SymptomDef[];
   isSaving: boolean;
   completedActions: string[];
   supportStreak: number;
   lastActionDate: string;
+  partnerStatus: {
+    paired: boolean;
+    partner?: {
+      name: string;
+      avatar: string | null;
+      accessLevel: "full" | "educational";
+      lastActive?: number | null;
+    };
+    cycle?: {
+      lastPeriodStart: string;
+      typicalCycleDays: number;
+      phaseLabel: string;
+      hormoneTrend: string;
+      bodySignals: string;
+    };
+    support?: {
+      completedActions: string[];
+      supportStreak: number;
+      lastActionDate: string;
+    };
+  } | null;
 
-  // Actions
-  updateDashboard: (patch: Partial<DashboardSnapshot>) => Promise<void>;
-  updateUser: (patch: Partial<{ name: string }>) => void;
-  updateSettings: (patch: Partial<MensFlowSettings>) => void;
-  resetSettings: () => void;
-  addLog: (date: string, symptoms: string[]) => Promise<void>;
-  getLogForDate: (date: string) => SymptomLog | undefined;
-  clearLogs: () => void;
-  addCustomSymptom: (label: string, category: SymptomCategory) => void;
-  removeCustomSymptom: (id: string) => void;
+  // Lifecycle
+  hydrate: ({ user, settings, dashboard }) => void;
   resetStore: () => void;
-  toggleSupportAction: (actionId: string) => void;
+
+  // Dashboard & User
+  updateDashboard: (patch: Partial<DashboardSnapshot>) => Promise<void>;
+  updateUser: (patch: Partial<AppUser>) => Promise<void>;
+  updateSettings: (patch: Partial<MensFlowSettings>) => Promise<void>;
+
+  // Logs
+  addLog: (
+    date: string,
+    symptoms: string[],
+    lhLevel?,
+    mucus?,
+  ) => Promise<boolean>;
+  updateDailyMetrics: (
+    date: string,
+    water?,
+    weight?,
+    lhLevel?,
+    mucus?,
+  ) => Promise<boolean>;
+  getLogForDate: (date: string) => SymptomLog | undefined;
+  fetchLogs: () => Promise<void>;
+  clearLogs: () => Promise<void>;
+  addCustomSymptom: (label: string, category: SymptomCategory) => Promise<void>;
+  removeCustomSymptom: (id: string) => Promise<void>;
+
+  // Partner Support
+  toggleSupportAction: (actionId: string) => Promise<void>;
   checkAndResetDailyActions: () => void;
+  fetchPartnerStatus: () => Promise<void>;
+  pairPartner: (partnerCode: string) => Promise<void>;
+  invitePartner: (email: string) => Promise<void>;
+  disconnectPartnerAction: () => Promise<void>;
+  requestDetailedAccessAction: () => Promise<void>;
+
+  // UI Actions
+  showConfirm: (options) => void;
+  closeConfirm: () => void;
+  showAlert: (options) => void;
+  closeAlert: () => void;
 }
 ```
 
@@ -299,6 +411,12 @@ Additional configurations and session metrics are isolated inside specialized Co
 - `AuthProvider.tsx` — Handles auth states, registration modes, and onboarding checks.
 - `SettingsProvider.tsx` — Manages preferences like theme (light vs dark), mobile navigation settings, and desktop sidebar states.
 - `ChatSessionContext` — Shared in `App.tsx` to handle ephemeral chat sessions and routing setups.
+
+### API Services (`src/services/`)
+
+- `logsService.ts` — Symptom log CRUD operations (getAll, upsert, clearAll, getCustom, addCustom, removeCustom)
+- `userService.ts` — User profile and authentication (getProfile, updateProfile, updateDashboard, updateSettings, submitQuizAttempt)
+- `partnerService.ts` — Partner pairing and support sync (getStatus, pair, invite, disconnect, toggleAction, requestAccess)
 
 ---
 
@@ -325,53 +443,25 @@ Follow these steps to set up your local development environment:
    bun install
    ```
 3. **Spin up the development environment:**
+
    ```bash
    npm run dev
    # or with bun
    bun dev
    ```
+
    _The local server will run on [http://localhost:5173/](http://localhost:5173/)_
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 26be10f (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.)
-=======
-<<<<<<< HEAD:frontend/README.md
-<<<<<<< HEAD
->>>>>>> 5f2fc9a (docs: update README with detailed view documentation and add collaboration guide)
-=======
-<<<<<<< HEAD:frontend/README.md
-=======
->>>>>>> 62e37b9 (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.):README.md
->>>>>>> eb85cf2 (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.)
->>>>>>> ed2de6f (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.)
-4. **Verify TypeScript type safety (without compiling files):**
+4. **Verify TypeScript type safety:**
+
    ```bash
    npm run typecheck
    # or with bun
    bun run typecheck
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-4. **Verify TypeScript build compilation:**
-=======
-=======
-=======
-<<<<<<< HEAD:frontend/README.md
->>>>>>> eb85cf2 (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.)
-=======
-4. **Verify TypeScript build compilation:**
-=======
    ```
 
 5. **Lint and format checks:**
+
    ```bash
    npm run lint
    # or with bun
@@ -379,32 +469,7 @@ Follow these steps to set up your local development environment:
    ```
 
 6. **React quality diagnostics (React Doctor):**
-   ```bash
-   npm run doctor
-   # or with bun
-   bun run doctor
-   ```
 
-7. **Compile and build for production:**
->>>>>>> 62e37b9 (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.):README.md
-   ```bash
-   npm run build
-   # or with bun
-   bun run build
->>>>>>> 1d4910a (docs: update README with detailed view documentation and add collaboration guide):README.md
->>>>>>> 5f2fc9a (docs: update README with detailed view documentation and add collaboration guide)
->>>>>>> ed2de6f (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.)
-   ```
-
-<<<<<<< HEAD:frontend/README.md
-5. **Lint checks:**
-   ```bash
-   npm run lint
-   # or with bun
-   bun run lint
-   ```
-
-6. **React quality diagnostics (React Doctor):**
    ```bash
    npm run doctor
    # or with bun
@@ -419,15 +484,6 @@ Follow these steps to set up your local development environment:
    ```
    _Compiles code and builds the production artifact into the `dist/` directory._
 
-<<<<<<< HEAD
-=======
-=======
-<<<<<<< HEAD
->>>>>>> 26be10f (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.)
-=======
->>>>>>> 62e37b9 (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.):README.md
->>>>>>> eb85cf2 (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.)
->>>>>>> ed2de6f (feat: add typecheck and doctor scripts to package.json and update development documentation and sidebar store access.)
 ---
 
 ## 🛠️ Adding New Features (Developer Walkthrough)

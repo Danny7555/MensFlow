@@ -1,6 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { get, post, put } from '../lib/apiClient'
-import { isLoggedIn } from '../lib/auth-token'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -23,7 +21,7 @@ export type ApiUser = {
 
 export type ApiSettings = {
   themeMode: 'light' | 'dark' | 'system'
-  contrastMode: 'system' | 'standard'
+  contrastMode: 'system' | 'standard' | 'high'
   accentPreset: 'default' | 'orchid' | 'ocean'
   languageUi: 'auto' | 'en'
   spokenLanguage: 'auto' | 'en-US'
@@ -76,6 +74,13 @@ export type ApiDashboard = {
   }
 }
 
+export type ApiLoginRecord = {
+  id: string
+  ip: string
+  userAgent: string
+  timestamp: string
+}
+
 // ─── Endpoints ────────────────────────────────────────────────────────────────
 
 export const userApi = {
@@ -93,51 +98,12 @@ export const userApi = {
 
   submitQuizAttempt: (date: string, correct: boolean) =>
     post<{ success: boolean; user: ApiUser }>('/user/xp', { date, correct }),
-}
 
-// ─── Hooks ────────────────────────────────────────────────────────────────────
+  getLoginHistory: () =>
+    get<ApiLoginRecord[]>('/user/login-history'),
+}
 
 export const userKeys = {
   profile: ['userProfile'] as const,
 }
 
-export function useUserProfile() {
-  return useQuery({
-    queryKey: userKeys.profile,
-    queryFn: () => userApi.getProfile(),
-    enabled: isLoggedIn(),
-  })
-}
-
-export function useUpdateProfileMutation() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (patch: Partial<Pick<ApiUser, 'name' | 'avatar' | 'accessLevel' | 'isOnboarded' | 'role' | 'onboardingData'>>) =>
-      userApi.updateProfile(patch),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: userKeys.profile })
-    },
-  })
-}
-
-export function useUpdateSettingsMutation() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (patch: Partial<ApiSettings>) =>
-      userApi.updateSettings(patch),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: userKeys.profile })
-    },
-  })
-}
-
-export function useUpdateDashboardMutation() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (patch: Partial<ApiDashboard>) =>
-      userApi.updateDashboard(patch),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: userKeys.profile })
-    },
-  })
-}

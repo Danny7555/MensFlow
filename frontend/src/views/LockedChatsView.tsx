@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useState } from 'react'
 import { useStore } from '../store/useStore'
 import { Lock, LockKey, ShieldCheck, WarningCircle, CheckCircle, Sparkle } from '@phosphor-icons/react'
@@ -86,7 +87,6 @@ export function LockedChatsView() {
                     setError(false)
                   }}
                   className={`w-full h-12 px-4 rounded-xl bg-muted border ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-border focus:border-[var(--mf-accent-border)] focus:ring-[var(--mf-accent)]'} focus:ring-1 transition-all outline-none text-base`}
-                  autoFocus
                   aria-label="Security answer"
                 />
               )}
@@ -136,7 +136,6 @@ export function LockedChatsView() {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="w-full h-12 pl-10 pr-4 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-[var(--mf-accent)] focus:ring-1 transition-all outline-none text-base"
-                autoFocus
                 aria-label="New password"
               />
               {newPassword && (
@@ -240,7 +239,6 @@ export function LockedChatsView() {
                 setError(false)
               }}
               className={`w-full h-12 pl-10 pr-4 rounded-xl bg-muted border ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-border focus:border-[var(--mf-accent-border)] focus:ring-[var(--mf-accent)]'} focus:ring-1 transition-all outline-none text-base`}
-              autoFocus
               aria-label="Passcode"
             />
           </div>

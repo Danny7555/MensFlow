@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import * as authService from '../services/authService';
 import { verifyOtpCode, createOtpSession } from '../services/otpService';
 import { User } from '../models/User';
+import { LoginHistory } from '../models/LoginHistory';
 import { objectRecord, requiredString } from '../utils/validation';
 
 function signFullToken(userId: string, username: string): string {
@@ -41,6 +42,13 @@ export async function login(req: Request, res: Response, next: NextFunction): Pr
     const password = requiredString(body.password, 'password', { max: 128 });
 
     const result = await authService.loginUser(username, password);
+    if (result.token && result.user.id) {
+      await LoginHistory.create({
+        userId: result.user.id,
+        ip: req.ip || String(req.headers['x-forwarded-for'] || 'Unknown'),
+        userAgent: req.headers['user-agent'] || 'Unknown',
+      });
+    }
     res.json(result);
   } catch (err) {
     next(err);
@@ -55,6 +63,12 @@ export async function verifyOtp(req: Request, res: Response, next: NextFunction)
 
     const user = await verifyOtpCode(otpToken, code);
     const token = signFullToken(String(user._id), user.username);
+
+    await LoginHistory.create({
+      userId: user._id,
+      ip: req.ip || String(req.headers['x-forwarded-for'] || 'Unknown'),
+      userAgent: req.headers['user-agent'] || 'Unknown',
+    });
 
     res.json({
       token,
