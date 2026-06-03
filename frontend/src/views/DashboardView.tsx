@@ -43,6 +43,7 @@ interface QuickEmpathyBoostCardProps {
 
 function QuickEmpathyBoostCard({ ladyName, isAuthenticated }: QuickEmpathyBoostCardProps) {
   const [activePing, setActivePing] = useState<string | null>(null)
+  const { user } = useStore()
   
   const options = [
     { id: 'chocolate', label: 'Bring Chocolate', Icon: Cookie, color: "text-amber-600", message: "I'm on my way home with some sweet treats for you! " },
@@ -62,6 +63,8 @@ function QuickEmpathyBoostCard({ ladyName, isAuthenticated }: QuickEmpathyBoostC
         id,
         label,
         message,
+        senderId: user?.id || 'guest',
+        senderRole: user?.role || 'partner',
         timestamp: getTimestamp()
       }
       localStorage.setItem('mensflow_partner_ping:v1', JSON.stringify(pingData))
@@ -380,6 +383,9 @@ export function DashboardView() {
         if (pingStr) {
           const ping = JSON.parse(pingStr)
           if (ping && ping.timestamp) {
+            if (ping.senderId && ping.senderId === (user?.id || 'guest')) {
+              return
+            }
             const lastProcessed = localStorage.getItem('mensflow_last_ping_processed:v1')
             if (lastProcessed !== String(ping.timestamp)) {
               localStorage.setItem('mensflow_last_ping_processed:v1', String(ping.timestamp))

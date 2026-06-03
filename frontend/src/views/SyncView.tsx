@@ -205,6 +205,8 @@ export function SyncView() {
         id: option.id,
         label: option.label,
         message: option.message,
+        senderId: user?.id || 'guest',
+        senderRole: user?.role || 'lady',
         timestamp: Date.now()
       }
       localStorage.setItem('mensflow_partner_ping:v1', JSON.stringify(pingData))
