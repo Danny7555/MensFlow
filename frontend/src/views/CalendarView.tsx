@@ -290,13 +290,12 @@ function MonthView({ viewDate, selectedDate, isEditingPeriods, periodDates, disp
             const isOvulation = d === 5 && month === 8 
             
             return (
-              <div 
+              <button 
                 key={d} 
-                role="button"
-                tabIndex={0}
+                type="button"
                 onClick={() => handleDayClick(d)}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleDayClick(d) }}
-                className="relative flex flex-col items-center justify-center cursor-pointer group py-2 sm:py-0"
+                className="relative flex flex-col items-center justify-center cursor-pointer group py-2 sm:py-0 w-full"
               >
                 <span className="text-[10px] text-muted-foreground mb-1 font-normal group-hover:text-foreground transition-colors">
                   {(d + 6) % 28 + 1}
@@ -327,7 +326,7 @@ function MonthView({ viewDate, selectedDate, isEditingPeriods, periodDates, disp
                     <div className="w-full border-b-2 border-dotted border-[#ff5a5f]" />
                   </div>
                 )}
-              </div>
+              </button>
             )
           })}
         </div>
@@ -348,11 +347,10 @@ function MonthView({ viewDate, selectedDate, isEditingPeriods, periodDates, disp
         const offset = m.getDay()
 
         return (
-          <div 
+          <button 
             key={m.getTime()} 
-            role="button"
-            tabIndex={0}
-            className="p-4 bg-white dark:bg-card rounded-2xl border border-border/50 hover:border-[var(--mf-accent)] transition-all cursor-pointer group flex flex-col"
+            type="button"
+            className="p-4 bg-white dark:bg-card rounded-2xl border border-border/50 hover:border-[var(--mf-accent)] transition-all cursor-pointer group flex flex-col text-left w-full"
             onClick={() => onMonthClick(m)}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onMonthClick(m) }}
           >
@@ -383,7 +381,7 @@ function MonthView({ viewDate, selectedDate, isEditingPeriods, periodDates, disp
                 )
               })}
             </div>
-          </div>
+          </button>
         )
       })}
     </div>

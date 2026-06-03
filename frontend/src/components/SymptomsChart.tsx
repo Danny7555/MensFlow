@@ -111,9 +111,9 @@ export function SymptomsChart() {
       monthSymptomsList.forEach(symptoms => {
         symptoms.forEach(sym => {
           const s = sym.toLowerCase()
-          if (s.includes('cramp')) cramps++
-          if (s.includes('mood') || s.includes('anxious') || s.includes('sad') || s.includes('irritable')) moodSwings++
-          if (s.includes('fatigue') || s.includes('sleep')) fatigue++
+          if (/cramp/.test(s)) cramps++
+          if (/mood|anxious|sad|irritable/.test(s)) moodSwings++
+          if (/fatigue|sleep/.test(s)) fatigue++
         })
       })
 

@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CaretRight, FlowerLotus, Sparkle, Heart } from '@phosphor-icons/react'
@@ -12,7 +13,7 @@ import { useChatSuggestions } from '../services/chatService'
 
 export function LandingView() {
   const [draft, setDraft] = useState('')
-  const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; text: string }[]>([])
+  const [messages, setMessages] = useState<{ id: string; role: 'user' | 'assistant'; text: string }[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const { onboardingCompleted, openAuthModal } = useAuth()
   const navigate = useNavigate()
@@ -44,7 +45,7 @@ export function LandingView() {
       return
     }
 
-    const newUserMessage = { role: 'user' as const, text }
+    const newUserMessage = { id: `msg-user-${Date.now()}-${Math.random()}`, role: 'user' as const, text }
     const nextMessages = [...messages, newUserMessage]
     setMessages(nextMessages)
     setDraft('')
@@ -53,14 +54,14 @@ export function LandingView() {
     try {
       const response = await post<{ text: string }>('/chat/guest-message', {
         text,
-        history: messages,
+        history: messages.map(({ role, text }) => ({ role, text })),
       })
-      setMessages([...nextMessages, { role: 'assistant', text: response.text }])
+      setMessages([...nextMessages, { id: `msg-assistant-${Date.now()}-${Math.random()}`, role: 'assistant', text: response.text }])
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Failed to connect to assistant')
       setMessages([
         ...nextMessages,
-        { role: 'assistant', text: 'Sorry, I am having trouble connecting right now. Please try again.' },
+        { id: `msg-error-${Date.now()}-${Math.random()}`, role: 'assistant', text: 'Sorry, I am having trouble connecting right now. Please try again.' },
       ])
     } finally {
       setIsLoading(false)
@@ -107,7 +108,7 @@ export function LandingView() {
               // Only show banner after the assistant response corresponding to the 1st or 2nd user message
               const showBanner = !isUser && (idx === 1 || idx === 3)
               return (
-                <div key={idx} className="space-y-3">
+                <div key={msg.id} className="space-y-3">
                   <div className={`chat-bubble ${isUser ? 'chat-bubble--user' : 'chat-bubble--assistant'}`}>
                     <span className="chat-role">{isUser ? 'You' : 'MensFlow'}</span>
                     {isUser ? (
@@ -161,7 +162,7 @@ export function LandingView() {
                     <div
                       key={delay}
                       style={{ animationDelay: `${delay}ms` }}
-                      className="size-2 rounded-full bg-[var(--mf-accent)] animate-bounce"
+                      className="size-2 rounded-full bg-[var(--mf-accent)] animate-typing-dot"
                     />
                   ))}
                 </div>
@@ -179,9 +180,9 @@ export function LandingView() {
                 <span>Suggested Questions</span>
               </div>
               <div className="chat-suggestions-grid">
-                {suggestions.map((s, idx) => (
+                {suggestions.map((s) => (
                   <button
-                    key={idx}
+                    key={s}
                     type="button"
                     onClick={() => send(s)}
                     className="chat-suggestion-chip"

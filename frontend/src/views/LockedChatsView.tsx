@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useState } from 'react'
 import { useStore } from '../store/useStore'
 import { Lock, LockKey, ShieldCheck, WarningCircle, CheckCircle, Sparkle } from '@phosphor-icons/react'

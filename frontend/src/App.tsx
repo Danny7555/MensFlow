@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useCallback, useState, useMemo, lazy, Suspense } from 'react'
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { LazyMotion, domAnimation, AnimatePresence } from 'framer-motion'

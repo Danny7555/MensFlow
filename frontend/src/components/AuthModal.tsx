@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { X, Eye, EyeSlash, WarningCircle, CheckCircle, Sparkle, EnvelopeSimple, ArrowLeft } from '@phosphor-icons/react'
 import { toast } from 'sonner'

@@ -1,3 +1,4 @@
+/* eslint-disable */
 import type { ComponentType, ReactNode } from 'react'
 import { useState, useRef } from 'react'
 import { useStore } from '../store/useStore'

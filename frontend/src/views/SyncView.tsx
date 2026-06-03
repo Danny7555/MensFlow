@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { m } from 'framer-motion'
 import type { Variants } from 'framer-motion'

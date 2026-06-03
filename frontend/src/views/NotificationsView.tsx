@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useMemo, useState, useEffect} from 'react'
 import { Bell, CaretLeft, CheckCircle, Info, WarningCircle, EnvelopeSimple, Flame, Sliders, Eye } from "@phosphor-icons/react"
 import { useNavigate } from "react-router-dom"

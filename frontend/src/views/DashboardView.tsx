@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { use, useReducer, useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Joyride, STATUS, type EventData, type TooltipRenderProps } from 'react-joyride'

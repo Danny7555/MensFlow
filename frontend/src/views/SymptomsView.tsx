@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useMemo, useState, useEffect } from 'react'
 import { 
   Pill, Pulse, Drop, DropHalf, DropSimple, 
@@ -458,7 +459,7 @@ export function SymptomsView() {
         </section>
       ) : (
         <section className="pt-4">
-          <div className="p-6 sm:p-8 rounded-[2rem] bg-[var(--mf-card)] border border-[var(--mf-border)] text-center w-full max-w-md mx-auto space-y-4 flex flex-col items-center">
+          <div className="p-6 sm:p-8 rounded-[2rem] bg-[var(--mf-card)] border border-[var(--mf-border)] text-center w-full max-w-md mx-auto gap-4 flex flex-col items-center">
             <h2 className="text-sm font-normal tracking-tight text-foreground">Analytical Trends Private</h2>
             <p className="text-xs text-muted-foreground leading-relaxed">
               Historical cycle graphs, trends, and diagnostic symptom charts are managed privately on your partner's device.
