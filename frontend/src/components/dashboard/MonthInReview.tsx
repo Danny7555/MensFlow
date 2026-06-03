@@ -222,13 +222,13 @@ export function MonthInReview() {
     >
       <div className="flex items-center justify-between mb-5">
         <div>
-          <span className="text-[9px] font-normal text-[var(--mf-accent)] uppercase tracking-[0.2em] block mb-0.5">Cycle Story</span>
-          <h3 className="text-base font-normal text-[var(--mf-text-strong)] flex items-center gap-1.5 font-semibold">
+          <span className="text-[9px] font-regular text-[var(--mf-accent)] uppercase tracking-[0.2em] block mb-0.5">Cycle Story</span>
+          <h3 className="text-base font-regular text-[var(--mf-text-strong)] flex items-center gap-1.5 font-semibold">
             Your Month in Review
             <Sparkle size={14} className="text-[var(--mf-accent)]" weight="fill" />
           </h3>
         </div>
-        <div className="size-8 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)]">
+        <div className="size-8 rounded-full flex items-center justify-center text-[var(--mf-accent)]">
           <Info size={14} weight="bold" />
         </div>
       </div>
@@ -236,7 +236,7 @@ export function MonthInReview() {
       <div className="space-y-4">
         {/* Cycle Duration */}
         <div className="flex items-start gap-3">
-          <div className="size-8 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center shrink-0 mt-0.5">
+          <div className="size-8 rounded-xl  text-rose-500 flex items-center justify-center shrink-0 mt-0.5">
             <Calendar size={18} weight="fill" />
           </div>
           <div className="space-y-0.5">
@@ -249,7 +249,7 @@ export function MonthInReview() {
 
         {/* Energy Peaks */}
         <div className="flex items-start gap-3">
-          <div className="size-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0 mt-0.5">
+          <div className="size-8 rounded-xl  text-amber-500 flex items-center justify-center shrink-0 mt-0.5">
             <Lightning size={18} weight="fill" />
           </div>
           <div className="space-y-0.5">
@@ -262,7 +262,7 @@ export function MonthInReview() {
 
         {/* Cramping Trend */}
         <div className="flex items-start gap-3">
-          <div className="size-8 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0 mt-0.5">
+          <div className="size-8 rounded-xl text-purple-500 flex items-center justify-center shrink-0 mt-0.5">
             <Pulse size={18} weight="fill" />
           </div>
           <div className="space-y-0.5">
@@ -275,7 +275,7 @@ export function MonthInReview() {
 
         {/* Partner Actions */}
         <div className="flex items-start gap-3">
-          <div className="size-8 rounded-xl bg-teal-500/10 text-teal-500 flex items-center justify-center shrink-0 mt-0.5">
+          <div className="size-8 rounded-xl  text-teal-500 flex items-center justify-center shrink-0 mt-0.5">
             <Heart size={18} weight="fill" />
           </div>
           <div className="space-y-0.5">

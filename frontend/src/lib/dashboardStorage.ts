@@ -30,11 +30,3 @@ export const DEFAULT_DASHBOARD: DashboardSnapshot = {
   scientificInsight: '',
   dailyTip: { title: '', desc: '' },
 }
-
-export function loadDashboard(): DashboardSnapshot {
-  return DEFAULT_DASHBOARD
-}
-
-export function saveDashboard(_dashboard: DashboardSnapshot) {
-  // Stateless, dashboard values are loaded and stored directly on the backend
-}

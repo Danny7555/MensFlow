@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { get, post } from '../lib/apiClient'
-import { userKeys } from './userService'
 import { isLoggedIn } from '../lib/auth-token'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -96,71 +95,9 @@ export const partnerApi = {
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────
 
-export const partnerKeys = {
-  status: ['partnerStatus'] as const,
-  ping: ['latestPing'] as const,
+const partnerKeys = {
   chat: ['partnerChat'] as const,
   suggestions: ['partnerChatSuggestions'] as const,
-}
-
-export function usePartnerStatus() {
-  return useQuery({
-    queryKey: partnerKeys.status,
-    queryFn: () => partnerApi.getStatus(),
-    enabled: isLoggedIn(),
-  })
-}
-
-export function usePairPartnerMutation() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (partnerCode: string) => partnerApi.pair(partnerCode),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: partnerKeys.status })
-      queryClient.invalidateQueries({ queryKey: userKeys.profile })
-    },
-  })
-}
-
-export function useDisconnectPartnerMutation() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: () => partnerApi.disconnect(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: partnerKeys.status })
-      queryClient.invalidateQueries({ queryKey: userKeys.profile })
-    },
-  })
-}
-
-export function useSendPingMutation() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: ({ pingId, label, message }: { pingId: string; label: string; message: string }) =>
-      partnerApi.sendPing(pingId, label, message),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: partnerKeys.ping })
-    },
-  })
-}
-
-export function useLatestPingQuery(options?: { refetchInterval?: number }) {
-  return useQuery({
-    queryKey: partnerKeys.ping,
-    queryFn: () => partnerApi.getLatestPing(),
-    enabled: isLoggedIn(),
-    ...options,
-  })
-}
-
-export function useToggleSupportActionMutation() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (actionId: string) => partnerApi.toggleAction(actionId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: partnerKeys.status })
-    },
-  })
 }
 
 export function usePartnerChatMessagesQuery(options?: { refetchInterval?: number }) {

@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { get, post, put, del } from '../lib/apiClient'
 import { isLoggedIn } from '../lib/auth-token'
 
@@ -92,82 +92,5 @@ export function useChatSuggestions() {
   return useQuery({
     queryKey: chatKeys.suggestions,
     queryFn: () => chatApi.getSuggestions(),
-  })
-}
-
-export function useChatSessions() {
-  return useQuery({
-    queryKey: chatKeys.sessions,
-    queryFn: () => chatApi.getSessions(),
-    enabled: isLoggedIn(),
-  })
-}
-
-export function useChatMessages(sessionId: string | null, passcode?: string) {
-  return useQuery({
-    queryKey: chatKeys.messages(sessionId ?? ''),
-    queryFn: () => chatApi.getMessages(sessionId!, passcode),
-    enabled: isLoggedIn() && !!sessionId,
-  })
-}
-
-export function useSendChatMessageMutation() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: ({ sessionId, text, passcode }: { sessionId: string; text: string; passcode?: string }) =>
-      chatApi.send(sessionId, text, passcode),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: chatKeys.messages(variables.sessionId) })
-      queryClient.invalidateQueries({ queryKey: chatKeys.sessions })
-    },
-  })
-}
-
-export function useLockChatSessionMutation() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: ({
-      sessionId,
-      passcode,
-      securityQuestion,
-      securityAnswer,
-    }: {
-      sessionId: string
-      passcode: string
-      securityQuestion: string
-      securityAnswer: string
-    }) => chatApi.lock(sessionId, passcode, securityQuestion, securityAnswer),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: chatKeys.sessions })
-    },
-  })
-}
-
-export function useUnlockChatSessionMutation() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: ({
-      sessionId,
-      passcode,
-      securityAnswer,
-    }: {
-      sessionId: string
-      passcode?: string
-      securityAnswer?: string
-    }) => chatApi.unlock(sessionId, passcode, securityAnswer),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: chatKeys.sessions })
-      queryClient.invalidateQueries({ queryKey: chatKeys.messages(variables.sessionId) })
-    },
-  })
-}
-
-export function useDeleteChatSessionMutation() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (sessionId: string) => chatApi.deleteSession(sessionId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: chatKeys.sessions })
-    },
   })
 }

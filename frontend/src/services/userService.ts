@@ -1,6 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { get, post, put } from '../lib/apiClient'
-import { isLoggedIn } from '../lib/auth-token'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -105,49 +103,7 @@ export const userApi = {
     get<ApiLoginRecord[]>('/user/login-history'),
 }
 
-// ─── Hooks ────────────────────────────────────────────────────────────────────
-
 export const userKeys = {
   profile: ['userProfile'] as const,
 }
 
-export function useUserProfile() {
-  return useQuery({
-    queryKey: userKeys.profile,
-    queryFn: () => userApi.getProfile(),
-    enabled: isLoggedIn(),
-  })
-}
-
-export function useUpdateProfileMutation() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (patch: Partial<Pick<ApiUser, 'name' | 'avatar' | 'accessLevel' | 'isOnboarded' | 'role' | 'onboardingData'>>) =>
-      userApi.updateProfile(patch),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: userKeys.profile })
-    },
-  })
-}
-
-export function useUpdateSettingsMutation() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (patch: Partial<ApiSettings>) =>
-      userApi.updateSettings(patch),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: userKeys.profile })
-    },
-  })
-}
-
-export function useUpdateDashboardMutation() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (patch: Partial<ApiDashboard>) =>
-      userApi.updateDashboard(patch),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: userKeys.profile })
-    },
-  })
-}
