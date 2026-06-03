@@ -26,7 +26,7 @@ export function OnboardingView() {
 
   const activeQuestions = useMemo(() => {
     const selectedRole = (answers.role as string) || "";
-    const selectedPurpose = (answers.purpose as string) || "";
+    const selectedPurpose = (answers.purpose as string) || "track_period";
     const trackPeriodIds = [
       "cycle_regularity",
       "cycle_length",
@@ -41,8 +41,11 @@ export function OnboardingView() {
       "learning_preference",
     ];
     return ONBOARDING_QUESTIONS.filter((q) => {
-      if (["intro", "age_group", "role", "purpose"].includes(q.id)) return true;
-      if (selectedRole === "partner") return false;
+      if (["intro", "age_group", "role"].includes(q.id)) return true;
+      if (selectedRole === "partner") {
+        return ["referral_source", "name", "access_level"].includes(q.id);
+      }
+      if (q.id === "purpose") return true;
       if (!selectedPurpose) return false;
       if (q.id === "referral_source") return true;
       if (trackPeriodIds.includes(q.id))
@@ -67,7 +70,7 @@ export function OnboardingView() {
     return (currentActiveIndex / (activeQuestions.length - 1)) * 100;
   }, [currentActiveIndex, activeQuestions.length]);
 
-  const finishOnboarding = useCallback(() => {
+  const finishOnboarding = useCallback(async () => {
     const profile = buildPersonalizationProfile(answers);
     const patch: Partial<ApiUser> = {
       onboardingData: answers as Record<string, unknown>,
@@ -78,7 +81,7 @@ export function OnboardingView() {
       patch.name = profile.name;
     }
     if (Object.keys(patch).length > 0) {
-      updateUser(patch);
+      await updateUser(patch);
     }
     completeOnboarding();
     if (isAuthenticated) {
