@@ -1,6 +1,6 @@
 export type ThemeMode = 'light' | 'dark' | 'system'
 
-export type ContrastMode = 'system' | 'standard'
+export type ContrastMode = 'system' | 'standard' | 'high'
 
 export type AccentPreset = 'default' | 'orchid' | 'ocean'
 
