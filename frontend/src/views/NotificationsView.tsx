@@ -8,6 +8,7 @@ import { useAuth } from "../context/useAuth"
 import { computeCycleDay } from "../lib/cycleUtils"
 import { sendEmailReminder } from "../lib/emailService"
 import { toast } from "sonner"
+import { partnerApi } from '../services/partnerService'
 
 function playNotificationSound() {
   try {
@@ -55,11 +56,47 @@ export function NotificationsView() {
   const { user: authUser } = useAuth()
   const { dashboard: data, settings, logs, supportStreak, partnerStatus, updateSettings, user, resetNotificationCount } = useStore()
   const [sendingId, setSendingId] = useState<string | null>(null)
-  const [readIds, setReadIds] = useState<Set<string>>(new Set())
+  
+  const [readIds, setReadIds] = useState<Set<string>>(() => {
+    const saved = localStorage.getItem('mensflow_read_notifications:v1')
+    return saved ? new Set(JSON.parse(saved)) : new Set()
+  })
+  
+  const [receivedPings, setReceivedPings] = useState<any[]>(() => {
+    const saved = localStorage.getItem('mensflow_received_pings_list:v1')
+    return saved ? JSON.parse(saved) : []
+  })
   
   const [alertPermission, setAlertPermission] = useState<NotificationPermission>(
     typeof Notification !== 'undefined' ? Notification.permission : 'default'
   )
+
+  useEffect(() => {
+    localStorage.setItem('mensflow_read_notifications:v1', JSON.stringify(Array.from(readIds)))
+  }, [readIds])
+
+  useEffect(() => {
+    if (user?.role) {
+      partnerApi.getLatestPing().then((ping) => {
+        if (ping) {
+          setReceivedPings(prev => {
+            if (!prev.some((p: any) => p.timestamp === ping.timestamp)) {
+              const updated = [...prev, {
+                id: ping.pingId || `ping-${ping.timestamp}`,
+                label: ping.label,
+                message: ping.message,
+                timestamp: ping.timestamp,
+                senderId: ping.senderId
+              }]
+              localStorage.setItem('mensflow_received_pings_list:v1', JSON.stringify(updated))
+              return updated
+            }
+            return prev
+          })
+        }
+      }).catch(console.error)
+    }
+  }, [user?.role])
 
   const [isProcessing, setIsProcessing] = useState(false)
   const [guestRequest, setGuestRequest] = useState(
@@ -168,6 +205,24 @@ export function NotificationsView() {
     const today = new Date()
     const todayStr = format(today, 'yyyy-MM-dd')
     const isPartner = user?.role === 'partner'
+
+    // Add received pings to notifications history
+    receivedPings.forEach((ping: any) => {
+      if (ping.senderId && ping.senderId === user?.id) {
+        return
+      }
+      const pingId = ping.id || `ping-${ping.timestamp}`
+      list.push({
+        id: pingId,
+        title: isPartner ? "Partner Check-In" : "Support Nudge Received",
+        message: isPartner 
+          ? `She is feeling: "${ping.label}" (${ping.message})`
+          : `Partner says: "${ping.message}"`,
+        time: new Date(ping.timestamp),
+        type: 'info',
+        read: readIds.has(pingId)
+      })
+    })
 
     if (isPartner) {
       // ─── PARTNER NOTIFICATIONS ───
@@ -326,7 +381,7 @@ export function NotificationsView() {
 
     // Sort by time descending
     return list.sort((a, b) => b.time.getTime() - a.time.getTime())
-  }, [data.lastPeriodStart, data.typicalCycleDays, settings.notificationsCycleReminders, settings.notificationsProduct, logs, supportStreak, user?.role, partnerStatus])
+  }, [data.lastPeriodStart, data.typicalCycleDays, settings.notificationsCycleReminders, settings.notificationsProduct, logs, supportStreak, user?.role, partnerStatus, receivedPings, readIds, user?.id])
 
   const handleEmailReminder = async (notif: Notification) => {
     const emailTo = user?.email

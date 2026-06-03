@@ -43,6 +43,7 @@ export type ApiPing = {
   label: string
   message: string
   timestamp: number
+  senderId?: string
 }
 
 export type ApiPartnerMessage = {
