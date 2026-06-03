@@ -204,6 +204,161 @@
   --mf-ring: rgba(255, 141, 161, 0.45);
 }
 
+/* Orchid Accent Preset */
+[data-accent='orchid'] {
+  --mf-accent: #c84b9e;
+  --mf-accent-rgb: 200, 75, 158;
+  --mf-accent-hover: #b5368a;
+  --mf-accent-soft: rgba(200, 75, 158, 0.12);
+  --mf-accent-border: rgba(200, 75, 158, 0.25);
+  --mf-ring: rgba(200, 75, 158, 0.4);
+  --primary: #c84b9e;
+  --primary-foreground: #ffffff;
+}
+[data-theme='dark'][data-accent='orchid'] {
+  --mf-accent: #e272be;
+  --mf-accent-rgb: 226, 114, 190;
+  --mf-accent-hover: #ea93ce;
+  --mf-accent-soft: rgba(226, 114, 190, 0.15);
+  --mf-accent-border: rgba(226, 114, 190, 0.35);
+  --mf-ring: rgba(226, 114, 190, 0.45);
+  --primary: #e272be;
+  --primary-foreground: #1c1c1f;
+}
+
+/* Ocean Accent Preset */
+[data-accent='ocean'] {
+  --mf-accent: #0284c7;
+  --mf-accent-rgb: 14, 165, 233;
+  --mf-accent-hover: #0369a1;
+  --mf-accent-soft: rgba(14, 165, 233, 0.12);
+  --mf-accent-border: rgba(14, 165, 233, 0.25);
+  --mf-ring: rgba(14, 165, 233, 0.4);
+  --primary: #0284c7;
+  --primary-foreground: #ffffff;
+}
+[data-theme='dark'][data-accent='ocean'] {
+  --mf-accent: #38bdf8;
+  --mf-accent-rgb: 56, 189, 248;
+  --mf-accent-hover: #7dd3fc;
+  --mf-accent-soft: rgba(56, 189, 248, 0.15);
+  --mf-accent-border: rgba(56, 189, 248, 0.35);
+  --mf-ring: rgba(56, 189, 248, 0.45);
+  --primary: #38bdf8;
+  --primary-foreground: #0f172a;
+}
+
+/* High Contrast Mode - Light */
+[data-contrast='high'] {
+  --background: #ffffff;
+  --foreground: #000000;
+  --card: #ffffff;
+  --card-foreground: #000000;
+  --popover: #ffffff;
+  --popover-foreground: #000000;
+  
+  --mf-text: #1a1625;
+  --mf-text-strong: #000000;
+  --mf-muted: #333333;
+  --mf-main-bg: #ffffff;
+  --mf-sidebar-bg: #ffffff;
+  --mf-elevated: #f1f1f1;
+  --mf-composer-bg: #ffffff;
+  --mf-border: #666666;
+  --mf-border-strong: #333333;
+  
+  --border: #666666;
+  --input: #666666;
+  --ring: #000000;
+  
+  /* Make standard accent colors meet accessibility standards in high contrast */
+  --mf-accent: #c01030;
+  --mf-accent-rgb: 192, 16, 48;
+  --mf-accent-hover: #a00020;
+  --mf-accent-soft: rgba(192, 16, 48, 0.15);
+  --mf-accent-border: rgba(192, 16, 48, 0.45);
+  --mf-ring: rgba(192, 16, 48, 0.6);
+  --primary: #c01030;
+  --primary-foreground: #ffffff;
+}
+
+[data-contrast='high'][data-accent='orchid'] {
+  --mf-accent: #9c1c72;
+  --mf-accent-rgb: 156, 28, 114;
+  --mf-accent-hover: #7d1059;
+  --mf-accent-soft: rgba(156, 28, 114, 0.15);
+  --mf-accent-border: rgba(156, 28, 114, 0.45);
+  --mf-ring: rgba(156, 28, 114, 0.6);
+  --primary: #9c1c72;
+  --primary-foreground: #ffffff;
+}
+
+[data-contrast='high'][data-accent='ocean'] {
+  --mf-accent: #006699;
+  --mf-accent-rgb: 0, 102, 153;
+  --mf-accent-hover: #004d73;
+  --mf-accent-soft: rgba(0, 102, 153, 0.15);
+  --mf-accent-border: rgba(0, 102, 153, 0.45);
+  --mf-ring: rgba(0, 102, 153, 0.6);
+  --primary: #006699;
+  --primary-foreground: #ffffff;
+}
+
+/* High Contrast Mode - Dark */
+[data-theme='dark'][data-contrast='high'] {
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #000000;
+  --card-foreground: #ffffff;
+  --popover: #000000;
+  --popover-foreground: #ffffff;
+  
+  --mf-text: #eeeeee;
+  --mf-text-strong: #ffffff;
+  --mf-muted: #cccccc;
+  --mf-main-bg: #000000;
+  --mf-sidebar-bg: #000000;
+  --mf-elevated: #111111;
+  --mf-composer-bg: #000000;
+  --mf-border: #bbbbbb;
+  --mf-border-strong: #ffffff;
+  
+  --border: #bbbbbb;
+  --input: #bbbbbb;
+  --ring: #ffffff;
+  
+  --mf-accent: #ffb3c1;
+  --mf-accent-rgb: 255, 179, 193;
+  --mf-accent-hover: #ffccd5;
+  --mf-accent-soft: rgba(255, 179, 193, 0.25);
+  --mf-accent-border: rgba(255, 179, 193, 0.55);
+  --mf-ring: rgba(255, 179, 193, 0.7);
+  --primary: #ffb3c1;
+  --primary-foreground: #000000;
+}
+
+[data-theme='dark'][data-contrast='high'][data-accent='orchid'] {
+  --mf-accent: #f0b3e1;
+  --mf-accent-rgb: 240, 179, 225;
+  --mf-accent-hover: #fad6f2;
+  --mf-accent-soft: rgba(240, 179, 225, 0.25);
+  --mf-accent-border: rgba(240, 179, 225, 0.55);
+  --mf-ring: rgba(240, 179, 225, 0.7);
+  --primary: #f0b3e1;
+  --primary-foreground: #000000;
+}
+
+[data-theme='dark'][data-contrast='high'][data-accent='ocean'] {
+  --mf-accent: #99e6ff;
+  --mf-accent-rgb: 153, 230, 255;
+  --mf-accent-hover: #ccf2ff;
+  --mf-accent-soft: rgba(153, 230, 255, 0.25);
+  --mf-accent-border: rgba(153, 230, 255, 0.55);
+  --mf-ring: rgba(153, 230, 255, 0.7);
+  --primary: #99e6ff;
+  --primary-foreground: #000000;
+}
+
 @layer base {
   :root {
     --background: oklch(1 0 0);

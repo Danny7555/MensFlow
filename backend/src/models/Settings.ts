@@ -3,7 +3,7 @@ import { Schema, model, Document } from 'mongoose';
 export interface SettingsDocument extends Document {
   userId: Schema.Types.ObjectId;
   themeMode: 'light' | 'dark' | 'system';
-  contrastMode: 'system' | 'standard';
+  contrastMode: 'system' | 'standard' | 'high';
   accentPreset: 'default' | 'orchid' | 'ocean';
   languageUi: 'auto' | 'en';
   spokenLanguage: 'auto' | 'en-US';
@@ -42,7 +42,7 @@ export interface SettingsDocument extends Document {
 const SettingsSchema = new Schema<SettingsDocument>({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
   themeMode: { type: String, enum: ['light', 'dark', 'system'], default: 'system' },
-  contrastMode: { type: String, enum: ['system', 'standard'], default: 'system' },
+  contrastMode: { type: String, enum: ['system', 'standard', 'high'], default: 'system' },
   accentPreset: { type: String, enum: ['default', 'orchid', 'ocean'], default: 'default' },
   languageUi: { type: String, enum: ['auto', 'en'], default: 'auto' },
   spokenLanguage: { type: String, enum: ['auto', 'en-US'], default: 'auto' },

@@ -393,6 +393,7 @@ function GeneralPanel({
         options={[
           { value: 'system', label: 'System' },
           { value: 'standard', label: 'Standard' },
+          { value: 'high', label: 'High' },
         ]}
       />
       <SelectRow

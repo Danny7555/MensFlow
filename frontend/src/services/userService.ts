@@ -23,7 +23,7 @@ export type ApiUser = {
 
 export type ApiSettings = {
   themeMode: 'light' | 'dark' | 'system'
-  contrastMode: 'system' | 'standard'
+  contrastMode: 'system' | 'standard' | 'high'
   accentPreset: 'default' | 'orchid' | 'ocean'
   languageUi: 'auto' | 'en'
   spokenLanguage: 'auto' | 'en-US'
