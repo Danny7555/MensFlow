@@ -393,7 +393,7 @@ export function WeatherAlertCard() {
           </div>
           
           {/* 3D weather illustration (rounded) */}
-          <div className="w-11 h-11 shrink-0 -mt-1 -mr-1 rounded-full overflow-hidden filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.05)]">
+          <div className="size-11 shrink-0 -mt-1 -mr-1 rounded-full overflow-hidden filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.05)]">
             <img 
               src={style.img} 
               alt={style.label} 

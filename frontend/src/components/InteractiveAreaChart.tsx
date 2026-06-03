@@ -85,10 +85,12 @@ export function InteractiveAreaChart() {
     // eslint-disable-next-line react-hooks/purity
     const today = new Date()
 
+    const logsMap = new Map(logs.map((l) => [l.date, l]))
+
     for (let i = daysCount - 1; i >= 0; i--) {
       const d = subDays(today, i)
       const dateKey = format(d, 'yyyy-MM-dd')
-      const log = logs.find((l) => l.date === dateKey)
+      const log = logsMap.get(dateKey)
 
       // Calculate cycle day relative to refStart
       const diffTime = d.getTime() - refStart.getTime()
@@ -101,19 +103,20 @@ export function InteractiveAreaChart() {
       if (log) {
         // Log exists: map actual symptoms
         // Energy baseline = 60
+        const symptomsSet = new Set(log.symptoms)
         let tempEnergy = 60
-        if (log.symptoms.includes('mood-happy')) tempEnergy += 25
-        if (log.symptoms.includes('mood-calm')) tempEnergy += 15
-        if (log.symptoms.includes('phys-fatigue')) tempEnergy -= 30
-        if (log.symptoms.includes('mood-sad')) tempEnergy -= 20
-        if (log.symptoms.includes('mood-irritable')) tempEnergy -= 15
+        if (symptomsSet.has('mood-happy')) tempEnergy += 25
+        if (symptomsSet.has('mood-calm')) tempEnergy += 15
+        if (symptomsSet.has('phys-fatigue')) tempEnergy -= 30
+        if (symptomsSet.has('mood-sad')) tempEnergy -= 20
+        if (symptomsSet.has('mood-irritable')) tempEnergy -= 15
         
         // Bloating baseline = 20
         let tempBloating = 20
-        if (log.symptoms.includes('phys-bloating')) tempBloating += 50
-        if (log.symptoms.includes('phys-cramps')) tempBloating += 30
-        if (log.symptoms.includes('flow-heavy')) tempBloating += 20
-        if (log.symptoms.includes('flow-medium')) tempBloating += 10
+        if (symptomsSet.has('phys-bloating')) tempBloating += 50
+        if (symptomsSet.has('phys-cramps')) tempBloating += 30
+        if (symptomsSet.has('flow-heavy')) tempBloating += 20
+        if (symptomsSet.has('flow-medium')) tempBloating += 10
 
         energy = Math.max(10, Math.min(100, tempEnergy))
         bloating = Math.max(10, Math.min(100, tempBloating))

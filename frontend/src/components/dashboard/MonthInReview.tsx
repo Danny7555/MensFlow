@@ -45,8 +45,7 @@ export function MonthInReview() {
     // Fallback client-side calculation (e.g. for guest mode / local-only users)
     // 1. Group flow logs into periods to count cycle lengths
     const flowDates = logs
-      .filter(l => l.symptoms.some(s => s.startsWith('flow-')))
-      .map(l => l.date)
+      .flatMap(l => l.symptoms.some(s => s.startsWith('flow-')) ? [l.date] : [])
       .sort();
 
     const periodStarts: Date[] = [];
