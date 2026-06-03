@@ -24,6 +24,7 @@ type CalendarAction =
   | { type: "SET_SELECTED_DATE"; payload: Date }
   | { type: "SET_EDITING_PERIODS"; payload: boolean }
   | { type: "TOGGLE_PERIOD_DATE"; payload: string }
+  | { type: "SET_PERIOD_DATES"; payload: Set<string> }
   | { type: "INIT_CLIENT_DATE"; payload: { today: Date; periodDates: Set<string>; viewDate: Date } }
 
 function calendarReducer(state: CalendarState, action: CalendarAction): CalendarState {
@@ -34,6 +35,8 @@ function calendarReducer(state: CalendarState, action: CalendarAction): Calendar
       return { ...state, selectedDate: action.payload }
     case "SET_EDITING_PERIODS":
       return { ...state, isEditingPeriods: action.payload }
+    case "SET_PERIOD_DATES":
+      return { ...state, periodDates: action.payload }
     case "TOGGLE_PERIOD_DATE": {
       const next = new Set(state.periodDates)
       if (next.has(action.payload)) next.delete(action.payload)
@@ -58,8 +61,9 @@ import { CalendarSkeleton } from "@/components/skeletons/CalendarSkeleton"
 
 export function CalendarView() {
   const { isAuthenticated, openAuthModal } = useAuth()
-  const { user } = useStore()
+  const { user, logs, fetchLogs, addLog, dashboard: ownDashboard, partnerStatus } = useStore()
   const isPartner = user?.role === 'partner'
+  const data = (isPartner && partnerStatus?.paired && partnerStatus?.cycle) ? partnerStatus.cycle : ownDashboard
 
   const [isLoading, setIsLoading] = React.useState(true)
 
@@ -88,20 +92,42 @@ export function CalendarView() {
       payload: {
         today: clientToday,
         viewDate: new Date(y, m, 1),
-        periodDates: new Set([
-          `${y}-${String(m).padStart(2, '0')}-20`,
-          `${y}-${String(m).padStart(2, '0')}-21`,
-          `${y}-${String(m).padStart(2, '0')}-22`,
-          `${y}-${String(m).padStart(2, '0')}-23`,
-          `${y}-${String(m + 1).padStart(2, '0')}-20`,
-          `${y}-${String(m + 1).padStart(2, '0')}-21`,
-        ])
+        periodDates: new Set<string>()
       }
     })
 
+    void fetchLogs()
+
     const timer = setTimeout(() => setIsLoading(false), 500)
     return () => clearTimeout(timer)
-  }, [])
+  }, [fetchLogs])
+
+  React.useEffect(() => {
+    const dates = new Set<string>()
+    logs.forEach((log) => {
+      if (log.symptoms.some((s) => s.startsWith("flow-"))) {
+        dates.add(log.date)
+      }
+    })
+    dispatch({ type: "SET_PERIOD_DATES", payload: dates })
+  }, [logs])
+
+  const handleTogglePeriod = async (dateKey: string) => {
+    dispatch({ type: "TOGGLE_PERIOD_DATE", payload: dateKey })
+
+    const existingLog = logs.find((l) => l.date === dateKey)
+    const existingSymptoms = existingLog?.symptoms ?? []
+    const isPeriod = existingSymptoms.some((s) => s.startsWith("flow-"))
+
+    let nextSymptoms: string[]
+    if (isPeriod) {
+      nextSymptoms = existingSymptoms.filter((s) => !s.startsWith("flow-"))
+    } else {
+      nextSymptoms = [...existingSymptoms, "flow-medium"]
+    }
+
+    await addLog(dateKey, nextSymptoms)
+  }
 
   const { viewDate, selectedDate, isEditingPeriods, periodDates } = state
 
@@ -205,7 +231,9 @@ export function CalendarView() {
               selectedDate={selectedDate}
               isEditingPeriods={isEditingPeriods}
               periodDates={periodDates}
+              data={data}
               dispatch={dispatch}
+              onTogglePeriod={handleTogglePeriod}
             />
           ) : (
             <YearView 
@@ -244,27 +272,43 @@ export function CalendarView() {
   )
 }
 
-function MonthView({ viewDate, selectedDate, isEditingPeriods, periodDates, dispatch }: { 
-  viewDate: Date, 
-  selectedDate: Date, 
-  isEditingPeriods: boolean, 
-  periodDates: Set<string>,
+function MonthView({ 
+  viewDate, 
+  selectedDate, 
+  isEditingPeriods, 
+  periodDates, 
+  data,
+  dispatch,
+  onTogglePeriod 
+}: { 
+  viewDate: Date
+  selectedDate: Date
+  isEditingPeriods: boolean
+  periodDates: Set<string>
+  data: { lastPeriodStart: string; typicalCycleDays: number }
   dispatch: React.Dispatch<CalendarAction>
+  onTogglePeriod: (dateKey: string) => void
 }) {
   const year = viewDate.getFullYear()
   const month = viewDate.getMonth()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
   const offset = new Date(year, month, 1).getDay()
 
-  const dateToKey = (d: number) => `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+  const dateToKey = (d: number) => `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
 
   const handleDayClick = (d: number) => {
     if (isEditingPeriods) {
-      dispatch({ type: "TOGGLE_PERIOD_DATE", payload: dateToKey(d) })
+      onTogglePeriod(dateToKey(d))
     } else {
       dispatch({ type: "SET_SELECTED_DATE", payload: new Date(year, month, d) })
     }
   }
+
+  // Calculate ovulation day based on typical cycle length
+  const cycleLen = data.typicalCycleDays || 28
+  const safeCycleLen = Math.min(60, Math.max(15, Math.round(cycleLen)))
+  const periodLength = safeCycleLen <= 24 ? 4 : safeCycleLen >= 36 ? 6 : 5
+  const ovulationDay = Math.max(periodLength + 5, safeCycleLen - 14)
 
   return (
     <>
@@ -287,7 +331,12 @@ function MonthView({ viewDate, selectedDate, isEditingPeriods, periodDates, disp
             const key = dateToKey(d)
             const isPeriod = periodDates.has(key)
             const isSelected = selectedDate.getDate() === d && selectedDate.getMonth() === month && selectedDate.getFullYear() === year
-            const isOvulation = d === 5 && month === 8 
+            
+            const targetDate = new Date(year, month, d)
+            const cycleDay = data.lastPeriodStart 
+              ? computeCycleDayForDate(targetDate, data.lastPeriodStart, data.typicalCycleDays)
+              : null
+            const isOvulation = cycleDay === ovulationDay
             
             return (
               <button 
@@ -298,7 +347,7 @@ function MonthView({ viewDate, selectedDate, isEditingPeriods, periodDates, disp
                 className="relative flex flex-col items-center justify-center cursor-pointer group py-2 sm:py-0 w-full"
               >
                 <span className="text-[10px] text-muted-foreground mb-1 font-normal group-hover:text-foreground transition-colors">
-                  {(d + 6) % 28 + 1}
+                  {cycleDay !== null ? cycleDay : "--"}
                 </span>
 
                 <div className="relative flex items-center justify-center size-10 sm:size-12 transition-transform group-active:scale-90">
@@ -335,7 +384,7 @@ function MonthView({ viewDate, selectedDate, isEditingPeriods, periodDates, disp
   )
 }
 
-  const YearView = ({ viewDate, periodDates, today, onMonthClick }: { viewDate: Date, periodDates: Set<string>, today: Date, onMonthClick: (d: Date) => void }) => {
+const YearView = ({ viewDate, periodDates, today, onMonthClick }: { viewDate: Date, periodDates: Set<string>, today: Date, onMonthClick: (d: Date) => void }) => {
   const year = viewDate.getFullYear()
   const months = Array.from({ length: 12 }, (_, i) => new Date(year, i, 1))
 
@@ -365,7 +414,7 @@ function MonthView({ viewDate, selectedDate, isEditingPeriods, periodDates, disp
               ))}
               {Array.from({ length: dInM }).map((_, i) => {
                 const d = i + 1
-                const key = `${year}-${String(idx).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+                const key = `${year}-${String(idx + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
                 const isPeriod = periodDates.has(key)
                 const isToday = d === today.getDate() && idx === today.getMonth() && year === today.getFullYear()
                 

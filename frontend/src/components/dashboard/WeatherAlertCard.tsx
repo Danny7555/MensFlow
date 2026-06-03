@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { m } from 'framer-motion'
 import type { Variants } from 'framer-motion'
 import { CloudSun } from '@phosphor-icons/react'
@@ -261,10 +262,56 @@ const WEATHER_STYLES: Record<string, {
   }
 }
 
+const fetchWeatherWithGeolocation = async (): Promise<WeatherData> => {
+  return new Promise<WeatherData>((resolve) => {
+    const fetchWeather = async (lat: number, lon: number) => {
+      try {
+        const response = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code`
+        )
+        if (!response.ok) throw new Error('Weather API error')
+        const json = await response.json()
+        if (json.current) {
+          resolve({
+            temp: json.current.temperature_2m,
+            humidity: json.current.relative_humidity_2m,
+            code: json.current.weather_code
+          })
+          return
+        }
+        throw new Error('No current weather data')
+      } catch (err) {
+        console.error('Failed to fetch weather:', err)
+        // Fallback moderate default
+        resolve({ temp: 23.3, humidity: 55, code: 0 })
+      }
+    }
+
+    if (typeof navigator !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          void fetchWeather(pos.coords.latitude, pos.coords.longitude)
+        },
+        () => {
+          // Default location: New York City
+          void fetchWeather(40.7128, -74.006)
+        }
+      )
+    } else {
+      // Default location: New York City
+      void fetchWeather(40.7128, -74.006)
+    }
+  })
+}
+
 export function WeatherAlertCard() {
   const { dashboard, user, partnerStatus } = useStore()
-  const [weather, setWeather] = useState<WeatherData | null>(null)
-  const [loading, setLoading] = useState(true)
+
+  const { data: weather, isLoading } = useQuery({
+    queryKey: ['weatherAlert'],
+    queryFn: fetchWeatherWithGeolocation,
+    staleTime: 5 * 60 * 1000,
+  })
 
   const data = user?.role === 'partner' && partnerStatus?.paired && partnerStatus?.cycle
     ? partnerStatus.cycle
@@ -281,56 +328,6 @@ export function WeatherAlertCard() {
     const cycleDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
     return getPhaseFromDay(cycleDay, data.typicalCycleDays)
   }, [data.lastPeriodStart, data.typicalCycleDays, data.phaseLabel])
-
-  useEffect(() => {
-    let active = true
-
-    const fetchWeather = async (lat: number, lon: number) => {
-      try {
-        const response = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code`
-        )
-        if (!response.ok) throw new Error('Weather API error')
-        const json = await response.json()
-        if (active && json.current) {
-          setWeather({
-            temp: json.current.temperature_2m,
-            humidity: json.current.relative_humidity_2m,
-            code: json.current.weather_code
-          })
-        }
-      } catch (err) {
-        console.error('Failed to fetch weather:', err)
-        if (active) {
-          // Fallback moderate default
-          setWeather({ temp: 23.3, humidity: 55, code: 0 })
-        }
-      } finally {
-        if (active) {
-          setLoading(false)
-        }
-      }
-    }
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          fetchWeather(pos.coords.latitude, pos.coords.longitude)
-        },
-        () => {
-          // Default location: New York City
-          fetchWeather(40.7128, -74.006)
-        }
-      )
-    } else {
-      // Default location: New York City
-      fetchWeather(40.7128, -74.006)
-    }
-
-    return () => {
-      active = false
-    }
-  }, [])
 
   const weatherInfo = useMemo(() => {
     if (!weather) return null
@@ -354,7 +351,7 @@ export function WeatherAlertCard() {
     }
   }, [weather, phase])
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flo-card p-6 border-[var(--mf-border-strong)] bg-white dark:bg-[var(--mf-card)] text-left flex items-center justify-center min-h-[160px]">
         <div className="flex flex-col items-center gap-3">
@@ -365,7 +362,7 @@ export function WeatherAlertCard() {
           >
             <CloudSun size={28} />
           </m.div>
-          <span className="text-xs text-[var(--mf-muted)] tracking-wider">Syncing local atmospheric alerts...</span>
+          <span className="text-xs text-[var(--mf-muted)] tracking-wider">Syncing local atmospheric alerts…</span>
         </div>
       </div>
     )
