@@ -1,10 +1,12 @@
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { format } from "date-fns"
 import { useStore } from "@/store/useStore"
 import { SYMPTOM_DEFS, type SymptomDef } from "@/data/symptomsData"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { Check, Question, Trophy } from "@phosphor-icons/react"
+import { buildPersonalizationProfile } from "@/lib/personalization"
+import { computeCycleDay, getPhaseFromDay } from "@/lib/cycleUtils"
 
 // Map symptom IDs to local image assets
 const symptomImages: Record<string, string> = {
@@ -185,7 +187,7 @@ export function SymptomLogger() {
 }
 
 export function DailyQuiz() {
-  const { user, submitQuizAttemptAction } = useStore()
+  const { user, dashboard, logs, submitQuizAttemptAction } = useStore()
   
   const todayDate = format(new Date(), 'yyyy-MM-dd')
   const dbQuizCount = user?.quizLastCompletedAt === todayDate ? (user?.quizCountToday || 0) : 0
@@ -193,30 +195,93 @@ export function DailyQuiz() {
   const [activeStep, setActiveStep] = useState<number>(dbQuizCount)
   const [selectedQuizAnswer, setSelectedQuizAnswer] = useState<number | null>(null)
 
-  if (selectedQuizAnswer === null && activeStep !== dbQuizCount) {
-    setActiveStep(dbQuizCount)
-  }
-
-  const quizzes = [
-    {
-      question: "Progesterone levels rise post-ovulation. How does this hormone typically affect your rest cycle?",
-      options: [
-        { id: 1, text: "Promotes deep sleep and calms the brain", correct: true },
-        { id: 2, text: "Causes hyperactivity and shortens REM cycles", correct: false }
-      ],
-      explanation: "Correct! Progesterone has a natural soothing, calming effect on the GABA receptors in the brain, helping promote deeper rest, although high spikes can sometimes lead to daytime fatigue.",
-      incorrectExplanation: "Progesterone is a natural relaxant. High levels after ovulation promote restorative rest and calm GABA receptors."
-    },
-    {
-      question: "Estrogen levels peak right before ovulation. What is the primary psychological and physical effect of this peak?",
-      options: [
-        { id: 1, text: "Boosts physical energy, positive mood, and social confidence", correct: true },
-        { id: 2, text: "Induces anxiety, physical relaxation, and social withdrawal", correct: false }
-      ],
-      explanation: "Correct! Estrogen peaks in the late follicular phase (just before ovulation), boosting serotonin and dopamine to enhance energy, libido, mood, and social confidence.",
-      incorrectExplanation: "Estrogen peak actually drives energy, positive mood, and confidence rather than anxiety or withdrawal."
+  useEffect(() => {
+    if (selectedQuizAnswer === null) {
+      setActiveStep(dbQuizCount)
     }
-  ]
+  }, [dbQuizCount, selectedQuizAnswer])
+
+  const quizzes = useMemo(() => {
+    const profile = buildPersonalizationProfile(user?.onboardingData ?? {})
+    const cycleDay = computeCycleDay(dashboard.lastPeriodStart, dashboard.typicalCycleDays)
+    const phase = getPhaseFromDay(cycleDay, dashboard.typicalCycleDays)
+    const todayLog = logs.find((log) => log.date === todayDate)
+    const hasHeavyFlow = profile.flowIntensity === 'heavy' || todayLog?.symptoms.includes('flow-heavy')
+    const hasVariableCycle = profile.isAtypical || profile.flowIntensity === 'variable'
+
+    const phaseQuiz =
+      phase === 'menstrual'
+        ? {
+            question: `Day ${cycleDay} looks like a menstrual-phase day. Which input most improves prediction accuracy today?`,
+            options: [
+              { id: 1, text: "Logging flow level plus symptoms like cramps or fatigue", correct: true },
+              { id: 2, text: "Only counting calendar days from the last period", correct: false }
+            ],
+            explanation: "Correct! Flow and symptoms confirm what the calendar predicts, which makes the daily model more reliable over time.",
+            incorrectExplanation: "Calendar day is useful, but flow and symptom logs validate the phase and improve future predictions."
+          }
+        : phase === 'fertile'
+          ? {
+              question: `Around Day ${cycleDay}, what signal best supports an ovulation-window estimate?`,
+              options: [
+                { id: 1, text: "Cervical mucus changes or an LH test trend", correct: true },
+                { id: 2, text: "A fixed Day 14 rule for every cycle", correct: false }
+              ],
+              explanation: "Correct! Ovulation timing shifts with cycle length, so mucus and LH clues are stronger than a fixed Day 14 rule.",
+              incorrectExplanation: "Day 14 is only an average. MensFlow estimates ovulation from the cycle length and improves with mucus or LH logs."
+            }
+          : phase === 'luteal'
+            ? {
+                question: "Why can sleep, cravings, and mood feel different in the luteal phase?",
+                options: [
+                  { id: 1, text: "Progesterone rises and body temperature can increase", correct: true },
+                  { id: 2, text: "Hormones stay flat until the next period starts", correct: false }
+                ],
+                explanation: "Correct! Progesterone can feel calming or tiring, and a warmer body temperature can affect sleep quality.",
+                incorrectExplanation: "Hormones keep changing in the luteal phase. Progesterone and temperature shifts can affect rest, appetite, and mood."
+              }
+            : {
+                question: "What usually makes follicular-phase planning more accurate?",
+                options: [
+                  { id: 1, text: "Using the last period date, cycle length, and recent symptoms together", correct: true },
+                  { id: 2, text: "Ignoring recent logs once onboarding is complete", correct: false }
+                ],
+                explanation: "Correct! Onboarding gives the baseline, and daily logs refine it as the cycle unfolds.",
+                incorrectExplanation: "Onboarding is only the starting point. Recent logs help MensFlow personalize the current day."
+              }
+
+    const profileQuiz = hasHeavyFlow
+      ? {
+          question: "If flow is heavy, which care cue should the dashboard prioritize?",
+          options: [
+            { id: 1, text: "Hydration, iron-rich food, rest, and pain tracking", correct: true },
+            { id: 2, text: "High-intensity exercise and skipped meals", correct: false }
+          ],
+          explanation: "Correct! Heavy-flow support should emphasize comfort, hydration, iron, and careful symptom tracking.",
+          incorrectExplanation: "Heavy-flow days are better supported with hydration, iron-rich meals, rest, and pain-aware planning."
+        }
+      : hasVariableCycle
+        ? {
+            question: "For irregular or variable cycles, what makes predictions more trustworthy?",
+            options: [
+              { id: 1, text: "Several cycles of daily flow, symptom, LH, or mucus logs", correct: true },
+              { id: 2, text: "One fixed cycle length forever", correct: false }
+            ],
+            explanation: "Correct! Variable cycles need repeated logs so the model can adapt instead of pretending every month is identical.",
+            incorrectExplanation: "A fixed cycle length is only a rough fallback. Repeated logs make variable-cycle predictions safer."
+          }
+        : {
+            question: "Why does MensFlow use onboarding answers before enough logs exist?",
+            options: [
+              { id: 1, text: "They create a personal baseline until real trends accumulate", correct: true },
+              { id: 2, text: "They permanently replace daily tracking", correct: false }
+            ],
+            explanation: "Correct! Onboarding personalizes the first experience, then daily logs gradually become the stronger signal.",
+            incorrectExplanation: "Onboarding should not replace daily tracking. It gives the app a better starting point."
+          }
+
+    return [phaseQuiz, profileQuiz]
+  }, [dashboard.lastPeriodStart, dashboard.typicalCycleDays, logs, todayDate, user?.onboardingData])
 
   const currentQuiz = activeStep < 2 ? quizzes[activeStep] : null
 

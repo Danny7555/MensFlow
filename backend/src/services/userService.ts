@@ -4,6 +4,7 @@ import { Dashboard, DashboardDocument } from '../models/Dashboard';
 import { PartnerPing } from '../models/Partner';
 import { IUser, ISettings, IDashboard } from '../interfaces';
 import { sendReminderEmail } from './emailService';
+import { buildCycleModel } from '../utils/cycleModel';
 
 export async function getUserProfile(
   userId: string
@@ -165,9 +166,25 @@ export async function updateDashboard(
   userId: string,
   patch: Partial<IDashboard>
 ): Promise<IDashboard> {
+  const current = await Dashboard.findOne({ userId }).lean();
+  const model = buildCycleModel({
+    lastPeriodStart: patch.lastPeriodStart ?? current?.lastPeriodStart ?? defaultLastPeriodStart(),
+    typicalCycleDays: patch.typicalCycleDays ?? current?.typicalCycleDays ?? 28,
+    cycleVariationDays: patch.cycleVariationDays ?? current?.cycleVariationDays,
+  });
+  const calculatedPatch = {
+    ...patch,
+    phaseLabel: model.phaseLabel,
+    hormoneTrend: patch.hormoneTrend ?? model.hormoneTrend,
+    bodySignals: patch.bodySignals ?? model.bodySignals,
+    guidanceLines: patch.guidanceLines ?? model.guidanceLines,
+    cycleVariationDays: patch.cycleVariationDays ?? model.cycleVariationDays,
+    isAtypical: patch.isAtypical ?? model.isAtypical,
+  };
+
   const dashboard = await Dashboard.findOneAndUpdate(
     { userId },
-    { $set: patch, $setOnInsert: { userId, lastPeriodStart: defaultLastPeriodStart() } },
+    { $set: calculatedPatch, $setOnInsert: { userId, lastPeriodStart: defaultLastPeriodStart() } },
     { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true }
   );
   if (!dashboard) {
@@ -218,17 +235,22 @@ function toSettings(settings: SettingsDocument): ISettings {
 }
 
 function toDashboard(dashboard: DashboardDocument): IDashboard {
+  const model = buildCycleModel({
+    lastPeriodStart: dashboard.lastPeriodStart,
+    typicalCycleDays: dashboard.typicalCycleDays,
+    cycleVariationDays: dashboard.cycleVariationDays,
+  });
   return {
     userId: String(dashboard.userId),
     lastPeriodStart: dashboard.lastPeriodStart,
     typicalCycleDays: dashboard.typicalCycleDays,
-    phaseLabel: dashboard.phaseLabel,
-    hormoneTrend: dashboard.hormoneTrend,
-    bodySignals: dashboard.bodySignals,
-    guidanceLines: dashboard.guidanceLines,
+    phaseLabel: model.phaseLabel,
+    hormoneTrend: model.hormoneTrend,
+    bodySignals: dashboard.bodySignals || model.bodySignals,
+    guidanceLines: dashboard.guidanceLines?.length ? dashboard.guidanceLines : model.guidanceLines,
     cycleNotes: dashboard.cycleNotes,
-    cycleVariationDays: dashboard.cycleVariationDays,
-    isAtypical: dashboard.isAtypical,
+    cycleVariationDays: model.cycleVariationDays,
+    isAtypical: model.isAtypical,
     scientificInsight: dashboard.scientificInsight ?? '',
     dailyTip: dashboard.dailyTip ?? { title: '', desc: '' },
   };

@@ -1,5 +1,5 @@
 export function computeCycleDay(startIso: string, cycleLen: number): number {
-  const safeCycleLen = Math.max(1, cycleLen || 28)
+  const safeCycleLen = Math.min(60, Math.max(15, Math.round(cycleLen || 28)))
   const start = new Date(`${startIso}T12:00:00`)
   if (Number.isNaN(+start)) return 1
   const days = Math.floor((Date.now() - +start) / 86400000)
@@ -17,18 +17,16 @@ export type CyclePhase = 'menstrual' | 'follicular' | 'fertile' | 'luteal'
  * - Period: days 1-5, light trailing: days 6-7, then follicular until fertile window
  */
 export function getPhaseFromDay(cycleDay: number, cycleLen = 28): CyclePhase {
-  const safeCycleLen = Math.max(21, cycleLen)
-  const periodLength = 5
-  const predictedPeriodLength = 2
-  const ovulationDay = Math.max(10, safeCycleLen - 14)
-  const fertileStart = Math.max(periodLength + predictedPeriodLength + 1, ovulationDay - 4)
-  const fertileEnd = ovulationDay + 2
-  const pmsStart = safeCycleLen - 4  // last 5 days (days cycleLen-4 through cycleLen)
+  const safeCycleLen = Math.min(60, Math.max(15, Math.round(cycleLen || 28)))
+  const periodLength = safeCycleLen <= 24 ? 4 : safeCycleLen >= 36 ? 6 : 5
+  const ovulationDay = Math.max(periodLength + 5, safeCycleLen - 14)
+  const fertileStart = Math.max(periodLength + 1, ovulationDay - 4)
+  const fertileEnd = Math.min(safeCycleLen, ovulationDay + 2)
+  const lutealStart = Math.max(fertileEnd + 1, safeCycleLen - 6)
 
-  // Days 1-7 are all considered menstrual (1-5 active flow, 6-7 light/fading flow)
-  if (cycleDay <= periodLength + predictedPeriodLength) return 'menstrual'
+  if (cycleDay <= periodLength) return 'menstrual'
   if (cycleDay >= fertileStart && cycleDay <= fertileEnd) return 'fertile'
-  if (cycleDay >= pmsStart) return 'luteal'
+  if (cycleDay >= lutealStart) return 'luteal'
   return 'follicular'
 }
 

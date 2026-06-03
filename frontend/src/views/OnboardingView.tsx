@@ -8,6 +8,7 @@ import { CaretLeft, Check, FlowerLotus } from "@phosphor-icons/react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { cn } from "../lib/utils";
+import { buildPersonalizationProfile, buildPersonalizedDashboard } from "../lib/personalization";
 
 import { type ApiUser } from "../services/userService";
 
@@ -20,7 +21,7 @@ export function OnboardingView() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const { completeOnboarding, openAuthModal, isAuthenticated } = useAuth();
-  const { updateUser, updateDashboard } = useStore();
+  const { updateUser, updateDashboard, updateSettings } = useStore();
   const navigate = useNavigate();
 
   const activeQuestions = useMemo(() => {
@@ -67,9 +68,15 @@ export function OnboardingView() {
   }, [currentActiveIndex, activeQuestions.length]);
 
   const finishOnboarding = useCallback(() => {
+    const profile = buildPersonalizationProfile(answers);
     const patch: Partial<ApiUser> = {
       onboardingData: answers as Record<string, unknown>,
+      role: profile.role,
+      accessLevel: profile.accessLevel,
     };
+    if (profile.name) {
+      patch.name = profile.name;
+    }
     if (Object.keys(patch).length > 0) {
       updateUser(patch);
     }
@@ -79,9 +86,8 @@ export function OnboardingView() {
       if (selectedPurpose === "education") {
         navigate("/education");
       } else {
-        updateDashboard({
-          lastPeriodStart: new Date().toISOString().slice(0, 10),
-        });
+        updateDashboard(buildPersonalizedDashboard(answers));
+        updateSettings({ cycleAvgLengthDays: profile.typicalCycleDays });
         navigate("/dashboard");
       }
     } else {
@@ -96,6 +102,7 @@ export function OnboardingView() {
     navigate,
     openAuthModal,
     updateDashboard,
+    updateSettings,
   ]);
 
   const handleNext = useCallback(() => {
@@ -157,13 +164,13 @@ export function OnboardingView() {
         {isAnalyzing ? (
           <OnboardingAnalyzing />
         ) : (
-          <m.div
-            key="questions"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="onboarding-container"
-          >
+           <m.div
+             key="questions"
+             initial={{ opacity: 0 }}
+             animate={{ opacity: 1 }}
+             exit={{ opacity: 0 }}
+             className={cn("onboarding-container", "font-sans")}
+           >
             <div className="onboarding-inner onboarding-inner--mobile-responsive">
               <OnboardingHeader
                 rawStep={currentActiveIndex}
@@ -190,7 +197,7 @@ export function OnboardingView() {
                       x: currentActiveIndex === 0 ? 0 : 20,
                       y: currentActiveIndex === 0 ? -20 : 0,
                     }}
-                    transition={{ duration: 0.5, ease: [0.2, 0, 0, 1] }}
+                     transition={{ type: "spring", stiffness: 260, damping: 20 }}
                     className={cn(
                       "onboarding-question-card",
                       currentActiveIndex === 0 &&
@@ -212,26 +219,38 @@ export function OnboardingView() {
                       </m.div>
                     )}
 
-                    <h1 className="onboarding-title">{question.question}</h1>
-                    {question.description && (
-                      <p className="onboarding-description text-sm text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis px-2 max-w-full">
-                        {question.description}
-                      </p>
-                    )}
+                     <h1 className={cn("onboarding-title", "text-base lg:text-xl")}>{question.question}</h1>
+                     {question.description && (
+                       <p className={cn(
+                         "onboarding-description",
+                         "text-xs sm:text-sm",
+                         "text-muted-foreground",
+                         "whitespace-nowrap",
+                         "overflow-hidden",
+                         "text-ellipsis",
+                         "px-2",
+                         "max-w-full"
+                       )}>
+                         {question.description}
+                       </p>
+                     )}
 
                     <div className="onboarding-options-grid onboarding-options-grid--mobile-responsive">
-                      {question.type === "input" ? (
-                        <div className="onboarding-input-wrap onboarding-input-wrap--mobile">
-                          <Input
-                            value={answers[question.id] || ""}
-                            onChange={handleInputChange}
-                            className="onboarding-text-input onboarding-text-input--mobile"
-                            onKeyDown={(e) =>
-                              e.key === "Enter" && isStepValid() && handleNext()
-                            }
-                          />
-                        </div>
-                      ) : (
+                       {question.type === "input" ? (
+                         <div className="onboarding-input-wrap onboarding-input-wrap--mobile">
+                           <Input
+                             value={answers[question.id] || ""}
+                             onChange={handleInputChange}
+                             className={cn(
+                               "onboarding-text-input onboarding-text-input--mobile",
+                               "w-full rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                             )}
+                             onKeyDown={(e) =>
+                               e.key === "Enter" && isStepValid() && handleNext()
+                             }
+                           />
+                         </div>
+                       ) : (
                         question.options?.map((option) => {
                           const isSelected =
                             question.type === "single-choice"
@@ -305,12 +324,12 @@ function OnboardingHeader({
       {rawStep > 0 ? (
         <div className="onboarding-nav-top flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleBack}
-              className="rounded-full"
-            >
+             <Button
+               variant="ghost"
+               size="icon"
+               onClick={handleBack}
+               className={cn("rounded-full", "p-2")}
+             >
               <CaretLeft size={24} weight="bold" />
             </Button>
 
@@ -324,22 +343,25 @@ function OnboardingHeader({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              onClick={onOpenAuth}
-              className="text-xs font-semibold text-primary hover:text-primary/90"
-            >
-              Log in
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={handleNext}
-              className="onboarding-skip-btn"
-            >
-              Skip
-            </Button>
-          </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                onClick={onOpenAuth}
+                className={cn(
+                  "text-sm font-semibold text-primary hover:text-primary/90",
+                  "px-3 py-1"
+                )}
+              >
+                Log in
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={handleNext}
+                className={cn("onboarding-skip-btn", "text-sm", "px-3 py-1")}
+              >
+                Skip
+              </Button>
+            </div>
         </div>
       ) : (
         <div className="onboarding-nav-top flex items-center justify-between w-full">
@@ -390,26 +412,32 @@ function OnboardingFooter({
   return (
     <footer className="onboarding-footer">
       <div className="onboarding-footer-inner">
-        <Button
-          onClick={handleNext}
-          disabled={currentStep !== 0 && !isStepValid}
-          className="onboarding-next-btn"
-        >
+         <Button
+           onClick={handleNext}
+           disabled={currentStep !== 0 && !isStepValid}
+           className={cn(
+             "onboarding-next-btn",
+             "w-full rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
+           )}
+         >
           {currentStep === 0
             ? "Yes, fine by me"
             : currentStep === 0
               ? "Finish"
               : "Next"}
         </Button>
-        {currentStep === 0 && (
-          <button
-            type="button"
-            className="onboarding-secondary-btn"
-            onClick={handleNoThanks}
-          >
-            No, thanks
-          </button>
-        )}
+         {currentStep === 0 && (
+           <button
+             type="button"
+             className={cn(
+               "onboarding-secondary-btn",
+               "w-full rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50"
+             )}
+             onClick={handleNoThanks}
+           >
+             No, thanks
+           </button>
+         )}
       </div>
     </footer>
   );

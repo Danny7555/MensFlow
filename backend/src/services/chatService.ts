@@ -6,6 +6,7 @@ import { Dashboard } from '../models/Dashboard';
 import { SymptomLog } from '../models/Symptom';
 import { IChatMessage, ISessionSummary } from '../interfaces';
 import { httpError } from '../utils/http';
+import { buildCycleModel } from '../utils/cycleModel';
 
 // ─── Session List ─────────────────────────────────────────────────────────────
 
@@ -235,13 +236,13 @@ async function buildAIResponse(
   let phaseLabel = 'Luteal';
 
   if (dashboard?.lastPeriodStart) {
-    const start = new Date(`${dashboard.lastPeriodStart}T12:00:00`);
-    if (!isNaN(start.getTime())) {
-      const diff = Math.floor((Date.now() - start.getTime()) / 86_400_000);
-      const cycle = dashboard.typicalCycleDays || 28;
-      currentDay = (((diff % cycle) + cycle) % cycle) + 1;
-    }
-    phaseLabel = dashboard.phaseLabel ?? 'Luteal';
+    const model = buildCycleModel({
+      lastPeriodStart: dashboard.lastPeriodStart,
+      typicalCycleDays: dashboard.typicalCycleDays,
+      cycleVariationDays: dashboard.cycleVariationDays,
+    });
+    currentDay = model.cycleDay;
+    phaseLabel = model.phaseLabel;
   }
 
   const today = new Date().toISOString().split('T')[0];
@@ -399,10 +400,29 @@ Example Output:
     }
 
     if (Object.keys(dashboardPatch).length > 0) {
+      const currentDashboard = await Dashboard.findOne({ userId: new Types.ObjectId(targetId) }).lean();
+      const model = buildCycleModel({
+        lastPeriodStart: dashboardPatch.lastPeriodStart ?? currentDashboard?.lastPeriodStart,
+        typicalCycleDays: dashboardPatch.typicalCycleDays ?? currentDashboard?.typicalCycleDays,
+        cycleVariationDays: currentDashboard?.cycleVariationDays,
+        symptoms: Array.isArray(extracted.symptoms) ? extracted.symptoms : undefined,
+      });
+      const insertDefaults = dashboardPatch.lastPeriodStart ? {} : { lastPeriodStart: today };
       await Dashboard.findOneAndUpdate(
         { userId: new Types.ObjectId(targetId) },
-        { $set: dashboardPatch },
-        { upsert: true }
+        {
+          $set: {
+            ...dashboardPatch,
+            phaseLabel: model.phaseLabel,
+            hormoneTrend: model.hormoneTrend,
+            bodySignals: model.bodySignals,
+            guidanceLines: model.guidanceLines,
+            cycleVariationDays: model.cycleVariationDays,
+            isAtypical: model.isAtypical,
+          },
+          $setOnInsert: insertDefaults,
+        },
+        { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true }
       );
       console.log(`[Chat Extractor] Updated Dashboard for user ${targetId}:`, dashboardPatch);
     }
@@ -429,6 +449,28 @@ Example Output:
       await SymptomLog.findOneAndUpdate(
         { userId: new Types.ObjectId(targetId), date: today },
         { $set: symptomPatch },
+        { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true }
+      );
+      const dashboard = await Dashboard.findOne({ userId: new Types.ObjectId(targetId) }).lean();
+      const model = buildCycleModel({
+        lastPeriodStart: dashboard?.lastPeriodStart,
+        typicalCycleDays: dashboard?.typicalCycleDays,
+        cycleVariationDays: dashboard?.cycleVariationDays,
+        symptoms: symptomPatch.symptoms,
+      });
+      await Dashboard.findOneAndUpdate(
+        { userId: new Types.ObjectId(targetId) },
+        {
+          $set: {
+            phaseLabel: model.phaseLabel,
+            hormoneTrend: model.hormoneTrend,
+            bodySignals: model.bodySignals,
+            guidanceLines: model.guidanceLines,
+            cycleVariationDays: model.cycleVariationDays,
+            isAtypical: model.isAtypical,
+          },
+          $setOnInsert: { lastPeriodStart: today },
+        },
         { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true }
       );
       console.log(`[Chat Extractor] Updated SymptomLog for user ${targetId} on ${today}:`, symptomPatch);
@@ -560,13 +602,13 @@ export async function getSuggestions(userId?: string): Promise<string[]> {
       
       const dashboard = await Dashboard.findOne({ userId: targetId }).lean();
       if (dashboard?.lastPeriodStart) {
-        const start = new Date(`${dashboard.lastPeriodStart}T12:00:00`);
-        if (!isNaN(start.getTime())) {
-          const diff = Math.floor((Date.now() - start.getTime()) / 86_400_000);
-          const cycle = dashboard.typicalCycleDays || 28;
-          currentDay = (((diff % cycle) + cycle) % cycle) + 1;
-        }
-        phaseLabel = dashboard.phaseLabel ?? 'Menstrual';
+        const model = buildCycleModel({
+          lastPeriodStart: dashboard.lastPeriodStart,
+          typicalCycleDays: dashboard.typicalCycleDays,
+          cycleVariationDays: dashboard.cycleVariationDays,
+        });
+        currentDay = model.cycleDay;
+        phaseLabel = model.phaseLabel;
       }
       
       const today = new Date().toISOString().split('T')[0];
@@ -690,13 +732,13 @@ export async function getDailyGuidance(userId: string): Promise<any> {
     }
 
     if (dashboard?.lastPeriodStart) {
-      const start = new Date(`${dashboard.lastPeriodStart}T12:00:00`);
-      if (!isNaN(start.getTime())) {
-        const diff = Math.floor((Date.now() - start.getTime()) / 86_400_000);
-        const cycle = dashboard.typicalCycleDays || 28;
-        currentDay = (((diff % cycle) + cycle) % cycle) + 1;
-      }
-      phaseLabel = dashboard.phaseLabel ?? 'Menstrual';
+      const model = buildCycleModel({
+        lastPeriodStart: dashboard.lastPeriodStart,
+        typicalCycleDays: dashboard.typicalCycleDays,
+        cycleVariationDays: dashboard.cycleVariationDays,
+      });
+      currentDay = model.cycleDay;
+      phaseLabel = model.phaseLabel;
     }
     
     const logDoc = await SymptomLog.findOne({ userId: targetId, date: today }).lean();

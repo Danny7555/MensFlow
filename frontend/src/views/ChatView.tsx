@@ -22,6 +22,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../components/ui/toolti
 import { ChatSkeleton } from '../components/skeletons/ChatSkeleton'
 import { SYMPTOM_DEFS } from '../data/symptomsData'
 import { chatApi, type ApiChatSession, useChatSuggestions } from '../services/chatService'
+import { userApi } from '../services/userService'
 import { toast } from 'sonner'
 import { cn } from '../lib/utils'
 import { computeCycleDay } from '../lib/cycleUtils'
@@ -155,7 +156,7 @@ function generateAIResponse(
 export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean }) {
   const { temporaryChat, setTemporaryChat } = useChatSession()
   const { chatShowTimestamps } = useStore((state) => state.settings)
-  const { dashboard: data, user, logs, customSymptoms, showConfirm } = useStore()
+  const { dashboard: data, user, logs, customSymptoms, showConfirm, hydrate, fetchLogs } = useStore()
 
   const threadEndRef = useRef<HTMLDivElement>(null)
   // Capture the static prop in a ref so the initial-load effect doesn't
@@ -409,6 +410,9 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
             createdAt: result.assistantMessage.createdAt,
           }
         ])
+        const profile = await userApi.getProfile()
+        hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
+        await fetchLogs()
         // Refresh recent session list
         fetchSessions()
       } catch (err: unknown) {
@@ -677,6 +681,12 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
             )}
           </div> */}
         </div>
+
+        {temporaryChat && (
+          <div className="mx-4 mt-3 rounded-xl border border-[var(--mf-border)] bg-[var(--mf-card)] px-4 py-2 text-[11px] leading-relaxed text-muted-foreground">
+            Temporary chat can use what you say in this thread to answer better, but it will not save messages or update dashboard data. Switch to a saved chat when you want cycle details from the conversation to populate your profile.
+          </div>
+        )}
 
         {/* Chat Content Body */}
         {lockedSessionToUnlock ? (

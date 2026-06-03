@@ -7,6 +7,7 @@ import { IPartnerPing, IPartnerChatMessage } from '../interfaces';
 import { httpError } from '../utils/http';
 import { generateUniquePartnerCode } from './authService';
 import { sendInviteEmail, sendReminderEmail } from './emailService';
+import { buildCycleModel } from '../utils/cycleModel';
 
 
 // ─── Pairing ─────────────────────────────────────────────────────────────────
@@ -179,6 +180,12 @@ export async function getPartnerStatus(userId: string): Promise<object> {
 
   const symptoms = latestLog?.symptoms ?? [];
   const shareDetails = partnerSettings ? partnerSettings.privacyShareCycleDetails !== false : true;
+  const cycleModel = buildCycleModel({
+    lastPeriodStart: partnerDash?.lastPeriodStart,
+    typicalCycleDays: partnerDash?.typicalCycleDays,
+    cycleVariationDays: partnerDash?.cycleVariationDays,
+    symptoms,
+  });
 
   let streakDoc = initialStreakDoc;
   if (!streakDoc) {
@@ -221,11 +228,12 @@ export async function getPartnerStatus(userId: string): Promise<object> {
         ? {
             lastPeriodStart: partnerDash.lastPeriodStart,
             typicalCycleDays: partnerDash.typicalCycleDays,
-            phaseLabel: partnerDash.phaseLabel,
-            hormoneTrend: partnerDash.hormoneTrend,
-            bodySignals: partnerDash.bodySignals,
-            cycleVariationDays: partnerDash.cycleVariationDays,
-            isAtypical: partnerDash.isAtypical,
+            phaseLabel: cycleModel.phaseLabel,
+            hormoneTrend: cycleModel.hormoneTrend,
+            bodySignals: cycleModel.bodySignals,
+            guidanceLines: partnerDash.guidanceLines?.length ? partnerDash.guidanceLines : cycleModel.guidanceLines,
+            cycleVariationDays: cycleModel.cycleVariationDays,
+            isAtypical: cycleModel.isAtypical,
             symptoms,
             water: latestLog?.water !== undefined ? latestLog.water : 1000,
             weight: latestLog?.weight !== undefined ? latestLog.weight : 62.5,
@@ -237,7 +245,7 @@ export async function getPartnerStatus(userId: string): Promise<object> {
         : {
             lastPeriodStart: '', // Redacted
             typicalCycleDays: 28, // Default fallback
-            phaseLabel: partnerDash.phaseLabel, // Shared phase for translator/checklist
+            phaseLabel: cycleModel.phaseLabel, // Shared phase for translator/checklist
             hormoneTrend: 'Private details', // Redacted
             bodySignals: 'Private details', // Redacted
             cycleVariationDays: 28, // Redacted
