@@ -3,8 +3,9 @@ import { Settings, SettingsDocument } from '../models/Settings';
 import { Dashboard, DashboardDocument } from '../models/Dashboard';
 import { PartnerPing } from '../models/Partner';
 import { IUser, ISettings, IDashboard } from '../interfaces';
-import { sendReminderEmail } from './emailService';
+import { sendReminderEmail, sendGuardianEmail } from './emailService';
 import { buildCycleModel } from '../utils/cycleModel';
+import { LoginHistory } from '../models/LoginHistory';
 
 export async function getUserProfile(
   userId: string
@@ -159,6 +160,25 @@ export async function updateUserSettings(
     });
   }
 
+  if (
+    patch.parentalGuardianEmail &&
+    patch.parentalGuardianEmail !== previousSettings?.parentalGuardianEmail
+  ) {
+    // Send email to new guardian notifying them of setup
+    const newEmail = patch.parentalGuardianEmail;
+    User.findById(userId).lean()
+      .then((user) => {
+        const userName = user?.name || user?.username || 'a user';
+        return sendGuardianEmail({
+          toEmail: newEmail,
+          userName,
+        });
+      })
+      .catch((err) => {
+        console.error('[updateUserSettings] Failed to send guardian notification email:', err);
+      });
+  }
+
   return toSettings(settings);
 }
 
@@ -294,4 +314,14 @@ async function notifyAccessDecision(userId: string, decision: 'granted' | 'decli
       reminderMessage: message,
     });
   }
+}
+
+export async function getUserLoginHistory(userId: string): Promise<any[]> {
+  const records = await LoginHistory.find({ userId }).sort({ timestamp: -1 }).limit(10).lean();
+  return records.map(r => ({
+    id: String(r._id),
+    ip: r.ip,
+    userAgent: r.userAgent,
+    timestamp: r.timestamp.toISOString(),
+  }));
 }

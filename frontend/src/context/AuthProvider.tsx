@@ -71,6 +71,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           store.fetchLogs(),
           store.fetchCustomSymptoms(),
           store.fetchPartnerStatus(),
+          store.fetchMonthInReview(),
+          store.fetchLoginHistory(),
         ]).catch((err) => console.error('Failed to load user data', err))
 
         // Invalidate only the data queries that depend on the freshly-loaded profile
@@ -127,6 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const store = useStore.getState()
       store.fetchPartnerStatus().catch((err) => console.error('Failed to sync partner status in background', err))
       store.fetchLogs().catch((err) => console.error('Failed to sync daily logs in background', err))
+      store.fetchMonthInReview().catch((err) => console.error('Failed to sync month-in-review in background', err))
     }, 10000)
 
     return () => clearInterval(syncInterval)
@@ -184,7 +187,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await Promise.all([
       store.fetchLogs(),
       store.fetchCustomSymptoms(),
-      store.fetchPartnerStatus()
+      store.fetchPartnerStatus(),
+      store.fetchLoginHistory(),
     ]).catch(err => console.error('Failed to load user data', err))
 
     // If user opened auth from a specific page (e.g. /sync), return there.

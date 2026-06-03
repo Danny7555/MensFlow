@@ -1,6 +1,6 @@
 /* eslint-disable */
 import type { ComponentType, ReactNode } from 'react'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useStore } from '../store/useStore'
 import { useAuth } from '../context/useAuth'
 import {
@@ -1034,6 +1034,29 @@ function DeleteLockChatModal({
   )
 }
 
+function parseUserAgent(ua: string): string {
+  if (!ua) return 'Unknown Device'
+  const uaLower = ua.toLowerCase()
+  let os = 'Unknown OS'
+  let browser = 'Unknown Browser'
+
+  // OS detection
+  if (uaLower.includes('windows')) os = 'Windows'
+  else if (uaLower.includes('macintosh') || uaLower.includes('mac os x')) os = 'macOS'
+  else if (uaLower.includes('iphone') || uaLower.includes('ipad')) os = 'iOS'
+  else if (uaLower.includes('android')) os = 'Android'
+  else if (uaLower.includes('linux')) os = 'Linux'
+
+  // Browser detection
+  if (uaLower.includes('chrome') || uaLower.includes('crios')) browser = 'Chrome'
+  else if (uaLower.includes('firefox')) browser = 'Firefox'
+  else if (uaLower.includes('safari') && !uaLower.includes('chrome')) browser = 'Safari'
+  else if (uaLower.includes('edge')) browser = 'Edge'
+  else if (uaLower.includes('opera') || uaLower.includes('opr')) browser = 'Opera'
+
+  return `${browser} on ${os}`
+}
+
 function SecurityPanel({
   settings,
   updateSettings,
@@ -1041,6 +1064,12 @@ function SecurityPanel({
   settings: MensFlowSettings
   updateSettings: (patch: Partial<MensFlowSettings>) => void
 }) {
+  const { loginHistory, fetchLoginHistory } = useStore()
+
+  useEffect(() => {
+    void fetchLoginHistory()
+  }, [fetchLoginHistory])
+
   return (
     <>
       <div className="settings-field-row border-b border-border/50 pb-6 mb-6">
@@ -1101,12 +1130,45 @@ function SecurityPanel({
         )}
       </div>
 
-      <div className="settings-placeholder-block opacity-60">
-        <ShieldCheck size={40} weight="duotone" aria-hidden />
-        <p className="settings-placeholder-title">Login history</p>
-        <p className="settings-placeholder-desc">
-          Active sessions and device history will be visible here once your account is connected to the cloud.
-        </p>
+      <div className="mt-8 pt-6 border-t border-border/50">
+        <span className="text-xs font-semibold uppercase tracking-widest text-[var(--mf-muted)] block mb-4">
+          Login history
+        </span>
+        
+        {loginHistory && loginHistory.length > 0 ? (
+          <div className="space-y-1">
+            {loginHistory.map((record, index) => (
+              <div 
+                key={record.id || index}
+                className="settings-field-row"
+              >
+                <div className="settings-field-text">
+                  <div className="flex items-center gap-2">
+                    <span className="settings-field-label">
+                      {parseUserAgent(record.userAgent)}
+                    </span>
+                    {index === 0 && (
+                      <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 uppercase tracking-wider">
+                        Active
+                      </span>
+                    )}
+                  </div>
+                  <p className="settings-field-desc">
+                    IP: {record.ip} • {new Date(record.timestamp).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="settings-placeholder-block opacity-60">
+            <ShieldCheck size={40} weight="duotone" aria-hidden />
+            <p className="settings-placeholder-title">Login history</p>
+            <p className="settings-placeholder-desc">
+              Active sessions and device history will be visible here once your account is connected to the cloud.
+            </p>
+          </div>
+        )}
       </div>
     </>
   )
@@ -1119,6 +1181,12 @@ function ParentalPanel({
   settings: MensFlowSettings
   updateSettings: (patch: Partial<MensFlowSettings>) => void
 }) {
+  const [guardianEmail, setGuardianEmail] = useState(settings.parentalGuardianEmail ?? '')
+
+  useEffect(() => {
+    setGuardianEmail(settings.parentalGuardianEmail ?? '')
+  }, [settings.parentalGuardianEmail])
+
   const applyParentalEnabled = (enabled: boolean) => {
     updateSettings({
       parentalControlsEnabled: enabled,
@@ -1144,6 +1212,16 @@ function ParentalPanel({
     })
   }
 
+  const handleUpdateEmail = () => {
+    const emailToSave = guardianEmail.trim() || null
+    updateSettings({ parentalGuardianEmail: emailToSave })
+    toast.success('Guardian email updated successfully')
+  }
+
+  const isEmailChanged = guardianEmail.trim() !== (settings.parentalGuardianEmail ?? '')
+  const isEmailValid = !guardianEmail.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guardianEmail.trim())
+  const canUpdate = isEmailChanged && isEmailValid
+
   return (
     <>
       <p className="settings-panel-intro">
@@ -1164,15 +1242,27 @@ function ParentalPanel({
             Used as the contact for supervision and account recovery.
           </p>
         </div>
-        <input
-          type="email"
-          value={settings.parentalGuardianEmail ?? ''}
-          onChange={(e) => updateSettings({ parentalGuardianEmail: e.target.value.trim() || null })}
-          placeholder="guardian@example.com"
-          disabled={!settings.parentalControlsEnabled}
-          className="settings-select bg-none shadow-none min-w-[220px] h-9 px-3 disabled:opacity-50"
-          aria-label="Guardian email"
-        />
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <input
+            type="email"
+            value={guardianEmail}
+            onChange={(e) => setGuardianEmail(e.target.value)}
+            placeholder="guardian@example.com"
+            disabled={!settings.parentalControlsEnabled}
+            className="settings-select bg-none shadow-none w-[320px] sm:w-[380px] max-w-none h-9 px-3 disabled:opacity-50 cursor-text"
+            aria-label="Guardian email"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={!settings.parentalControlsEnabled || !canUpdate}
+            onClick={handleUpdateEmail}
+            className="rounded-lg h-9 px-3 text-xs"
+          >
+            Update
+          </Button>
+        </div>
       </div>
 
       <SelectRow

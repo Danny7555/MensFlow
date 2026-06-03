@@ -19,11 +19,23 @@ export type ApiCustomSymptom = {
   category: string
 }
 
+export type ApiMonthInReview = {
+  cycleLength: number
+  periodLength: number
+  energyPeakStart: number
+  energyPeakEnd: number
+  crampingChange: number
+  partnerActions: number
+}
+
 // ─── Endpoints ────────────────────────────────────────────────────────────────
 
 export const logsApi = {
   getAll: () =>
     get<ApiSymptomLog[]>('/logs'),
+
+  getMonthInReview: () =>
+    get<ApiMonthInReview>('/logs/review'),
 
   upsert: (date: string, symptoms?: string[], water?: number, weight?: number, lhLevel?: string | null, mucus?: string | null) =>
     post<ApiSymptomLog>('/logs', { date, symptoms, water, weight, lhLevel, mucus }),

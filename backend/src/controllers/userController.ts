@@ -125,3 +125,12 @@ export async function addUserXp(req: AuthRequest, res: Response, next: NextFunct
     next(err);
   }
 }
+
+export async function getLoginHistory(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const history = await userService.getUserLoginHistory(req.user!.id);
+    res.json(history);
+  } catch (err) {
+    next(err);
+  }
+}

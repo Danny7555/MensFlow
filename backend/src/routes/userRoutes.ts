@@ -11,5 +11,6 @@ router.put('/profile', userController.updateProfile);
 router.put('/settings', userController.updateSettings);
 router.put('/dashboard', requireFullAccess, userController.updateDashboard);
 router.post('/xp', userController.addUserXp);
+router.get('/login-history', userController.getLoginHistory);
 
 export default router;

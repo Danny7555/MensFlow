@@ -2,8 +2,8 @@
 import { type DashboardSnapshot, DEFAULT_DASHBOARD } from '../lib/dashboardStorage'
 import { DEFAULT_SETTINGS, type MensFlowSettings } from '../context/settings-types'
 import { type SymptomDef, type SymptomCategory } from '../data/symptomsData'
-import { logsApi } from '../services/logsService'
-import { userApi, type ApiUser, type ApiSettings, type ApiDashboard } from '../services/userService'
+import { logsApi, type ApiMonthInReview } from '../services/logsService'
+import { userApi, type ApiUser, type ApiSettings, type ApiDashboard, type ApiLoginRecord } from '../services/userService'
 import { partnerApi } from '../services/partnerService'
 import { toast } from 'sonner'
 import { isLoggedIn } from '../lib/auth-token'
@@ -37,6 +37,8 @@ interface AppState {
   dashboard: DashboardSnapshot
   settings: MensFlowSettings
   logs: SymptomLog[]
+  monthInReview: ApiMonthInReview | null
+  loginHistory: ApiLoginRecord[]
   user: AppUser
   customSymptoms: SymptomDef[]
   isSaving: boolean
@@ -75,6 +77,7 @@ interface AppState {
       completedActions: string[]
       supportStreak: number
       lastActionDate: string
+      totalActionsThisCycle?: number
     }
   } | null
 
@@ -99,6 +102,8 @@ interface AppState {
   updateDailyMetrics: (date: string, water?: number, weight?: number, lhLevel?: string | null, mucus?: string | null) => Promise<boolean>
   getLogForDate: (date: string) => SymptomLog | undefined
   fetchLogs: () => Promise<void>
+  fetchMonthInReview: () => Promise<void>
+  fetchLoginHistory: () => Promise<void>
   clearLogs: () => Promise<void>
 
   // Custom symptoms
@@ -142,6 +147,8 @@ export const useStore = create<AppState>()((set, get) => ({
   dashboard: DEFAULT_DASHBOARD,
   settings: DEFAULT_SETTINGS,
   logs: [],
+  monthInReview: null,
+  loginHistory: [],
   user: DEFAULT_USER,
   customSymptoms: [],
   isSaving: false,
@@ -252,6 +259,8 @@ export const useStore = create<AppState>()((set, get) => ({
       dashboard: DEFAULT_DASHBOARD,
       settings: DEFAULT_SETTINGS,
       logs: [],
+      monthInReview: null,
+      loginHistory: [],
       user: DEFAULT_USER,
       customSymptoms: [],
       isSaving: false,
@@ -391,6 +400,28 @@ export const useStore = create<AppState>()((set, get) => ({
     }
   },
 
+  fetchMonthInReview: async () => {
+    if (isLoggedIn()) {
+      try {
+        const data = await logsApi.getMonthInReview()
+        set({ monthInReview: data })
+      } catch (err) {
+        console.error('Failed to fetch month in review:', err)
+      }
+    }
+  },
+
+  fetchLoginHistory: async () => {
+    if (isLoggedIn()) {
+      try {
+        const data = await userApi.getLoginHistory()
+        set({ loginHistory: data })
+      } catch (err) {
+        console.error('Failed to fetch login history:', err)
+      }
+    }
+  },
+
   addLog: async (date, symptoms, lhLevel, mucus) => {
     set({ isSaving: true })
     try {
@@ -410,6 +441,7 @@ export const useStore = create<AppState>()((set, get) => ({
             { date: log.date, symptoms: log.symptoms, water: log.water, weight: log.weight, lhLevel: log.lhLevel, mucus: log.mucus },
           ],
         }))
+        void get().fetchMonthInReview()
       } else {
         set((state) => ({
           logs: [
@@ -452,6 +484,7 @@ export const useStore = create<AppState>()((set, get) => ({
             { date: log.date, symptoms: log.symptoms, water: log.water, weight: log.weight, lhLevel: log.lhLevel, mucus: log.mucus },
           ],
         }))
+        void get().fetchMonthInReview()
       } else {
         set((state) => ({
           logs: [
@@ -530,6 +563,7 @@ export const useStore = create<AppState>()((set, get) => ({
         supportStreak: result.supportStreak,
         lastActionDate: result.lastActionDate,
       })
+      void get().fetchMonthInReview()
     } else {
       set((state) => {
         const completed = state.completedActions.includes(actionId)

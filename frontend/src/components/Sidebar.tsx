@@ -14,7 +14,7 @@ import {
   Pulse,
   Target,
   X,
-  SidebarSimple,
+  SidebarIcon,
   SignOut,
   Users,
   Lock,
@@ -143,7 +143,7 @@ export function Sidebar({
             onClick={desktopCollapsed ? onToggleDesktopCollapse : (onToggleSidebar || onToggleDesktopCollapse)}
             aria-label="Toggle sidebar"
           >
-            {isMobile && mobileOpen ? <X size={20} /> : <SidebarSimple size={22} />}
+            {isMobile && mobileOpen ? <X size={20} /> : <SidebarIcon size={22}/>}
           </button>
         </div>
 

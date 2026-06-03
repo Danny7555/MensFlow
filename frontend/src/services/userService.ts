@@ -76,6 +76,13 @@ export type ApiDashboard = {
   }
 }
 
+export type ApiLoginRecord = {
+  id: string
+  ip: string
+  userAgent: string
+  timestamp: string
+}
+
 // ─── Endpoints ────────────────────────────────────────────────────────────────
 
 export const userApi = {
@@ -93,6 +100,9 @@ export const userApi = {
 
   submitQuizAttempt: (date: string, correct: boolean) =>
     post<{ success: boolean; user: ApiUser }>('/user/xp', { date, correct }),
+
+  getLoginHistory: () =>
+    get<ApiLoginRecord[]>('/user/login-history'),
 }
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────

@@ -80,3 +80,12 @@ export async function removeCustomSymptom(req: AuthRequest, res: Response, next:
     next(err);
   }
 }
+
+export async function getMonthInReview(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const data = await cycleService.getMonthInReview(req.user!.id);
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+}
