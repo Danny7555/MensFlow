@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CaretRight, FlowerLotus, Sparkle } from '@phosphor-icons/react'
+import { CaretRight, FlowerLotus, Sparkle, Heart } from '@phosphor-icons/react'
 import { ChatComposer } from '../components/ChatComposer'
 import { useAuth } from '../context/useAuth'
 import { CLEAR_LOCAL_CHATS_EVENT } from '../lib/constants'
@@ -92,7 +92,7 @@ export function LandingView() {
                 <p className="text-[10px] text-muted-foreground">Guest preview session</p>
               </div>
             </div>
-            <button 
+            <button type="button" 
               onClick={() => openAuthModal()}
               className="text-xs font-semibold text-primary hover:text-primary/90 bg-primary/5 hover:bg-primary/10 px-3 py-1.5 rounded-full cursor-pointer transition-all"
             >
@@ -121,24 +121,27 @@ export function LandingView() {
                     <div className="px-4 py-3 rounded-2xl bg-[var(--mf-accent-soft)]/20 border border-[var(--mf-accent-border)]/20 text-xs text-muted-foreground flex flex-col gap-2 animate-in fade-in slide-in-from-top-1 duration-300">
                       {idx === 1 ? (
                         <>
-                          <p className="font-semibold text-[var(--mf-text-strong)] flex items-center gap-1.5">
-                            ✨ Let's make your experience personalized!
+                          <p className="font-semibold text-[var(--mf-text-strong)] flex items-center gap-2">
+                            <Sparkle size={16} weight="bold" className="text-[var(--mf-accent)]" aria-hidden="true" />
+                            <span>Let's make your experience personalized!</span>
                           </p>
-                          <p className="text-left leading-normal">
-                            You've used 1 of your 2 free guest messages. Join us for free to save your chat, log daily symptoms, and connect cycle phases with your partner to support them best. 💕
+                          <p className="text-left leading-normal flex items-start gap-2">
+                            <Heart size={16} weight="fill" className="text-pink-500 mt-[2px]" aria-hidden="true" />
+                            <span>You've used 1 of your 2 free guest messages. Join us for free to save your chat, log daily symptoms, and connect cycle phases with your partner to support them best.</span>
                           </p>
                         </>
                       ) : (
                         <>
-                          <p className="font-semibold text-[var(--mf-text-strong)] flex items-center gap-1.5">
-                            💖 Keep the conversation going!
+                          <p className="font-semibold text-[var(--mf-text-strong)] flex items-center gap-2">
+                            <Sparkle size={16} weight="bold" className="text-[var(--mf-accent)]" aria-hidden="true" />
+                            <span>Keep the conversation going!</span>
                           </p>
                           <p className="text-left leading-normal">
                             You've reached your free preview limit. Create a free account to unlock unlimited chats, personalized health tracker tips, and secure partner sync features. We'd love to help you along the journey!
                           </p>
                         </>
                       )}
-                      <button 
+                      <button type="button" 
                         onClick={() => openAuthModal()}
                         className="text-left font-semibold text-[var(--mf-accent)] hover:underline self-start cursor-pointer"
                       >
@@ -211,7 +214,7 @@ export function LandingView() {
               <span>or</span>
             </div>
 
-            <button 
+            <button type="button" 
               onClick={() => navigate('/onboarding')}
               className="landing-primary-cta"
             >

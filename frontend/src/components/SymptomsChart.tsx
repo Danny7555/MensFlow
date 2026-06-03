@@ -48,6 +48,8 @@ const chartConfig6Months = {
   },
 } satisfies ChartConfig
 
+const CHART_DOMAIN = [0, 10]
+
 export function SymptomsChart() {
   const { logs } = useStore()
   const [viewMode, setViewMode] = useState<'7days' | '6months'>('6months')
@@ -109,9 +111,9 @@ export function SymptomsChart() {
       monthSymptomsList.forEach(symptoms => {
         symptoms.forEach(sym => {
           const s = sym.toLowerCase()
-          if (s.indexOf('cramp') !== -1) cramps++
-          if (s.indexOf('mood') !== -1 || s.indexOf('anxious') !== -1 || s.indexOf('sad') !== -1 || s.indexOf('irritable') !== -1) moodSwings++
-          if (s.indexOf('fatigue') !== -1 || s.indexOf('sleep') !== -1) fatigue++
+          if (s.includes('cramp')) cramps++
+          if (s.includes('mood') || s.includes('anxious') || s.includes('sad') || s.includes('irritable')) moodSwings++
+          if (s.includes('fatigue') || s.includes('sleep')) fatigue++
         })
       })
 
@@ -206,7 +208,7 @@ export function SymptomsChart() {
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
-                domain={[0, 10]}
+                domain={CHART_DOMAIN}
                 className="text-[10px] text-muted-foreground"
               />
               <ChartTooltip

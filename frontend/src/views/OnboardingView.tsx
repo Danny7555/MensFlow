@@ -1,235 +1,170 @@
-import { useState, useCallback, useTransition, useMemo } from 'react' 
-import { useNavigate } from 'react-router-dom'
-import { m, AnimatePresence, LazyMotion, domAnimation } from 'framer-motion'
-import { useAuth } from '../context/useAuth'
-import { useStore } from '../store/useStore'
-import { ONBOARDING_QUESTIONS } from '../data/onboardingData'
-import { 
-  CaretLeft, 
-  Check,
-  Calendar,
-  Heart,
-  Brain,
-  Lightbulb,
-  FlowerLotus
-} from '@phosphor-icons/react'
-import { Button } from '../components/ui/button'
-import { Input } from '../components/ui/input'
-import { cn } from '../lib/utils'
+import { useState, useCallback, useTransition, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { m, AnimatePresence, LazyMotion, domAnimation } from "framer-motion";
+import { useAuth } from "../context/useAuth";
+import { useStore } from "../store/useStore";
+import { ONBOARDING_QUESTIONS } from "../data/onboardingData";
+import { CaretLeft, Check, FlowerLotus } from "@phosphor-icons/react";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { cn } from "../lib/utils";
+import { buildPersonalizationProfile, buildPersonalizedDashboard } from "../lib/personalization";
 
-import { type DashboardSnapshot } from '../lib/dashboardStorage'
-import type { ApiUser } from '../services/userService'
+import { type ApiUser } from "../services/userService";
 
 export function OnboardingView() {
-  const [currentStep, setCurrentStep] = useState(0)
-  const [, startTransition] = useTransition()
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [answers, setAnswers] = useState<Record<string, string | string[]>>({})
-  const { completeOnboarding, openAuthModal, isAuthenticated } = useAuth()
-  const { updateUser, updateDashboard } = useStore()
-  const navigate = useNavigate()
-
-  const question = ONBOARDING_QUESTIONS[currentStep]
+  const [activeId, setActiveId] = useState<string>(() => {
+    const first = ONBOARDING_QUESTIONS[0]?.id;
+    return typeof first === "string" ? first : "intro";
+  });
+  const [, startTransition] = useTransition();
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
+  const { completeOnboarding, openAuthModal, isAuthenticated } = useAuth();
+  const { updateUser, updateDashboard, updateSettings } = useStore();
+  const navigate = useNavigate();
 
   const activeQuestions = useMemo(() => {
-    const selectedRole = answers.role || '';
+    const selectedRole = (answers.role as string) || "";
+    const selectedPurpose = (answers.purpose as string) || "track_period";
+    const trackPeriodIds = [
+      "cycle_regularity",
+      "cycle_length",
+      "flow_description",
+      "period_impact",
+      "tracking_goal",
+    ];
+    const educationIds = [
+      "education_purpose",
+      "knowledge_level",
+      "recommendation_topics",
+      "learning_preference",
+    ];
     return ONBOARDING_QUESTIONS.filter((q) => {
-      if (q.id === 'intro') return false;
-      if (selectedRole === 'partner') {
-        if (['goal', 'energy_consistency', 'symptoms', 'activity_level'].includes(q.id)) {
-          return false;
-        }
-      } else {
-        if (q.id === 'partner_code') {
-          return false;
-        }
+      if (["intro", "age_group", "role"].includes(q.id)) return true;
+      if (selectedRole === "partner") {
+        return ["referral_source", "name", "access_level"].includes(q.id);
       }
+      if (q.id === "purpose") return true;
+      if (!selectedPurpose) return false;
+      if (q.id === "referral_source") return true;
+      if (trackPeriodIds.includes(q.id))
+        return selectedPurpose === "track_period";
+      if (educationIds.includes(q.id)) return selectedPurpose === "education";
       return true;
     });
-  }, [answers.role]);
+  }, [answers.role, answers.purpose]);
 
-  const activeStepIndex = useMemo(() => {
-    const currentQuestion = ONBOARDING_QUESTIONS[currentStep];
-    const idx = activeQuestions.findIndex((q) => q.id === currentQuestion.id);
-    return idx >= 0 ? idx + 1 : 1;
-  }, [currentStep, activeQuestions]);
+  const question =
+    activeQuestions.find((q) => q.id === activeId) ||
+    activeQuestions[0] ||
+    ONBOARDING_QUESTIONS[0];
+
+  const currentActiveIndex = useMemo(() => {
+    const idx = activeQuestions.findIndex((q) => q.id === activeId);
+    return idx >= 0 ? idx : 0;
+  }, [activeId, activeQuestions]);
 
   const progress = useMemo(() => {
-    return (activeStepIndex / activeQuestions.length) * 100;
-  }, [activeStepIndex, activeQuestions.length]);
+    if (activeQuestions.length <= 1) return 100;
+    return (currentActiveIndex / (activeQuestions.length - 1)) * 100;
+  }, [currentActiveIndex, activeQuestions.length]);
 
-  const getIcon = (iconName?: string) => {
-    switch (iconName) {
-      case 'calendar':
-        return <Calendar size={32} />
-      case 'heart':
-        return <Heart size={32} />
-      case 'brain':
-        return <Brain size={32} />
-      case 'lightbulb':
-        return <Lightbulb size={32} />
-      default:
-        return null
-    }
-  }
-
-  const finishOnboarding = useCallback(() => {
-    const patch: Partial<ApiUser> = {}
-    if (typeof answers.name === 'string' && answers.name) {
-      patch.name = answers.name
-    }
-    if (answers.access_level === 'full' || answers.access_level === 'educational') {
-      patch.accessLevel = answers.access_level
-    }
-    if (answers.role === 'lady' || answers.role === 'partner') {
-      patch.role = answers.role
+  const finishOnboarding = useCallback(async () => {
+    const profile = buildPersonalizationProfile(answers);
+    const patch: Partial<ApiUser> = {
+      onboardingData: answers as Record<string, unknown>,
+      role: profile.role,
+      accessLevel: profile.accessLevel,
+    };
+    if (profile.name) {
+      patch.name = profile.name;
     }
     if (Object.keys(patch).length > 0) {
-      updateUser(patch)
+      await updateUser(patch);
+    }
+    completeOnboarding();
+
+    // Prepare dashboard/settings from onboarding answers first
+    const selectedPurpose = (answers.purpose as string) || "";
+    if (selectedPurpose !== "education") {
+      updateDashboard(buildPersonalizedDashboard(answers));
+      updateSettings({ cycleAvgLengthDays: profile.typicalCycleDays });
     }
 
-    if (answers.role === 'partner' && typeof answers.partner_code === 'string' && answers.partner_code.trim()) {
-      sessionStorage.setItem('mf_partner_code', answers.partner_code.trim())
-    } else {
-      sessionStorage.removeItem('mf_partner_code')
-    }
-    
-    // Map onboarding answers to dashboard state if the user is a lady
-    if (answers.role !== 'partner') {
-      const newDashboard: Partial<DashboardSnapshot> = {
-        // Start their tracking cycle from today
-        lastPeriodStart: new Date().toISOString().slice(0, 10)
-      }
-
-      if (Array.isArray(answers.symptoms) && answers.symptoms.length > 0) {
-         const labels = answers.symptoms.reduce<string[]>((acc, s) => {
-           if (s !== 'none') {
-             if (s === 'fatigue') acc.push('Fatigue')
-             else if (s === 'fog') acc.push('Brain fog')
-             else if (s === 'stress') acc.push('High stress')
-             else if (s === 'mood') acc.push('Mood swings')
-             else if (s === 'sleep') acc.push('Poor sleep')
-             else acc.push(s)
-           }
-           return acc
-         }, [])
-         if (labels.length > 0) {
-           newDashboard.bodySignals = labels.join(', ')
-         } else {
-           newDashboard.bodySignals = 'Balanced'
-         }
-      }
-
-      if (answers.goal === 'track') {
-         newDashboard.guidanceLines = ['Focus on energy tracking', 'Monitor your sleep cycle', 'Keep a daily journal']
-      } else if (answers.goal === 'health') {
-         newDashboard.guidanceLines = ['Prioritize hydration', 'Aim for 30m exercise daily', 'Establish a morning routine']
-      } else if (answers.goal === 'symptoms') {
-         newDashboard.guidanceLines = ['Track your triggers', 'Practice mindfulness', 'Maintain a regular schedule']
-      } else if (answers.goal === 'learn') {
-         newDashboard.guidanceLines = ['Read the daily insights', 'Listen to your body', 'Focus on holistic wellness']
-      }
-
-      if (answers.energy_consistency === 'irregular') {
-          newDashboard.hormoneTrend = 'Fluctuating energy'
-      } else if (answers.energy_consistency === 'regular') {
-          newDashboard.hormoneTrend = 'Stable energy'
-      } else if (answers.energy_consistency === 'mostly') {
-          newDashboard.hormoneTrend = 'Consistent rhythm'
-      }
-
-      updateDashboard(newDashboard)
-    }
-
-    completeOnboarding()
     if (isAuthenticated) {
-      navigate('/dashboard')
+      if (selectedPurpose === "education") {
+        navigate("/education");
+      } else {
+        navigate("/dashboard");
+      }
     } else {
-      openAuthModal()
-      navigate('/')
+      openAuthModal("register");
+      navigate("/");
     }
-  }, [answers.name, answers.role, answers.partner_code, answers.symptoms, answers.goal, answers.energy_consistency, answers.access_level, updateDashboard, completeOnboarding, isAuthenticated, navigate, openAuthModal, updateUser])
+  }, [
+    answers,
+    updateUser,
+    completeOnboarding,
+    isAuthenticated,
+    navigate,
+    openAuthModal,
+    updateDashboard,
+    updateSettings,
+  ]);
 
   const handleNext = useCallback(() => {
-    if (currentStep < ONBOARDING_QUESTIONS.length - 1) {
-      let nextStep = currentStep + 1;
-      const selectedRole = answers.role || '';
-      
-      if (selectedRole === 'partner') {
-        // Skip cycle tracking questions: goal, energy_consistency, symptoms, activity_level
-        if (ONBOARDING_QUESTIONS[nextStep] && ['goal', 'energy_consistency', 'symptoms', 'activity_level'].includes(ONBOARDING_QUESTIONS[nextStep].id)) {
-          nextStep = ONBOARDING_QUESTIONS.findIndex(q => q.id === 'name');
-        }
-      } else if (selectedRole === 'lady') {
-        // Skip partner code
-        if (ONBOARDING_QUESTIONS[nextStep] && ONBOARDING_QUESTIONS[nextStep].id === 'partner_code') {
-          nextStep = ONBOARDING_QUESTIONS.findIndex(q => q.id === 'goal');
-        }
-      }
-      
-      setCurrentStep(nextStep >= 0 ? nextStep : currentStep + 1);
-    } else {
-      startTransition(() => {
-        setIsAnalyzing(true)
-        setTimeout(() => {
-          finishOnboarding()
-        }, 2500)
-      })
+    if (currentActiveIndex < activeQuestions.length - 1) {
+      setActiveId(activeQuestions[currentActiveIndex + 1].id);
+      return;
     }
-  }, [currentStep, answers.role, finishOnboarding, startTransition])
+    startTransition(() => {
+      setIsAnalyzing(true);
+      setTimeout(() => {
+        finishOnboarding();
+      }, 2000);
+    });
+  }, [currentActiveIndex, activeQuestions, finishOnboarding, startTransition]);
 
   const handleBack = useCallback(() => {
-    if (currentStep > 0) {
-      let prevStep = currentStep - 1;
-      const selectedRole = answers.role || '';
-      
-      if (selectedRole === 'partner') {
-        // From name, go back to partner_code
-        if (ONBOARDING_QUESTIONS[currentStep].id === 'name') {
-          prevStep = ONBOARDING_QUESTIONS.findIndex(q => q.id === 'partner_code');
-        }
-      } else if (selectedRole === 'lady') {
-        // From goal, go back to role
-        if (ONBOARDING_QUESTIONS[currentStep].id === 'goal') {
-          prevStep = ONBOARDING_QUESTIONS.findIndex(q => q.id === 'role');
-        }
-      }
-      
-      setCurrentStep(prevStep >= 0 ? prevStep : currentStep - 1);
+    if (currentActiveIndex > 0) {
+      setActiveId(activeQuestions[currentActiveIndex - 1].id);
     }
-  }, [currentStep, answers.role])
+  }, [currentActiveIndex, activeQuestions]);
 
   const handleNoThanks = useCallback(() => {
-    completeOnboarding()
-    openAuthModal()
-    navigate('/')
-  }, [completeOnboarding, navigate, openAuthModal])
+    completeOnboarding();
+    openAuthModal("register");
+    navigate("/");
+  }, [completeOnboarding, navigate, openAuthModal]);
 
   const selectOption = (value: string) => {
-    if (question.type === 'single-choice') {
-      setAnswers((prev) => ({ ...prev, [question.id]: value }))
-    } else if (question.type === 'multi-choice') {
-      const raw = answers[question.id]
-      const currentAnswers: string[] = Array.isArray(raw) ? raw : []
+    if (question.type === "single-choice") {
+      setAnswers((prev) => ({ ...prev, [question.id]: value }));
+    } else if (question.type === "multi-choice") {
+      const raw = answers[question.id];
+      const currentAnswers: string[] = Array.isArray(raw) ? raw : [];
       const nextAnswers = currentAnswers.includes(value)
         ? currentAnswers.filter((v) => v !== value)
-        : [...currentAnswers, value]
-      setAnswers((prev) => ({ ...prev, [question.id]: nextAnswers }))
+        : [...currentAnswers, value];
+      setAnswers((prev) => ({ ...prev, [question.id]: nextAnswers }));
     }
-  }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAnswers((prev) => ({ ...prev, [question.id]: e.target.value }))
-  }
+    setAnswers((prev) => ({ ...prev, [question.id]: e.target.value }));
+  };
 
   const isStepValid = () => {
-    const answer = answers[question.id]
-    if (question.id === 'partner_code') return true // Partner code is optional
-    if (question.type === 'single-choice') return !!answer
-    if (question.type === 'multi-choice') return Array.isArray(answer) && answer.length > 0
-    if (question.type === 'input') return typeof answer === 'string' && answer.trim().length > 0
-    return false
-  }
+    const answer = answers[question.id];
+    if (question.id === "partner_code") return true;
+    if (question.type === "single-choice") return !!answer;
+    if (question.type === "multi-choice")
+      return Array.isArray(answer) && answer.length > 0;
+    if (question.type === "input")
+      return typeof answer === "string" && answer.trim().length > 0;
+    return false;
+  };
 
   return (
     <LazyMotion features={domAnimation}>
@@ -237,18 +172,18 @@ export function OnboardingView() {
         {isAnalyzing ? (
           <OnboardingAnalyzing />
         ) : (
-          <m.div 
-            key="questions"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="onboarding-container"
-          >
-            <div className="onboarding-inner onboarding-inner--mobile-responsive">
+           <m.div
+             key="questions"
+             initial={{ opacity: 0 }}
+             animate={{ opacity: 1 }}
+             exit={{ opacity: 0 }}
+             className={cn("onboarding-container", "font-sans")}
+           >
+            <div className="onboarding-inner">
               <OnboardingHeader
-                rawStep={currentStep}
-                displayStep={activeStepIndex}
-                totalSteps={activeQuestions.length}
+                rawStep={currentActiveIndex}
+                displayStep={currentActiveIndex}
+                totalSteps={activeQuestions.length - 1}
                 progress={progress}
                 handleBack={handleBack}
                 handleNext={handleNext}
@@ -258,82 +193,88 @@ export function OnboardingView() {
               <main className="onboarding-main">
                 <AnimatePresence mode="wait">
                   <m.div
-                    key={currentStep}
-                    initial={{ opacity: 0, x: currentStep === 0 ? 0 : -20, y: currentStep === 0 ? 20 : 0 }}
+                    key={question.id}
+                    initial={{
+                      opacity: 0,
+                      x: currentActiveIndex === 0 ? 0 : -20,
+                      y: currentActiveIndex === 0 ? 20 : 0,
+                    }}
                     animate={{ opacity: 1, x: 0, y: 0 }}
-                    exit={{ opacity: 0, x: currentStep === 0 ? 0 : 20, y: currentStep === 0 ? -20 : 0 }}
-                    transition={{ duration: 0.5, ease: [0.2, 0, 0, 1] }}
+                    exit={{
+                      opacity: 0,
+                      x: currentActiveIndex === 0 ? 0 : 20,
+                      y: currentActiveIndex === 0 ? -20 : 0,
+                    }}
+                    transition={{ type: "spring", stiffness: 260, damping: 20 }}
                     className={cn(
                       "onboarding-question-card",
-                      currentStep === 0 && "onboarding-question-card--intro"
+                      currentActiveIndex === 0 &&
+                        "onboarding-question-card--intro",
                     )}
                   >
-                    {currentStep === 0 && (
+                    {currentActiveIndex === 0 && (
                       <m.div
                         initial={{ scale: 0.9, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ delay: 0.2 }}
                         className="onboarding-illustration-wrap"
                       >
-                        <img 
-                          src="/images/girl.png" 
-                          alt="Health illustration" 
+                        <img
+                          src="/images/girl.png"
+                          alt="Health illustration"
                           className="onboarding-illustration"
                         />
                       </m.div>
                     )}
-                    
+
                     <h1 className="onboarding-title">{question.question}</h1>
                     {question.description && (
-                      <p className="onboarding-description text-sm text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis px-2 max-w-full">
+                      <p className="onboarding-description">
                         {question.description}
                       </p>
                     )}
 
-                    <div className="onboarding-options-grid onboarding-options-grid--mobile-responsive">
-                      {question.type === 'input' ? (
-                        <div className="onboarding-input-wrap onboarding-input-wrap--mobile">
+                    <div className="onboarding-options-grid">
+                      {question.type === "input" ? (
+                        <div className="onboarding-input-wrap">
                           <Input
-                            value={answers[question.id] || ''}
+                            value={answers[question.id] || ""}
                             onChange={handleInputChange}
-                            className="onboarding-text-input onboarding-text-input--mobile"
-                            onKeyDown={(e) => e.key === 'Enter' && isStepValid() && handleNext()}
+                            className="onboarding-text-input"
+                            onKeyDown={(e) =>
+                              e.key === "Enter" && isStepValid() && handleNext()
+                            }
                           />
                         </div>
                       ) : (
                         question.options?.map((option) => {
-                          const isSelected = question.type === 'single-choice'
-                            ? answers[question.id] === option.value
-                            : (answers[question.id] || []).includes(option.value)
+                          const isSelected =
+                            question.type === "single-choice"
+                              ? answers[question.id] === option.value
+                              : (answers[question.id] || []).includes(
+                                  option.value,
+                                );
 
                           return (
                             <button
+                              type="button"
                               key={option.value}
                               onClick={() => selectOption(option.value)}
                               className={cn(
-                                "onboarding-option-btn onboarding-option-btn--mobile",
-                                isSelected && "onboarding-option-btn--selected"
+                                "onboarding-option-btn",
+                                isSelected && "onboarding-option-btn--selected",
                               )}
                             >
-                              <div className="onboarding-option-content onboarding-option-content--mobile">
-                                {option.img ? (
-                                  <div className="size-6 shrink-0 rounded-full overflow-hidden mr-2">
-                                    <img src={option.img} alt="" className="w-full h-full object-cover" />
-                                  </div>
-                                ) : option.icon ? (
-                                  <span className="onboarding-option-icon onboarding-option-icon--mobile">
-                                    {getIcon(option.icon as string)}
-                                  </span>
-                                ) : null}
-                                <span className="onboarding-option-label onboarding-option-label--mobile">
+                              <div className="onboarding-option-content">
+                                <span className="onboarding-option-label">
                                   {option.label}
                                 </span>
                               </div>
-                              <div className="onboarding-check-wrap onboarding-check-wrap--mobile">
+                              <div className="onboarding-check-wrap">
                                 {isSelected && <Check size={14} />}
                               </div>
                             </button>
-                          )
+                          );
                         })
                       )}
                     </div>
@@ -342,7 +283,7 @@ export function OnboardingView() {
               </main>
 
               <OnboardingFooter
-                currentStep={currentStep}
+                currentStep={currentActiveIndex}
                 isStepValid={isStepValid()}
                 handleNext={handleNext}
                 handleNoThanks={handleNoThanks}
@@ -352,17 +293,17 @@ export function OnboardingView() {
         )}
       </AnimatePresence>
     </LazyMotion>
-  )
+  );
 }
 
 interface OnboardingHeaderProps {
-  rawStep: number
-  displayStep: number
-  totalSteps: number
-  progress: number
-  handleBack: () => void
-  handleNext: () => void
-  onOpenAuth: () => void
+  rawStep: number;
+  displayStep: number;
+  totalSteps: number;
+  progress: number;
+  handleBack: () => void;
+  handleNext: () => void;
+  onOpenAuth: () => void;
 }
 
 function OnboardingHeader({
@@ -379,37 +320,44 @@ function OnboardingHeader({
       {rawStep > 0 ? (
         <div className="onboarding-nav-top flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleBack}
-              className="rounded-full"
-            >
+             <Button
+               variant="ghost"
+               size="icon"
+               onClick={handleBack}
+               className={cn("rounded-full", "p-2")}
+             >
               <CaretLeft size={24} weight="bold" />
             </Button>
-            
+
             <div className="onboarding-brand hidden sm:flex">
-              <FlowerLotus size={28} weight="duotone" className="text-primary" />
+              <FlowerLotus
+                size={28}
+                weight="duotone"
+                className="text-primary"
+              />
               <span className="onboarding-brand-text">MensFlow</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              onClick={onOpenAuth}
-              className="text-xs font-semibold text-primary hover:text-primary/90"
-            >
-              Log in
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={handleNext}
-              className="onboarding-skip-btn"
-            >
-              Skip
-            </Button>
-          </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                onClick={onOpenAuth}
+                className={cn(
+                  "text-sm font-semibold text-primary hover:text-primary/90",
+                  "px-3 py-1"
+                )}
+              >
+                Log in
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={handleNext}
+                className={cn("onboarding-skip-btn", "text-sm", "px-3 py-1")}
+              >
+                Skip
+              </Button>
+            </div>
         </div>
       ) : (
         <div className="onboarding-nav-top flex items-center justify-between w-full">
@@ -426,29 +374,29 @@ function OnboardingHeader({
           </Button>
         </div>
       )}
-      
+
       {rawStep > 0 && (
         <div className="flex flex-col gap-2 w-full mt-4">
           <div className="flex justify-center text-sm font-medium text-muted-foreground tracking-wide">
             {displayStep} / {totalSteps}
           </div>
           <div className="onboarding-progress-wrap !mt-0">
-            <div 
-              className="onboarding-progress-bar" 
-              style={{ width: `${progress}%` }} 
+            <div
+              className="onboarding-progress-bar"
+              style={{ width: `${progress}%` }}
             />
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }
 
 interface OnboardingFooterProps {
-  currentStep: number
-  isStepValid: boolean
-  handleNext: () => void
-  handleNoThanks: () => void
+  currentStep: number;
+  isStepValid: boolean;
+  handleNext: () => void;
+  handleNoThanks: () => void;
 }
 
 function OnboardingFooter({
@@ -460,32 +408,40 @@ function OnboardingFooter({
   return (
     <footer className="onboarding-footer">
       <div className="onboarding-footer-inner">
-        <Button
-          onClick={handleNext}
-          disabled={currentStep !== 0 && !isStepValid}
-          className="onboarding-next-btn"
-        >
-          {currentStep === 0 
-            ? 'Yes, fine by me' 
-            : (currentStep === ONBOARDING_QUESTIONS.length - 1 ? 'Finish' : 'Next')}
+         <Button
+           onClick={handleNext}
+           disabled={currentStep !== 0 && !isStepValid}
+           className={cn(
+             "onboarding-next-btn",
+             "w-full rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
+           )}
+         >
+          {currentStep === 0
+            ? "Yes, fine by me"
+            : currentStep === 0
+              ? "Finish"
+              : "Next"}
         </Button>
-        {currentStep === 0 && (
-          <button 
-            type="button"
-            className="onboarding-secondary-btn" 
-            onClick={handleNoThanks}
-          >
-            No, thanks
-          </button>
-        )}
+         {currentStep === 0 && (
+           <button
+             type="button"
+             className={cn(
+               "onboarding-secondary-btn",
+               "w-full rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50"
+             )}
+             onClick={handleNoThanks}
+           >
+             No, thanks
+           </button>
+         )}
       </div>
     </footer>
-  )
+  );
 }
 
 function OnboardingAnalyzing() {
   return (
-    <m.div 
+    <m.div
       key="analyzing"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -518,9 +474,10 @@ function OnboardingAnalyzing() {
           transition={{ delay: 0.6 }}
           className="onboarding-analyzing-sub"
         >
-          Creating your custom health dashboard based on your goals and symptoms.
+          Creating your custom health dashboard based on your goals and
+          symptoms.
         </m.p>
       </div>
     </m.div>
-  )
+  );
 }

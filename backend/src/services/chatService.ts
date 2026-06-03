@@ -6,6 +6,7 @@ import { Dashboard } from '../models/Dashboard';
 import { SymptomLog } from '../models/Symptom';
 import { IChatMessage, ISessionSummary } from '../interfaces';
 import { httpError } from '../utils/http';
+import { buildCycleModel } from '../utils/cycleModel';
 
 // ─── Session List ─────────────────────────────────────────────────────────────
 
@@ -69,6 +70,22 @@ export async function sendMessage(
   text: string,
   passcode?: string
 ): Promise<{ userMessage: IChatMessage; assistantMessage: IChatMessage }> {
+  const user = await User.findById(userId).lean();
+  if (!user) {
+    throw httpError('User not found', 404);
+  }
+
+  // Enforce message limit for users with < 500 XP
+  if ((user.xp || 0) < 500) {
+    const userMsgCount = await ChatMessage.countDocuments({ userId, role: 'user' });
+    if (userMsgCount >= 5) {
+      throw httpError(
+        `Chat limit reached. You have used your 5 free messages. Complete daily quizzes to reach 500 XP and unlock unlimited AI assistant access! (Current XP: ${user.xp || 0}/500)`,
+        403
+      );
+    }
+  }
+
   const meta = await ChatMessage.findOne({ userId, sessionId }).lean();
 
   const isLocked = meta?.isLocked ?? false;
@@ -102,6 +119,9 @@ export async function sendMessage(
     securityAnswerHash,
     createdAt: now,
   });
+
+  // Extract cycle data from user's message and populate dashboard/logs
+  await extractAndSaveCycleData(userId, text);
 
   const aiText = await buildAIResponse(userId, text, historyMessages);
 
@@ -216,13 +236,13 @@ async function buildAIResponse(
   let phaseLabel = 'Luteal';
 
   if (dashboard?.lastPeriodStart) {
-    const start = new Date(`${dashboard.lastPeriodStart}T12:00:00`);
-    if (!isNaN(start.getTime())) {
-      const diff = Math.floor((Date.now() - start.getTime()) / 86_400_000);
-      const cycle = dashboard.typicalCycleDays || 28;
-      currentDay = (((diff % cycle) + cycle) % cycle) + 1;
-    }
-    phaseLabel = dashboard.phaseLabel ?? 'Luteal';
+    const model = buildCycleModel({
+      lastPeriodStart: dashboard.lastPeriodStart,
+      typicalCycleDays: dashboard.typicalCycleDays,
+      cycleVariationDays: dashboard.cycleVariationDays,
+    });
+    currentDay = model.cycleDay;
+    phaseLabel = model.phaseLabel;
   }
 
   const today = new Date().toISOString().split('T')[0];
@@ -245,7 +265,8 @@ Instructions:
 2. Keep your answers concise, engaging, and easy to read (use markdown bullet points, bold text, or short paragraphs).
 3. Do not sound clinical or overly robotic. Speak like a supportive relationship coach who understands cycle physiology.
 4. Keep context in mind (e.g. if energy is low in Luteal/Menstrual, suggest taking over chores, preparing hot water bottles, run baths, or bringing comfort food; if in Follicular/Ovulatory, suggest active dates, walking, or creative initiatives).
-5. If the user asks general relationship or support questions, address them while relating it back to cycle dynamics if relevant.`;
+5. If the user asks general relationship or support questions, address them while relating it back to cycle dynamics if relevant.
+6. CRITICAL: You must NOT ask any questions or engage in discussions about topics outside of general health, cycle tracking, cycle physiology, and supporting a partner through their menstrual cycle. If the user asks about unrelated topics (such as general news, sports, math, coding, generic cooking recipes, etc.), politely decline to discuss them and steer the conversation back to menstrual health, relationship support, or cycle symptoms. Under no circumstances should you initiate questions or ask the user questions about any topic outside of health or menstrual cycle tracking.`;
 
   const recentHistory = history.slice(-15);
   const apiMessages = [
@@ -289,6 +310,173 @@ Instructions:
   } catch (error) {
     console.error('[Groq API Exception]', error);
     return "Failed to connect to the Groq AI model. Please check the backend server logs for more details.";
+  }
+}
+
+// ─── Data Extraction from Chat ────────────────────────────────────────────────
+
+async function extractAndSaveCycleData(userId: string, text: string): Promise<void> {
+  const groqApiKey = process.env.GROQ_API_KEY;
+  if (!groqApiKey) return;
+
+  try {
+    const user = await User.findById(userId).lean();
+    if (!user) return;
+    const targetId = (user.role === 'partner' && user.partnerId) ? String(user.partnerId) : userId;
+
+    const today = new Date().toISOString().split('T')[0];
+
+    const prompt = `You are a data extraction assistant for MensFlow, a menstrual cycle tracking app.
+Analyze the user's message below (which may be from a woman tracking her own cycle, or from her partner reporting on her cycle/symptoms/flow).
+Extract any of the following fields if they are mentioned:
+1. "lastPeriodStart": A date in YYYY-MM-DD format. If the user mentions their period starting (e.g., "my period started yesterday", "she started her flow today", "started on May 25th"), resolve this relative to today's date (which is ${today}).
+2. "typicalCycleDays": The average length of their cycle in days (an integer between 15 and 60, e.g., "my cycle is 30 days").
+3. "symptoms": An array of symptom IDs matching the following recognized keys:
+   - Flow: "flow-light", "flow-medium", "flow-heavy"
+   - Mood: "mood-calm", "mood-happy", "mood-anxious", "mood-sad", "mood-irritable"
+   - Physical: "phys-cramps", "phys-headache", "phys-bloating", "phys-fatigue", "phys-tender", "phys-acne"
+   - PCOS: "pcos-hirsutism", "pcos-oily", "pcos-hairloss"
+   - Endometriosis: "endo-pelvicpain", "endo-painsex", "endo-backache"
+   - Perimenopause: "peri-hotflash", "peri-nightsweat", "peri-brainfog"
+   - Lifestyle: "life-sleep", "life-bbt", "life-sex", "life-pill"
+   (e.g., "she is having severe cramps and light flow today" -> ["phys-cramps", "flow-light"])
+4. "water": Daily water intake in ml (e.g., "drank 1500ml water", "drank 2 liters of water").
+5. "weight": Body weight in kg (e.g., "my weight is 61.5 kg", "she weighs 60kg").
+
+User Message: "${text}"
+
+Respond ONLY with a valid JSON object containing any of the extracted fields. If nothing matches, respond with {}. Do not include markdown formatting, backticks, explanation, or comments.
+Example Output:
+{
+  "lastPeriodStart": "2026-05-29",
+  "symptoms": ["phys-cramps", "flow-heavy"]
+}`;
+
+    const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${groqApiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.1,
+        max_tokens: 150
+      })
+    });
+
+    if (!response.ok) {
+      console.error('[Groq Extraction Error] API returned status:', response.status);
+      return;
+    }
+
+    const responseData = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
+    let content = responseData?.choices?.[0]?.message?.content?.trim() || '';
+    
+    // Clean JSON formatting
+    content = content.replace(/^```json\s*/i, '').replace(/```$/, '').trim();
+
+    if (!content.startsWith('{') || !content.endsWith('}')) {
+      const match = content.match(/\{[\s\S]*?\}/);
+      if (match) {
+        content = match[0];
+      } else {
+        return;
+      }
+    }
+
+    const extracted = JSON.parse(content);
+    if (!extracted || typeof extracted !== 'object') return;
+
+    // 1. Update Dashboard
+    const dashboardPatch: any = {};
+    if (extracted.lastPeriodStart && /^\d{4}-\d{2}-\d{2}$/.test(extracted.lastPeriodStart)) {
+      dashboardPatch.lastPeriodStart = extracted.lastPeriodStart;
+    }
+    if (extracted.typicalCycleDays && typeof extracted.typicalCycleDays === 'number' && extracted.typicalCycleDays >= 15 && extracted.typicalCycleDays <= 60) {
+      dashboardPatch.typicalCycleDays = extracted.typicalCycleDays;
+    }
+
+    if (Object.keys(dashboardPatch).length > 0) {
+      const currentDashboard = await Dashboard.findOne({ userId: new Types.ObjectId(targetId) }).lean();
+      const model = buildCycleModel({
+        lastPeriodStart: dashboardPatch.lastPeriodStart ?? currentDashboard?.lastPeriodStart,
+        typicalCycleDays: dashboardPatch.typicalCycleDays ?? currentDashboard?.typicalCycleDays,
+        cycleVariationDays: currentDashboard?.cycleVariationDays,
+        symptoms: Array.isArray(extracted.symptoms) ? extracted.symptoms : undefined,
+      });
+      const insertDefaults = dashboardPatch.lastPeriodStart ? {} : { lastPeriodStart: today };
+      await Dashboard.findOneAndUpdate(
+        { userId: new Types.ObjectId(targetId) },
+        {
+          $set: {
+            ...dashboardPatch,
+            phaseLabel: model.phaseLabel,
+            hormoneTrend: model.hormoneTrend,
+            bodySignals: model.bodySignals,
+            guidanceLines: model.guidanceLines,
+            cycleVariationDays: model.cycleVariationDays,
+            isAtypical: model.isAtypical,
+          },
+          $setOnInsert: insertDefaults,
+        },
+        { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true }
+      );
+      console.log(`[Chat Extractor] Updated Dashboard for user ${targetId}:`, dashboardPatch);
+    }
+
+    // 2. Update Symptom Log
+    const symptomPatch: any = {};
+    const logDoc = await SymptomLog.findOne({ userId: new Types.ObjectId(targetId), date: today }).lean();
+
+    if (Array.isArray(extracted.symptoms) && extracted.symptoms.length > 0) {
+      const validSymptoms = extracted.symptoms.filter((s: any) => typeof s === 'string');
+      const existingSymptoms = logDoc?.symptoms || [];
+      symptomPatch.symptoms = Array.from(new Set([...existingSymptoms, ...validSymptoms]));
+    }
+
+    if (extracted.water !== undefined && typeof extracted.water === 'number') {
+      symptomPatch.water = extracted.water;
+    }
+
+    if (extracted.weight !== undefined && typeof extracted.weight === 'number') {
+      symptomPatch.weight = Math.round(extracted.weight * 10) / 10;
+    }
+
+    if (Object.keys(symptomPatch).length > 0) {
+      await SymptomLog.findOneAndUpdate(
+        { userId: new Types.ObjectId(targetId), date: today },
+        { $set: symptomPatch },
+        { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true }
+      );
+      const dashboard = await Dashboard.findOne({ userId: new Types.ObjectId(targetId) }).lean();
+      const model = buildCycleModel({
+        lastPeriodStart: dashboard?.lastPeriodStart,
+        typicalCycleDays: dashboard?.typicalCycleDays,
+        cycleVariationDays: dashboard?.cycleVariationDays,
+        symptoms: symptomPatch.symptoms,
+      });
+      await Dashboard.findOneAndUpdate(
+        { userId: new Types.ObjectId(targetId) },
+        {
+          $set: {
+            phaseLabel: model.phaseLabel,
+            hormoneTrend: model.hormoneTrend,
+            bodySignals: model.bodySignals,
+            guidanceLines: model.guidanceLines,
+            cycleVariationDays: model.cycleVariationDays,
+            isAtypical: model.isAtypical,
+          },
+          $setOnInsert: { lastPeriodStart: today },
+        },
+        { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true }
+      );
+      console.log(`[Chat Extractor] Updated SymptomLog for user ${targetId} on ${today}:`, symptomPatch);
+    }
+  } catch (err) {
+    console.error('[Chat Extractor Error]', err);
   }
 }
 
@@ -336,7 +524,8 @@ Provide warm, general cycle support suggestions, tips, and insights.
 Instructions:
 1. Speak like a supportive relationship coach who understands cycle physiology.
 2. Keep your answers concise, engaging, and easy to read (use markdown bullet points, bold text, or short paragraphs).
-3. Encourage the user to sign up or create a free account to log symptoms, sync with their partner, and get personalized, daily advice.`;
+3. Encourage the user to sign up or create a free account to log symptoms, sync with their partner, and get personalized, daily advice.
+4. CRITICAL: You must NOT ask any questions or engage in discussions about topics outside of general health, cycle tracking, cycle physiology, and supporting a partner through their menstrual cycle. If the user asks about unrelated topics (such as general news, sports, math, coding, generic cooking recipes, etc.), politely decline to discuss them and steer the conversation back to menstrual health, relationship support, or cycle symptoms. Under no circumstances should you initiate questions or ask the user questions about any topic outside of health or menstrual cycle tracking.`;
 
   const apiMessages = [
     { role: 'system', content: systemMessage },
@@ -413,13 +602,13 @@ export async function getSuggestions(userId?: string): Promise<string[]> {
       
       const dashboard = await Dashboard.findOne({ userId: targetId }).lean();
       if (dashboard?.lastPeriodStart) {
-        const start = new Date(`${dashboard.lastPeriodStart}T12:00:00`);
-        if (!isNaN(start.getTime())) {
-          const diff = Math.floor((Date.now() - start.getTime()) / 86_400_000);
-          const cycle = dashboard.typicalCycleDays || 28;
-          currentDay = (((diff % cycle) + cycle) % cycle) + 1;
-        }
-        phaseLabel = dashboard.phaseLabel ?? 'Menstrual';
+        const model = buildCycleModel({
+          lastPeriodStart: dashboard.lastPeriodStart,
+          typicalCycleDays: dashboard.typicalCycleDays,
+          cycleVariationDays: dashboard.cycleVariationDays,
+        });
+        currentDay = model.cycleDay;
+        phaseLabel = model.phaseLabel;
       }
       
       const today = new Date().toISOString().split('T')[0];
@@ -543,13 +732,13 @@ export async function getDailyGuidance(userId: string): Promise<any> {
     }
 
     if (dashboard?.lastPeriodStart) {
-      const start = new Date(`${dashboard.lastPeriodStart}T12:00:00`);
-      if (!isNaN(start.getTime())) {
-        const diff = Math.floor((Date.now() - start.getTime()) / 86_400_000);
-        const cycle = dashboard.typicalCycleDays || 28;
-        currentDay = (((diff % cycle) + cycle) % cycle) + 1;
-      }
-      phaseLabel = dashboard.phaseLabel ?? 'Menstrual';
+      const model = buildCycleModel({
+        lastPeriodStart: dashboard.lastPeriodStart,
+        typicalCycleDays: dashboard.typicalCycleDays,
+        cycleVariationDays: dashboard.cycleVariationDays,
+      });
+      currentDay = model.cycleDay;
+      phaseLabel = model.phaseLabel;
     }
     
     const logDoc = await SymptomLog.findOne({ userId: targetId, date: today }).lean();
@@ -621,6 +810,7 @@ Make sure to generate:
 1. One interesting "scientificInsight" starting with "Did you know?".
 2. One action-oriented "dailyTip" with a concise title and details on how the partner can support them today.
 3. Three highly specific "wellnessTips" (one category of nutrition, movement, rest, or mind per tip) matching this cycle phase or Any phase.
+4.Don't answer questions outside menstrual health related questions
 Return ONLY valid JSON. No markdown backticks, no wrapping other than the JSON object itself, no comments.`;
 
   try {

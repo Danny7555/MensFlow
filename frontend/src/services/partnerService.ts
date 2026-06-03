@@ -20,6 +20,10 @@ export type ApiPartnerStatus = {
     hormoneTrend: string
     bodySignals: string
     symptoms?: string[]
+    water?: number
+    weight?: number
+    bbt?: number | null
+    mucus?: string | null
     cycleVariationDays?: number
     isAtypical?: boolean
     scientificInsight?: string
@@ -42,6 +46,14 @@ export type ApiPing = {
   timestamp: number
 }
 
+export type ApiPartnerMessage = {
+  id: string
+  senderId: string
+  receiverId: string
+  text: string
+  createdAt: number
+}
+
 // ─── Endpoints ────────────────────────────────────────────────────────────────
 
 export const partnerApi = {
@@ -57,6 +69,9 @@ export const partnerApi = {
   disconnect: () =>
     post<{ success: boolean }>('/partner/disconnect', {}),
 
+  requestAccess: () =>
+    post<{ success: boolean; alreadyPending: boolean; emailQueued: boolean }>('/partner/request-access', {}),
+
   sendPing: (pingId: string, label: string, message: string) =>
     post<{ success: boolean; ping: ApiPing }>('/partner/ping', { pingId, label, message }),
 
@@ -68,6 +83,15 @@ export const partnerApi = {
       '/partner/action',
       { actionId }
     ),
+
+  getChatMessages: () =>
+    get<ApiPartnerMessage[]>('/partner/chat'),
+
+  sendChatMessage: (text: string) =>
+    post<{ success: boolean; message: ApiPartnerMessage }>('/partner/chat', { text }),
+
+  getSuggestedReplies: () =>
+    get<string[]>('/partner/chat/suggest-replies'),
 }
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────
@@ -75,6 +99,8 @@ export const partnerApi = {
 export const partnerKeys = {
   status: ['partnerStatus'] as const,
   ping: ['latestPing'] as const,
+  chat: ['partnerChat'] as const,
+  suggestions: ['partnerChatSuggestions'] as const,
 }
 
 export function usePartnerStatus() {
@@ -134,5 +160,33 @@ export function useToggleSupportActionMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: partnerKeys.status })
     },
+  })
+}
+
+export function usePartnerChatMessagesQuery(options?: { refetchInterval?: number }) {
+  return useQuery({
+    queryKey: partnerKeys.chat,
+    queryFn: () => partnerApi.getChatMessages(),
+    enabled: isLoggedIn(),
+    ...options,
+  })
+}
+
+export function useSendPartnerChatMessageMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (text: string) => partnerApi.sendChatMessage(text),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: partnerKeys.chat })
+    },
+  })
+}
+
+export function usePartnerChatSuggestionsQuery() {
+  return useQuery({
+    queryKey: partnerKeys.suggestions,
+    queryFn: () => partnerApi.getSuggestedReplies(),
+    enabled: isLoggedIn(),
+    staleTime: 5000,
   })
 }

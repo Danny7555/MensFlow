@@ -42,10 +42,10 @@ function QuickEmpathyBoostCard({ ladyName, isAuthenticated }: QuickEmpathyBoostC
   const [activePing, setActivePing] = useState<string | null>(null)
   
   const options = [
-    { id: 'chocolate', label: 'Bring Chocolate', Icon: Cookie, color: "text-amber-600", message: "I'm on my way home with some sweet treats for you! 🍫" },
-    { id: 'dinner', label: 'Cook Dinner', Icon: CookingPot, color: "text-orange-500", message: "Don't worry about dinner tonight, I've got it covered! 🍳" },
+    { id: 'chocolate', label: 'Bring Chocolate', Icon: Cookie, color: "text-amber-600", message: "I'm on my way home with some sweet treats for you! " },
+    { id: 'dinner', label: 'Cook Dinner', Icon: CookingPot, color: "text-orange-500", message: "Don't worry about dinner tonight, I've got it covered! " },
     { id: 'hug', label: 'Warm Hug', Icon: Heart, color: "text-rose-500", message: "Just wanted to send you a warm hug and remind you I'm here." },
-    { id: 'space', label: 'Give Space', Icon: Moon, color: "text-indigo-400", message: "I'll make sure you have a quiet, peaceful space to rest today. 🤫" },
+    { id: 'space', label: 'Give Space', Icon: Moon, color: "text-indigo-400", message: "I'll make sure you have a quiet, peaceful space to rest today. " },
   ]
 
   const handleSendPing = async (id: string, label: string, message: string) => {
@@ -93,7 +93,7 @@ function QuickEmpathyBoostCard({ ladyName, isAuthenticated }: QuickEmpathyBoostC
         {options.map((opt) => {
           const isPending = activePing === opt.id
           return (
-            <button
+            <button type="button"
               key={opt.id}
               onClick={() => handleSendPing(opt.id, opt.label, opt.message)}
               disabled={activePing !== null}
@@ -125,7 +125,7 @@ function QuickEmpathyBoostCard({ ladyName, isAuthenticated }: QuickEmpathyBoostC
   )
 }
 
-function AmbientBackground(_props: { phase: any; isPartner?: boolean }) {
+function AmbientBackground(_props: { phase: ReturnType<typeof getPhaseFromDay>; isPartner?: boolean }) {
   return null;
 }
 
@@ -136,7 +136,6 @@ type DashboardState = {
   isEditingGuidance: boolean
   mounted: boolean
   now: Date | null
-  isLoading: boolean
   tourRun: boolean
 }
 
@@ -146,7 +145,6 @@ type DashboardAction =
   | { type: 'TOGGLE_CUSTOMIZE'; payload?: boolean }
   | { type: 'TOGGLE_GUIDANCE'; payload?: boolean }
   | { type: 'MOUNT'; payload: { now: Date; tourRun: boolean } }
-  | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_TOUR_RUN'; payload: boolean }
 
 function dashboardReducer(state: DashboardState, action: DashboardAction): DashboardState {
@@ -156,7 +154,6 @@ function dashboardReducer(state: DashboardState, action: DashboardAction): Dashb
     case 'TOGGLE_CUSTOMIZE': return { ...state, isCustomizeOpen: action.payload ?? !state.isCustomizeOpen }
     case 'TOGGLE_GUIDANCE': return { ...state, isEditingGuidance: action.payload ?? !state.isEditingGuidance }
     case 'MOUNT': return { ...state, mounted: true, now: action.payload.now, tourRun: action.payload.tourRun }
-    case 'SET_LOADING': return { ...state, isLoading: action.payload }
     case 'SET_TOUR_RUN': return { ...state, tourRun: action.payload }
     default: return state
   }
@@ -240,7 +237,7 @@ function TourTooltip({
 }
 
 export function DashboardView() {
-  const { dashboard: ownDashboard, partnerStatus, fetchPartnerStatus, updateDashboard: update, isSaving, user, pairPartner } = useStore()
+  const { dashboard: ownDashboard, partnerStatus, fetchPartnerStatus, updateDashboard: update, isSaving, user, pairPartner, requestDetailedAccessAction, settings, notificationCount, incrementNotificationCount } = useStore()
   const { logout, isAuthenticated, openAuthModal } = useAuth()
   const { data: dailyGuidance } = useDailyGuidance()
 
@@ -248,9 +245,10 @@ export function DashboardView() {
   const [isDashboardPairing, setIsDashboardPairing] = useState(false)
   const [requestSent, setRequestSent] = useState(false)
 
-  const handleRequestAccess = () => {
+  const handleRequestAccess = async () => {
     setRequestSent(true)
-    toast.success("Access request sent! Your partner will receive a notification to enable detailed sharing.")
+    await requestDetailedAccessAction()
+    await fetchPartnerStatus()
   }
 
   const [isMobile, setIsMobile] = useState(false)
@@ -335,10 +333,10 @@ export function DashboardView() {
   }, [user?.role, isMobile])
 
   useEffect(() => {
-    if (isAuthenticated && user?.role) {
+    if (isAuthenticated && user?.role && partnerStatus === null) {
       fetchPartnerStatus()
     }
-  }, [isAuthenticated, user?.role, fetchPartnerStatus])
+  }, [isAuthenticated, user?.role, partnerStatus, fetchPartnerStatus])
 
   const ctx = use(ChatSessionContext)
   const temporaryChat = ctx?.temporaryChat ?? false
@@ -352,7 +350,6 @@ export function DashboardView() {
     isEditingGuidance: false,
     mounted: false,
     now: null,
-    isLoading: isAuthenticated, // Only show skeleton for authenticated users loading their data
     tourRun: false
   })
 
@@ -371,6 +368,7 @@ export function DashboardView() {
   useEffect(() => {
     let active = true
     const mountTime = Date.now()
+    const isAccessPing = (pingId?: string) => Boolean(pingId?.startsWith('access-'))
 
     const handlePingEvent = (e?: StorageEvent) => {
       if (e && e.key && e.key !== 'mensflow_partner_ping:v1') return
@@ -382,6 +380,11 @@ export function DashboardView() {
             const lastProcessed = localStorage.getItem('mensflow_last_ping_processed:v1')
             if (lastProcessed !== String(ping.timestamp)) {
               localStorage.setItem('mensflow_last_ping_processed:v1', String(ping.timestamp))
+              incrementNotificationCount()
+              if (isAccessPing(ping.pingId)) {
+                void fetchPartnerStatus()
+                setRequestSent(false)
+              }
               // Only toast if the message is fresh (sent after mount or within the last 15 seconds)
               if (ping.timestamp > mountTime - 15000) {
                 toast.info(user?.role === 'lady' ? "Support Update received!" : "Partner Update received!", {
@@ -414,6 +417,11 @@ export function DashboardView() {
               const lastProcessed = localStorage.getItem('mensflow_last_ping_processed:v1')
               if (lastProcessed !== String(ping.timestamp)) {
                 localStorage.setItem('mensflow_last_ping_processed:v1', String(ping.timestamp))
+                incrementNotificationCount()
+                if (isAccessPing(ping.pingId)) {
+                  void fetchPartnerStatus()
+                  setRequestSent(false)
+                }
                 // Only toast if the message is fresh (sent after mount or within the last 15 seconds)
                 if (ping.timestamp > mountTime - 15000) {
                   toast.info(user?.role === 'lady' ? "Support Update received!" : "Partner Update received!", {
@@ -437,7 +445,7 @@ export function DashboardView() {
       window.removeEventListener('storage', handlePingEvent as EventListener)
       if (interval) clearInterval(interval)
     }
-  }, [isAuthenticated, user?.role])
+  }, [isAuthenticated, user?.role, fetchPartnerStatus, incrementNotificationCount])
 
   useEffect(() => {
     const hasSeenTour = sessionStorage.getItem('mensflow_tour_completed')
@@ -448,17 +456,7 @@ export function DashboardView() {
         tourRun: !hasSeenTour && isAuthenticated,
       }
     })
-    // Only show skeleton briefly for authenticated sessions loading real data
-    if (isAuthenticated) {
-      const timer = setTimeout(() => {
-        dispatch({ type: 'SET_LOADING', payload: false })
-      }, 400)
-      return () => clearTimeout(timer)
-    } else {
-      dispatch({ type: 'SET_LOADING', payload: false })
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [isAuthenticated])
 
   const handleJoyrideCallback = (data: EventData) => {
     const { status } = data;
@@ -477,11 +475,12 @@ export function DashboardView() {
       if (normalized.includes('luteal')) return 'luteal'
     }
     const cycleDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
-    return getPhaseFromDay(cycleDay)
+    return getPhaseFromDay(cycleDay, data.typicalCycleDays)
   }, [data.lastPeriodStart, data.typicalCycleDays, data.phaseLabel])
 
   const currentDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
   const showRestrictedView = user?.role === 'partner' && partnerStatus?.paired && partnerStatus?.privacyShareCycleDetails === false
+  const dashboardNotificationCount = notificationCount + (user?.role === 'lady' && settings.privacyPendingAccessRequest ? 1 : 0)
   const [tipCompleted, setTipCompleted] = useState(false)
 
   const handleCopyGesture = (text: string, title: string) => {
@@ -503,7 +502,8 @@ export function DashboardView() {
     if (next) navigate('/ask')
   }
 
-  if (state.isLoading) {
+  // While partner status is still loading (null = API in-flight), show skeleton to avoid flash of unpaired screen
+  if (user?.role === 'partner' && isAuthenticated && partnerStatus === null) {
     return <DashboardSkeleton />
   }
 
@@ -516,7 +516,7 @@ export function DashboardView() {
             <span>You are previewing MensFlow as a guest. Your data is stored locally.</span>
             <button 
               type="button"
-              onClick={openAuthModal}
+              onClick={() => openAuthModal()}
               className="bg-white text-[var(--mf-accent)] px-3 py-1 rounded-full text-[11px] font-normal hover:bg-opacity-95 transition-all active:scale-95 cursor-pointer ml-1"
             >
               Create account
@@ -532,6 +532,7 @@ export function DashboardView() {
           toggleTempChat={toggleTempChat}
           handleLogout={handleLogout}
           onStartTour={startTour}
+          notificationCount={dashboardNotificationCount}
         />
 
         <main className="flo-main-container pb-32 px-4 md:px-0 relative z-10 flex items-center justify-center">
@@ -676,7 +677,7 @@ export function DashboardView() {
           <span>You are previewing MensFlow as a guest. Your data is stored locally.</span>
           <button 
             type="button"
-            onClick={openAuthModal}
+            onClick={() => openAuthModal()}
             className="bg-white text-[var(--mf-accent)] px-3 py-1 rounded-full text-[11px] font-normal hover:bg-opacity-95 transition-all active:scale-95 cursor-pointer ml-1"
           >
             Create account
@@ -693,12 +694,13 @@ export function DashboardView() {
         toggleTempChat={toggleTempChat}
         handleLogout={handleLogout}
         onStartTour={startTour}
+        notificationCount={dashboardNotificationCount}
       />
 
       <main className="flo-main-container pb-32 px-4 md:px-0 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
         <div className="flo-content-inner">
           <div className="flo-dashboard-top mb-6 md:mb-8">
-            <StoriesSection />
+            {!settings.hideDailyStoriesAndTips && <StoriesSection />}
           </div>
 
           {/* Pairing Alert Banner */}
@@ -760,14 +762,16 @@ export function DashboardView() {
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 md:gap-8 w-full min-w-0">
               {/* Left Column: Primary Empathy & Playbook Tools */}
               <div className="flex flex-col gap-6 md:gap-8 min-w-0">
-                <div className="w-full min-w-0">
-                  <DailyTipCard
-                    phaseLabel={phase}
-                    tipCompleted={tipCompleted}
-                    setTipCompleted={setTipCompleted}
-                    aiTip={aiTip}
-                  />
-                </div>
+                {!settings.hideDailyStoriesAndTips && (
+                  <div className="w-full min-w-0">
+                    <DailyTipCard
+                      phaseLabel={phase}
+                      tipCompleted={tipCompleted}
+                      setTipCompleted={setTipCompleted}
+                      aiTip={aiTip}
+                    />
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 min-w-0">
                   <ConnectionChecklistCard />
@@ -854,14 +858,16 @@ export function DashboardView() {
                 </section>
 
                 <div className="flo-today-plan flex flex-col gap-6 md:gap-8 w-full min-w-0">
-                  <div className="w-full min-w-0">
-                    <DailyTipCard
-                      phaseLabel={phase}
-                      tipCompleted={tipCompleted}
-                      setTipCompleted={setTipCompleted}
-                      aiTip={aiTip}
-                    />
-                  </div>
+                  {!settings.hideDailyStoriesAndTips && (
+                    <div className="w-full min-w-0">
+                      <DailyTipCard
+                        phaseLabel={phase}
+                        tipCompleted={tipCompleted}
+                        setTipCompleted={setTipCompleted}
+                        aiTip={aiTip}
+                      />
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 min-w-0">
                     <PrimaryInsightCard 
@@ -903,7 +909,7 @@ export function DashboardView() {
 
       {/* Persistent Interaction Trigger */}
       {user?.role !== 'partner' && (
-        <button 
+        <button type="button" 
           className="flo-fab"
           onClick={() => dispatch({ type: 'TOGGLE_LOG', payload: true })}
         >

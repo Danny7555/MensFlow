@@ -130,7 +130,7 @@ export function CalendarView() {
         <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-6 px-6 mb-8 text-center">
           <div className="flex justify-center sm:justify-start order-2 sm:order-1">
             <div className="flex bg-[#f3f4f6] dark:bg-muted p-1 rounded-lg border border-[#d1d5db]">
-              <button
+              <button type="button"
                 onClick={() => setView("month")}
                 className={cn(
                   "px-6 sm:px-8 py-1.5 rounded-md text-[11px] font-normal transition-all border",
@@ -141,7 +141,7 @@ export function CalendarView() {
               >
                 MONTH
               </button>
-              <button
+              <button type="button"
                 onClick={() => setView("year")}
                 className={cn(
                   "px-6 sm:px-8 py-1.5 rounded-md text-[11px] font-normal transition-all border",
@@ -226,8 +226,8 @@ export function CalendarView() {
                  <div className="bg-card border border-border p-8 rounded-3xl text-center max-w-[400px] mx-auto">
                   <h3 className="text-xl font-normal mb-2">Track your patterns</h3>
                   <p className="text-muted-foreground text-sm mb-6">Unlock period editing, symptom logging, and historical calendar views by signing in.</p>
-                  <button 
-                    onClick={openAuthModal}
+                  <button type="button" 
+                    onClick={() => openAuthModal()}
                     className="btn btn-primary px-8 py-3 rounded-full"
                   >
                     Log in to access
@@ -415,8 +415,8 @@ function DetailSheet({ selectedDate, isAuthenticated, onOpenAuth }: { selectedDa
       <Card className="rounded-t-[32px] rounded-b-none border-t border-x-0 border-b-0 p-6 pb-8 relative bg-white dark:bg-card max-w-[1200px] mx-auto overflow-hidden">
         {!isAuthenticated && (
           <div className="absolute inset-0 bg-white/60 dark:bg-card/60 backdrop-blur-[2px] z-30 flex items-center justify-center">
-            <button 
-              onClick={onOpenAuth}
+            <button type="button" 
+              onClick={() => onOpenAuth()}
               className="text-sm font-normal text-[var(--mf-accent)] hover:underline"
             >
               Login to log data
@@ -436,7 +436,7 @@ function DetailSheet({ selectedDate, isAuthenticated, onOpenAuth }: { selectedDa
               Cycle Day {displayCycleDay}
             </p>
           </div>
-          <button className="text-muted-foreground hover:text-foreground transition-colors p-2">
+          <button type="button" className="text-muted-foreground hover:text-foreground transition-colors p-2">
             <X size={20} />
           </button>
         </div>

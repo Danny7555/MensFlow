@@ -34,6 +34,9 @@ const chartConfig = {
   }
 } satisfies ChartConfig
 
+const CHART_DOMAIN = [20, 35]
+const BAR_RADIUS = [6, 6, 0, 0] as const
+
 export function CycleLengthChart() {
   return (
     <Card className="border-none shadow-none ring-0 bg-transparent">
@@ -71,7 +74,7 @@ export function CycleLengthChart() {
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
-                domain={[20, 35]}
+                domain={CHART_DOMAIN}
                 className="text-[10px] text-muted-foreground"
               />
               <ChartTooltip
@@ -82,7 +85,7 @@ export function CycleLengthChart() {
               <Bar
                 dataKey="length"
                 fill="var(--mf-accent)"
-                radius={[6, 6, 0, 0]}
+                radius={BAR_RADIUS}
                 barSize={40}
               />
             </BarChart>

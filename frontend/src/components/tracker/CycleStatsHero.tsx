@@ -41,7 +41,7 @@ export function CycleStatsHero() {
              <div className="stats-divider" />
              <Tooltip>
                <TooltipTrigger asChild>
-                 <button className="stats-more-btn">
+                 <button type="button" className="stats-more-btn">
                     <div className="flex items-center gap-2">
                       <Info size={18} weight="regular" />
                       <span>More info</span>
@@ -77,7 +77,7 @@ export function CycleStatsHero() {
              {data.isAtypical ? (
                <Tooltip>
                  <TooltipTrigger asChild>
-                   <button className="stats-more-btn stats-more-btn--atypical">
+                   <button type="button" className="stats-more-btn stats-more-btn--atypical">
                       <div className="flex items-center gap-2">
                         <Warning size={18} weight="fill" className="text-[#e25c00]" />
                         <span>Atypical</span>
@@ -92,7 +92,7 @@ export function CycleStatsHero() {
              ) : (
                <Tooltip>
                  <TooltipTrigger asChild>
-                   <button className="stats-more-btn stats-more-btn--regular">
+                   <button type="button" className="stats-more-btn stats-more-btn--regular">
                       <div className="flex items-center gap-2">
                         <ShieldCheck size={18} weight="fill" className="text-teal-600" />
                         <span>Regular</span>

@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+ import { create } from 'zustand'
 import { type DashboardSnapshot, DEFAULT_DASHBOARD } from '../lib/dashboardStorage'
 import { DEFAULT_SETTINGS, type MensFlowSettings } from '../context/settings-types'
 import { type SymptomDef, type SymptomCategory } from '../data/symptomsData'
@@ -13,23 +13,31 @@ export type SymptomLog = {
   symptoms: string[]
   water?: number
   weight?: number
+  lhLevel?: string | null
+  mucus?: string | null
 }
 
 export type AppUser = {
+  id?: string
+  email?: string | null
   name: string
   avatar?: string | null
   accessLevel?: 'full' | 'educational'
   isOnboarded?: boolean
   role?: 'lady' | 'partner'
+  onboardingData?: Record<string, unknown>
   partnerCode?: string
   partnerId?: string | null
+  xp?: number
+  quizLastCompletedAt?: string
+  quizCountToday?: number
 }
 
 interface AppState {
   dashboard: DashboardSnapshot
   settings: MensFlowSettings
   logs: SymptomLog[]
-  user: { name: string; avatar?: string | null; accessLevel?: 'full' | 'educational'; isOnboarded?: boolean; role?: 'lady' | 'partner'; partnerCode?: string; partnerId?: string | null }
+  user: AppUser
   customSymptoms: SymptomDef[]
   isSaving: boolean
   completedActions: string[]
@@ -42,6 +50,7 @@ interface AppState {
       name: string
       avatar: string | null
       accessLevel: 'full' | 'educational'
+      lastActive?: number | null
     }
     cycle?: {
       lastPeriodStart: string
@@ -52,6 +61,8 @@ interface AppState {
       symptoms?: string[]
       water?: number
       weight?: number
+      lhLevel?: string | null
+      mucus?: string | null
       cycleVariationDays?: number
       isAtypical?: boolean
       scientificInsight?: string
@@ -67,6 +78,10 @@ interface AppState {
     }
   } | null
 
+  notificationCount: number
+  incrementNotificationCount: () => void
+  resetNotificationCount: () => void
+
   // Lifecycle
   hydrate: (data: { user: ApiUser; settings: ApiSettings; dashboard: ApiDashboard }) => void
   resetStore: () => void
@@ -75,13 +90,13 @@ interface AppState {
   updateDashboard: (patch: Partial<DashboardSnapshot>) => Promise<void>
 
   // User / Settings
-  updateUser: (patch: Partial<{ name: string; avatar: string | null; accessLevel: 'full' | 'educational'; isOnboarded: boolean; role: 'lady' | 'partner' }>) => Promise<void>
+  updateUser: (patch: Partial<{ name: string; avatar: string | null; accessLevel: 'full' | 'educational'; isOnboarded: boolean; role: 'lady' | 'partner'; onboardingData: Record<string, unknown> }>) => Promise<void>
   updateSettings: (patch: Partial<MensFlowSettings>) => Promise<void>
   resetSettings: () => void
 
   // Logs
-  addLog: (date: string, symptoms: string[]) => Promise<void>
-  updateDailyMetrics: (date: string, water?: number, weight?: number) => Promise<void>
+  addLog: (date: string, symptoms: string[], lhLevel?: string | null, mucus?: string | null) => Promise<boolean>
+  updateDailyMetrics: (date: string, water?: number, weight?: number, lhLevel?: string | null, mucus?: string | null) => Promise<boolean>
   getLogForDate: (date: string) => SymptomLog | undefined
   fetchLogs: () => Promise<void>
   clearLogs: () => Promise<void>
@@ -98,6 +113,7 @@ interface AppState {
   pairPartner: (partnerCode: string) => Promise<void>
   invitePartner: (email: string) => Promise<void>
   disconnectPartnerAction: () => Promise<void>
+  requestDetailedAccessAction: () => Promise<void>
 
   // Confirmation / Alerts
   confirmDialog: {
@@ -117,9 +133,10 @@ interface AppState {
   }
   showAlert: (options: { title: string; description: string }) => void
   closeAlert: () => void
+  submitQuizAttemptAction: (date: string, correct: boolean) => Promise<void>
 }
 
-const DEFAULT_USER = { name: '', avatar: null, accessLevel: 'full' as const, isOnboarded: false, role: 'lady' as const, partnerCode: '', partnerId: null }
+const DEFAULT_USER = { id: undefined, email: null, name: '', avatar: null, accessLevel: 'full' as const, isOnboarded: false, role: 'lady' as const, onboardingData: {}, partnerCode: '', partnerId: null, xp: 0, quizLastCompletedAt: '', quizCountToday: 0 }
 
 export const useStore = create<AppState>()((set, get) => ({
   dashboard: DEFAULT_DASHBOARD,
@@ -132,6 +149,10 @@ export const useStore = create<AppState>()((set, get) => ({
   supportStreak: 0,
   lastActionDate: '',
   partnerStatus: null,
+
+  notificationCount: 0,
+  incrementNotificationCount: () => set((state) => ({ notificationCount: state.notificationCount + 1 })),
+  resetNotificationCount: () => set({ notificationCount: 0 }),
 
   confirmDialog: {
     isOpen: false,
@@ -187,13 +208,19 @@ export const useStore = create<AppState>()((set, get) => ({
   hydrate: ({ user, settings, dashboard }) => {
     set({
       user: {
+        id: user.id,
+        email: user.email,
         name: user.name,
         avatar: user.avatar,
         accessLevel: user.accessLevel,
         isOnboarded: user.isOnboarded,
         role: user.role,
+        onboardingData: user.onboardingData || {},
         partnerCode: user.partnerCode,
         partnerId: user.partnerId,
+        xp: user.xp || 0,
+        quizLastCompletedAt: user.quizLastCompletedAt || '',
+        quizCountToday: user.quizCountToday || 0,
       },
       settings: {
         ...DEFAULT_SETTINGS,
@@ -254,7 +281,9 @@ export const useStore = create<AppState>()((set, get) => ({
         ? { cycleAvgLengthDays: patch.typicalCycleDays }
         : null
 
-      if (isLoggedIn()) {
+      const isLocalOnly = get().settings.privacyStrictLocalOnly
+
+      if (isLoggedIn() && !isLocalOnly) {
         const updated = await userApi.updateDashboard(patch)
         set((state) => ({
           dashboard: {
@@ -296,13 +325,18 @@ export const useStore = create<AppState>()((set, get) => ({
         set((state) => ({
           user: {
             ...state.user,
+            email: updated.email,
             name: updated.name,
             avatar: updated.avatar,
             accessLevel: updated.accessLevel,
             isOnboarded: updated.isOnboarded,
             role: updated.role,
+            onboardingData: updated.onboardingData || {},
             partnerCode: updated.partnerCode,
             partnerId: updated.partnerId,
+            xp: updated.xp || 0,
+            quizLastCompletedAt: updated.quizLastCompletedAt || '',
+            quizCountToday: updated.quizCountToday || 0,
           },
         }))
       } else {
@@ -324,6 +358,7 @@ export const useStore = create<AppState>()((set, get) => ({
     const dashboardPatch = patch.cycleAvgLengthDays !== undefined
       ? { typicalCycleDays: patch.cycleAvgLengthDays }
       : null
+    const wasLocalOnly = get().settings.privacyStrictLocalOnly
 
     set((state) => ({ 
       settings: { ...state.settings, ...patch },
@@ -332,7 +367,9 @@ export const useStore = create<AppState>()((set, get) => ({
         : state.dashboard,
     }))
 
-    if (isLoggedIn()) {
+    const shouldSync = isLoggedIn() && (!wasLocalOnly || patch.privacyStrictLocalOnly === false)
+
+    if (shouldSync) {
       try {
         await userApi.updateSettings(patch)
         if (dashboardPatch) {
@@ -354,61 +391,79 @@ export const useStore = create<AppState>()((set, get) => ({
     }
   },
 
-  addLog: async (date, symptoms) => {
+  addLog: async (date, symptoms, lhLevel, mucus) => {
     set({ isSaving: true })
     try {
       const existing = get().logs.find((l) => l.date === date)
       const targetWater = existing?.water
       const targetWeight = existing?.weight
+      const targetLhLevel = lhLevel !== undefined ? lhLevel : existing?.lhLevel
+      const targetMucus = mucus !== undefined ? mucus : existing?.mucus
 
-      if (isLoggedIn()) {
-        const log = await logsApi.upsert(date, symptoms, targetWater, targetWeight)
+      const isLocalOnly = get().settings.privacyStrictLocalOnly
+
+      if (isLoggedIn() && !isLocalOnly) {
+        const log = await logsApi.upsert(date, symptoms, targetWater, targetWeight, targetLhLevel, targetMucus)
         set((state) => ({
           logs: [
             ...state.logs.filter((l) => l.date !== date),
-            { date: log.date, symptoms: log.symptoms, water: log.water, weight: log.weight },
+            { date: log.date, symptoms: log.symptoms, water: log.water, weight: log.weight, lhLevel: log.lhLevel, mucus: log.mucus },
           ],
         }))
       } else {
         set((state) => ({
           logs: [
             ...state.logs.filter((l) => l.date !== date),
-            { date, symptoms, water: targetWater ?? 1000, weight: targetWeight ?? 62.5 },
+            { date, symptoms, water: targetWater ?? 1000, weight: targetWeight ?? 62.5, lhLevel: targetLhLevel ?? null, mucus: targetMucus ?? null },
           ],
         }))
       }
+      return true;
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save log');
+      return false;
     } finally {
       set({ isSaving: false })
     }
   },
 
-  updateDailyMetrics: async (date, water, weight) => {
+  updateDailyMetrics: async (date, water, weight, lhLevel, mucus) => {
     set({ isSaving: true })
     try {
       const existing = get().logs.find((l) => l.date === date)
       const existingSymptoms = existing?.symptoms ?? []
       const existingWater = existing?.water ?? 1000
       const existingWeight = existing?.weight ?? 62.5
+      const existingLhLevel = existing?.lhLevel ?? null
+      const existingMucus = existing?.mucus ?? null
 
       const targetWater = water !== undefined ? water : existingWater
       const targetWeight = weight !== undefined ? weight : existingWeight
+      const targetLhLevel = lhLevel !== undefined ? lhLevel : existingLhLevel
+      const targetMucus = mucus !== undefined ? mucus : existingMucus
 
-      if (isLoggedIn()) {
-        const log = await logsApi.upsert(date, undefined, targetWater, targetWeight)
+      const isLocalOnly = get().settings.privacyStrictLocalOnly
+
+      if (isLoggedIn() && !isLocalOnly) {
+        const log = await logsApi.upsert(date, undefined, targetWater, targetWeight, targetLhLevel, targetMucus)
         set((state) => ({
           logs: [
             ...state.logs.filter((l) => l.date !== date),
-            { date: log.date, symptoms: log.symptoms, water: log.water, weight: log.weight },
+            { date: log.date, symptoms: log.symptoms, water: log.water, weight: log.weight, lhLevel: log.lhLevel, mucus: log.mucus },
           ],
         }))
       } else {
         set((state) => ({
           logs: [
             ...state.logs.filter((l) => l.date !== date),
-            { date, symptoms: existingSymptoms, water: targetWater, weight: targetWeight },
+            { date, symptoms: existingSymptoms, water: targetWater, weight: targetWeight, lhLevel: targetLhLevel, mucus: targetMucus },
           ],
         }))
       }
+      return true;
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to update daily metrics');
+      return false;
     } finally {
       set({ isSaving: false })
     }
@@ -536,16 +591,19 @@ export const useStore = create<AppState>()((set, get) => ({
   invitePartner: async (email) => {
     set({ isSaving: true })
     try {
-      const result = await partnerApi.invite(email)
+      const result = await partnerApi.invite(email) as { partnerFound: boolean; emailSent?: boolean; name?: string }
       if (result.partnerFound) {
         const profile = await userApi.getProfile()
         get().hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
         await get().fetchPartnerStatus()
         toast.success(`Partner found! Successfully paired with ${result.name}!`)
-      } else {
+      } else if (result.emailSent) {
         toast.success(`Invitation email sent to ${email}!`, {
-          description: `Once they sign up, they can pair with you using your code: ${get().user?.partnerCode || ''}`,
+          description: `Once they sign up, they can pair with you using your partner code: ${get().user?.partnerCode || ''}`,
         })
+      } else {
+        // Username typed but not found, or email with no account (shouldn't happen but guard it)
+        toast.error(`No MensFlow account found for "${email}". We've sent them an invite if it's an email address.`)
       }
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Failed to send invitation')
@@ -564,6 +622,67 @@ export const useStore = create<AppState>()((set, get) => ({
       toast.success('Successfully disconnected from partner')
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Failed to disconnect from partner')
+    } finally {
+      set({ isSaving: false })
+    }
+  },
+
+  requestDetailedAccessAction: async () => {
+    if (isLoggedIn()) {
+      set({ isSaving: true })
+      try {
+        const result = await partnerApi.requestAccess()
+        toast.success(result.alreadyPending ? "Access request already pending." : "Access request sent!", {
+          description: result.emailQueued
+            ? "Your partner received an in-app notification and an email."
+            : "Your partner received an in-app notification to enable detailed sharing.",
+        })
+      } catch (err: unknown) {
+        toast.error(err instanceof Error ? err.message : 'Failed to send access request')
+      } finally {
+        set({ isSaving: false })
+      }
+    } else {
+      localStorage.setItem('mensflow_guest_pending_access_request', 'true')
+      window.dispatchEvent(new Event('storage'))
+      toast.success("Access request sent! Your partner will receive a notification to enable detailed sharing.")
+    }
+  },
+
+  submitQuizAttemptAction: async (date: string, correct: boolean) => {
+    set({ isSaving: true })
+    try {
+      if (isLoggedIn()) {
+        const result = await userApi.submitQuizAttempt(date, correct)
+        set((state) => ({
+          user: {
+            ...state.user,
+            xp: result.user.xp,
+            quizLastCompletedAt: result.user.quizLastCompletedAt,
+            quizCountToday: result.user.quizCountToday,
+          },
+        }))
+      } else {
+        set((state) => {
+          let count = state.user.quizCountToday || 0
+          if (state.user.quizLastCompletedAt !== date) {
+            count = 0
+          }
+          if (count >= 2) return state
+          const xpToAdd = correct ? 50 : 0
+          return {
+            user: {
+              ...state.user,
+              xp: (state.user.xp || 0) + xpToAdd,
+              quizLastCompletedAt: date,
+              quizCountToday: count + 1,
+            },
+          }
+        })
+      }
+    } catch (err: unknown) {
+      console.error('Failed to submit quiz attempt:', err)
+      toast.error(err instanceof Error ? err.message : 'Failed to submit quiz attempt')
     } finally {
       set({ isSaving: false })
     }

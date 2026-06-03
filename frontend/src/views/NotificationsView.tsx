@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { Bell, CaretLeft, CheckCircle, Info, WarningCircle, EnvelopeSimple, Flame, Sliders } from "@phosphor-icons/react"
+import { useMemo, useState, useEffect} from 'react'
+import { Bell, CaretLeft, CheckCircle, Info, WarningCircle, EnvelopeSimple, Flame, Sliders, Eye } from "@phosphor-icons/react"
 import { useNavigate } from "react-router-dom"
 import { format } from "date-fns"
 import { useStore } from "../store/useStore"
@@ -52,12 +52,73 @@ interface Notification {
 export function NotificationsView() {
   const navigate = useNavigate()
   const { user: authUser } = useAuth()
-  const { dashboard: data, settings, logs, supportStreak, partnerStatus, updateSettings, user } = useStore()
+  const { dashboard: data, settings, logs, supportStreak, partnerStatus, updateSettings, user, resetNotificationCount } = useStore()
   const [sendingId, setSendingId] = useState<string | null>(null)
+  const [readIds, setReadIds] = useState<Set<string>>(new Set())
   
   const [alertPermission, setAlertPermission] = useState<NotificationPermission>(
     typeof Notification !== 'undefined' ? Notification.permission : 'default'
   )
+
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [guestRequest, setGuestRequest] = useState(
+    localStorage.getItem('mensflow_guest_pending_access_request') === 'true'
+  )
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setGuestRequest(localStorage.getItem('mensflow_guest_pending_access_request') === 'true')
+    }
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
+  }, [])
+
+  useEffect(() => {
+    resetNotificationCount()
+  }, [resetNotificationCount])
+
+  const isPendingRequest = user?.role === 'lady' && (
+    settings.privacyPendingAccessRequest || guestRequest
+  )
+
+  const handleApproveRequest = async () => {
+    setIsProcessing(true)
+    try {
+      if (guestRequest) {
+        localStorage.removeItem('mensflow_guest_pending_access_request')
+        setGuestRequest(false)
+        window.dispatchEvent(new Event('storage'))
+        await updateSettings({ privacyShareCycleDetails: true })
+      } else {
+        await updateSettings({ privacyShareCycleDetails: true, privacyPendingAccessRequest: false })
+      }
+      resetNotificationCount()
+      toast.success("Access granted! Your partner can now view detailed cycle metrics.")
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to approve request.")
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  const handleDeclineRequest = async () => {
+    setIsProcessing(true)
+    try {
+      if (guestRequest) {
+        localStorage.removeItem('mensflow_guest_pending_access_request')
+        setGuestRequest(false)
+        window.dispatchEvent(new Event('storage'))
+      } else {
+        await updateSettings({ privacyPendingAccessRequest: false })
+      }
+      resetNotificationCount()
+      toast.success("Access request declined.")
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to decline request.")
+    } finally {
+      setIsProcessing(false)
+    }
+  }
 
   const requestNotificationPermission = async () => {
     if (typeof Notification === 'undefined') {
@@ -267,8 +328,12 @@ export function NotificationsView() {
   }, [data.lastPeriodStart, data.typicalCycleDays, settings.notificationsCycleReminders, settings.notificationsProduct, logs, supportStreak, user?.role, partnerStatus])
 
   const handleEmailReminder = async (notif: Notification) => {
-    const emailTo = authUser?.username || 'user@example.com'
-    const nameTo = authUser?.name || 'Partner'
+    const emailTo = user?.email
+    if (!emailTo) {
+      toast.error("Your account does not have an email address for reminders.")
+      return
+    }
+    const nameTo = authUser?.name || user?.name || 'User'
     setSendingId(notif.id)
     try {
       await sendEmailReminder(emailTo, nameTo, notif.title, notif.message)
@@ -303,9 +368,9 @@ export function NotificationsView() {
   }, [cycleInfo])
 
   return (
-    <div className="min-h-screen bg-[var(--mf-main-bg)] pb-20">
-      <header className="sticky top-0 z-10 bg-[var(--mf-main-bg)]/80 backdrop-blur-xl border-b border-[var(--mf-border)]/50 px-6 py-4 flex items-center gap-4">
-        <button 
+    <div className="min-h-screen bg-background pb-bottom-nav">
+      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-[var(--mf-border)]/50 px-6 py-4 flex items-center gap-4">
+        <button type="button" 
           onClick={() => navigate(-1)}
           className="size-10 flex items-center justify-center rounded-full bg-[var(--mf-hover)] hover:bg-[var(--mf-active)] text-[var(--mf-text-strong)] transition-all active-squish cursor-pointer"
         >
@@ -314,73 +379,124 @@ export function NotificationsView() {
         <h1 className="text-xl font-semibold tracking-tight text-[var(--mf-text-strong)]">Notifications & Alerts</h1>
       </header>
 
-      <main className="max-w-6xl mx-auto mt-8 px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-          {/* Left Column: Notification list */}
-          <div className="lg:col-span-2 flex flex-col gap-4">
-            <div className="flex items-center justify-between mb-2">
+      <main className="max-w-6xl mx-auto mt-8 px-4 sm:px-6">
+        {/* Full-width access request banner */}
+        {isPendingRequest && (
+          <div className="mb-8 p-6 rounded-[24px] border-2 border-pink-500/30 bg-pink-500/5 backdrop-blur-md flex flex-col md:flex-row gap-4 justify-between items-start md:items-center animate-in fade-in slide-in-from-top-3 duration-300">
+            <div className="flex gap-4 items-start">
+              <div className="size-12 rounded-full bg-pink-500/10 text-pink-500 flex items-center justify-center shrink-0">
+                <Bell size={24} weight="fill" />
+              </div>
+              <div>
+                <h3 className="font-bold text-base text-[var(--mf-text-strong)] mb-1">
+                  Detailed Cycle Access Requested
+                </h3>
+                <p className="text-xs md:text-sm text-[var(--mf-muted)] leading-relaxed max-w-xl">
+                  {partnerStatus?.partner?.name || 'Your partner'} is requesting permission to view your cycle metrics, logs, and analytics. Do you want to share your detailed data?
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 shrink-0 self-stretch md:self-auto justify-end">
+              <button type="button"
+                onClick={handleDeclineRequest}
+                disabled={isProcessing}
+                className="px-4 py-2 text-xs font-semibold rounded-xl bg-[var(--mf-hover)] hover:bg-[var(--mf-active)] text-[var(--mf-text-strong)] transition-all cursor-pointer disabled:opacity-50 active-squish"
+              >
+                Decline
+              </button>
+              <button type="button"
+                onClick={handleApproveRequest}
+                disabled={isProcessing}
+                className="px-5 py-2 text-xs font-semibold rounded-xl bg-pink-500 hover:bg-pink-600 text-white shadow-lg shadow-pink-500/20 hover:shadow-pink-500/35 transition-all cursor-pointer disabled:opacity-50 active-squish"
+              >
+                Approve & Share
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Left Column: Notification list — 7/12 on desktop */}
+          <div className="lg:col-span-7 flex flex-col gap-4">
+            <div className="flex items-center justify-between mb-1">
               <span className="text-xs uppercase font-semibold text-[var(--mf-muted)] tracking-wider">
-                History
+                Notification History
               </span>
-              {notifications.length > 0 && (
-                <span className="text-xs text-[var(--mf-accent)] font-medium">
-                  {notifications.filter(n => !n.read).length} unread
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                {notifications.some(n => !readIds.has(n.id)) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setReadIds(new Set(notifications.map(n => n.id)))
+                      resetNotificationCount()
+                    }}
+                    className="text-[10px] font-semibold text-[var(--mf-accent)] hover:text-[var(--mf-accent-hover)] bg-[var(--mf-accent)]/8 hover:bg-[var(--mf-accent)]/15 px-2.5 py-1 rounded-full transition-all cursor-pointer active-squish flex items-center gap-1"
+                  >
+                    <Eye size={12} weight="bold" />
+                    <span>Mark all read</span>
+                  </button>
+                )}
+                {notifications.length > 0 && (
+                  <span className="text-xs text-[var(--mf-accent)] font-semibold bg-[var(--mf-accent)]/8 px-2.5 py-1 rounded-full">
+                    {notifications.filter(n => !readIds.has(n.id)).length} unread
+                  </span>
+                )}
+              </div>
             </div>
 
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3">
               {notifications.map((notification, idx) => (
                 <div 
                   key={notification.id}
-                  className={`p-5 rounded-[24px] border transition-all animate-in fade-in slide-in-from-bottom-3 duration-300 ${
-                    notification.read 
+                  onClick={() => setReadIds(prev => { const next = new Set(prev); next.add(notification.id); return next })}
+                  className={`group p-5 rounded-[24px] border transition-all animate-in fade-in slide-in-from-bottom-3 duration-300 cursor-pointer ${
+                    readIds.has(notification.id) 
                       ? 'bg-[var(--mf-card)]/50 border-[var(--mf-border)] opacity-60' 
-                      : 'bg-[var(--mf-card)] border-[var(--mf-border-strong)]'
+                      : 'bg-[var(--mf-card)] border-[var(--mf-border-strong)] hover:border-[var(--mf-border)] hover:shadow-sm'
                   }`}
                   style={{ animationDelay: `${idx * 0.05}s` }}
                 >
                   <div className="flex gap-4 items-start">
-                    <div className={`size-10 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
+                    <div className={`size-11 rounded-full flex items-center justify-center shrink-0 ${
                       notification.type === 'success' ? 'bg-[var(--mf-success-soft)] text-[var(--mf-success)]' :
                       notification.type === 'warning' ? 'bg-[var(--mf-danger-soft)] text-[var(--mf-danger)]' :
                       'bg-[var(--mf-info-soft)] text-[var(--mf-info)]'
                     }`}>
-                      {notification.type === 'success' && <CheckCircle size={22} weight="fill" />}
-                      {notification.type === 'warning' && <WarningCircle size={22} weight="fill" />}
-                      {notification.type === 'info' && <Info size={22} weight="fill" />}
+                      {notification.type === 'success' && <CheckCircle size={24} weight="fill" />}
+                      {notification.type === 'warning' && <WarningCircle size={24} weight="fill" />}
+                      {notification.type === 'info' && <Info size={24} weight="fill" />}
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-semibold text-[var(--mf-text-strong)] text-sm md:text-base leading-snug">
+                      <div className="flex items-center gap-3 mb-1.5">
+                        <h3 className="font-semibold text-[var(--mf-text-strong)] text-sm md:text-base leading-snug flex-1">
                           {notification.title}
                         </h3>
-                        <span className="text-[10px] text-[var(--mf-muted)] uppercase font-semibold tracking-wider">
+                        <span className="text-[10px] text-[var(--mf-muted)] uppercase font-semibold tracking-wider shrink-0 hidden sm:inline">
                           {format(notification.time, 'HH:mm')}
                         </span>
                       </div>
-                      <p className="text-xs md:text-sm text-[var(--mf-muted)] leading-relaxed pr-2">
+                      <p className="text-xs md:text-sm text-[var(--mf-muted)] leading-relaxed">
                         {notification.message}
                       </p>
                     </div>
 
                     <div className="flex items-center gap-2.5 shrink-0 self-center">
-                      <button
+                      <button type="button"
                         onClick={() => handleEmailReminder(notification)}
                         disabled={sendingId !== null}
-                        className="size-8 rounded-full border border-[var(--mf-border)] bg-[var(--mf-card)] hover:bg-[var(--mf-hover)] text-[var(--mf-muted)] hover:text-[var(--mf-text-strong)] flex items-center justify-center transition-all cursor-pointer disabled:opacity-50 active-squish"
+                        className="size-9 rounded-full border border-[var(--mf-border)] bg-[var(--mf-card)] hover:bg-[var(--mf-hover)] hover:border-[var(--mf-border-strong)] text-[var(--mf-muted)] hover:text-[var(--mf-text-strong)] flex items-center justify-center transition-all cursor-pointer disabled:opacity-50 active-squish"
                         title="Send as email reminder"
                       >
                         {sendingId === notification.id ? (
                           <div className="size-4 border-2 border-[var(--mf-muted)]/30 border-t-[var(--mf-muted)] rounded-full animate-spin" />
                         ) : (
-                          <EnvelopeSimple size={16} />
+                          <EnvelopeSimple size={18} />
                         )}
                       </button>
 
-                      {!notification.read && (
-                        <div className="size-2.5 rounded-full bg-[var(--mf-accent)] shadow-[0_0_8px_var(--mf-accent)] shrink-0" />
+                      {!readIds.has(notification.id) && (
+                        <div className="size-3 rounded-full bg-[var(--mf-accent)] shadow-[0_0_8px_var(--mf-accent)] shrink-0" />
                       )}
                     </div>
                   </div>
@@ -390,30 +506,30 @@ export function NotificationsView() {
 
             {notifications.length === 0 && (
               <div className="flex flex-col items-center justify-center py-24 text-center">
-                <div className="size-16 rounded-full bg-[var(--mf-hover)] flex items-center justify-center text-[var(--mf-muted)] mb-4 animate-pulse">
+                <div className="size-16 rounded-full bg-[var(--mf-hover)] flex items-center justify-center text-[var(--mf-muted)] mb-4">
                   <Bell size={32} weight="light" />
                 </div>
                 <h3 className="font-semibold text-[var(--mf-text-strong)] mb-1">All caught up</h3>
                 <p className="text-xs md:text-sm text-[var(--mf-muted)] max-w-[280px] leading-relaxed">
-                  You don&apos;t have any notifications or action alerts at the moment.
+                  You don't have any notifications or action alerts at the moment.
                 </p>
               </div>
             )}
           </div>
 
-          {/* Right Column: Widgets / Side Info Panel */}
-          <div className="flex flex-col gap-6 lg:sticky lg:top-24 h-fit">
+          {/* Right Column: Widgets / Side Info Panel — 5/12 on desktop */}
+          <div className="lg:col-span-5 flex flex-col gap-5 lg:sticky lg:top-24 h-fit">
             {/* Widget 1: Cycle Sync Card */}
             {((partnerStatus && partnerStatus.paired) || user?.role === 'lady') && (
               <div className="p-6 rounded-[24px] border border-[var(--mf-border)] bg-[var(--mf-card)]">
-                <h3 className="font-semibold text-sm text-[var(--mf-text-strong)] mb-4 flex items-center gap-2">
-                  <span className="size-2.5 rounded-full bg-pink-500 sync-dot-active" />
-                  <span>Cycle Sync Status</span>
-                </h3>
+                <div className="flex items-center gap-2.5 mb-5">
+                  <span className="size-2.5 rounded-full bg-pink-500 animate-pulse" />
+                  <h3 className="font-semibold text-sm text-[var(--mf-text-strong)]">Cycle Sync Status</h3>
+                </div>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center pb-3 border-b border-[var(--mf-border)]">
                     <span className="text-xs text-[var(--mf-muted)]">Active Phase</span>
-                    <span className="text-xs font-semibold bg-pink-500/10 text-pink-500 px-2.5 py-0.5 rounded-full">
+                    <span className="text-xs font-semibold bg-pink-500/10 text-pink-500 px-2.5 py-1 rounded-full">
                       {cycleInfo.phaseLabel}
                     </span>
                   </div>
@@ -423,17 +539,11 @@ export function NotificationsView() {
                       Day {cycleDay} of {cycleInfo.typicalCycleDays}
                     </span>
                   </div>
-                  <div className="flex justify-between items-start">
-                    <span className="text-xs text-[var(--mf-muted)] shrink-0">Today's Symptoms</span>
-                    <div className="text-right">
-                      {cycleInfo.symptoms.length ? (
-                        <span className="text-xs font-semibold text-[var(--mf-text-strong)]">
-                          {cycleInfo.symptoms.length} logged
-                        </span>
-                      ) : (
-                        <span className="text-xs text-[var(--mf-muted)] italic">None logged</span>
-                      )}
-                    </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-[var(--mf-muted)]">Today's Symptoms</span>
+                    <span className={`text-xs font-semibold ${cycleInfo.symptoms.length ? 'text-[var(--mf-text-strong)]' : 'text-[var(--mf-muted)]'}`}>
+                      {cycleInfo.symptoms.length ? `${cycleInfo.symptoms.length} logged` : 'None'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -442,37 +552,64 @@ export function NotificationsView() {
             {/* Widget 2: Streak & Support */}
             {supportStreak > 0 && (
               <div className="p-6 rounded-[24px] border border-[var(--mf-border)] bg-[var(--mf-card)]">
-                <h3 className="font-semibold text-sm text-[var(--mf-text-strong)] mb-2 flex items-center gap-2">
-                  <Flame size={16} className="text-pink-500" weight="fill" />
-                  <span>Support Streak</span>
-                </h3>
+                <div className="flex items-center gap-2.5 mb-3">
+                  <div className="size-8 rounded-full bg-pink-500/10 text-pink-500 flex items-center justify-center">
+                    <Flame size={18} weight="fill" />
+                  </div>
+                  <h3 className="font-semibold text-sm text-[var(--mf-text-strong)]">Support Streak</h3>
+                </div>
                 <p className="text-xs text-[var(--mf-muted)] leading-relaxed mb-4">
                   Outstanding job! You are actively supporting partner wellness and maintaining sync.
                 </p>
-                <div className="flex items-center gap-2">
-                  <div className="text-3xl font-bold text-pink-500 font-mono">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-bold text-pink-500 font-mono tracking-tight">
                     {supportStreak}
-                  </div>
-                  <div className="text-[10px] text-[var(--mf-muted)] font-semibold uppercase tracking-wider">
+                  </span>
+                  <span className="text-[10px] text-[var(--mf-muted)] font-semibold uppercase tracking-wider">
                     Days Active
-                  </div>
+                  </span>
                 </div>
               </div>
             )}
 
             {/* Widget 3: Quick Alert Settings */}
             <div className="p-6 rounded-[24px] border border-[var(--mf-border)] bg-[var(--mf-card)]">
-              <h3 className="font-semibold text-sm text-[var(--mf-text-strong)] mb-4 flex items-center gap-2">
-                <Sliders size={16} className="text-[var(--mf-accent)]" />
-                <span>Alert Preferences</span>
-              </h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-col gap-0.5 text-left">
-                    <span className="text-xs font-medium text-[var(--mf-text-strong)]">Cycle Reminders</span>
-                    <span className="text-[10px] text-[var(--mf-muted)]">Phase alerts & tracking</span>
+              <div className="flex items-center gap-2.5 mb-5">
+                <div className="size-8 rounded-full bg-[var(--mf-accent)]/10 text-[var(--mf-accent)] flex items-center justify-center">
+                  <Sliders size={18} weight="fill" />
+                </div>
+                <h3 className="font-semibold text-sm text-[var(--mf-text-strong)]">Alert Preferences</h3>
+              </div>
+              
+              {/* Toggle switches in a clean list */}
+              <div className="space-y-1">
+                {/* Email Reminders */}
+                <div className="flex items-center justify-between py-2.5">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-xs font-medium text-[var(--mf-text-strong)]">Email Reminders</span>
+                    <span className="text-[10px] text-[var(--mf-muted)]">Daily period & ovulation emails</span>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
+                  <label className="relative inline-flex items-center cursor-pointer shrink-0 ml-4">
+                    <input 
+                      type="checkbox" 
+                      className="sr-only peer"
+                      checked={settings.notificationsEmail}
+                      onChange={(e) => {
+                        updateSettings({ notificationsEmail: e.target.checked })
+                        playNotificationSound()
+                      }}
+                    />
+                    <div className="w-9 h-5 bg-[var(--mf-border-strong)] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-[var(--mf-border-strong)] after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--mf-accent)]"></div>
+                  </label>
+                </div>
+
+                {/* Cycle Reminders */}
+                <div className="flex items-center justify-between py-2.5">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-xs font-medium text-[var(--mf-text-strong)]">Cycle Reminders</span>
+                    <span className="text-[10px] text-[var(--mf-muted)]">Phase alerts & tracking nudges</span>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer shrink-0 ml-4">
                     <input 
                       type="checkbox" 
                       className="sr-only peer"
@@ -485,12 +622,14 @@ export function NotificationsView() {
                     <div className="w-9 h-5 bg-[var(--mf-border-strong)] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-[var(--mf-border-strong)] after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--mf-accent)]"></div>
                   </label>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-col gap-0.5 text-left">
+
+                {/* Product Alerts */}
+                <div className="flex items-center justify-between py-2.5">
+                  <div className="flex flex-col gap-0.5">
                     <span className="text-xs font-medium text-[var(--mf-text-strong)]">Product Alerts</span>
-                    <span className="text-[10px] text-[var(--mf-muted)]">Tips & streak updates</span>
+                    <span className="text-[10px] text-[var(--mf-muted)]">Tips & streak milestone updates</span>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
+                  <label className="relative inline-flex items-center cursor-pointer shrink-0 ml-4">
                     <input 
                       type="checkbox" 
                       className="sr-only peer"
@@ -503,34 +642,36 @@ export function NotificationsView() {
                     <div className="w-9 h-5 bg-[var(--mf-border-strong)] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-[var(--mf-border-strong)] after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--mf-accent)]"></div>
                   </label>
                 </div>
+              </div>
 
-                {/* Browser Alert Permission State */}
-                <div className="pt-3 border-t border-[var(--mf-border)] flex flex-col gap-3">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-[var(--mf-muted)]">Browser Push Alerts</span>
-                    <span className={`font-semibold ${
-                      alertPermission === 'granted' ? 'text-green-500' : 'text-amber-500'
-                    }`}>
-                      {alertPermission === 'granted' ? 'Active' : 'Not Enabled'}
-                    </span>
-                  </div>
-
-                  {alertPermission !== 'granted' ? (
-                    <button
-                      onClick={requestNotificationPermission}
-                      className="w-full text-xs font-semibold bg-[var(--mf-hover)] hover:bg-[var(--mf-active)] text-[var(--mf-text-strong)] border border-[var(--mf-border)] py-2 rounded-xl transition-all cursor-pointer text-center active-squish"
-                    >
-                      Enable Browser Alerts
-                    </button>
-                  ) : (
-                    <button
-                      onClick={triggerTestNotification}
-                      className="w-full text-xs font-semibold bg-[var(--mf-hover)] hover:bg-[var(--mf-active)] text-[var(--mf-text-strong)] border border-[var(--mf-border)] py-2 rounded-xl transition-all cursor-pointer text-center active-squish"
-                    >
-                      Test Push & Chime Sound
-                    </button>
-                  )}
+              {/* Browser Alert Permission — separated section */}
+              <div className="mt-5 pt-4 border-t border-[var(--mf-border)]">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-medium text-[var(--mf-text-strong)]">Browser Push Alerts</span>
+                  <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                    alertPermission === 'granted' 
+                      ? 'bg-green-500/10 text-green-500' 
+                      : 'bg-amber-500/10 text-amber-500'
+                  }`}>
+                    {alertPermission === 'granted' ? 'Active' : 'Off'}
+                  </span>
                 </div>
+
+                {alertPermission !== 'granted' ? (
+                  <button type="button"
+                    onClick={requestNotificationPermission}
+                    className="w-full text-xs font-semibold bg-[var(--mf-accent)]/10 hover:bg-[var(--mf-accent)]/20 text-[var(--mf-accent)] border border-[var(--mf-accent)]/20 py-2.5 rounded-xl transition-all cursor-pointer text-center active-squish"
+                  >
+                    Enable Browser Alerts
+                  </button>
+                ) : (
+                  <button type="button"
+                    onClick={triggerTestNotification}
+                    className="w-full text-xs font-semibold bg-[var(--mf-hover)] hover:bg-[var(--mf-active)] text-[var(--mf-text-strong)] border border-[var(--mf-border)] py-2.5 rounded-xl transition-all cursor-pointer text-center active-squish"
+                  >
+                    Test Push & Chime Sound
+                  </button>
+                )}
               </div>
             </div>
           </div>

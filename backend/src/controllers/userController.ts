@@ -30,6 +30,7 @@ export async function updateProfile(req: AuthRequest, res: Response, next: NextF
       accessLevel: optionalOneOf(body, 'accessLevel', ['full', 'educational'] as const),
       isOnboarded: optionalBoolean(body, 'isOnboarded'),
       role: optionalOneOf(body, 'role', ['lady', 'partner'] as const),
+      onboardingData: 'onboardingData' in body ? (body.onboardingData as Record<string, unknown> | undefined) : undefined,
     }));
     res.json({ user });
   } catch (err) {
@@ -65,6 +66,16 @@ export async function updateSettings(req: AuthRequest, res: Response, next: Next
       cycleShowFertileWindow: optionalBoolean(body, 'cycleShowFertileWindow'),
       privacyShareCycleDetails: optionalBoolean(body, 'privacyShareCycleDetails'),
       privacyPendingAccessRequest: optionalBoolean(body, 'privacyPendingAccessRequest'),
+      privacyStrictLocalOnly: optionalBoolean(body, 'privacyStrictLocalOnly'),
+      conditionOptimization: optionalOneOf(body, 'conditionOptimization', ['none', 'pcos', 'endometriosis', 'perimenopause'] as const),
+      disableAIPopups: optionalBoolean(body, 'disableAIPopups'),
+      hideDailyStoriesAndTips: optionalBoolean(body, 'hideDailyStoriesAndTips'),
+      parentalControlsEnabled: optionalBoolean(body, 'parentalControlsEnabled'),
+      parentalGuardianEmail: optionalString(body, 'parentalGuardianEmail', { max: 254, nullable: true, allowEmpty: true }),
+      parentalContentFilter: optionalOneOf(body, 'parentalContentFilter', ['standard', 'restricted'] as const),
+      parentalQuietHoursEnabled: optionalBoolean(body, 'parentalQuietHoursEnabled'),
+      parentalQuietHoursStart: optionalString(body, 'parentalQuietHoursStart', { max: 5 }),
+      parentalQuietHoursEnd: optionalString(body, 'parentalQuietHoursEnd', { max: 5 }),
     });
 
     const settings = await userService.updateUserSettings(req.user!.id, patch);
@@ -91,6 +102,25 @@ export async function updateDashboard(req: AuthRequest, res: Response, next: Nex
 
     const dashboard = await userService.updateDashboard(req.user!.id, patch);
     res.json(dashboard);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function addUserXp(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const body = objectRecord(req.body);
+    const date = optionalIsoDate(body, 'date');
+    if (date === undefined) {
+      throw Object.assign(new Error('date is required'), { status: 400 });
+    }
+    const correct = optionalBoolean(body, 'correct');
+    if (correct === undefined) {
+      throw Object.assign(new Error('correct is required'), { status: 400 });
+    }
+
+    const user = await userService.submitQuizAttempt(req.user!.id, date, correct);
+    res.json({ success: true, user });
   } catch (err) {
     next(err);
   }

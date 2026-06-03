@@ -1,10 +1,14 @@
 import { User } from '../models/User';
 import { Dashboard } from '../models/Dashboard';
-import { PartnerPing, SupportAction, SupportStreak } from '../models/Partner';
+import { PartnerPing, SupportAction, SupportStreak, PartnerChatMessage } from '../models/Partner';
 import { SymptomLog } from '../models/Symptom';
 import { Settings } from '../models/Settings';
-import { IPartnerPing } from '../interfaces';
+import { IPartnerPing, IPartnerChatMessage } from '../interfaces';
 import { httpError } from '../utils/http';
+import { generateUniquePartnerCode } from './authService';
+import { sendInviteEmail, sendReminderEmail } from './emailService';
+import { buildCycleModel } from '../utils/cycleModel';
+
 
 // ─── Pairing ─────────────────────────────────────────────────────────────────
 
@@ -12,10 +16,13 @@ export async function pairWithPartner(
   userId: string,
   partnerCode: string
 ): Promise<{ id: string; name: string }> {
+  const user = await User.findById(userId);
+  if (!user) throw httpError('User not found', 404);
+
   const partner = await User.findOne({ partnerCode: partnerCode.toUpperCase() });
 
   if (!partner) {
-    throw httpError('Invalid partner code — partner not found', 404);
+    throw httpError('Invalid code — no account found with that code', 404);
   }
   if (String(partner._id) === userId) {
     throw httpError('You cannot pair with yourself', 400);
@@ -24,8 +31,19 @@ export async function pairWithPartner(
     throw httpError('This partner is already paired with someone else', 400);
   }
 
-  await User.findByIdAndUpdate(userId, { partnerId: partner._id });
-  await User.findByIdAndUpdate(partner._id, { partnerId: userId });
+  // Role compatibility check: must be opposite roles (lady ↔ partner)
+  if (user.role === partner.role) {
+    if (user.role === 'lady') {
+      throw httpError('This code belongs to another lady. Only a partner account can connect using your code.', 400);
+    } else {
+      throw httpError('This code belongs to another partner account. Ask your partner (lady) to share her code instead.', 400);
+    }
+  }
+
+  await Promise.all([
+    User.findByIdAndUpdate(userId, { partnerId: partner._id }),
+    User.findByIdAndUpdate(partner._id, { partnerId: userId }),
+  ]);
 
   return { id: String(partner._id), name: partner.name };
 }
@@ -33,12 +51,41 @@ export async function pairWithPartner(
 export async function invitePartner(
   userId: string,
   emailOrUsername: string
-): Promise<{ id?: string; name?: string; alreadyPaired: boolean; partnerFound: boolean }> {
+): Promise<{ id?: string; name?: string; alreadyPaired: boolean; partnerFound: boolean; emailSent?: boolean }> {
   const normalized = emailOrUsername.toLowerCase().trim();
-  const partner = await User.findOne({ username: normalized });
+
+  // Look up by email OR username so both work
+  const partner = await User.findOne({
+    $or: [{ email: normalized }, { username: normalized }],
+  });
 
   if (!partner) {
-    return { alreadyPaired: false, partnerFound: false };
+    // No existing account — send an invite email if the input looks like an email
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized);
+    if (!isEmail) {
+      // Username that doesn't exist — just tell the frontend no match found
+      return { alreadyPaired: false, partnerFound: false, emailSent: false };
+    }
+
+    const invitingUser = await User.findById(userId).lean();
+    const inviterName = invitingUser?.name || 'Your partner';
+    const partnerCode = invitingUser?.partnerCode || '';
+    const appUrl = process.env.APP_URL || 'https://mensflow.app';
+    const signupLink = `${appUrl}/sync?code=${partnerCode}`;
+
+    try {
+      await sendInviteEmail({
+        toEmail: normalized,
+        inviterName,
+        signupLink,
+        partnerCode,
+      });
+    } catch (err) {
+      console.error('[invitePartner] Failed to send invite email:', err);
+      // Don't throw — the invite is still valid even if email fails
+    }
+
+    return { alreadyPaired: false, partnerFound: false, emailSent: true };
   }
 
   if (String(partner._id) === userId) {
@@ -49,23 +96,49 @@ export async function invitePartner(
     throw httpError('This partner is already paired with someone else', 400);
   }
 
-  await User.findByIdAndUpdate(userId, { partnerId: partner._id });
-  await User.findByIdAndUpdate(partner._id, { partnerId: userId });
+  const user = await User.findById(userId).lean();
+  if (!user) {
+    throw httpError('User not found', 404);
+  }
+  if (user.role === partner.role) {
+    throw httpError('Partner accounts must connect to lady accounts, and lady accounts must connect to partner accounts.', 400);
+  }
+
+  await Promise.all([
+    User.findByIdAndUpdate(userId, { partnerId: partner._id }),
+    User.findByIdAndUpdate(partner._id, { partnerId: userId }),
+  ]);
 
   return {
     id: String(partner._id),
     name: partner.name,
     alreadyPaired: false,
-    partnerFound: true
+    partnerFound: true,
+    emailSent: false,
   };
 }
 
 export async function disconnectPartner(userId: string): Promise<void> {
   const user = await User.findById(userId);
-  if (user?.partnerId) {
-    await User.findByIdAndUpdate(user.partnerId, { partnerId: null });
+  if (!user) return;
+
+  const partnerId = user.partnerId;
+
+  // Generate a new code for the disconnecting user
+  const newCodeForUser = await generateUniquePartnerCode();
+  await User.findByIdAndUpdate(userId, { 
+    partnerId: null,
+    partnerCode: newCodeForUser
+  });
+
+  // If there was a partner, disconnect them and regenerate their code too
+  if (partnerId) {
+    const newCodeForPartner = await generateUniquePartnerCode();
+    await User.findByIdAndUpdate(partnerId, { 
+      partnerId: null,
+      partnerCode: newCodeForPartner
+    });
   }
-  await User.findByIdAndUpdate(userId, { partnerId: null });
 }
 
 // ─── Partner Status ──────────────────────────────────────────────────────────
@@ -82,18 +155,39 @@ export async function getPartnerStatus(userId: string): Promise<object> {
     return { paired: false };
   }
 
-  const partnerDash = await Dashboard.findOne({ userId: partner._id }).lean();
   const today = todayString();
   const yesterday = yesterdayString();
 
-  const latestLog = await SymptomLog.findOne({ userId: partner._id, date: today }).lean();
+  const [
+    partnerDash,
+    latestLog,
+    partnerSettings,
+    initialStreakDoc,
+    completedToday,
+    partnerLastPing,
+    partnerLastLog,
+    partnerLastMessage,
+  ] = await Promise.all([
+    Dashboard.findOne({ userId: partner._id }).lean(),
+    SymptomLog.findOne({ userId: partner._id, date: today }).lean(),
+    Settings.findOne({ userId: partner._id }).lean(),
+    SupportStreak.findOne({ userId }).lean(),
+    SupportAction.find({ userId, completedAt: today }).distinct('actionId'),
+    PartnerPing.findOne({ senderId: partner._id, receiverId: userId }).sort({ timestamp: -1 }).lean(),
+    SymptomLog.findOne({ userId: partner._id }).sort({ date: -1 }).lean(),
+    PartnerChatMessage.findOne({ senderId: partner._id, receiverId: userId }).sort({ createdAt: -1 }).lean(),
+  ]);
+
   const symptoms = latestLog?.symptoms ?? [];
-
-  // Load partner's settings to check detailed cycle sharing permissions
-  const partnerSettings = await Settings.findOne({ userId: partner._id }).lean();
   const shareDetails = partnerSettings ? partnerSettings.privacyShareCycleDetails !== false : true;
+  const cycleModel = buildCycleModel({
+    lastPeriodStart: partnerDash?.lastPeriodStart,
+    typicalCycleDays: partnerDash?.typicalCycleDays,
+    cycleVariationDays: partnerDash?.cycleVariationDays,
+    symptoms,
+  });
 
-  let streakDoc = await SupportStreak.findOne({ userId }).lean();
+  let streakDoc = initialStreakDoc;
   if (!streakDoc) {
     await SupportStreak.create({ userId });
     streakDoc = { streak: 0, lastActionDate: '' } as any;
@@ -105,9 +199,20 @@ export async function getPartnerStatus(userId: string): Promise<object> {
     currentStreak = 0;
   }
 
-  const completedToday = await SupportAction.find({ userId, completedAt: today })
-    .distinct('actionId')
-    .lean();
+  // Derive partner's last active time from their most recent ping, log, or message.
+  let partnerLastActive: number | null = null;
+  if (partnerLastPing?.timestamp) {
+    partnerLastActive = Math.max(partnerLastActive ?? 0, partnerLastPing.timestamp);
+  }
+  if (partnerLastLog?.date) {
+    const logTs = new Date(partnerLastLog.date + 'T23:59:59').getTime();
+    if (!partnerLastActive || logTs > partnerLastActive) {
+      partnerLastActive = logTs;
+    }
+  }
+  if (partnerLastMessage?.createdAt && (!partnerLastActive || partnerLastMessage.createdAt > partnerLastActive)) {
+    partnerLastActive = partnerLastMessage.createdAt;
+  }
 
   return {
     paired: true,
@@ -115,6 +220,7 @@ export async function getPartnerStatus(userId: string): Promise<object> {
       name: partner.name,
       avatar: partner.avatar,
       accessLevel: partner.accessLevel,
+      lastActive: partnerLastActive,
     },
     privacyShareCycleDetails: shareDetails,
     cycle: partnerDash
@@ -122,21 +228,24 @@ export async function getPartnerStatus(userId: string): Promise<object> {
         ? {
             lastPeriodStart: partnerDash.lastPeriodStart,
             typicalCycleDays: partnerDash.typicalCycleDays,
-            phaseLabel: partnerDash.phaseLabel,
-            hormoneTrend: partnerDash.hormoneTrend,
-            bodySignals: partnerDash.bodySignals,
-            cycleVariationDays: partnerDash.cycleVariationDays,
-            isAtypical: partnerDash.isAtypical,
+            phaseLabel: cycleModel.phaseLabel,
+            hormoneTrend: cycleModel.hormoneTrend,
+            bodySignals: cycleModel.bodySignals,
+            guidanceLines: partnerDash.guidanceLines?.length ? partnerDash.guidanceLines : cycleModel.guidanceLines,
+            cycleVariationDays: cycleModel.cycleVariationDays,
+            isAtypical: cycleModel.isAtypical,
             symptoms,
             water: latestLog?.water !== undefined ? latestLog.water : 1000,
             weight: latestLog?.weight !== undefined ? latestLog.weight : 62.5,
+            lhLevel: latestLog?.lhLevel !== undefined ? latestLog.lhLevel : null,
+            mucus: latestLog?.mucus !== undefined ? latestLog.mucus : null,
             scientificInsight: partnerDash.scientificInsight || '',
             dailyTip: partnerDash.dailyTip || { title: '', desc: '' },
           }
         : {
             lastPeriodStart: '', // Redacted
             typicalCycleDays: 28, // Default fallback
-            phaseLabel: partnerDash.phaseLabel, // Shared phase for translator/checklist
+            phaseLabel: cycleModel.phaseLabel, // Shared phase for translator/checklist
             hormoneTrend: 'Private details', // Redacted
             bodySignals: 'Private details', // Redacted
             cycleVariationDays: 28, // Redacted
@@ -144,6 +253,8 @@ export async function getPartnerStatus(userId: string): Promise<object> {
             symptoms: [], // Redacted
             water: 1000, // Redacted
             weight: 62.5, // Redacted
+            lhLevel: null, // Redacted
+            mucus: null, // Redacted
             scientificInsight: 'Detailed insight kept private by your partner.', // Redacted
             dailyTip: { title: 'Empathy Mode Active', desc: 'Focus on supportive gestures and empathy translator tips below!' },
           }
@@ -269,19 +380,246 @@ function yesterdayString(): string {
   return d.toISOString().split('T')[0];
 }
 
-export async function requestDetailedAccess(userId: string): Promise<void> {
-  const user = await User.findById(userId);
+export async function requestDetailedAccess(userId: string): Promise<{ alreadyPending: boolean; emailQueued: boolean }> {
+  const user = await User.findById(userId).lean();
   if (!user?.partnerId) {
     throw httpError('You must pair with a partner before requesting detailed access', 400);
   }
+  if (user.role !== 'partner') {
+    throw httpError('Only partner accounts can request detailed cycle access', 400);
+  }
 
-  // Update Lady's Settings (privacyPendingAccessRequest = true)
+  const [recipient, previousSettings] = await Promise.all([
+    User.findById(user.partnerId).lean(),
+    Settings.findOne({ userId: user.partnerId }).lean(),
+  ]);
+  if (!recipient) {
+    throw httpError('Paired partner account not found', 404);
+  }
+
+  const alreadyPending = previousSettings?.privacyPendingAccessRequest === true;
   await Settings.findOneAndUpdate(
     { userId: user.partnerId },
-    { privacyPendingAccessRequest: true }
+    { $set: { privacyPendingAccessRequest: true }, $setOnInsert: { userId: user.partnerId } },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
   );
 
-  // Send a PartnerPing so she gets notified instantly
+  if (alreadyPending) {
+    return { alreadyPending: true, emailQueued: false };
+  }
+
   const partnerName = user.name || 'Your partner';
   await sendPing(userId, 'access-request-ping', 'Access Request', `${partnerName} has requested detailed cycle access.`);
+
+  const emailQueued = Boolean(recipient.email && previousSettings?.notificationsEmail);
+  if (emailQueued && recipient.email) {
+    void sendReminderEmail({
+      toEmail: recipient.email,
+      toName: recipient.name,
+      reminderTitle: 'Detailed cycle access requested',
+      reminderMessage: `${partnerName} asked to view detailed cycle metrics, symptoms, and analytics. Open MensFlow Notifications to approve or decline.`,
+    }).catch((err) => console.error('[requestDetailedAccess] Failed to send access request email:', err));
+  }
+
+  return { alreadyPending: false, emailQueued };
+}
+
+// ─── Partner Direct Chat ──────────────────────────────────────────────────────
+
+export async function getPartnerMessages(userId: string): Promise<IPartnerChatMessage[]> {
+  const user = await User.findById(userId).lean();
+  if (!user?.partnerId) {
+    return [];
+  }
+
+  const partnerId = user.partnerId;
+  const messages = await PartnerChatMessage.find({
+    $or: [
+      { senderId: userId, receiverId: partnerId },
+      { senderId: partnerId, receiverId: userId }
+    ]
+  })
+    .sort({ createdAt: 1 })
+    .lean();
+
+  return messages.map((m) => ({
+    id: String(m._id),
+    senderId: String(m.senderId),
+    receiverId: String(m.receiverId),
+    text: m.text,
+    createdAt: m.createdAt,
+  }));
+}
+
+export async function sendPartnerMessage(userId: string, text: string): Promise<IPartnerChatMessage> {
+  const user = await User.findById(userId).lean();
+  if (!user?.partnerId) {
+    throw httpError('You must pair with a partner before sending a message', 400);
+  }
+
+  const partnerId = user.partnerId;
+  const now = Date.now();
+
+  const msg = await PartnerChatMessage.create({
+    senderId: userId,
+    receiverId: partnerId,
+    text,
+    createdAt: now,
+  });
+
+  return {
+    id: String(msg._id),
+    senderId: String(msg.senderId),
+    receiverId: String(msg.receiverId),
+    text: msg.text,
+    createdAt: msg.createdAt,
+  };
+}
+
+export async function suggestReplies(userId: string): Promise<string[]> {
+  const user = await User.findById(userId).lean();
+  if (!user?.partnerId) {
+    throw httpError('You must pair with a partner to get suggestions', 400);
+  }
+
+  const ladyId = user.role === 'partner' ? user.partnerId : userId;
+  const ladyUser = await User.findById(ladyId).lean();
+  const ladyName = ladyUser?.name || 'Partner';
+
+  const dashboard = await Dashboard.findOne({ userId: ladyId }).lean();
+  let currentDay = 1;
+  let phaseLabel = 'Menstrual';
+
+  if (dashboard?.lastPeriodStart) {
+    const start = new Date(`${dashboard.lastPeriodStart}T12:00:00`);
+    if (!isNaN(start.getTime())) {
+      const diff = Math.floor((Date.now() - start.getTime()) / 86_400_000);
+      const cycle = dashboard.typicalCycleDays || 28;
+      currentDay = (((diff % cycle) + cycle) % cycle) + 1;
+    }
+    phaseLabel = dashboard.phaseLabel ?? 'Menstrual';
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  const logDoc = await SymptomLog.findOne({ userId: ladyId, date: today }).lean();
+  const symptomsList: string[] = logDoc?.symptoms ?? [];
+  const symptomsText = symptomsList.length > 0
+    ? symptomsList.join(', ')
+    : 'No symptoms';
+  const mucusText = logDoc?.mucus || 'Not logged';
+  const lhText = logDoc?.lhLevel || 'Not logged';
+
+  const groqApiKey = process.env.GROQ_API_KEY;
+
+  // Local fallback templates
+  const fallbackSuggestions: string[] = [];
+
+  // Symptom-based specific templates
+  if (symptomsList.includes('cramps') || symptomsList.includes('pelvicpain') || symptomsList.includes('backache')) {
+    fallbackSuggestions.push("Can I bring you a warm water bottle or some tea? ☕");
+    fallbackSuggestions.push("I've got dinner covered tonight, just rest. 🍳");
+  }
+  if (symptomsList.includes('exhausted') || symptomsList.includes('fatigue') || symptomsList.includes('brainfog')) {
+    fallbackSuggestions.push("Don't worry about anything tonight, I'll handle the chores. 🛌");
+    fallbackSuggestions.push("Take all the time you need to rest, I'm right here. ❤️");
+  }
+  if (symptomsList.includes('sweets') || symptomsList.includes('cravings')) {
+    fallbackSuggestions.push("I'm heading home, would you like me to pick up some chocolate? 🍫");
+  }
+  if (symptomsList.includes('space') || symptomsList.includes('calm')) {
+    fallbackSuggestions.push("I'll make sure you have a quiet, peaceful space to rest today. 🤫");
+  }
+
+  // Phase-based fallback additions
+  if (phaseLabel.toLowerCase() === 'menstrual') {
+    if (fallbackSuggestions.length < 3) fallbackSuggestions.push("I'm here to support you. Let's have a quiet evening. ❤️");
+    if (fallbackSuggestions.length < 3) fallbackSuggestions.push("Can I run a warm bath or get a heating pad for you? 🛁");
+    if (fallbackSuggestions.length < 3) fallbackSuggestions.push("I've got dinner covered tonight, just rest. 🍳");
+  } else if (phaseLabel.toLowerCase() === 'luteal') {
+    if (fallbackSuggestions.length < 3) fallbackSuggestions.push("I know today might feel heavy. I'm here for you. ❤️");
+    if (fallbackSuggestions.length < 3) fallbackSuggestions.push("Let me handle the chores tonight so you can relax. 🛌");
+    if (fallbackSuggestions.length < 3) fallbackSuggestions.push("Would you like some sweet treats or chocolate? 🍫");
+  } else if (phaseLabel.toLowerCase() === 'ovulatory' || phaseLabel.toLowerCase() === 'fertile' || phaseLabel.toLowerCase() === 'ovulation') {
+    if (fallbackSuggestions.length < 3) fallbackSuggestions.push("You're glowing today! Want to go out for a special date? 🌟");
+    if (fallbackSuggestions.length < 3) fallbackSuggestions.push("I'm so proud of you. Let's do something fun tonight! 🏃‍♂️");
+    if (fallbackSuggestions.length < 3) fallbackSuggestions.push("Your energy is amazing today. How can I match it? ✨");
+  } else {
+    // Follicular or fallback
+    if (fallbackSuggestions.length < 3) fallbackSuggestions.push("Hope you're having a lovely day! Let me know if you need anything. 🤍");
+    if (fallbackSuggestions.length < 3) fallbackSuggestions.push("Let's go for a gentle walk and get some fresh air. 🌳");
+    if (fallbackSuggestions.length < 3) fallbackSuggestions.push("What's on your mind today? I'm all ears. ☕");
+  }
+
+  // Ensure we always return exactly 3 suggestions
+  const defaultSuggestions = [
+    "I'm here for you. Let me know how I can help today. ❤️",
+    "I've got dinner covered tonight, just relax. 🍳",
+    "Can I bring you a warm cup of tea? ☕"
+  ];
+
+  while (fallbackSuggestions.length < 3) {
+    const nextDefault = defaultSuggestions.find(d => !fallbackSuggestions.includes(d));
+    if (nextDefault) {
+      fallbackSuggestions.push(nextDefault);
+    } else {
+      fallbackSuggestions.push(defaultSuggestions[0]);
+    }
+  }
+
+  if (!groqApiKey) {
+    return fallbackSuggestions.slice(0, 3);
+  }
+
+  const prompt = `You are an expert menstrual cycle empathy translator. Your job is to suggest exactly 3 short, comforting, warm, and highly empathetic chat replies (maximum 12 words each) that a partner can type to send to their lady (named ${ladyName}).
+The lady's current cycle context:
+- Cycle Phase: ${phaseLabel}
+- Cycle Day: Day ${currentDay}
+- Logged Symptoms: ${symptomsText}
+- Cervical Mucus: ${mucusText}
+- LH level: ${lhText}
+
+Based on this, generate 3 warm, highly empathetic, and direct messages that the partner could say to support her (e.g. comfort, taking over chores, warm tea, validation).
+Return ONLY a valid JSON array of strings. Do not include markdown, code tags, or comments.
+Example format:
+["I'm heading home, would you like me to pick up some chocolate?", "I've got dinner covered tonight so you can rest.", "I'm here for you. Do you want a warm water bottle?"]`;
+
+  try {
+    const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${groqApiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.7,
+        max_tokens: 150
+      })
+    });
+
+    if (!response.ok) {
+      return fallbackSuggestions.slice(0, 3);
+    }
+
+    const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
+    let content = data?.choices?.[0]?.message?.content?.trim() || '';
+
+    // Strip out triple backticks if present
+    content = content.replace(/^```json\s*/i, '').replace(/```$/, '').trim();
+
+    const match = content.match(/\[\s*".*?"\s*(,\s*".*?"\s*)*\]/);
+    if (match) {
+      const parsed = JSON.parse(match[0]);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.slice(0, 3);
+      }
+    }
+
+    return fallbackSuggestions.slice(0, 3);
+  } catch (error) {
+    console.error('[Groq Partner Suggestions Exception]', error);
+    return fallbackSuggestions.slice(0, 3);
+  }
 }

@@ -92,7 +92,7 @@ export function CycleHistory() {
           <h2 className="text-2xl font-medium text-foreground tracking-tight">Cycle history</h2>
           <Tooltip>
             <TooltipTrigger asChild>
-              <button className="text-muted-foreground hover:text-foreground transition-colors">
+              <button type="button" className="text-muted-foreground hover:text-foreground transition-colors">
                 <Info size={18} />
               </button>
             </TooltipTrigger>
@@ -101,7 +101,7 @@ export function CycleHistory() {
             </TooltipContent>
           </Tooltip>
         </div>
-        <button className="flex items-center gap-1 text-[1.05rem] text-muted-foreground font-medium hover:text-foreground transition-colors">
+        <button type="button" className="flex items-center gap-1 text-[1.05rem] text-muted-foreground font-medium hover:text-foreground transition-colors">
           See all <CaretRight size={16} weight="bold" />
         </button>
       </div>

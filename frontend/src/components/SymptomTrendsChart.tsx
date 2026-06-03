@@ -38,6 +38,8 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
+const CHART_DOMAIN = [0, 10]
+
 export function SymptomTrendsChart() {
   const { logs } = useStore()
 
@@ -59,7 +61,7 @@ export function SymptomTrendsChart() {
           <CardTitle className="font-normal text-sm sm:text-base">Symptom Trends</CardTitle>
           <Tooltip>
             <TooltipTrigger asChild>
-              <button className="p-1 hover:bg-black/5 rounded-full transition-colors inline-flex items-center justify-center cursor-help" aria-label="About symptom trends">
+              <button type="button" className="p-1 hover:bg-black/5 rounded-full transition-colors inline-flex items-center justify-center cursor-help" aria-label="About symptom trends">
                 <Question size={14} weight="regular" className="opacity-60" />
               </button>
             </TooltipTrigger>
@@ -100,7 +102,7 @@ export function SymptomTrendsChart() {
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
-                domain={[0, 10]}
+                domain={CHART_DOMAIN}
                 className="text-[10px] text-muted-foreground"
               />
               <ChartTooltip

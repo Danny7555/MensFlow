@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { Lightbulb, Info, Heart } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
+import { useStore } from '../../store/useStore'
 
 interface CycleTipsProps {
   activeDay: number
@@ -16,15 +17,21 @@ interface PhaseTip {
 }
 
 export function CycleTips({ activeDay }: CycleTipsProps) {
-  const periodLength = 5
-  const predictedPeriodLength = 2
-  const fertileStart = 10
-  const fertileEnd = 16
-  const upcomingStart = 23
+  const { dashboard } = useStore()
+  const cycleLen = dashboard.typicalCycleDays || 28
+  const periodLength = cycleLen <= 24 ? 4 : cycleLen >= 36 ? 6 : 5
+  const ovulationDay = Math.max(periodLength + 5, cycleLen - 14)
+  const fertileStart = Math.max(periodLength + 1, ovulationDay - 4)
+  const fertileEnd = Math.min(cycleLen, ovulationDay + 2)
+
+  const isMenstrual = activeDay <= periodLength
+  const isFertile = activeDay >= fertileStart && activeDay <= fertileEnd
+  const isLuteal = activeDay > fertileEnd
+  const isFollicular = !isMenstrual && !isFertile && !isLuteal
 
   // Determine current phase based on activeDay
   const phaseInfo = useMemo(() => {
-    if (activeDay <= periodLength) {
+    if (isMenstrual) {
       return {
         name: 'Menstrual Phase',
         badge: 'SHEDDING',
@@ -60,7 +67,7 @@ export function CycleTips({ activeDay }: CycleTipsProps) {
       }
     }
 
-    if (activeDay <= periodLength + predictedPeriodLength) {
+    if (isFollicular) {
       return {
         name: 'Follicular Phase',
         badge: 'RISING ENERGY',
@@ -96,7 +103,7 @@ export function CycleTips({ activeDay }: CycleTipsProps) {
       }
     }
 
-    if (activeDay >= fertileStart && activeDay <= fertileEnd) {
+    if (isFertile) {
       return {
         name: 'Ovulatory Phase',
         badge: 'PEAK VITALITY',
@@ -166,7 +173,7 @@ export function CycleTips({ activeDay }: CycleTipsProps) {
         },
       ] as PhaseTip[],
     }
-  }, [activeDay])
+  }, [isMenstrual, isFollicular, isFertile])
 
   return (
     <div className="cycle-tips-container space-y-6">
@@ -193,15 +200,15 @@ export function CycleTips({ activeDay }: CycleTipsProps) {
                 "flo-card relative overflow-hidden group transition-all duration-500 border border-[var(--mf-border)] !shadow-none p-5 flex flex-col justify-between",
                 idx === 0 && "bg-gradient-to-br"
               )}
-              style={idx === 0 ? { backgroundImage: `linear-gradient(135deg, var(--mf-card), rgba(${activeDay <= periodLength ? '239, 68, 68' : activeDay <= periodLength + predictedPeriodLength ? '245, 158, 11' : activeDay <= fertileEnd ? '20, 184, 166' : '236, 72, 153'}, 0.04))` } : undefined}
+              style={idx === 0 ? { backgroundImage: `linear-gradient(135deg, var(--mf-card), rgba(${isMenstrual ? '239, 68, 68' : isFollicular ? '245, 158, 11' : isFertile ? '20, 184, 166' : '236, 72, 153'}, 0.04))` } : undefined}
             >
               {/* Subtle accent highlight on hover */}
               <div className={cn(
                 "absolute top-0 left-0 w-1 h-full opacity-0 group-hover:opacity-100 transition-opacity duration-300",
-                activeDay <= periodLength && "bg-rose-500",
-                activeDay > periodLength && activeDay <= periodLength + predictedPeriodLength && "bg-amber-500",
-                activeDay >= fertileStart && activeDay <= fertileEnd && "bg-teal-500",
-                activeDay >= upcomingStart && "bg-pink-500"
+                isMenstrual && "bg-rose-500",
+                isFollicular && "bg-amber-500",
+                isFertile && "bg-teal-500",
+                isLuteal && "bg-pink-500"
               )} />
               
               <div>

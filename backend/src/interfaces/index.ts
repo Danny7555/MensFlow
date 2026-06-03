@@ -16,6 +16,7 @@ export interface AuthRequest extends Request {
 export interface IUser {
   id: string;
   username: string;
+  email: string | null;
   passwordHash: string;
   name: string;
   avatar: string | null;
@@ -24,7 +25,18 @@ export interface IUser {
   partnerCode: string;
   partnerId: string | null;
   role: 'lady' | 'partner';
+  onboardingData?: Record<string, unknown>;
+  xp: number;
+  quizLastCompletedAt: string;
+  quizCountToday: number;
   createdAt: Date;
+}
+
+export interface AuthResponse {
+  token?: string;
+  requiresOtp?: boolean;
+  otpToken?: string;
+  user: Partial<IUser>;
 }
 
 // ─── Settings ────────────────────────────────────────────────────────────────
@@ -55,6 +67,17 @@ export interface ISettings {
   cycleShowFertileWindow: boolean;
   privacyShareCycleDetails: boolean;
   privacyPendingAccessRequest: boolean;
+  privacyStrictLocalOnly: boolean;
+  conditionOptimization: 'none' | 'pcos' | 'endometriosis' | 'perimenopause';
+  disableAIPopups: boolean;
+  hideDailyStoriesAndTips: boolean;
+  otpEnabled: boolean;
+  parentalControlsEnabled: boolean;
+  parentalGuardianEmail: string | null;
+  parentalContentFilter: 'standard' | 'restricted';
+  parentalQuietHoursEnabled: boolean;
+  parentalQuietHoursStart: string;
+  parentalQuietHoursEnd: string;
 }
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────
@@ -85,6 +108,8 @@ export interface ISymptomLog {
   symptoms: string[];
   water?: number;
   weight?: number;
+  lhLevel?: string | null;
+  mucus?: string | null;
 }
 
 // ─── Custom Symptom ──────────────────────────────────────────────────────────
@@ -143,4 +168,12 @@ export interface ISessionSummary {
   createdAt: number;
   messageCount: number;
   title?: string;
+}
+
+export interface IPartnerChatMessage {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  text: string;
+  createdAt: number;
 }

@@ -82,8 +82,38 @@ export async function toggleAction(req: AuthRequest, res: Response, next: NextFu
 
 export async function requestDetailedAccess(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   try {
-    await partnerService.requestDetailedAccess(req.user!.id);
-    res.json({ success: true });
+    const result = await partnerService.requestDetailedAccess(req.user!.id);
+    res.json({ success: true, ...result });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getPartnerMessages(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const messages = await partnerService.getPartnerMessages(req.user!.id);
+    res.json(messages);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function sendPartnerMessage(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const body = objectRecord(req.body);
+    const text = requiredString(body.text, 'text', { min: 1, max: 4000 });
+
+    const message = await partnerService.sendPartnerMessage(req.user!.id, text);
+    res.json({ success: true, message });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function suggestReplies(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const suggestions = await partnerService.suggestReplies(req.user!.id);
+    res.json(suggestions);
   } catch (err) {
     next(err);
   }

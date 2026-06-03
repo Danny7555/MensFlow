@@ -7,7 +7,7 @@ export function HormoneLegend() {
         <span className="text-[var(--mf-text)] font-normal">Estrogen</span>
       </div>
       <div className="flex items-center gap-2">
-        <span className="w-3.5 h-2 rounded-full bg-violet-600" />
+        <span className="w-3.5 h-2 rounded-full bg-violet-500" />
         <span className="text-[var(--mf-text)] font-normal">Progesterone</span>
       </div>
     </div>

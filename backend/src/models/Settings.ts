@@ -26,6 +26,17 @@ export interface SettingsDocument extends Document {
   cycleShowFertileWindow: boolean;
   privacyShareCycleDetails: boolean;
   privacyPendingAccessRequest: boolean;
+  privacyStrictLocalOnly: boolean;
+  conditionOptimization: 'none' | 'pcos' | 'endometriosis' | 'perimenopause';
+  disableAIPopups: boolean;
+  hideDailyStoriesAndTips: boolean;
+  otpEnabled: boolean;
+  parentalControlsEnabled: boolean;
+  parentalGuardianEmail: string | null;
+  parentalContentFilter: 'standard' | 'restricted';
+  parentalQuietHoursEnabled: boolean;
+  parentalQuietHoursStart: string;
+  parentalQuietHoursEnd: string;
 }
 
 const SettingsSchema = new Schema<SettingsDocument>({
@@ -54,6 +65,17 @@ const SettingsSchema = new Schema<SettingsDocument>({
   cycleShowFertileWindow: { type: Boolean, default: true },
   privacyShareCycleDetails: { type: Boolean, default: true },
   privacyPendingAccessRequest: { type: Boolean, default: false },
+  privacyStrictLocalOnly: { type: Boolean, default: false },
+  conditionOptimization: { type: String, enum: ['none', 'pcos', 'endometriosis', 'perimenopause'], default: 'none' },
+  disableAIPopups: { type: Boolean, default: false },
+  hideDailyStoriesAndTips: { type: Boolean, default: false },
+  otpEnabled: { type: Boolean, default: true },
+  parentalControlsEnabled: { type: Boolean, default: false },
+  parentalGuardianEmail: { type: String, default: null, trim: true, lowercase: true, maxlength: 254 },
+  parentalContentFilter: { type: String, enum: ['standard', 'restricted'], default: 'standard' },
+  parentalQuietHoursEnabled: { type: Boolean, default: false },
+  parentalQuietHoursStart: { type: String, default: '21:00', match: /^([01]\d|2[0-3]):[0-5]\d$/ },
+  parentalQuietHoursEnd: { type: String, default: '06:00', match: /^([01]\d|2[0-3]):[0-5]\d$/ },
 });
 
 export const Settings = model<SettingsDocument>('Settings', SettingsSchema);

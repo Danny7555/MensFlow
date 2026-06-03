@@ -12,6 +12,8 @@ export async function getSymptomLogs(userId: string): Promise<ISymptomLog[]> {
     symptoms: l.symptoms,
     water: l.water !== undefined ? l.water : 1000,
     weight: l.weight !== undefined ? l.weight : 62.5,
+    lhLevel: l.lhLevel !== undefined ? l.lhLevel : null,
+    mucus: l.mucus !== undefined ? l.mucus : null,
   }));
 }
 
@@ -20,7 +22,9 @@ export async function upsertSymptomLog(
   date: string,
   symptoms?: string[],
   water?: number,
-  weight?: number
+  weight?: number,
+  lhLevel?: string | null,
+  mucus?: string | null
 ): Promise<ISymptomLog> {
   const updateFields: any = {};
   if (symptoms !== undefined) {
@@ -33,6 +37,12 @@ export async function upsertSymptomLog(
   if (weight !== undefined) {
     // Keep 1 decimal place for weight
     updateFields.weight = Math.round(weight * 10) / 10;
+  }
+  if (lhLevel !== undefined) {
+    updateFields.lhLevel = lhLevel;
+  }
+  if (mucus !== undefined) {
+    updateFields.mucus = mucus;
   }
 
   const log = await SymptomLog.findOneAndUpdate(
@@ -48,6 +58,8 @@ export async function upsertSymptomLog(
     symptoms: saved.symptoms,
     water: saved.water !== undefined ? saved.water : 1000,
     weight: saved.weight !== undefined ? saved.weight : 62.5,
+    lhLevel: saved.lhLevel !== undefined ? saved.lhLevel : null,
+    mucus: saved.mucus !== undefined ? saved.mucus : null,
   };
 }
 

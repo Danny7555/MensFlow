@@ -191,6 +191,7 @@ export function ChatComposer({
           if (e.target.files?.length) addFiles(e.target.files)
           e.target.value = ''
         }}
+        aria-label="Upload files"
       />
       <input
         ref={imageInputRef}
@@ -202,6 +203,7 @@ export function ChatComposer({
           if (e.target.files?.length) addFiles(e.target.files)
           e.target.value = ''
         }}
+        aria-label="Upload photos and media"
       />
 
       {attachments.length > 0 && (

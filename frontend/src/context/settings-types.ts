@@ -31,6 +31,18 @@ export type MensFlowSettings = {
   cycleShowFertileWindow: boolean
   privacyShareCycleDetails: boolean
   privacyPendingAccessRequest: boolean
+  privacyStrictLocalOnly: boolean
+  conditionOptimization: 'none' | 'pcos' | 'endometriosis' | 'perimenopause'
+  disableAIPopups: boolean
+  hideDailyStoriesAndTips: boolean
+  /** Two-factor authentication via email OTP */
+  otpEnabled: boolean
+  parentalControlsEnabled: boolean
+  parentalGuardianEmail: string | null
+  parentalContentFilter: 'standard' | 'restricted'
+  parentalQuietHoursEnabled: boolean
+  parentalQuietHoursStart: string
+  parentalQuietHoursEnd: string
 }
 
 export const DEFAULT_SETTINGS: MensFlowSettings = {
@@ -59,4 +71,15 @@ export const DEFAULT_SETTINGS: MensFlowSettings = {
   cycleShowFertileWindow: true,
   privacyShareCycleDetails: true,
   privacyPendingAccessRequest: false,
+  privacyStrictLocalOnly: false,
+  conditionOptimization: 'none',
+  disableAIPopups: false,
+  hideDailyStoriesAndTips: false,
+  otpEnabled: true,
+  parentalControlsEnabled: false,
+  parentalGuardianEmail: null,
+  parentalContentFilter: 'standard',
+  parentalQuietHoursEnabled: false,
+  parentalQuietHoursStart: '21:00',
+  parentalQuietHoursEnd: '06:00',
 }

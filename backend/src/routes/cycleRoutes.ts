@@ -1,10 +1,11 @@
 import { Router } from 'express';
-import { authenticate } from '../middleware/authenticate';
+import { authenticate, requireFullAccess } from '../middleware/authenticate';
 import * as cycleController from '../controllers/cycleController';
 
 const router = Router();
 
 router.use(authenticate);
+router.use(requireFullAccess);
 
 router.get('/', cycleController.getLogs);
 router.post('/', cycleController.addLog);

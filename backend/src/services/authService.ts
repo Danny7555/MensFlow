@@ -5,9 +5,10 @@ import { User } from '../models/User';
 import { Settings } from '../models/Settings';
 import { Dashboard } from '../models/Dashboard';
 import { SupportStreak } from '../models/Partner';
-import { IUser } from '../interfaces';
+import { IUser, AuthResponse } from '../interfaces';
 import { getJwtSecret } from '../config/env';
 import { httpError } from '../utils/http';
+import { createOtpSession } from './otpService';
 
 export async function generateUniquePartnerCode(): Promise<string> {
   for (let attempt = 0; attempt < 100; attempt++) {
@@ -18,79 +19,93 @@ export async function generateUniquePartnerCode(): Promise<string> {
   throw new Error('Unable to generate a unique partner code — please try again');
 }
 
+function userToResponse(user: InstanceType<typeof User>): Partial<IUser> {
+  return {
+    id: String(user._id),
+    username: user.username,
+    email: user.email,
+    name: user.name,
+    avatar: user.avatar,
+    accessLevel: user.accessLevel,
+    isOnboarded: user.isOnboarded,
+    partnerCode: user.partnerCode,
+    partnerId: user.partnerId ? String(user.partnerId) : null,
+    role: user.role,
+    onboardingData: (user.onboardingData as Record<string, unknown>) || {},
+    xp: user.xp || 0,
+    quizLastCompletedAt: user.quizLastCompletedAt || '',
+    quizCountToday: user.quizCountToday || 0,
+  };
+}
+
 export async function registerUser(
   username: string,
+  email: string,
   password: string,
   name: string,
   role: 'lady' | 'partner' = 'lady'
-): Promise<{ token: string; user: Partial<IUser> }> {
+): Promise<AuthResponse> {
   const normalizedUsername = username.toLowerCase();
-  const existingUser = await User.findOne({ username: normalizedUsername });
-  if (existingUser) {
-    throw httpError('Username is already taken', 409);
-  }
+  const normalizedEmail = email.toLowerCase();
+
+  const [existingUsername, existingEmail] = await Promise.all([
+    User.findOne({ username: normalizedUsername }),
+    User.findOne({ email: normalizedEmail }),
+  ]);
+
+  if (existingUsername) throw httpError('Username is already taken', 409);
+  if (existingEmail) throw httpError('An account with that email already exists', 409);
 
   const partnerCode = await generateUniquePartnerCode();
   const passwordHash = await bcrypt.hash(password, 10);
 
-  const user = await User.create({ username: normalizedUsername, passwordHash, name, partnerCode, role });
-
-  const defaultLastPeriodStart = new Date(Date.now() - 20 * 24 * 60 * 60 * 1000)
-    .toISOString()
-    .slice(0, 10);
+  const user = await User.create({
+    username: normalizedUsername,
+    email: normalizedEmail,
+    passwordHash,
+    name,
+    partnerCode,
+    role,
+  });
 
   await Settings.create({ userId: user._id });
-  await Dashboard.create({ userId: user._id, lastPeriodStart: defaultLastPeriodStart });
+  await Dashboard.create({ userId: user._id, lastPeriodStart: '' });
   await SupportStreak.create({ userId: user._id });
 
-  const token = signToken(String(user._id), user.username);
+  // Always send OTP on registration (user can disable later in settings)
+  const otpToken = await createOtpSession(String(user._id));
 
-  return {
-    token,
-    user: {
-      id: String(user._id),
-      username: user.username,
-      name: user.name,
-      avatar: user.avatar,
-      accessLevel: user.accessLevel,
-      isOnboarded: user.isOnboarded,
-      partnerCode: user.partnerCode,
-      partnerId: null,
-      role: user.role,
-    },
-  };
+  return { requiresOtp: true, otpToken, user: userToResponse(user) };
 }
 
 export async function loginUser(
-  username: string,
+  usernameOrEmail: string,
   password: string
-): Promise<{ token: string; user: Partial<IUser> }> {
-  const user = await User.findOne({ username: username.toLowerCase() });
-  if (!user) {
-    throw httpError('Invalid credentials', 400);
-  }
+): Promise<AuthResponse> {
+  const normalized = usernameOrEmail.toLowerCase();
+
+  // Allow login by either username OR email
+  const user = await User.findOne({
+    $or: [{ username: normalized }, { email: normalized }],
+  });
+
+  if (!user) throw httpError('Invalid credentials', 400);
 
   const isMatch = await bcrypt.compare(password, user.passwordHash);
-  if (!isMatch) {
-    throw httpError('Invalid credentials', 400);
+  if (!isMatch) throw httpError('Invalid credentials', 400);
+
+  // Check if OTP is enabled for this user via their Settings doc
+  const settings = await Settings.findOne({ userId: user._id }).lean();
+  const otpEnabled = settings?.otpEnabled ?? user.otpEnabled ?? true;
+
+  if (otpEnabled) {
+    const otpToken = await createOtpSession(String(user._id));
+    return { requiresOtp: true, otpToken, user: userToResponse(user) };
   }
 
+  // OTP disabled — issue JWT immediately
   const token = signToken(String(user._id), user.username);
-
-  return {
-    token,
-    user: {
-      id: String(user._id),
-      username: user.username,
-      name: user.name,
-      avatar: user.avatar,
-      accessLevel: user.accessLevel,
-      isOnboarded: user.isOnboarded,
-      partnerCode: user.partnerCode,
-      partnerId: user.partnerId ? String(user.partnerId) : null,
-      role: user.role,
-    },
-  };
+  return { token, user: userToResponse(user) };
 }
 
 function signToken(id: string, username: string): string {

@@ -13,6 +13,9 @@ interface CycleWheelProps {
   fertileEnd: number;
   upcomingStart: number;
   upcomingEnd: number;
+  fertileColor?: string;
+  /** When true, renders the wheel as a dimmed, non-interactive placeholder (empty state) */
+  dimmed?: boolean;
   onSelectDay: (day: number) => void;
   onHoverDay: (day: number | null) => void;
 }
@@ -46,6 +49,8 @@ export function CycleWheel({
   fertileEnd,
   upcomingStart,
   upcomingEnd,
+  fertileColor,
+  dimmed = false,
   onSelectDay,
   onHoverDay,
 }: CycleWheelProps) {
@@ -125,7 +130,14 @@ export function CycleWheel({
   }, [getAngle, selectedDay]);
 
   return (
-    <svg viewBox="0 0 100 100" className="viz-ring" style={{ overflow: 'visible' }}>
+    <svg
+      viewBox="0 0 100 100"
+      className="viz-ring"
+      style={{
+        overflow: 'visible',
+        ...(dimmed ? { opacity: 0.2, pointerEvents: 'none', filter: 'blur(0.5px)' } : {}),
+      }}
+    >
       {/* Background track (dashed) */}
       <circle
         cx="50"
@@ -156,7 +168,7 @@ export function CycleWheel({
         <path
           d={fertilePath}
           fill="none"
-          stroke="#26899e"
+          stroke={fertileColor ?? "#26899e"}
           strokeWidth="6"
           strokeLinecap="round"
           opacity={activeDay >= fertileStart && activeDay <= fertileEnd ? 1 : 0.8}

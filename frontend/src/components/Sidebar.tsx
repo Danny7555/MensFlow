@@ -81,6 +81,12 @@ export function Sidebar({
   const items = rawItems.filter(item => {
     // If onboarding is not completed, only show the chat assistant
     if (!onboardingCompleted && item.id !== 'ask') return false
+    // If user has educational access, restrict dashboard, symptoms, insights, calendar, tracker, tips, sync.
+    // So only keep ask, education, settings, and locked-chats.
+    if (isAuthenticated && user?.accessLevel === 'educational') {
+      const allowedEducationalIds = ['ask', 'education', 'settings', 'locked-chats']
+      if (!allowedEducationalIds.includes(item.id)) return false
+    }
     return true
   })
 
@@ -100,21 +106,19 @@ export function Sidebar({
         if (normalized.includes('luteal')) return 'luteal'
         return 'follicular'
       })()
-    : getPhaseFromDay(computeCycleDay(activeCycle.lastPeriodStart, activeCycle.typicalCycleDays))
+    : getPhaseFromDay(computeCycleDay(activeCycle.lastPeriodStart, activeCycle.typicalCycleDays), activeCycle.typicalCycleDays)
   const phaseInfo = getPhaseInfo(phase)
 
   return (
     <>
-      <div
+      <button
+        type="button"
         className={cn(
-          "sidebar-backdrop transition-all duration-300 ease-in-out",
+          "sidebar-backdrop transition-all duration-300 ease-in-out border-none p-0 outline-none",
           mobileOpen ? "sidebar-backdrop--visible opacity-100" : "opacity-0 pointer-events-none"
         )}
-        aria-hidden={!mobileOpen}
-        role="button"
-        tabIndex={-1}
+        aria-label="Close navigation menu"
         onClick={onCloseMobile}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onCloseMobile() }}
       />
       <aside
         className={cn(
@@ -144,7 +148,7 @@ export function Sidebar({
         </div>
 
         {/* Empathy Widget */}
-        {isAuthenticated && (
+        {isAuthenticated && user?.accessLevel !== 'educational' && (
           <div className={cn("px-4 mb-4 mt-4", collapsed && "px-2 text-center")}>
             <m.div 
               layout

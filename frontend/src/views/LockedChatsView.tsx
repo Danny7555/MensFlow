@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../store/useStore'
-import { Lock, LockKey, ShieldCheck } from '@phosphor-icons/react'
+import { Lock, LockKey, ShieldCheck, WarningCircle, CheckCircle, Sparkle } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import { ChatView } from './ChatView'
 import { SECURITY_QUESTIONS } from '../lib/constants'
@@ -177,18 +177,21 @@ export function LockedChatsView() {
                     )}
                   </div>
                   {strengthResult?.label === 'Bad' && (
-                    <p className="text-[10px] text-muted-foreground leading-normal text-left">
-                      ⚠️ Make it at least 8 characters with numbers or special symbols.
+                    <p className="text-[10px] text-muted-foreground leading-normal text-left flex items-center gap-2">
+                      <WarningCircle size={14} aria-hidden="true" className="text-rose-500" />
+                      <span>Make it at least 8 characters with numbers or special symbols.</span>
                     </p>
                   )}
                   {strengthResult?.label === 'Good' && (
-                    <p className="text-[10px] text-muted-foreground leading-normal text-left">
-                      👍 Good! Add uppercase letters and symbols for maximum security.
+                    <p className="text-[10px] text-muted-foreground leading-normal text-left flex items-center gap-2">
+                      <CheckCircle size={14} aria-hidden="true" className="text-amber-500" />
+                      <span>Good! Add uppercase letters and symbols for maximum security.</span>
                     </p>
                   )}
                   {strengthResult?.label === 'Excellent' && (
-                    <p className="text-[10px] leading-normal font-medium text-emerald-500 dark:text-emerald-400 text-left">
-                      ✨ Excellent! Your privacy is highly secure.
+                    <p className="text-[10px] leading-normal font-medium text-emerald-500 dark:text-emerald-400 text-left flex items-center gap-2">
+                      <Sparkle size={14} aria-hidden="true" className="text-emerald-500" />
+                      <span>Excellent! Your privacy is highly secure.</span>
                     </p>
                   )}
                 </div>

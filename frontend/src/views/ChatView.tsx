@@ -10,6 +10,8 @@ import {
   ChatCircle, 
   Plus,
   Sparkle,
+  CheckCircle,
+  WarningCircle,
   CaretRight 
 } from '@phosphor-icons/react'
 import { ChatComposer } from '../components/ChatComposer'
@@ -20,6 +22,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../components/ui/toolti
 import { ChatSkeleton } from '../components/skeletons/ChatSkeleton'
 import { SYMPTOM_DEFS } from '../data/symptomsData'
 import { chatApi, type ApiChatSession, useChatSuggestions } from '../services/chatService'
+import { userApi } from '../services/userService'
 import { toast } from 'sonner'
 import { cn } from '../lib/utils'
 import { computeCycleDay } from '../lib/cycleUtils'
@@ -61,39 +64,39 @@ function generateAIResponse(
     } else {
       response += `Since she is not in her period, these could be minor ovulation cramps (mittelschmerz) if she is near mid-cycle, or mild tension. Gentle warmth and hydration are great first steps! `
     }
-    response += `Quietly taking over chores tonight so she can rest without having to ask will make an immense difference. ❤️`
+    response += `Quietly taking over chores tonight so she can rest without having to ask will make an immense difference.`
   }
   // 2. Food / Cook / Cravings
   else if (hasSymptom('food') || hasSymptom('eat') || hasSymptom('cook') || hasSymptom('dinner') || hasSymptom('crave') || hasSymptom('chocolate')) {
     response += `Nutrition plays a major role in hormone balance! `
     if (isMenstrual) {
-      response += `For the **Menstrual Phase**, she needs nutrient-dense, warm, and easily digestible foods. High iron is key to replenish blood loss. Consider cooking a warm stew, bone broth, beef, or spinach pasta. Dark chocolate (70%+) is also excellent for magnesium. Avoid cold foods or carbonated drinks which can worsen bloating. 🍲`
+      response += `For the **Menstrual Phase**, she needs nutrient-dense, warm, and easily digestible foods. High iron is key to replenish blood loss. Consider cooking a warm stew, bone broth, beef, or spinach pasta. Dark chocolate (70%+) is also excellent for magnesium. Avoid cold foods or carbonated drinks which can worsen bloating. `
     } else if (isLuteal) {
-      response += `During the **Luteal Phase**, metabolism naturally increases by about 100-300 calories, and serotonin levels drop, which explains why she might be experiencing intense cravings. Cook comforting, slow-burning complex carbs (sweet potatoes, brown rice, oats) and offer healthy fats like avocado or nut butter. This will prevent rapid blood sugar spikes and mood crashes! 🥑`
+      response += `During the **Luteal Phase**, metabolism naturally increases by about 100-300 calories, and serotonin levels drop, which explains why she might be experiencing intense cravings. Cook comforting, slow-burning complex carbs (sweet potatoes, brown rice, oats) and offer healthy fats like avocado or nut butter. This will prevent rapid blood sugar spikes and mood crashes! `
     } else if (isFertile) {
-      response += `In the **Ovulatory Phase**, she is in high energy. Fresh, light foods, fiber-rich vegetables (broccoli, sprouts), and lean proteins are fantastic to support liver function as it processes peak estrogen levels. A vibrant quinoa salad with seeds is a great choice! 🥗`
+      response += `In the **Ovulatory Phase**, she is in high energy. Fresh, light foods, fiber-rich vegetables (broccoli, sprouts), and lean proteins are fantastic to support liver function as it processes peak estrogen levels. A vibrant quinoa salad with seeds is a great choice! `
     } else {
-      response += `For the **Follicular Phase**, keep it light and vibrant. Fresh stir-fries, colorful salads, and citrus fruits match her rising energy curves perfectly! 🍊`
+      response += `For the **Follicular Phase**, keep it light and vibrant. Fresh stir-fries, colorful salads, and citrus fruits match her rising energy curves perfectly! `
     }
   }
   // 3. Tired / Sleep / Energy / Exhausted
   else if (hasSymptom('tired') || hasSymptom('exhaust') || hasSymptom('energy') || hasSymptom('sleep') || hasSymptom('lazy')) {
     response += `Low energy and fatigue are highly correlated with hormonal shifts. `
     if (isLuteal) {
-      response += `In the **Luteal Phase**, the high level of progesterone has a natural sedative effect on the brain, making her feel physically heavier and sleepy. Progesterone also raises her basal body temperature, which can disrupt sleep. Try keeping the bedroom a bit cooler tonight, dim the lights early, and assure her that it's completely okay to take a nap and be unproductive. 🛌`
+      response += `In the **Luteal Phase**, the high level of progesterone has a natural sedative effect on the brain, making her feel physically heavier and sleepy. Progesterone also raises her basal body temperature, which can disrupt sleep. Try keeping the bedroom a bit cooler tonight, dim the lights early, and assure her that it's completely okay to take a nap and be unproductive. `
     } else if (isMenstrual) {
-      response += `During the **Menstrual Phase**, the sharp drop in all hormones combined with active shedding drains her biological battery. Let her rest completely. Taking over household responsibilities today will lift a huge weight off her shoulders. 🕯️`
+      response += `During the **Menstrual Phase**, the sharp drop in all hormones combined with active shedding drains her biological battery. Let her rest completely. Taking over household responsibilities today will lift a huge weight off her shoulders. ️`
     } else {
-      response += `If she is feeling fatigued in her follicular or fertile phases, it could be a sign of sleep debt or stress overload. Suggest a gentle evening walk together to get fresh air and boost serotonin. 🌳`
+      response += `If she is feeling fatigued in her follicular or fertile phases, it could be a sign of sleep debt or stress overload. Suggest a gentle evening walk together to get fresh air and boost serotonin. `
     }
   }
   // 4. Mood / Sad / Angry / Irritable / Cry
   else if (hasSymptom('mood') || hasSymptom('sad') || hasSymptom('angry') || hasSymptom('cry') || hasSymptom('irritable') || hasSymptom('pms') || hasSymptom('space')) {
     response += `Emotions are deeply tied to neuro-chemical sensitivities. `
     if (isLuteal) {
-      response += `We are in the **Luteal Phase** (Day ${currentDay}), which is the prime window for premenstrual mood shifts. As estrogen and progesterone begin to plummet, serotonin (the joy chemical) drops with them. This is a physical, chemical shift—not a personal reaction. If she asks for space or is easily irritated, give her a gentle, reassuring environment. Say: *"Take all the time you need, I've got things handled here. I love you."* and let her recharge in peace. 🤍`
+      response += `We are in the **Luteal Phase** (Day ${currentDay}), which is the prime window for premenstrual mood shifts. As estrogen and progesterone begin to plummet, serotonin (the joy chemical) drops with them. This is a physical, chemical shift—not a personal reaction. If she asks for space or is easily irritated, give her a gentle, reassuring environment. Say: *"Take all the time you need, I've got things handled here. I love you."* and let her recharge in peace. `
     } else if (isMenstrual) {
-      response += `In the **Menstrual Phase**, she may feel highly vulnerable or emotional due to physical pain. Offer validation rather than trying to 'fix' her feelings or rationalize. A warm hug, soft tones, and validation are powerful tools. 🌸`
+      response += `In the **Menstrual Phase**, she may feel highly vulnerable or emotional due to physical pain. Offer validation rather than trying to 'fix' her feelings or rationalize. A warm hug, soft tones, and validation are powerful tools. `
     } else {
       response += `Her hormones are currently rising, so sudden emotional drops might stem from work stress or external factors. Listen actively and let her vent without jumping to give advice unless she asks. ☕`
     }
@@ -141,7 +144,7 @@ function generateAIResponse(
     } else {
       response += `She hasn't logged any symptoms yet today. It's a great opportunity to check in gently. In this phase, her body values ${isLuteal ? 'calm nesting and cool spaces' : isMenstrual ? 'deep rest and soothing warmth' : 'creative ideas and fun engagement'}. `
     }
-    response += `Is there a specific symptom or care plan you'd like to ask about? Ask me about cramps, food cravings, fatigue, or how you can support her today! 🌸`
+    response += `Is there a specific symptom or care plan you'd like to ask about? Ask me about cramps, food cravings, fatigue, or how you can support her today! `
   }
 
   return response
@@ -153,14 +156,17 @@ function generateAIResponse(
 export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean }) {
   const { temporaryChat, setTemporaryChat } = useChatSession()
   const { chatShowTimestamps } = useStore((state) => state.settings)
-  const { dashboard: data, user, logs, customSymptoms, showConfirm } = useStore()
+  const { dashboard: data, user, logs, customSymptoms, showConfirm, hydrate, fetchLogs } = useStore()
 
   const threadEndRef = useRef<HTMLDivElement>(null)
+  // Capture the static prop in a ref so the initial-load effect doesn't
+  // re-derive state from a changing prop (fixes react-doctor no-adjust-state-on-prop-change)
+  const showOnlyLockedRef = useRef(showOnlyLocked)
 
   // Compute active cycle day from store data (computeCycleDay handles Date.now internally)
   const currentDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
 
-  const welcomeText = `Hi - I'm MensFlow, your personal relationship and cycle support companion. Currently, ${user.name} is on Day ${currentDay} of her cycle (${data.phaseLabel}). Ask me about her active phase, logged symptoms, how you can support her today, or what healthy meals you can cook! 🌸`
+  const welcomeText = `Hi - I'm MensFlow, your personal relationship and cycle support companion. Currently, ${user.name} is on Day ${currentDay} of her cycle (${data.phaseLabel}). Ask me about her active phase, logged symptoms, how you can support her today, or what healthy meals you can cook! `
 
   const [sessions, setSessions] = useState<ApiChatSession[]>([])
   const filteredSessions = showOnlyLocked ? sessions.filter((s) => s.isLocked) : sessions
@@ -223,18 +229,19 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchSessions()
       .then((data) => {
-        const filtered = showOnlyLocked ? data?.filter(s => s.isLocked) : data
+        const isLocked = showOnlyLockedRef.current
+        const filtered = isLocked ? data?.filter(s => s.isLocked) : data
         if (filtered && filtered.length > 0) {
           setActiveSessionId(filtered[0].sessionId)
         } else {
-          setActiveSessionId(showOnlyLocked ? null : generateNewSessionId())
+          setActiveSessionId(isLocked ? null : generateNewSessionId())
         }
       })
       .finally(() => {
         clearTimeout(loadingTimer)
         setIsLoading(false)
       })
-  }, [temporaryChat, fetchSessions, welcomeText, showOnlyLocked])
+  }, [temporaryChat, fetchSessions, welcomeText])
 
   // 2. Load messages for activeSessionId
   useEffect(() => {
@@ -403,6 +410,9 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
             createdAt: result.assistantMessage.createdAt,
           }
         ])
+        const profile = await userApi.getProfile()
+        hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
+        await fetchLogs()
         // Refresh recent session list
         fetchSessions()
       } catch (err: unknown) {
@@ -472,11 +482,11 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
     })
   }
 
-  // Lock Actions
-  const openLockModal = (sessionId: string, e: React.MouseEvent) => {
-    e.stopPropagation()
-    setLockModalSessionId(sessionId)
-  }
+  // // Lock Actions
+  // const openLockModal = (sessionId: string, e: React.MouseEvent) => {
+  //   e.stopPropagation()
+  //   setLockModalSessionId(sessionId)
+  // }
 
   const handleLockSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -609,7 +619,7 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
                 </div>
                 
                 <div className="chat-session-actions">
-                  {!s.isLocked && (
+                  {/* {!s.isLocked && (
                     <button
                       type="button"
                       className="chat-session-action-btn"
@@ -618,10 +628,10 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
                     >
                       <Lock size={14} />
                     </button>
-                  )}
+                  )} */}
                   <button
                     type="button"
-                    className="chat-session-action-btn hover:text-rose-500"
+                    className="chat-session-action-btn"
                     title="Delete Chat"
                     onClick={(e) => deleteSession(s.sessionId, e)}
                   >
@@ -652,7 +662,7 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             {activeSessionId && !sessions.find((s) => s.sessionId === activeSessionId)?.isLocked && (
               <button
                 type="button"
@@ -669,8 +679,14 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
                 Locked
               </span>
             )}
-          </div>
+          </div> */}
         </div>
+
+        {temporaryChat && (
+          <div className="mx-4 mt-3 rounded-xl border border-[var(--mf-border)] bg-[var(--mf-card)] px-4 py-2 text-[11px] leading-relaxed text-muted-foreground">
+            Temporary chat can use what you say in this thread to answer better, but it will not save messages or update dashboard data. Switch to a saved chat when you want cycle details from the conversation to populate your profile.
+          </div>
+        )}
 
         {/* Chat Content Body */}
         {lockedSessionToUnlock ? (
@@ -812,7 +828,7 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
                 </span>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <button className="ml-1 p-0.5 hover:bg-black/10 rounded-full transition-colors flex items-center justify-center" aria-label="More information">
+                    <button type="button" className="ml-1 p-0.5 hover:bg-black/10 rounded-full transition-colors flex items-center justify-center" aria-label="More information">
                       <Question size={14} weight="bold" className="opacity-60" />
                     </button>
                   </TooltipTrigger>
@@ -822,6 +838,23 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
                     </p>
                   </TooltipContent>
                 </Tooltip>
+              </div>
+            )}
+
+            {!temporaryChat && (!user.xp || user.xp < 500) && (
+              <div className="chat-temporary-banner chat-thread-spacing bg-amber-500/10 border-amber-500/20 text-[var(--mf-text-strong)] flex items-center justify-between" role="status">
+                <div className="flex items-center gap-2">
+                  <WarningCircle size={18} className="text-amber-500 shrink-0" />
+                  <span className="text-[11.5px] font-normal">
+                    Free Tier Chat Limit: Reach 500 XP via daily quizzes to unlock unlimited AI translation. (Current XP: {user.xp || 0}/500)
+                  </span>
+                </div>
+                <div className="w-24 bg-muted/40 h-1.5 rounded-full overflow-hidden border border-border/20 relative shrink-0">
+                  <div 
+                    className="bg-amber-500 h-full rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min(100, ((user?.xp || 0) / 500) * 100)}%` }}
+                  />
+                </div>
               </div>
             )}
 
@@ -987,18 +1020,21 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
                         )}
                       </div>
                       {strengthResult?.label === 'Bad' && (
-                        <p className="text-[9px] text-muted-foreground leading-normal text-left">
-                          ⚠️ Make it at least 8 characters with numbers or special symbols.
+                        <p className="text-[9px] text-muted-foreground leading-normal text-left flex items-center gap-2">
+                          <WarningCircle size={14} aria-hidden="true" className="text-rose-500" />
+                          <span>Make it at least 8 characters with numbers or special symbols.</span>
                         </p>
                       )}
                       {strengthResult?.label === 'Good' && (
-                        <p className="text-[9px] text-muted-foreground leading-normal text-left">
-                          👍 Good! Add uppercase letters and symbols for maximum security.
+                        <p className="text-[9px] text-muted-foreground leading-normal text-left flex items-center gap-2">
+                          <CheckCircle size={14} aria-hidden="true" className="text-amber-500" />
+                          <span>Good! Add uppercase letters and symbols for maximum security.</span>
                         </p>
                       )}
                       {strengthResult?.label === 'Excellent' && (
-                        <p className="text-[9px] leading-normal font-medium text-emerald-500 dark:text-emerald-400 text-left">
-                          ✨ Excellent! Your passcode is highly secure.
+                        <p className="text-[9px] leading-normal font-medium text-emerald-500 dark:text-emerald-400 text-left flex items-center gap-2">
+                          <Sparkle size={14} aria-hidden="true" className="text-emerald-500" />
+                          <span>Excellent! Your passcode is highly secure.</span>
                         </p>
                       )}
                     </div>

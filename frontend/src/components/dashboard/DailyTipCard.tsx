@@ -46,22 +46,12 @@ export function DailyTipCard({ phaseLabel, tipCompleted, setTipCompleted, varian
   return (
     <m.div 
       variants={variants}
+      style={{ backgroundColor: 'var(--mf-card, #ffffff)' }}
       className="flo-card flo-card--featured overflow-hidden flex flex-col group relative !p-5 md:!p-6 xl:!p-8"
     >
       <div className="flex flex-col md:flex-row md:items-center justify-between w-full gap-4 md:gap-5 xl:gap-8 ">
-        <div className="-mx-5 -mt-5 md:mt-0 md:mx-0 h-[100px] md:h-[120px] xl:h-[140px] md:w-[100px] xl:w-[130px] relative shrink-0 overflow-hidden rounded-b-3xl md:rounded-2xl">
-          <m.img 
-            animate={{ 
-              y: [0, -5, 0],
-              scale: [1.25, 1.3, 1.25]
-            }}
-            transition={{ 
-              duration: 4, 
-              repeat: Infinity, 
-              ease: "easeInOut" 
-            }}
-            src="/images/star.png" alt="Daily Tip" className="w-full h-full object-cover object-center" 
-          />
+        <div className="shrink-0 size-12 md:size-14 flex items-center justify-center">
+          <img src="/images/star.png" alt="" className="size-8 md:size-9 object-contain" />
         </div>
 
         <div className="flex-1 flex flex-col min-w-0 md:pl-4 xl:pl-6">
@@ -78,7 +68,7 @@ export function DailyTipCard({ phaseLabel, tipCompleted, setTipCompleted, varian
           </div>
           
           <div className="relative z-10 ml-8 min-w-0">
-            <h3 className="text-xl md:text-xl xl:text-2xl font-normal text-[var(--mf-text-strong)] tracking-tight mb-2 whitespace-nowrap">{tip.title}</h3>
+            <h3 className="text-lg md:text-xl xl:text-2xl font-normal text-[var(--mf-text-strong)] tracking-tight mb-2">{tip.title}</h3>
             <p className="text-[12px] md:text-[13px] xl:text-[15px] leading-relaxed text-[var(--mf-text)] opacity-80 max-w-2xl font-normal">
               {tip.desc}
             </p>
@@ -106,16 +96,16 @@ export function DailyTipCard({ phaseLabel, tipCompleted, setTipCompleted, varian
           </div>
           
           <m.button 
-            whileHover={{ scale: 1.01 }}
+            whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             type="button"
-            className="flex items-center justify-between gap-2 xl:gap-4 text-[10px] xl:text-[11px] font-normal text-[var(--mf-accent)] transition-all hover:opacity-80 mt-1"
+            className="flex items-center justify-between gap-2 xl:gap-4 w-full px-3 xl:px-4 py-2 xl:py-2.5 rounded-full bg-white dark:bg-white/5 border border-[var(--mf-border)] hover:bg-gray-50 dark:hover:bg-white/10 text-[10px] xl:text-[11px] font-normal text-[var(--mf-text-strong)] transition-all mt-1"
             onClick={() => setTipCompleted(!tipCompleted)}
           >
             <span className="font-medium tracking-wide">{tipCompleted ? 'Tip Completed' : 'Mark as done'}</span>
             <m.div 
               animate={tipCompleted ? { scale: [1, 1.2, 1], backgroundColor: "#22c55e", borderColor: "#22c55e" } : { scale: 1 }}
-              className={`size-5 xl:size-6 rounded-full border flex items-center justify-center transition-colors ${tipCompleted ? 'text-white' : 'border-[var(--mf-accent)] text-transparent'}`}
+              className={`size-5 xl:size-6 rounded-full border flex items-center justify-center shrink-0 transition-colors ${tipCompleted ? 'text-white' : 'border-[var(--mf-accent)] text-transparent'}`}
             >
               <Check size={12} weight="bold" />
             </m.div>

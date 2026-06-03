@@ -12,6 +12,8 @@ import userRoutes from './routes/userRoutes';
 import cycleRoutes from './routes/cycleRoutes';
 import partnerRoutes from './routes/partnerRoutes';
 import chatRoutes from './routes/chatRoutes';
+import emailRoutes from './routes/emailRoutes';
+import { startScheduler } from './services/schedulerService';
 
 const app = express();
 
@@ -61,6 +63,7 @@ app.use('/api/user', userRoutes);
 app.use('/api/logs', cycleRoutes);
 app.use('/api/partner', partnerRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/email', emailRoutes);
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 
@@ -112,6 +115,10 @@ async function bootstrap(): Promise<void> {
   const PORT = getPort();
   const server = await listen(PORT);
   setupGracefulShutdown(server);
+
+  // Start the daily email reminder scheduler
+  // In dev mode, also fires immediately so you can verify it works
+  startScheduler(!isProduction);
 }
 
 bootstrap().catch((err) => {

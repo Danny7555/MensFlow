@@ -1,7 +1,7 @@
 import type { ComponentType, ReactNode } from 'react'
-import { useState, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { useStore } from '../store/useStore'
-import { SettingsSkeleton } from '../components/skeletons/SettingsSkeleton'
+import { useAuth } from '../context/useAuth'
 import {
   ArrowCounterClockwise,
   Bell,
@@ -10,6 +10,8 @@ import {
   GearSix,
   ShieldCheck,
   Sparkle,
+  WarningCircle,
+  CheckCircle,
   SquaresFour,
   Trash,
   TreeStructure,
@@ -30,6 +32,13 @@ import {
   DialogFooter
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { useQueryState, parseAsStringLiteral } from 'nuqs'
 import type {
   AccentPreset,
@@ -37,6 +46,7 @@ import type {
   MensFlowSettings,
   ThemeMode,
 } from '../context/settings-types'
+import { DEFAULT_SETTINGS } from '../context/settings-types'
 import type { AppUser } from '../store/useStore'
 import {
   CHAT_STORAGE_KEY,
@@ -95,17 +105,18 @@ function SelectRow({
           <p className="settings-field-desc">{description}</p>
         )}
       </div>
-      <select
-        className="settings-select"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      >
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger className="settings-select flex items-center justify-between bg-none shadow-none min-w-[150px] h-9 pr-2 pl-3 cursor-pointer">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="rounded-xl border border-border bg-card">
+          {options.map((o) => (
+            <SelectItem key={o.value} value={o.value}>
+              {o.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   )
 }
@@ -182,7 +193,7 @@ function MfaSetupModal({ trigger }: { trigger: ReactNode }) {
 
           {step === 'choice' && (
             <div className="grid gap-3">
-              <button
+              <button type="button"
                 onClick={() => { setMethod('app'); setStep('setup'); }}
                 className="flex items-center gap-4 p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors text-left group"
               >
@@ -195,7 +206,7 @@ function MfaSetupModal({ trigger }: { trigger: ReactNode }) {
                 </div>
                 <CaretRight size={16} className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </button>
-              <button
+              <button type="button"
                 onClick={() => { setMethod('sms'); setStep('setup'); }}
                 className="flex items-center gap-4 p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors text-left group"
               >
@@ -263,7 +274,7 @@ function MfaSetupModal({ trigger }: { trigger: ReactNode }) {
                 >
                   Verify code
                 </Button>
-                <button className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors py-2">
+                <button type="button" className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors py-2">
                   Didn't receive a code? Resend
                 </button>
               </div>
@@ -450,14 +461,28 @@ function GeneralPanel({
         checked={settings.privacyDefaultTemporaryChat}
         onChange={(v) => updateSettings({ privacyDefaultTemporaryChat: v })}
       />
+      <ToggleRow
+        label="Disable Proactive AI Chatbot Suggestions"
+        description="Turns off automated pop-up questions and upsell prompts from the AI helper."
+        checked={settings.disableAIPopups}
+        onChange={(v) => updateSettings({ disableAIPopups: v })}
+      />
+      <ToggleRow
+        label="Hide Daily Stories & Education"
+        description="Simplifies your dashboard layout by completely hiding educational playbooks and content cards."
+        checked={settings.hideDailyStoriesAndTips}
+        onChange={(v) => updateSettings({ hideDailyStoriesAndTips: v })}
+      />
 
       {/* Partner Connection Settings */}
       {!isGuest && (
         <div className="mt-8 pt-6 border-t border-[var(--mf-border)] space-y-6">
           <div>
-            <span className="text-xs font-semibold text-[var(--mf-text-strong)] uppercase tracking-wider block mb-1">Partner Connection</span>
+            <span className="text-xs font-normal text-[var(--mf-text-strong)] uppercase tracking-wider block mb-1">Partner Connection</span>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              MensFlow lets you sync your cycle dashboard with a partner. Share your code to let them see predictions, or enter theirs to pair.
+              {user?.role === 'partner'
+                ? 'Enter your partner\'s code to sync with her cycle and send daily care updates.'
+                : 'Share your code with your partner so they can connect and support you.'}
             </p>
           </div>
 
@@ -466,16 +491,79 @@ function GeneralPanel({
               label="Share Detailed Cycle Metrics"
               description="Allow your partner to see your cycle tracker wheel, daily water/weight tracking, and logged symptoms. When disabled, they only see phase support checklists and empathy translators."
               checked={settings.privacyShareCycleDetails}
-              onChange={(v) => updateSettings({ privacyShareCycleDetails: v })}
+              onChange={(v) => {
+                updateSettings({ 
+                  privacyShareCycleDetails: v, 
+                  ...(v ? { privacyPendingAccessRequest: false } : {}) 
+                })
+              }}
             />
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Left side: Your pairing code */}
+          {partnerStatus?.paired ? (
+            /* ── Already paired: show connected partner for both roles ── */
             <div className="p-4 rounded-2xl bg-[var(--mf-composer-bg)] border border-[var(--mf-border)] space-y-3">
-              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground block">Your Pairing Code</span>
+              <span className="text-[10px] font-normal uppercase tracking-widest text-muted-foreground block">Connected Partner</span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="size-10 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center overflow-hidden border border-[var(--mf-border)]">
+                    {partnerStatus.partner?.avatar ? (
+                      <img src={partnerStatus.partner.avatar} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-base font-normal text-[var(--mf-accent)]">
+                        {partnerStatus.partner?.name?.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-normal text-[var(--mf-text-strong)]">{partnerStatus.partner?.name}</span>
+                    <span className="text-[10px] text-muted-foreground">
+                        {partnerStatus.privacyShareCycleDetails !== false ? 'Full cycle details' : 'Phase info only'}
+                      </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  disabled={isDisconnecting}
+                  onClick={handleDisconnect}
+                  className="text-xs font-normal text-rose-500 hover:text-rose-600 hover:underline px-3 py-1.5 rounded-lg border border-rose-500/20 hover:bg-rose-500/5 transition-all"
+                >
+                  {isDisconnecting ? 'Disconnecting...' : 'Disconnect'}
+                </button>
+              </div>
+            </div>
+          ) : user?.role === 'partner' ? (
+            /* ── Partner: enter lady's code ── */
+            <div className="p-4 rounded-2xl bg-[var(--mf-composer-bg)] border border-[var(--mf-border)] space-y-3">
+              <span className="text-[10px] font-normal uppercase tracking-widest text-muted-foreground block">Enter Partner's Code</span>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="e.g. XY82HA"
+                  value={partnerCodeInput}
+                  onChange={(e) => setPartnerCodeInput(e.target.value.toUpperCase())}
+                  className="bg-white dark:bg-white/5 border border-[var(--mf-border)] rounded-xl px-4 py-2 text-sm font-mono tracking-wider focus:outline-none focus:ring-1 focus:ring-[var(--mf-accent)] w-full uppercase"
+                  maxLength={6}
+                />
+                <button
+                  type="button"
+                  disabled={isPairing || !partnerCodeInput.trim()}
+                  onClick={handlePair}
+                  className="flex items-center justify-center gap-2 text-xs font-normal bg-[var(--mf-accent)] text-white hover:opacity-90 py-2 px-4 rounded-xl transition-all duration-300 active:scale-95 disabled:opacity-50 shrink-0"
+                >
+                  {isPairing ? 'Pairing...' : 'Connect'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* ── Lady: show her code to share ── */
+            <div className="p-4 rounded-2xl bg-[var(--mf-composer-bg)] border border-[var(--mf-border)] space-y-3">
+              <span className="text-[10px] font-normal uppercase tracking-widest text-muted-foreground block">Your Pairing Code</span>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Share this with your partner. They'll enter it on their Sync or Settings page to connect.
+              </p>
               <div className="flex items-center gap-3">
-                <span className="text-2xl font-mono font-bold tracking-wider text-[var(--mf-text-strong)] bg-white dark:bg-white/5 px-4 py-2 rounded-xl border border-[var(--mf-border)] select-all">
+                <span className="text-2xl font-mono font-normal tracking-wider text-[var(--mf-text-strong)] bg-white dark:bg-white/5 px-4 py-2 rounded-xl border border-[var(--mf-border)] select-all flex-1 text-center">
                   {user?.partnerCode ?? '------'}
                 </span>
                 <button
@@ -483,73 +571,18 @@ function GeneralPanel({
                   onClick={() => {
                     if (user?.partnerCode) {
                       navigator.clipboard.writeText(user.partnerCode)
-                      toast.success("Pairing code copied!", {
-                        description: "Send this code to your partner so they can pair with you."
+                      toast.success('Code copied!', {
+                        description: 'Send this to your partner so they can connect with you.',
                       })
                     }
                   }}
-                  className="flex items-center justify-center gap-2 text-xs font-medium bg-[var(--mf-accent)] text-white hover:opacity-90 py-2.5 px-4 rounded-xl transition-all duration-300 active:scale-95"
+                  className="flex items-center justify-center gap-2 text-xs font-normal bg-[var(--mf-accent)] text-white hover:opacity-90 py-2.5 px-4 rounded-xl transition-all duration-300 active:scale-95"
                 >
-                  Copy Code
+                  Copy
                 </button>
               </div>
             </div>
-
-            {/* Right side: Pair status or input */}
-            <div className="p-4 rounded-2xl bg-[var(--mf-composer-bg)] border border-[var(--mf-border)] flex flex-col justify-between min-h-[120px]">
-              {partnerStatus?.paired ? (
-                <div className="space-y-4">
-                  <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground block">Connected Partner</span>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="size-10 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center overflow-hidden border border-[var(--mf-border)]">
-                        {partnerStatus.partner?.avatar ? (
-                          <img src={partnerStatus.partner.avatar} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="text-base font-semibold text-[var(--mf-accent)]">
-                            {partnerStatus.partner?.name?.charAt(0).toUpperCase()}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-semibold text-[var(--mf-text-strong)]">{partnerStatus.partner?.name}</span>
-                        <span className="text-[10px] text-muted-foreground capitalize">{partnerStatus.partner?.accessLevel} access</span>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      disabled={isDisconnecting}
-                      onClick={handleDisconnect}
-                      className="text-xs font-semibold text-rose-500 hover:text-rose-600 hover:underline px-3 py-1.5 rounded-lg border border-rose-500/20 hover:bg-rose-500/5 transition-all"
-                    >
-                      {isDisconnecting ? 'Disconnecting...' : 'Disconnect'}
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-3 flex-1 flex flex-col justify-center">
-                  <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground block">Enter Partner Code</span>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="e.g. XY82HA"
-                      value={partnerCodeInput}
-                      onChange={(e) => setPartnerCodeInput(e.target.value.toUpperCase())}
-                      className="bg-white dark:bg-white/5 border border-[var(--mf-border)] rounded-xl px-4 py-2 text-sm font-mono tracking-wider focus:outline-none focus:ring-1 focus:ring-[var(--mf-accent)] w-full uppercase"
-                    />
-                    <button
-                      type="button"
-                      disabled={isPairing || !partnerCodeInput.trim()}
-                      onClick={handlePair}
-                      className="flex items-center justify-center gap-2 text-xs font-semibold bg-[var(--mf-accent)] text-white hover:opacity-90 py-2 px-4 rounded-xl transition-all duration-300 active:scale-95 disabled:opacity-50 shrink-0"
-                    >
-                      {isPairing ? 'Pairing...' : 'Connect'}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+          )}
         </div>
       )}
     </>
@@ -626,6 +659,18 @@ function PersonalizationPanel({
         checked={settings.cycleShowFertileWindow}
         onChange={(v) => updateSettings({ cycleShowFertileWindow: v })}
       />
+      <SelectRow
+        label="Condition Optimization Profile"
+        description="Tailor cycle modeling, predictions, and tips for specific conditions (PCOS, Endometriosis, or Perimenopause)."
+        value={settings.conditionOptimization}
+        onChange={(v) => updateSettings({ conditionOptimization: v as MensFlowSettings['conditionOptimization'] })}
+        options={[
+          { value: 'none', label: 'None (Standard predictions)' },
+          { value: 'pcos', label: 'PCOS Optimization' },
+          { value: 'endometriosis', label: 'Endometriosis Optimization' },
+          { value: 'perimenopause', label: 'Perimenopause Transition' },
+        ]}
+      />
     </>
   )
 }
@@ -667,6 +712,25 @@ function DataControlsPanel({
         checked={settings.privacyShareAnalytics}
         onChange={(v) => updateSettings({ privacyShareAnalytics: v })}
       />
+      <ToggleRow
+        label="Strict Local-Only Storage (Offline Mode)"
+        description="Disable all cloud database synchronizations. Your cycle metrics, daily logs, and preferences will remain strictly inside this browser/device."
+        checked={settings.privacyStrictLocalOnly}
+        onChange={(v) => {
+          updateSettings({ privacyStrictLocalOnly: v })
+          if (v) {
+            toast.warning("Local-Only Mode Enabled", {
+              description: "Your health records are now saved strictly on this device and won't sync to the cloud database.",
+              duration: 5000,
+            })
+          } else {
+            toast.success("Database Sync Restored", {
+              description: "Future updates will sync with your account cloud profile.",
+              duration: 4000,
+            })
+          }
+        }}
+      />
       <p className="settings-panel-intro">
         Export or delete data stored locally in this browser.
       </p>
@@ -705,6 +769,15 @@ function DataControlsPanel({
         >
           Erase local MensFlow data
         </button>
+      </div>
+      <div className="mt-8 p-6 rounded-3xl bg-[var(--mf-accent-soft)]/20 border border-[var(--mf-accent-border)] space-y-3">
+        <h4 className="text-sm font-semibold text-[var(--mf-text-strong)] flex items-center gap-2">
+          <ShieldCheck size={18} className="text-[var(--mf-accent)]" />
+          <span>Ironclad Data Privacy Pledge</span>
+        </h4>
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          MensFlow is a privacy-first, 100% free period tracker. We strictly avoid third-party data sharing, do not sell user health data to advertisers, and employ no tracking cookies. Your cycle information remains secure under your absolute control.
+        </p>
       </div>
     </>
   )
@@ -809,18 +882,21 @@ function LockChatSetupModal({
                     )}
                   </div>
                   {strengthResult?.label === 'Bad' && (
-                    <p className="text-[10px] text-muted-foreground leading-normal text-left">
-                      ⚠️ Make it at least 8 characters with numbers or special symbols.
+                    <p className="text-[10px] text-muted-foreground leading-normal text-left flex items-center gap-2">
+                      <WarningCircle size={14} aria-hidden="true" className="text-rose-500" />
+                      <span>Make it at least 8 characters with numbers or special symbols.</span>
                     </p>
                   )}
                   {strengthResult?.label === 'Good' && (
-                    <p className="text-[10px] text-muted-foreground leading-normal text-left">
-                      👍 Good! Add uppercase letters and symbols for maximum security.
+                    <p className="text-[10px] text-muted-foreground leading-normal text-left flex items-center gap-2">
+                      <CheckCircle size={14} aria-hidden="true" className="text-amber-500" />
+                      <span>Good! Add uppercase letters and symbols for maximum security.</span>
                     </p>
                   )}
                   {strengthResult?.label === 'Excellent' && (
-                    <p className="text-[10px] leading-normal font-medium text-emerald-500 dark:text-emerald-400 text-left">
-                      ✨ Excellent! Your privacy is highly secure.
+                    <p className="text-[10px] leading-normal font-medium text-emerald-500 dark:text-emerald-400 text-left flex items-center gap-2">
+                      <Sparkle size={14} aria-hidden="true" className="text-emerald-500" />
+                      <span>Excellent! Your privacy is highly secure.</span>
                     </p>
                   )}
                 </div>
@@ -830,32 +906,39 @@ function LockChatSetupModal({
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-xs font-medium uppercase text-muted-foreground">Select a question</label>
-                <select 
-                  className="w-full h-11 px-3 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-1 focus:ring-[var(--mf-accent)] outline-none text-sm"
+                <Select
                   value={questionId}
-                  onChange={(e) => {
-                    setQuestionId(e.target.value)
+                  onValueChange={(val) => {
+                    setQuestionId(val)
                     setAnswer('')
                   }}
                 >
-                  {SECURITY_QUESTIONS.map(q => (
-                    <option key={q.id} value={q.id}>{q.label}</option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-full h-11 px-3 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-1 focus:ring-[var(--mf-accent)] outline-none text-sm text-left flex items-center justify-between">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border border-border bg-card">
+                    {SECURITY_QUESTIONS.map(q => (
+                      <SelectItem key={q.id} value={q.id}>{q.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-medium uppercase text-muted-foreground">Your Answer</label>
                 {activeQuestion.type === 'select' ? (
-                  <select 
-                    className="w-full h-11 px-3 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-1 focus:ring-[var(--mf-accent)] outline-none text-sm"
+                  <Select
                     value={answer}
-                    onChange={(e) => setAnswer(e.target.value)}
+                    onValueChange={setAnswer}
                   >
-                    <option value="" disabled>Select an answer...</option>
-                    {activeQuestion.options?.map(opt => (
-                      <option key={opt} value={opt}>{opt}</option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-full h-11 px-3 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-1 focus:ring-[var(--mf-accent)] outline-none text-sm text-left flex items-center justify-between">
+                      <SelectValue placeholder="Select an answer..." />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border border-border bg-card">
+                      {activeQuestion.options?.map(opt => (
+                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 ) : (
                   <input 
                     type="text"
@@ -960,17 +1043,16 @@ function SecurityPanel({
     <>
       <div className="settings-field-row border-b border-border/50 pb-6 mb-6">
         <div className="settings-field-text">
-          <span className="settings-field-label">Multi-factor authentication (MFA)</span>
+          <span className="settings-field-label">Email OTP Verification</span>
           <p className="settings-field-desc">
-            Require a second step to sign in to your MensFlow account.
+            When enabled, a 6-digit code is emailed to you every time you sign in or create an account.
+            Adds a second layer of security beyond your password.
           </p>
         </div>
-        <MfaSetupModal
-          trigger={
-            <Button variant="outline" className="rounded-xl">
-              Set up
-            </Button>
-          }
+        <ToggleRow
+          label=""
+          checked={settings.otpEnabled}
+          onChange={(v) => updateSettings({ otpEnabled: v })}
         />
       </div>
 
@@ -1028,31 +1110,189 @@ function SecurityPanel({
   )
 }
 
-function ParentalPanel() {
+function ParentalPanel({
+  settings,
+  updateSettings,
+}: {
+  settings: MensFlowSettings
+  updateSettings: (patch: Partial<MensFlowSettings>) => void
+}) {
+  const applyParentalEnabled = (enabled: boolean) => {
+    updateSettings({
+      parentalControlsEnabled: enabled,
+      ...(enabled
+        ? {
+            disableAIPopups: true,
+            notificationsProduct: false,
+          }
+        : {}),
+    })
+  }
+
+  const applyContentFilter = (value: MensFlowSettings['parentalContentFilter']) => {
+    updateSettings({
+      parentalContentFilter: value,
+      ...(value === 'restricted'
+        ? {
+            hideDailyStoriesAndTips: true,
+            disableAIPopups: true,
+            notificationsProduct: false,
+          }
+        : {}),
+    })
+  }
+
   return (
-    <div className="settings-placeholder-block">
-      <UsersThree size={40} weight="duotone" aria-hidden />
-      <p className="settings-placeholder-title">Parental controls</p>
-      <p className="settings-placeholder-desc">
-        Age gates and guardian-managed accounts can be enforced here for younger users.
+    <>
+      <p className="settings-panel-intro">
+        Guardian controls apply to this account immediately and sync with your cloud settings.
       </p>
-    </div>
+
+      <ToggleRow
+        label="Enable parental controls"
+        description="Turns on guardian-safe defaults for product prompts and optional restricted content."
+        checked={settings.parentalControlsEnabled}
+        onChange={applyParentalEnabled}
+      />
+
+      <div className="settings-field-row">
+        <div className="settings-field-text">
+          <span className="settings-field-label">Guardian email</span>
+          <p className="settings-field-desc">
+            Used as the contact for supervision and account recovery.
+          </p>
+        </div>
+        <input
+          type="email"
+          value={settings.parentalGuardianEmail ?? ''}
+          onChange={(e) => updateSettings({ parentalGuardianEmail: e.target.value.trim() || null })}
+          placeholder="guardian@example.com"
+          disabled={!settings.parentalControlsEnabled}
+          className="settings-select bg-none shadow-none min-w-[220px] h-9 px-3 disabled:opacity-50"
+          aria-label="Guardian email"
+        />
+      </div>
+
+      <SelectRow
+        label="Content filter"
+        description="Restricted mode hides daily stories and reduces proactive prompts."
+        value={settings.parentalContentFilter}
+        onChange={(v) => applyContentFilter(v as MensFlowSettings['parentalContentFilter'])}
+        options={[
+          { value: 'standard', label: 'Standard' },
+          { value: 'restricted', label: 'Restricted' },
+        ]}
+      />
+
+      <ToggleRow
+        label="Quiet hours"
+        description="Mutes cycle and wellness reminders during guardian-defined rest hours."
+        checked={settings.parentalQuietHoursEnabled}
+        disabled={!settings.parentalControlsEnabled}
+        onChange={(v) => updateSettings({ parentalQuietHoursEnabled: v })}
+      />
+
+      <div className="settings-field-row">
+        <div className="settings-field-text">
+          <span className="settings-field-label">Quiet hours window</span>
+          <p className="settings-field-desc">
+            Reminder nudges stay quiet between these times.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <input
+            type="time"
+            value={settings.parentalQuietHoursStart}
+            disabled={!settings.parentalControlsEnabled || !settings.parentalQuietHoursEnabled}
+            onChange={(e) => updateSettings({ parentalQuietHoursStart: e.target.value })}
+            className="settings-select bg-none shadow-none h-9 px-3 disabled:opacity-50"
+            aria-label="Quiet hours start"
+          />
+          <span className="text-xs text-muted-foreground">to</span>
+          <input
+            type="time"
+            value={settings.parentalQuietHoursEnd}
+            disabled={!settings.parentalControlsEnabled || !settings.parentalQuietHoursEnabled}
+            onChange={(e) => updateSettings({ parentalQuietHoursEnd: e.target.value })}
+            className="settings-select bg-none shadow-none h-9 px-3 disabled:opacity-50"
+            aria-label="Quiet hours end"
+          />
+        </div>
+      </div>
+
+      {settings.parentalControlsEnabled && (
+        <div className="mt-6 p-5 rounded-2xl bg-[var(--mf-accent-soft)]/20 border border-[var(--mf-accent-border)] space-y-2">
+          <div className="flex items-center gap-2 text-sm font-medium text-[var(--mf-text-strong)]">
+            <UsersThree size={18} weight="duotone" className="text-[var(--mf-accent)]" />
+            <span>Parental controls active</span>
+          </div>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Product surveys are off, proactive AI prompts are reduced, and quiet hours are available for reminder control.
+          </p>
+        </div>
+      )}
+    </>
   )
 }
 
 function AccountPanel({
   isGuest,
   user,
+  email,
   updateUser,
   onLogin,
   onLogout,
 }: {
   isGuest: boolean
   user: AppUser
-  updateUser: (patch: Partial<AppUser>) => void
+  email?: string | null
+  updateUser: (patch: Partial<AppUser>) => Promise<void>
   onLogin?: () => void
   onLogout?: () => void
 }) {
+  const [nameDraft, setNameDraft] = useState(user?.name ?? '')
+  const [isUpdatingName, setIsUpdatingName] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
+  const displayEmail = email || 'No email address on this account'
+  const trimmedName = nameDraft.trim()
+  const nameChanged = trimmedName !== (user?.name ?? '').trim()
+  const MAX_NAME_LENGTH = 80
+  const nameLength = nameDraft.length
+  const isNameValid = trimmedName.length > 0 && trimmedName.length <= MAX_NAME_LENGTH
+
+  // Update name draft when user name changes
+  const currentUserName = user?.name ?? ''
+  const prevUserNameRef = useRef(currentUserName)
+  
+  if (prevUserNameRef.current !== currentUserName) {
+    prevUserNameRef.current = currentUserName
+    setNameDraft(currentUserName)
+  }
+
+  const handleUpdateName = async () => {
+    if (!trimmedName || !nameChanged || isUpdatingName || !isNameValid) return
+    setIsUpdatingName(true)
+    try {
+      await updateUser({ name: trimmedName })
+      setShowSuccess(true)
+      setTimeout(() => setShowSuccess(false), 3000)
+      toast.success("Name updated successfully.")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update name.")
+    } finally {
+      setIsUpdatingName(false)
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && isNameValid && nameChanged) {
+      handleUpdateName()
+    }
+    if (e.key === 'Escape') {
+      setNameDraft(user?.name ?? '')
+    }
+  }
+
   return (
     <>
       {isGuest ? (
@@ -1125,17 +1365,95 @@ function AccountPanel({
             </div>
             <div className="flex-1 w-full max-w-sm space-y-4">
               <div className="space-y-1.5">
-                <label htmlFor="user-name-input" className="text-xs font-medium uppercase tracking-widest text-muted-foreground ml-1">Your Name</label>
-                <input
-                  id="user-name-input"
-                  type="text"
-                  value={user?.name ?? ''}
-                  onChange={(e) => updateUser({ name: e.target.value })}
-                  className="w-full h-12 px-4 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-1 focus:ring-[var(--mf-accent)] transition-all outline-none text-base font-medium"
-                  placeholder="Enter your name"
-                />
+                <div className="flex items-center justify-between">
+                  <label htmlFor="user-name-input" className="text-xs font-medium uppercase tracking-widest text-muted-foreground ml-1">Your Name</label>
+                  <div className="flex items-center gap-2">
+                    {showSuccess && (
+                      <span className="text-xs font-medium text-green-600 flex items-center gap-1">
+                        <CheckCircle size={12} weight="bold" />
+                        Updated
+                      </span>
+                    )}
+                    <span className={`text-xs font-medium ${nameLength > MAX_NAME_LENGTH ? 'text-red-500' : 'text-muted-foreground'}`}>
+                      {nameLength}/{MAX_NAME_LENGTH}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="relative flex-1">
+                    <input
+                      id="user-name-input"
+                      type="text"
+                      value={nameDraft}
+                      onChange={(e) => setNameDraft(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      className={`w-full h-12 px-4 rounded-xl border transition-all outline-none text-base font-medium ${
+                        !isNameValid && nameDraft.length > 0
+                          ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                          : nameChanged
+                          ? 'border-[var(--mf-accent-border)] bg-[var(--mf-accent-soft)] focus:border-[var(--mf-accent)] focus:ring-1 focus:ring-[var(--mf-accent)]'
+                          : 'bg-muted border-border focus:border-[var(--mf-accent-border)] focus:ring-1 focus:ring-[var(--mf-accent)]'
+                      }`}
+                      placeholder="Enter your name"
+                      aria-invalid={!isNameValid}
+                      aria-describedby="name-hint"
+                    />
+                    {nameChanged && (
+                      <button
+                        type="button"
+                        onClick={() => setNameDraft(user?.name ?? '')}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        aria-label="Reset name"
+                      >
+                        <ArrowCounterClockwise size={16} />
+                      </button>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleUpdateName}
+                    disabled={!isNameValid || !nameChanged || isUpdatingName}
+                    className={`btn h-12 px-5 rounded-xl shrink-0 transition-all ${
+                      isNameValid && nameChanged
+                        ? 'btn-primary hover:scale-[1.02] active:scale-[0.98]'
+                        : 'bg-muted text-muted-foreground cursor-not-allowed'
+                    } ${isUpdatingName ? 'opacity-70' : ''}`}
+                  >
+                    {isUpdatingName ? (
+                      <span className="flex items-center gap-2">
+                        <span className="animate-spin rounded-full size-3 border-2 border-current border-t-transparent"></span>
+                        Updating
+                      </span>
+                    ) : (
+                      'Update'
+                    )}
+                  </button>
+                </div>
+                <div id="name-hint" className="text-xs text-muted-foreground ml-1">
+                  {!isNameValid && nameDraft.length > 0 ? (
+                    <span className="text-red-500">Name must be between 1 and {MAX_NAME_LENGTH} characters</span>
+                  ) : nameChanged ? (
+                    <span className="text-[var(--mf-accent)]">Press Enter to save or Escape to cancel</span>
+                  ) : (
+                    'Edit your display name here'
+                  )}
+                </div>
               </div>
-              <p className="settings-account-email ml-1">session@mensflow.local</p>
+              <div className="space-y-1.5">
+                <label htmlFor="user-email-input" className="text-xs font-medium uppercase tracking-widest text-muted-foreground ml-1">Email Address</label>
+                <div className="relative">
+                  <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                  <input
+                    id="user-email-input"
+                    type="email"
+                    value={displayEmail}
+                    readOnly
+                    aria-readonly="true"
+                    className="w-full h-12 pl-11 pr-4 rounded-xl bg-muted/60 border border-border text-muted-foreground cursor-not-allowed outline-none text-sm font-medium"
+                  />
+                </div>
+                <p className="settings-account-email ml-1">Email is locked for account security.</p>
+              </div>
               
               <div className="mt-6 pt-4 border-t border-border/50">
                 <SelectRow
@@ -1198,7 +1516,7 @@ function AccountPanel({
               Sign out
             </h3>
             <p className="settings-logout-desc">
-              Ends this demo session on this device. Saved chats stay in the browser until you clear them under Data controls.
+              You'll be signed out on this device. Your data stays safe in your account.
             </p>
             {onLogout && (
               <button type="button" className="btn btn-logout" onClick={onLogout}>
@@ -1230,6 +1548,24 @@ export function SettingsView({
       .withOptions({ shallow: false })
   )
   const { settings, updateSettings, resetSettings, user, updateUser, resetStore, showConfirm } = useStore()
+  const { user: authUser } = useAuth()
+
+  const handleRoleChange = async (newRole: 'lady' | 'partner') => {
+    const toastId = toast.loading("Reconfiguring workspace perspective...")
+    try {
+      await updateUser({ role: newRole })
+      // Artificial delay for smooth loading effect
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      
+      toast.success(`Switched to ${newRole === 'lady' ? 'Lady' : 'Partner'} view`, {
+        id: toastId,
+        description: `Dashboard layout updated to ${newRole === 'lady' ? 'self-tracking' : 'partner support'}.`,
+        duration: 3000
+      })
+    } catch {
+      toast.error("Failed to switch role.", { id: toastId })
+    }
+  }
 
   const confirmResetApp = () => {
     showConfirm({
@@ -1285,6 +1621,7 @@ export function SettingsView({
       description: 'Reset all MensFlow preferences to defaults? This cannot be undone.',
       onConfirm: () => {
         resetSettings()
+        updateSettings(DEFAULT_SETTINGS)
       }
     })
   }
@@ -1369,14 +1706,26 @@ export function SettingsView({
       )
       break
     case 'parental':
-      panel = <ParentalPanel />
+      panel = (
+        <ParentalPanel
+          settings={settings}
+          updateSettings={updateSettings}
+        />
+      )
       break
     case 'account':
       panel = (
         <AccountPanel
           isGuest={!!isGuest}
           user={user}
-          updateUser={updateUser}
+          email={authUser?.email ?? user.email}
+          updateUser={async (patch) => {
+            if (patch.role !== undefined && patch.role !== user.role) {
+              await handleRoleChange(patch.role)
+            } else {
+              await updateUser(patch)
+            }
+          }}
           onLogin={onLogin}
           onLogout={onLogout}
         />
@@ -1384,17 +1733,6 @@ export function SettingsView({
       break
     default:
       panel = null
-  }
-
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 500)
-    return () => clearTimeout(timer)
-  }, [])
-
-  if (isLoading) {
-    return <SettingsSkeleton />
   }
 
   return (
