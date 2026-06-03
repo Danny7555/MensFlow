@@ -171,7 +171,7 @@ export function OnboardingView() {
              exit={{ opacity: 0 }}
              className={cn("onboarding-container", "font-sans")}
            >
-            <div className="onboarding-inner onboarding-inner--mobile-responsive">
+            <div className="onboarding-inner">
               <OnboardingHeader
                 rawStep={currentActiveIndex}
                 displayStep={currentActiveIndex}
@@ -197,7 +197,7 @@ export function OnboardingView() {
                       x: currentActiveIndex === 0 ? 0 : 20,
                       y: currentActiveIndex === 0 ? -20 : 0,
                     }}
-                     transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                    transition={{ type: "spring", stiffness: 260, damping: 20 }}
                     className={cn(
                       "onboarding-question-card",
                       currentActiveIndex === 0 &&
@@ -219,38 +219,26 @@ export function OnboardingView() {
                       </m.div>
                     )}
 
-                     <h1 className={cn("onboarding-title", "text-base lg:text-xl")}>{question.question}</h1>
-                     {question.description && (
-                       <p className={cn(
-                         "onboarding-description",
-                         "text-xs sm:text-sm",
-                         "text-muted-foreground",
-                         "whitespace-nowrap",
-                         "overflow-hidden",
-                         "text-ellipsis",
-                         "px-2",
-                         "max-w-full"
-                       )}>
-                         {question.description}
-                       </p>
-                     )}
+                    <h1 className="onboarding-title">{question.question}</h1>
+                    {question.description && (
+                      <p className="onboarding-description">
+                        {question.description}
+                      </p>
+                    )}
 
-                    <div className="onboarding-options-grid onboarding-options-grid--mobile-responsive">
-                       {question.type === "input" ? (
-                         <div className="onboarding-input-wrap onboarding-input-wrap--mobile">
-                           <Input
-                             value={answers[question.id] || ""}
-                             onChange={handleInputChange}
-                             className={cn(
-                               "onboarding-text-input onboarding-text-input--mobile",
-                               "w-full rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                             )}
-                             onKeyDown={(e) =>
-                               e.key === "Enter" && isStepValid() && handleNext()
-                             }
-                           />
-                         </div>
-                       ) : (
+                    <div className="onboarding-options-grid">
+                      {question.type === "input" ? (
+                        <div className="onboarding-input-wrap">
+                          <Input
+                            value={answers[question.id] || ""}
+                            onChange={handleInputChange}
+                            className="onboarding-text-input"
+                            onKeyDown={(e) =>
+                              e.key === "Enter" && isStepValid() && handleNext()
+                            }
+                          />
+                        </div>
+                      ) : (
                         question.options?.map((option) => {
                           const isSelected =
                             question.type === "single-choice"
@@ -265,16 +253,16 @@ export function OnboardingView() {
                               key={option.value}
                               onClick={() => selectOption(option.value)}
                               className={cn(
-                                "onboarding-option-btn onboarding-option-btn--mobile",
+                                "onboarding-option-btn",
                                 isSelected && "onboarding-option-btn--selected",
                               )}
                             >
-                              <div className="onboarding-option-content onboarding-option-content--mobile">
-                                <span className="onboarding-option-label onboarding-option-label--mobile">
+                              <div className="onboarding-option-content">
+                                <span className="onboarding-option-label">
                                   {option.label}
                                 </span>
                               </div>
-                              <div className="onboarding-check-wrap onboarding-check-wrap--mobile">
+                              <div className="onboarding-check-wrap">
                                 {isSelected && <Check size={14} />}
                               </div>
                             </button>
