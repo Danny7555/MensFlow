@@ -38,6 +38,10 @@ const itemVariants: Variants = {
   }
 }
 
+const handlePrintPDF = () => {
+  window.print()
+}
+
 export function InsightsView() {
   const { isAuthenticated, openAuthModal } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
@@ -90,10 +94,6 @@ export function InsightsView() {
     link.click()
     document.body.removeChild(link)
     toast.success("CSV report downloaded!")
-  }
-
-  const handlePrintPDF = () => {
-    window.print()
   }
 
   if (isLoading) {

@@ -2,6 +2,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react'
@@ -34,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [initialAuthMode, setInitialAuthMode] = useState<'login' | 'register'>('login')
   // OTP flow state
   const [otpPending, setOtpPending] = useState(false)
-  const [otpToken, setOtpToken] = useState<string | null>(null)
+  const otpTokenRef = useRef<string | null>(null)
   const [otpEmail, setOtpEmail] = useState('')
   // Remember where the user was when they opened the auth modal,
   // so we can return them there after login/register instead of always /dashboard.
@@ -138,7 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState(prev => ({ ...prev, user: u, onboardingCompleted: isOnboarded, isAuthenticated: true }))
     setAuthModalOpen(false)
     setOtpPending(false)
-    setOtpToken(null)
+    otpTokenRef.current = null
     setOtpEmail('')
 
     if (localOnboarding && !u.isOnboarded) {
@@ -206,7 +207,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const result = await authApi.login(username, password)
       if (result.requiresOtp && result.otpToken) {
         // OTP required — store temp token and show OTP step
-        setOtpToken(result.otpToken)
+        otpTokenRef.current = result.otpToken
         setOtpEmail(username)
         setOtpPending(true)
         return
@@ -227,7 +228,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const result = await authApi.register(username, email, password, name, role)
       if (result.requiresOtp && result.otpToken) {
-        setOtpToken(result.otpToken)
+        otpTokenRef.current = result.otpToken
         setOtpEmail(email)       // show the real email in the OTP modal
         setOtpPending(true)
         return
@@ -244,10 +245,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // ── Verify OTP ─────────────────────────────────────────────────────────────
   const verifyOtp = useCallback(async (code: string) => {
-    if (!otpToken) return
+    if (!otpTokenRef.current) return
     setState(prev => ({ ...prev, isLoading: true }))
     try {
-      const { token, user: u } = await authApi.verifyOtp(otpToken, code)
+      const { token, user: u } = await authApi.verifyOtp(otpTokenRef.current, code)
       await completeAuthFlow(token, u)
     } catch (err) {
       setState(prev => ({ ...prev, isLoading: false }))
@@ -255,14 +256,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setState(prev => ({ ...prev, isLoading: false }))
     }
-  }, [otpToken, completeAuthFlow])
+  }, [completeAuthFlow])
 
   // ── Resend OTP ─────────────────────────────────────────────────────────────
   const resendOtp = useCallback(async () => {
-    if (!otpToken) return
-    const result = await authApi.resendOtp(otpToken)
-    setOtpToken(result.otpToken)
-  }, [otpToken])
+    if (!otpTokenRef.current) return
+    const result = await authApi.resendOtp(otpTokenRef.current)
+    otpTokenRef.current = result.otpToken
+  }, [])
 
   // ── Logout ─────────────────────────────────────────────────────────────────
   const logout = useCallback(() => {
@@ -299,7 +300,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setReturnTo(window.location.pathname)
     // Reset any stale OTP state from a previous abandoned flow
     setOtpPending(false)
-    setOtpToken(null)
+    otpTokenRef.current = null
     setOtpEmail('')
     setModalKey(k => k + 1)
     setAuthModalOpen(true)
@@ -335,7 +336,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // dismiss the modal and start a fresh flow later.
           setAuthModalOpen(false)
           setOtpPending(false)
-          setOtpToken(null)
+          otpTokenRef.current = null
           setOtpEmail('')
         }}
         onLogin={login}

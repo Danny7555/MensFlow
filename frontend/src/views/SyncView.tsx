@@ -68,14 +68,15 @@ const itemVariants: Variants = {
 
 
 
+const allPossibleTasks = [
+  ...getPhaseTasks('menstrual'),
+  ...getPhaseTasks('follicular'),
+  ...getPhaseTasks('ovulatory'),
+  ...getPhaseTasks('luteal'),
+]
+
 function SupportHistory() {
   const { completedActions } = useStore()
-  const allPossibleTasks = [
-    ...getPhaseTasks('menstrual'),
-    ...getPhaseTasks('follicular'),
-    ...getPhaseTasks('ovulatory'),
-    ...getPhaseTasks('luteal'),
-  ]
 
   const completed = allPossibleTasks.filter(t => completedActions.includes(t.id))
 
@@ -328,6 +329,7 @@ export function SyncView() {
                       placeholder="e.g. XY82HA"
                       value={partnerCodeInput}
                       onChange={(e) => setPartnerCodeInput(e.target.value.toUpperCase())}
+                      aria-label="Partner pairing code"
                       className="w-full bg-[var(--mf-composer-bg)] border border-[var(--mf-border)] rounded-xl px-4 py-3 text-base font-mono tracking-[0.3em] text-center font-normal focus:outline-none focus:ring-2 focus:ring-[var(--mf-accent)]/50 focus:border-[var(--mf-accent)] uppercase text-[var(--mf-text-strong)] transition-all text-sm"
                       maxLength={6}
                     />
@@ -394,12 +396,10 @@ export function SyncView() {
             {/* Invite partner banner — lady only, authenticated, unpaired */}
             {isAuthenticated && user?.role === 'lady' && (
               <m.div variants={itemVariants} className="mt-10 w-full max-w-2xl mx-auto px-4 sm:px-0">
-                <div 
-                  role="button"
-                  tabIndex={0}
+                <button 
+                  type="button"
                   onClick={() => setIsInviteModalOpen(true)}
-                  onKeyDown={(e) => e.key === 'Enter' && setIsInviteModalOpen(true)}
-                  className="bg-gradient-to-r from-[var(--mf-accent)] to-[#be185d] rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 text-white flex flex-col items-center sm:flex-row justify-between gap-4 sm:gap-6 overflow-hidden relative group cursor-pointer"
+                  className="w-full text-left border-none outline-none bg-gradient-to-r from-[var(--mf-accent)] to-[#be185d] rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 text-white flex flex-col items-center sm:flex-row justify-between gap-4 sm:gap-6 overflow-hidden relative group cursor-pointer font-inherit"
                 >
                   <div className="z-10 text-center sm:text-left space-y-2 sm:space-y-3">
                     <h3 className="text-lg sm:text-xl md:text-2xl font-semibold tracking-tight leading-snug">Share your cycle with a partner</h3>
@@ -407,13 +407,13 @@ export function SyncView() {
                       Invite your partner to view your cycle phases and symptoms to improve communication and support.
                     </p>
                   </div>
-                  <button type="button" className="z-10 w-full sm:w-auto px-6 sm:px-8 py-3 bg-white text-[var(--mf-accent)] rounded-xl font-semibold text-sm hover:brightness-95 transition-all shrink-0">
+                  <span className="z-10 w-full sm:w-auto px-6 sm:px-8 py-3 bg-white text-[var(--mf-accent)] rounded-xl font-semibold text-sm hover:brightness-95 transition-all shrink-0 text-center block">
                     Invite Partner
-                  </button>
+                  </span>
                   <div className="absolute right-[-20px] top-[-20px] opacity-10 group-hover:scale-110 transition-transform duration-700">
                      <img src="/images/girl.png" alt="" className="size-48 sm:size-64 object-contain rotate-[-15deg]" />
                   </div>
-                </div>
+                </button>
               </m.div>
             )}
 

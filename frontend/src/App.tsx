@@ -1,6 +1,6 @@
-import { useCallback, useState, lazy, Suspense } from 'react'
+import { useCallback, useState, useMemo, lazy, Suspense } from 'react'
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
-import { LazyMotion, domAnimation, AnimatePresence as AP} from 'framer-motion'
+import { LazyMotion, domAnimation, AnimatePresence } from 'framer-motion'
 import { cn } from './lib/utils'
 import { ThemeSync } from './components/ThemeSync'
 import { Toaster } from 'sonner'
@@ -110,7 +110,6 @@ function ChatLockGate({ children }: { children: React.ReactNode }) {
                     setError(false)
                   }}
                   className={`w-full h-12 px-4 rounded-xl bg-muted border ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-border focus:border-[var(--mf-accent-border)] focus:ring-[var(--mf-accent)]'} focus:ring-1 transition-all outline-none text-base`}
-                  autoFocus
                   aria-label="Security answer"
                 />
               )}
@@ -160,7 +159,6 @@ function ChatLockGate({ children }: { children: React.ReactNode }) {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="w-full h-12 pl-10 pr-4 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-[var(--mf-accent)] focus:ring-1 transition-all outline-none text-base"
-                autoFocus
                 aria-label="New password"
               />
               {newPassword && (
@@ -265,7 +263,6 @@ function ChatLockGate({ children }: { children: React.ReactNode }) {
                 setError(false)
               }}
               className={`w-full h-12 pl-10 pr-4 rounded-xl bg-muted border ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-border focus:border-[var(--mf-accent-border)] focus:ring-[var(--mf-accent)]'} focus:ring-1 transition-all outline-none text-base`}
-              autoFocus
               aria-label="Privacy password"
             />
           </div>
@@ -334,6 +331,7 @@ function MainShell() {
   const isMobile = useMediaQuery('(max-width: 768px)')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [temporaryChat, setTemporaryChat] = useState(false)
+  const contextValue = useMemo(() => ({ temporaryChat, setTemporaryChat }), [temporaryChat])
 
   // Fire smart browser push notifications based on real cycle data
   useSmartPushNotifications()
@@ -367,7 +365,7 @@ function MainShell() {
 
   return (
     <ChatSessionContext.Provider
-      value={{ temporaryChat, setTemporaryChat }}
+      value={contextValue}
     >
       <div className={cn("app-shell", user?.role === 'partner' && "partner-theme")}>
         <LazyMotion features={domAnimation}>
@@ -412,7 +410,7 @@ function MainShell() {
 
           <main className={cn("app-canvas", isAuthenticated && isMobile && !location.pathname.startsWith('/onboarding') && "pb-bottom-nav")}>
             <Suspense fallback={<PageLoader />}>
-              <AP mode="wait">
+              <AnimatePresence mode="wait">
                 <Routes location={location} key={location.pathname}>
                 {!isAuthenticated ? (
                   <>
@@ -467,7 +465,7 @@ function MainShell() {
                   </>
                 )}
                 </Routes>
-              </AP>
+              </AnimatePresence>
             </Suspense>
           </main>
         </div>
