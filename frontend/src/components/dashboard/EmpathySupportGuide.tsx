@@ -32,9 +32,9 @@ export function EmpathySupportGuide({ supportTip }: EmpathySupportGuideProps) {
           </div>
           
           <div className="mt-3 md:mt-4 pt-2.5 md:pt-3 border-t border-[var(--mf-border)]/30 flex items-center gap-2">
-            <div className="flex -space-x-1">
-              {['happy', 'calm', 'mens'].map((img) => (
-                <div key={img} className="size-3.5 md:size-4 rounded-full border border-[var(--mf-card)] bg-[var(--mf-border)] overflow-hidden">
+            <div className="flex">
+              {['happy', 'calm', 'mens'].map((img, idx) => (
+                <div key={img} className={`size-3.5 md:size-4 rounded-full border border-[var(--mf-card)] bg-[var(--mf-border)] overflow-hidden ${idx > 0 ? '-ml-1' : ''}`}>
                   <img src={`/images/${img}.jpg`} alt="" className="size-full object-cover" />
                 </div>
               ))}

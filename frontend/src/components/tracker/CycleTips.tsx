@@ -103,7 +103,7 @@ export function CycleTips({ activeDay }: CycleTipsProps) {
       }
     }
 
-    if (activeDay >= fertileStart && activeDay <= fertileEnd) {
+    if (isFertile) {
       return {
         name: 'Ovulatory Phase',
         badge: 'PEAK VITALITY',
@@ -173,7 +173,7 @@ export function CycleTips({ activeDay }: CycleTipsProps) {
         },
       ] as PhaseTip[],
     }
-  }, [activeDay, isMenstrual, isFollicular, isFertile, isLuteal])
+  }, [isMenstrual, isFollicular, isFertile])
 
   return (
     <div className="cycle-tips-container space-y-6">

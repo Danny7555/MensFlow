@@ -195,12 +195,6 @@ export function DailyQuiz() {
   const [activeStep, setActiveStep] = useState<number>(dbQuizCount)
   const [selectedQuizAnswer, setSelectedQuizAnswer] = useState<number | null>(null)
 
-  useEffect(() => {
-    if (selectedQuizAnswer === null) {
-      setActiveStep(dbQuizCount)
-    }
-  }, [dbQuizCount, selectedQuizAnswer])
-
   const quizzes = useMemo(() => {
     const profile = buildPersonalizationProfile(user?.onboardingData ?? {})
     const cycleDay = computeCycleDay(dashboard.lastPeriodStart, dashboard.typicalCycleDays)
@@ -302,6 +296,7 @@ export function DailyQuiz() {
 
   const handleNext = () => {
     setSelectedQuizAnswer(null)
+    setActiveStep(dbQuizCount)
   }
 
   return (

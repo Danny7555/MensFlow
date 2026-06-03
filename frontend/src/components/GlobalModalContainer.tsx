@@ -9,6 +9,18 @@ import {
 import { useStore } from "@/store/useStore"
 import { Warning, Info, Trash, ArrowCounterClockwise } from "@phosphor-icons/react"
 
+// Dynamic icon selector based on keywords in dialog title
+const getConfirmIcon = (title: string) => {
+  const t = title.toLowerCase()
+  if (t.includes('delete') || t.includes('wipe') || t.includes('remove') || t.includes('clear')) {
+    return <Trash className="size-6 text-red-500" weight="duotone" />
+  }
+  if (t.includes('reset') || t.includes('restore') || t.includes('undo')) {
+    return <ArrowCounterClockwise className="size-6 text-orange-500" weight="duotone" />
+  }
+  return <Info className="size-6 text-[var(--mf-accent)]" weight="duotone" />
+}
+
 export function GlobalModalContainer() {
   const { 
     confirmDialog, 
@@ -16,18 +28,6 @@ export function GlobalModalContainer() {
     alertDialog, 
     closeAlert 
   } = useStore()
-
-  // Dynamic icon selector based on keywords in dialog title
-  const getConfirmIcon = (title: string) => {
-    const t = title.toLowerCase()
-    if (t.includes('delete') || t.includes('wipe') || t.includes('remove') || t.includes('clear')) {
-      return <Trash className="size-6 text-red-500" weight="duotone" />
-    }
-    if (t.includes('reset') || t.includes('restore') || t.includes('undo')) {
-      return <ArrowCounterClockwise className="size-6 text-orange-500" weight="duotone" />
-    }
-    return <Info className="size-6 text-[var(--mf-accent)]" weight="duotone" />
-  }
 
   return (
     <>

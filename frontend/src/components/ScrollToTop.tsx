@@ -2,8 +2,21 @@ import { useEffect, useState } from 'react'
 import { m } from 'framer-motion'
 import { CaretUp } from '@phosphor-icons/react'
 
+const scrollToTop = () => {
+  const container = document.querySelector('.app-canvas')
+  if (container) {
+    container.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+}
+
 export function ScrollToTop() {
-  const [show, setShow] = useState(false)
+  const [show, setShow] = useState(() => {
+    if (typeof document !== 'undefined') {
+      const container = document.querySelector('.app-canvas')
+      return container ? container.scrollTop > 400 : false
+    }
+    return false
+  })
 
   useEffect(() => {
     const container = document.querySelector('.app-canvas')
@@ -14,17 +27,8 @@ export function ScrollToTop() {
     }
 
     container.addEventListener('scroll', handleScroll, { passive: true })
-    // Check initial position
-    handleScroll()
     return () => container.removeEventListener('scroll', handleScroll)
   }, [])
-
-  const scrollToTop = () => {
-    const container = document.querySelector('.app-canvas')
-    if (container) {
-      container.scrollTo({ top: 0, behavior: 'smooth' })
-    }
-  }
 
   return (
     <m.button

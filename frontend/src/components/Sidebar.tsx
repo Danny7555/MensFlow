@@ -111,16 +111,14 @@ export function Sidebar({
 
   return (
     <>
-      <div
+      <button
+        type="button"
         className={cn(
-          "sidebar-backdrop transition-all duration-300 ease-in-out",
+          "sidebar-backdrop transition-all duration-300 ease-in-out border-none p-0 outline-none",
           mobileOpen ? "sidebar-backdrop--visible opacity-100" : "opacity-0 pointer-events-none"
         )}
-        aria-hidden={!mobileOpen}
-        role="button"
-        tabIndex={-1}
+        aria-label="Close navigation menu"
         onClick={onCloseMobile}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onCloseMobile() }}
       />
       <aside
         className={cn(

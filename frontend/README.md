@@ -25,7 +25,8 @@ Welcome to **MensFlow**, a premium, beautifully designed health application tail
    - [React Providers & Contexts](#react-providers--contexts)
 8. [Getting Started (Developer Guide)](#-getting-started-developer-guide)
 9. [Adding New Features (Developer Walkthrough)](#-adding-new-features-developer-walkthrough)
-10. [Collaboration & Git Workflow](#-collaboration--git-workflow)
+10. [Cycle Calculations & State Architecture](../docs/cycle_and_state_architecture.md)
+11. [Collaboration & Git Workflow](#-collaboration--git-workflow)
 
 ---
 

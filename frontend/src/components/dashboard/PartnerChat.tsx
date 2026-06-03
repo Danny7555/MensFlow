@@ -15,6 +15,19 @@ import {
 import { toast } from 'sonner'
 import { cn } from '../../lib/utils'
 
+const formatMessageTime = (timestamp: number) => {
+  const date = new Date(timestamp)
+  const today = new Date()
+  const isToday = date.toDateString() === today.toDateString()
+  
+  const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  if (isToday) {
+    return timeStr
+  }
+  const month = date.toLocaleDateString([], { month: 'short', day: 'numeric' })
+  return `${month}, ${timeStr}`
+}
+
 export function PartnerChat() {
   const { user, partnerStatus } = useStore()
   const isPartner = user?.role === 'partner'
@@ -68,19 +81,6 @@ export function PartnerChat() {
       refetchSuggestions()
     }
     setShowSuggestions(!showSuggestions)
-  }
-
-  const formatMessageTime = (timestamp: number) => {
-    const date = new Date(timestamp)
-    const today = new Date()
-    const isToday = date.toDateString() === today.toDateString()
-    
-    const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    if (isToday) {
-      return timeStr
-    }
-    const month = date.toLocaleDateString([], { month: 'short', day: 'numeric' })
-    return `${month}, ${timeStr}`
   }
 
   if (!partnerStatus?.paired) {
@@ -168,15 +168,15 @@ export function PartnerChat() {
           {suggestionsLoading ? (
             <div className="flex items-center gap-2 py-1 text-[10px] text-[var(--mf-muted)]">
               <CircleNotch size={12} className="animate-spin" />
-              <span>Analyzing her logs and phase...</span>
+              <span>Analyzing her logs and phase…</span>
             </div>
           ) : suggestions.length === 0 ? (
             <span className="text-[10px] text-[var(--mf-muted)] italic">No suggestions available</span>
           ) : (
             <div className="space-y-1.5">
-              {suggestions.map((sug, idx) => (
+              {suggestions.map((sug) => (
                 <button
-                  key={idx}
+                  key={sug}
                   type="button"
                   onClick={() => handleSelectSuggestion(sug)}
                   className="w-full text-left p-2 rounded-xl text-[11px] bg-[var(--mf-card)] hover:bg-[var(--mf-hover)] border border-[var(--mf-border)] hover:border-[var(--mf-accent)]/40 transition-all text-[var(--mf-text-strong)] flex items-center justify-between group"
@@ -210,10 +210,11 @@ export function PartnerChat() {
         <div className="relative flex-1">
           <input
             type="text"
-            placeholder="Type a message..."
+            placeholder="Type a message…"
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
             disabled={sendMutation.isPending}
+            aria-label="Type a message to partner"
             className="w-full h-10 pl-3.5 pr-10 rounded-xl bg-[var(--mf-hover)] border border-[var(--mf-border)] text-xs text-[var(--mf-text-strong)] placeholder-[var(--mf-muted)] focus:outline-none focus:border-[var(--mf-accent)]/60 focus:ring-1 focus:ring-[var(--mf-accent)]/60 transition-all"
           />
           <button

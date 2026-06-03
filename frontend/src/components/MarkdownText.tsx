@@ -4,26 +4,36 @@ type MarkdownTextProps = {
   text: string
 }
 
+const parseInline = (str: string, lineId: string): ReactNode[] => {
+  // Splits by **bold** text
+  const parts = str.split(/(\*\*[^*]+\*\*)/g)
+  let boldCount = 0
+  return parts.map((part) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      boldCount++
+      return (
+        <strong key={`${lineId}-b-${boldCount}`} className="font-semibold text-[var(--mf-text-strong)]">
+          {part.slice(2, -2)}
+        </strong>
+      )
+    }
+    return part
+  })
+}
+
 export function MarkdownText({ text }: MarkdownTextProps) {
   if (!text) return null
 
-  const lines = text.split('\n')
+  const lines = text.split('\n').map((line, idx) => ({
+    id: `ln-${idx}-${line.slice(0, 8)}`,
+    text: line
+  }))
   const elements: ReactNode[] = []
   let inList = false
   let listItems: ReactNode[] = []
 
-  const parseInline = (str: string): ReactNode[] => {
-    // Splits by **bold** text
-    const parts = str.split(/(\*\*[^*]+\*\*)/g)
-    return parts.map((part, index) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={index} className="font-semibold text-[var(--mf-text-strong)]">{part.slice(2, -2)}</strong>
-      }
-      return part
-    })
-  }
-
-  lines.forEach((line, lineIndex) => {
+  lines.forEach((lineObj) => {
+    const line = lineObj.text
     const trimmed = line.trim()
     const isBullet = trimmed.startsWith('* ') || trimmed.startsWith('- ')
 
@@ -34,27 +44,27 @@ export function MarkdownText({ text }: MarkdownTextProps) {
       }
       const itemContent = trimmed.slice(2)
       listItems.push(
-        <li key={`li-${lineIndex}`} className="ml-5 list-disc text-left my-1 text-[var(--mf-text)]">
-          {parseInline(itemContent)}
+        <li key={`li-${lineObj.id}`} className="ml-5 list-disc text-left my-1 text-[var(--mf-text)]">
+          {parseInline(itemContent, lineObj.id)}
         </li>
       )
     } else {
       if (inList) {
         inList = false
         elements.push(
-          <ul key={`ul-${lineIndex}`} className="my-2 space-y-1 list-disc">
+          <ul key={`ul-${lineObj.id}`} className="my-2 space-y-1 list-disc">
             {listItems}
           </ul>
         )
       }
       if (trimmed) {
         elements.push(
-          <p key={`p-${lineIndex}`} className="my-2 text-left leading-relaxed text-[var(--mf-text)]">
-            {parseInline(line)}
+          <p key={`p-${lineObj.id}`} className="my-2 text-left leading-relaxed text-[var(--mf-text)]">
+            {parseInline(line, lineObj.id)}
           </p>
         )
       } else {
-        elements.push(<div key={`br-${lineIndex}`} className="h-2" />)
+        elements.push(<div key={`br-${lineObj.id}`} className="h-2" />)
       }
     }
   })

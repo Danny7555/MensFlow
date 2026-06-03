@@ -38,6 +38,8 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
+const CHART_DOMAIN = [0, 10]
+
 export function SymptomTrendsChart() {
   const { logs } = useStore()
 
@@ -100,7 +102,7 @@ export function SymptomTrendsChart() {
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
-                domain={[0, 10]}
+                domain={CHART_DOMAIN}
                 className="text-[10px] text-muted-foreground"
               />
               <ChartTooltip

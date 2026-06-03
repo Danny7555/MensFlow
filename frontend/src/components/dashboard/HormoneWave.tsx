@@ -74,32 +74,28 @@ export function HormoneWave() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
+      let nextDay = 1
       if (data?.lastPeriodStart) {
         const safeLen = Math.max(1, cycleLen || 28)
         const start = new Date(`${data.lastPeriodStart}T12:00:00`)
         if (!Number.isNaN(+start)) {
           const days = Math.floor((Date.now() - +start) / 86400000)
           const m = ((days % safeLen) + safeLen) % safeLen
-          setActiveDay(m + 1)
-          return
+          nextDay = m + 1
         }
-      }
-      if (data?.phaseLabel) {
+      } else if (data?.phaseLabel) {
         const norm = data.phaseLabel.toLowerCase()
         if (norm.includes('menstrual')) {
-          setActiveDay(3)
+          nextDay = 3
         } else if (norm.includes('follicular')) {
-          setActiveDay(7)
+          nextDay = 7
         } else if (norm.includes('ovulat') || norm.includes('fertile')) {
-          setActiveDay(Math.max(7, cycleLen - 14))
+          nextDay = Math.max(7, cycleLen - 14)
         } else if (norm.includes('luteal')) {
-          setActiveDay(Math.round(cycleLen * 0.75))
-        } else {
-          setActiveDay(1)
+          nextDay = Math.round(cycleLen * 0.75)
         }
-      } else {
-        setActiveDay(1)
       }
+      setActiveDay(nextDay)
     }, 0)
     return () => clearTimeout(timer)
   }, [data?.lastPeriodStart, data?.phaseLabel, cycleLen])
@@ -164,6 +160,7 @@ export function HormoneWave() {
             value={activeDay}
             onChange={(e) => setActiveDay(parseInt(e.target.value))}
             className="hormone-slider"
+            aria-label="Cycle day timeline position"
             style={{
               background: `linear-gradient(to right, ${dayInsight.accentColor}40 0%, ${dayInsight.accentColor}40 ${(activeDay / cycleLen) * 100}%, #e5e7eb ${(activeDay / cycleLen) * 100}%, #e5e7eb 100%)`
             }}

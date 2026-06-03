@@ -43,22 +43,14 @@ export function CustomizePlanModal({
         </DialogHeader>
         <div className="grid gap-4 py-4">
           {planSettings.map(item => (
-            <div 
+            <button 
+              type="button"
               key={item.label} 
-              role="button"
-              tabIndex={0}
-              className="flex items-center justify-between p-4 rounded-2xl bg-muted/30 cursor-pointer hover:bg-muted/50 transition-all"
+              className="w-full flex items-center justify-between p-4 rounded-2xl bg-muted/30 cursor-pointer hover:bg-muted/50 transition-all text-left border-none outline-none font-inherit"
               onClick={() => {
                 setPlanSettings(prev => prev.map(p => 
                   p.label === item.label ? { ...p, active: !p.active } : p
                 ))
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  setPlanSettings(prev => prev.map(p => 
-                    p.label === item.label ? { ...p, active: !p.active } : p
-                  ))
-                }
               }}
             >
               <span className="font-normal">{item.label}</span>
@@ -71,7 +63,7 @@ export function CustomizePlanModal({
                   item.active && "translate-x-4"
                 )} />
               </div>
-            </div>
+            </button>
           ))}
         </div>
         <DialogFooter>
