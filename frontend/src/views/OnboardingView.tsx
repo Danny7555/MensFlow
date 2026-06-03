@@ -84,13 +84,18 @@ export function OnboardingView() {
       await updateUser(patch);
     }
     completeOnboarding();
+
+    // Prepare dashboard/settings from onboarding answers first
+    const selectedPurpose = (answers.purpose as string) || "";
+    if (selectedPurpose !== "education") {
+      updateDashboard(buildPersonalizedDashboard(answers));
+      updateSettings({ cycleAvgLengthDays: profile.typicalCycleDays });
+    }
+
     if (isAuthenticated) {
-      const selectedPurpose = (answers.purpose as string) || "";
       if (selectedPurpose === "education") {
         navigate("/education");
       } else {
-        updateDashboard(buildPersonalizedDashboard(answers));
-        updateSettings({ cycleAvgLengthDays: profile.typicalCycleDays });
         navigate("/dashboard");
       }
     } else {

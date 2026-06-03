@@ -1,4 +1,4 @@
-import { getPhaseFromDay, type CyclePhase } from './cycleUtils'
+import { type CyclePhase } from './cycleUtils'
 import type { DashboardSnapshot } from './dashboardStorage'
 
 export type OnboardingAnswers = Record<string, unknown>
@@ -16,8 +16,6 @@ export type PersonalizationProfile = {
   trackingGoal: string
   educationTopic: string
 }
-
-const todayIso = () => new Date().toISOString().slice(0, 10)
 
 export function buildPersonalizationProfile(answers: OnboardingAnswers): PersonalizationProfile {
   const cycleLength = String(answers.cycle_length ?? '')
@@ -70,15 +68,14 @@ export function buildPersonalizationProfile(answers: OnboardingAnswers): Persona
 
 export function buildPersonalizedDashboard(answers: OnboardingAnswers): Partial<DashboardSnapshot> {
   const profile = buildPersonalizationProfile(answers)
-  const lastPeriodStart = todayIso()
-  const phase = getPhaseFromDay(1, profile.typicalCycleDays)
+  const lastPeriodStart = ''
 
   return {
     lastPeriodStart,
     typicalCycleDays: profile.typicalCycleDays,
-    phaseLabel: phaseLabel(phase),
-    hormoneTrend: 'Cycle baseline started from onboarding',
-    bodySignals: profile.flowLabel,
+    phaseLabel: '',
+    hormoneTrend: 'No cycle data set',
+    bodySignals: 'No symptoms logged today',
     cycleVariationDays: profile.cycleVariationDays,
     isAtypical: profile.isAtypical,
     cycleNotes: buildCycleNotes(profile),

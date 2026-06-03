@@ -68,12 +68,8 @@ export async function registerUser(
     role,
   });
 
-  const defaultLastPeriodStart = new Date(Date.now() - 20 * 24 * 60 * 60 * 1000)
-    .toISOString()
-    .slice(0, 10);
-
   await Settings.create({ userId: user._id });
-  await Dashboard.create({ userId: user._id, lastPeriodStart: defaultLastPeriodStart });
+  await Dashboard.create({ userId: user._id, lastPeriodStart: '' });
   await SupportStreak.create({ userId: user._id });
 
   // Always send OTP on registration (user can disable later in settings)

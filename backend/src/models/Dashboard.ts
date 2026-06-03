@@ -28,7 +28,7 @@ export interface DashboardDocument extends Document {
 
 const DashboardSchema = new Schema<DashboardDocument>({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
-  lastPeriodStart: { type: String, required: true, match: /^\d{4}-\d{2}-\d{2}$/ },
+  lastPeriodStart: { type: String, default: '' },
   typicalCycleDays: { type: Number, default: 28, min: 15, max: 60 },
   phaseLabel: { type: String, default: 'Luteal', maxlength: 80 },
   hormoneTrend: { type: String, default: 'Progesterone rising', maxlength: 160 },

@@ -22,7 +22,7 @@ export function getPhaseFromDay(cycleDay: number, cycleLen = 28): CyclePhase {
   const ovulationDay = Math.max(periodLength + 5, safeCycleLen - 14)
   const fertileStart = Math.max(periodLength + 1, ovulationDay - 4)
   const fertileEnd = Math.min(safeCycleLen, ovulationDay + 2)
-  const lutealStart = Math.max(fertileEnd + 1, safeCycleLen - 6)
+  const lutealStart = fertileEnd + 1
 
   if (cycleDay <= periodLength) return 'menstrual'
   if (cycleDay >= fertileStart && cycleDay <= fertileEnd) return 'fertile'

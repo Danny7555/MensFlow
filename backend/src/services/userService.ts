@@ -257,8 +257,9 @@ function toDashboard(dashboard: DashboardDocument): IDashboard {
 }
 
 function defaultLastPeriodStart(): string {
-  return new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  return '';
 }
+
 
 async function notifyAccessDecision(userId: string, decision: 'granted' | 'declined'): Promise<void> {
   const user = await User.findById(userId).lean();
