@@ -601,7 +601,7 @@ function NotificationsPanel({
   return (
     <>
       <p className="settings-panel-intro">
-        Preferences only, connect push/email providers when your backend is ready.
+        Manage your cycle reminders, push, and email notification preferences. Email reminders are dispatched automatically via the backend mailer service.
       </p>
       <ToggleRow
         label="Cycle & wellness reminders"
