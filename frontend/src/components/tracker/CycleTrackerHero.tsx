@@ -88,6 +88,22 @@ function cycleTrackerReducer(state: CycleTrackerState, action: CycleTrackerActio
   }
 }
 
+const modes = ['Period', 'Conception', 'Pregnancy', 'Perimenopause'];
+
+const emptyStateCardStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: '0.75rem',
+  padding: '1.25rem 1rem',
+  borderRadius: '1.25rem',
+  background: 'color-mix(in srgb, var(--mf-accent) 8%, transparent)',
+  border: '1px solid color-mix(in srgb, var(--mf-accent) 20%, transparent)',
+  backdropFilter: 'blur(8px)',
+  maxWidth: '220px',
+  textAlign: 'center',
+}
+
 export function CycleTrackerHero({ 
   showCheckIn = false,
   selectedDay: controlledSelectedDay,
@@ -144,7 +160,7 @@ export function CycleTrackerHero({
     return () => clearTimeout(timer)
   }, [data.lastPeriodStart, data.typicalCycleDays])
 
-  const modes = ['Period', 'Conception', 'Pregnancy', 'Perimenopause'];
+
 
   const cycleLength = data.typicalCycleDays || 28;
 
@@ -269,19 +285,7 @@ export function CycleTrackerHero({
             >
               <div
                 className="animate-in fade-in zoom-in duration-500"
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  padding: '1.25rem 1rem',
-                  borderRadius: '1.25rem',
-                  background: 'color-mix(in srgb, var(--mf-accent) 8%, transparent)',
-                  border: '1px solid color-mix(in srgb, var(--mf-accent) 20%, transparent)',
-                  backdropFilter: 'blur(8px)',
-                  maxWidth: '220px',
-                  textAlign: 'center',
-                }}
+                style={emptyStateCardStyle}
               >
                 <div
                   style={{
@@ -300,7 +304,7 @@ export function CycleTrackerHero({
                   <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--mf-accent)', lineHeight: 1.2 }}>
                     No cycle data yet
                   </p>
-                  <p style={{ fontSize: '0.65rem', opacity: 0.6, lineHeight: 1.4 }}>
+                  <p style={{ fontSize: '0.75rem', opacity: 0.6, lineHeight: 1.4 }}>
                     Log your first entry below to see your personalised cycle insights
                   </p>
                 </div>
@@ -318,18 +322,16 @@ export function CycleTrackerHero({
         </div>
 
         <div className="cycle-tracker-mood-cta">
-          <div
-            role="button"
-            tabIndex={0}
+          <button
+            type="button"
             onClick={() => dispatch({ type: 'SET_LOG_MODAL_OPEN', payload: true })}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') dispatch({ type: 'SET_LOG_MODAL_OPEN', payload: true }) }}
-            className="mood-cta-card cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mf-accent)] rounded-2xl"
+            className="w-full text-left p-0 border-none outline-none bg-transparent mood-cta-card cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mf-accent)] rounded-2xl"
           >
             <img src="/images/exp.jpg" alt="" className="mood-cta-bg" />
             <div className="mood-cta-overlay" />
             <span className="mood-text pl-4">Log your first cycle entry</span>
             <CaretRight size={20} className="caret-right group-hover:translate-x-1 transition-transform" />
-          </div>
+          </button>
         </div>
 
         <LogSymptomsModal
@@ -450,7 +452,7 @@ export function CycleTrackerHero({
                 )}
                 {activeLog.mucus && (
                   <span className="text-[10px] font-medium bg-[#26899e]/15 text-[#26899e] border border-[#26899e]/25 px-2 py-0.5 rounded-full flex items-center gap-1.5 capitalize">
-                    <img src="/images/water.png" alt="" className="w-3 h-3 object-contain shrink-0" />
+                    <img src="/images/water.png" alt="" className="size-3 object-contain shrink-0" />
                     <span>{activeLog.mucus.replace('-', ' ')}</span>
                   </span>
                 )}
@@ -493,9 +495,8 @@ export function CycleTrackerHero({
 
       <div className="cycle-tracker-mood-cta">
         {isPartner ? (
-          <div 
-            role="button"
-            tabIndex={0}
+          <button 
+            type="button"
             onClick={() => {
               const el = document.querySelector('.partner-translation-card')
               if (el) {
@@ -504,37 +505,29 @@ export function CycleTrackerHero({
                 toast.info("Empathy & supportive tips are available on your dashboard playbook!")
               }
             }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                const el = document.querySelector('.partner-translation-card')
-                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-              }
-            }}
-            className="mood-cta-card cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mf-accent)] rounded-2xl"
+            className="w-full text-left p-0 border-none outline-none bg-transparent mood-cta-card cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mf-accent)] rounded-2xl"
           >
              <img src="/images/calm.jpg" alt="" className="mood-cta-bg opacity-80" />
              <div className="mood-cta-overlay bg-gradient-to-r from-teal-900/60 to-indigo-900/50" />
              <span className="mood-text pl-4 flex items-center gap-2">
-               <img src="/images/heart.png" alt="" className="size-4 object-contain animate-pulse shrink-0" />
-               <span>View Empathy Decoder & Playbook</span>
+                <img src="/images/heart.png" alt="" className="size-4 object-contain animate-pulse shrink-0" />
+                <span>View Empathy Decoder & Playbook</span>
              </span>
              <CaretRight size={20} className="caret-right group-hover:translate-x-1 transition-transform text-teal-400" />
-          </div>
+          </button>
         ) : (
-          <div 
-            role="button"
-            tabIndex={0}
+          <button 
+            type="button"
             onClick={() => dispatch({ type: 'SET_LOG_MODAL_OPEN', payload: true })}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') dispatch({ type: 'SET_LOG_MODAL_OPEN', payload: true }) }}
-            className="mood-cta-card cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mf-accent)] rounded-2xl"
+            className="w-full text-left p-0 border-none outline-none bg-transparent mood-cta-card cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mf-accent)] rounded-2xl"
           >
              <img src="/images/exp.jpg" alt="" className="mood-cta-bg" />
              <div className="mood-cta-overlay" />
              <span className="mood-text pl-4">
-               Log symptoms for Day {activeDay}
+                Log symptoms for Day {activeDay}
              </span>
              <CaretRight size={20} className="caret-right group-hover:translate-x-1 transition-transform" />
-          </div>
+          </button>
         )}
 
         {showCheckIn && (
