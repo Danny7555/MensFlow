@@ -1549,8 +1549,52 @@ export function SettingsView({
       .withDefault('general')
       .withOptions({ shallow: false })
   )
-  const { settings, updateSettings, resetSettings, user, updateUser, resetStore, showConfirm } = useStore()
+  const { settings, updateSettings: storeUpdateSettings, resetSettings, user, updateUser, resetStore, showConfirm } = useStore()
   const { user: authUser } = useAuth()
+
+  // ── Settings change labels map ─────────────────────────────────────────────
+  const SETTING_LABELS: Partial<Record<keyof MensFlowSettings, (val: unknown) => string>> = {
+    themeMode:                   (v) => `Appearance set to ${String(v).charAt(0).toUpperCase() + String(v).slice(1)}`,
+    contrastMode:                (v) => `Contrast set to ${String(v).charAt(0).toUpperCase() + String(v).slice(1)}`,
+    accentPreset:                (v) => `Accent color set to ${String(v).charAt(0).toUpperCase() + String(v).slice(1)}`,
+    languageUi:                  (v) => `Language set to ${v === 'auto' ? 'Auto-detect' : 'English'}`,
+    spokenLanguage:              (v) => `Spoken language set to ${v === 'auto' ? 'Auto-detect' : 'English (US)'}`,
+    enableDictation:             (v) => v ? 'Dictation enabled' : 'Dictation disabled',
+    sidebarCollapsed:            (v) => v ? 'Sidebar collapsed' : 'Sidebar expanded',
+    chatEnterToSend:             (v) => v ? 'Enter to send enabled' : 'Enter to send disabled',
+    chatPersistLocal:            (v) => v ? 'Chat history will be saved' : 'Chat history off',
+    chatShowTimestamps:          (v) => v ? 'Timestamps shown' : 'Timestamps hidden',
+    privacyDefaultTemporaryChat: (v) => v ? 'Temporary chat mode on' : 'Temporary chat mode off',
+    disableAIPopups:             (v) => v ? 'AI suggestions disabled' : 'AI suggestions enabled',
+    hideDailyStoriesAndTips:     (v) => v ? 'Daily stories hidden' : 'Daily stories shown',
+    notificationsCycleReminders: (v) => v ? 'Cycle reminders on' : 'Cycle reminders off',
+    notificationsPush:           (v) => v ? 'Push alerts on' : 'Push alerts off',
+    notificationsEmail:          (v) => v ? 'Email digest on' : 'Email digest off',
+    notificationsProduct:        (v) => v ? 'Product tips on' : 'Product tips off',
+    cycleAvgLengthDays:          (v) => `Average cycle length set to ${v} days`,
+    cycleShowFertileWindow:      (v) => v ? 'Fertile window hints on' : 'Fertile window hints hidden',
+    conditionOptimization:       (v) => {
+      const map: Record<string, string> = {
+        none: 'Standard predictions active',
+        pcos: 'PCOS optimization active',
+        endometriosis: 'Endometriosis optimization active',
+        perimenopause: 'Perimenopause mode active',
+      }
+      return map[String(v)] ?? 'Condition profile updated'
+    },
+    parentalControlsEnabled:     (v) => v ? 'Parental controls enabled' : 'Parental controls disabled',
+    parentalQuietHoursEnabled:   (v) => v ? 'Quiet hours enabled' : 'Quiet hours disabled',
+    parentalContentFilter:       (v) => `Content filter set to ${String(v).charAt(0).toUpperCase() + String(v).slice(1)}`,
+  }
+
+  const updateSettings = (patch: Partial<MensFlowSettings>) => {
+    storeUpdateSettings(patch)
+    const keys = Object.keys(patch) as Array<keyof MensFlowSettings>
+    const labelFn = keys.length === 1 ? SETTING_LABELS[keys[0]] : undefined
+    const message = labelFn ? labelFn(patch[keys[0]]) : 'Settings saved'
+    toast.success(message, { duration: 2000 })
+  }
+
 
   const handleRoleChange = async (newRole: 'lady' | 'partner') => {
     const toastId = toast.loading("Reconfiguring workspace perspective...")

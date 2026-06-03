@@ -12,9 +12,10 @@ interface DotGridProps {
   totalRenderLength: number
   isCurrent: boolean
   typicalCycleDays: number
+  showFertileWindow: boolean
 }
 
-function DotGrid({ cycleLength, totalRenderLength, isCurrent, typicalCycleDays }: DotGridProps) {
+function DotGrid({ cycleLength, totalRenderLength, isCurrent, typicalCycleDays, showFertileWindow }: DotGridProps) {
   const periodLength = 5
   const fertileStart = Math.max(6, Math.min(10, Math.floor(typicalCycleDays * 0.35)))
   const fertileEnd = Math.min(typicalCycleDays - 5, fertileStart + 6)
@@ -44,7 +45,7 @@ function DotGrid({ cycleLength, totalRenderLength, isCurrent, typicalCycleDays }
           )
         }
         
-        if (day >= fertileStart && day <= fertileEnd) {
+        if (showFertileWindow && day >= fertileStart && day <= fertileEnd) {
           if (day === ovulationDay) {
             return (
               <div 
@@ -73,7 +74,7 @@ function DotGrid({ cycleLength, totalRenderLength, isCurrent, typicalCycleDays }
 }
 
 export function CycleHistory() {
-  const { dashboard: data } = useStore()
+  const { dashboard: data, settings } = useStore()
   
   // 1. Parse the last period start date safely and get typical cycle length
   const currentStart = data.lastPeriodStart ? parseISO(data.lastPeriodStart) : null
@@ -121,11 +122,12 @@ export function CycleHistory() {
             <CaretRight size={20} className="text-[#999] mt-2" />
           </div>
           <div className="flex flex-wrap gap-1.5 mt-4">
-            <DotGrid 
+          <DotGrid 
               cycleLength={currentCycleDays} 
               totalRenderLength={Math.max(currentCycleDays, typicalCycleDays)} 
               isCurrent={true} 
-              typicalCycleDays={typicalCycleDays} 
+              typicalCycleDays={typicalCycleDays}
+              showFertileWindow={settings.cycleShowFertileWindow}
             />
           </div>
         </div>

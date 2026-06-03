@@ -396,6 +396,7 @@ export function CycleTrackerHero({
             fertileEnd={fertileEnd}
             upcomingStart={upcomingStart}
             upcomingEnd={upcomingEnd}
+            showFertileWindow={settings.cycleShowFertileWindow}
             fertileColor={
               settings.conditionOptimization === 'pcos' ? '#8b5cf6' :
               settings.conditionOptimization === 'perimenopause' ? '#f59e0b' :
@@ -412,8 +413,8 @@ export function CycleTrackerHero({
           />
 
           <div className="viz-content">
-            {/* Chance of pregnancy indicator — only shown when cycle data exists */}
-            {data.lastPeriodStart && (
+            {/* Chance of pregnancy indicator — only shown when cycle data exists and fertile window hints are on */}
+            {data.lastPeriodStart && settings.cycleShowFertileWindow && (
               <div className="mb-6 animate-in fade-in zoom-in duration-700">
                 <span
                   className="px-5 py-1.5 rounded-full text-[9px] font-normal uppercase tracking-widest transition-colors duration-300"
