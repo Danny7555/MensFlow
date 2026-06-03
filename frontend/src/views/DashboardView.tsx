@@ -390,6 +390,20 @@ export function DashboardView() {
             if (lastProcessed !== String(ping.timestamp)) {
               localStorage.setItem('mensflow_last_ping_processed:v1', String(ping.timestamp))
               incrementNotificationCount()
+              
+              const pingsListStr = localStorage.getItem('mensflow_received_pings_list:v1') || '[]'
+              const pingsList = JSON.parse(pingsListStr)
+              if (!pingsList.some((p: any) => p.timestamp === ping.timestamp)) {
+                pingsList.push({
+                  id: ping.pingId || `ping-${ping.timestamp}`,
+                  label: ping.label,
+                  message: ping.message,
+                  timestamp: ping.timestamp,
+                  senderId: ping.senderId
+                })
+                localStorage.setItem('mensflow_received_pings_list:v1', JSON.stringify(pingsList))
+              }
+
               if (isAccessPing(ping.pingId)) {
                 void fetchPartnerStatus()
                 setRequestSent(false)
@@ -427,6 +441,20 @@ export function DashboardView() {
               if (lastProcessed !== String(ping.timestamp)) {
                 localStorage.setItem('mensflow_last_ping_processed:v1', String(ping.timestamp))
                 incrementNotificationCount()
+                
+                const pingsListStr = localStorage.getItem('mensflow_received_pings_list:v1') || '[]'
+                const pingsList = JSON.parse(pingsListStr)
+                if (!pingsList.some((p: any) => p.timestamp === ping.timestamp)) {
+                  pingsList.push({
+                    id: ping.pingId || `ping-${ping.timestamp}`,
+                    label: ping.label,
+                    message: ping.message,
+                    timestamp: ping.timestamp,
+                    senderId: ping.senderId
+                  })
+                  localStorage.setItem('mensflow_received_pings_list:v1', JSON.stringify(pingsList))
+                }
+
                 if (isAccessPing(ping.pingId)) {
                   void fetchPartnerStatus()
                   setRequestSent(false)
