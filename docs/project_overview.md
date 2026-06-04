@@ -1,164 +1,137 @@
-# MensFlow Project Overview & System Architecture 🌸
+# MensFlow — Project Overview
 
 [← Back to README](README.md)
 
-MensFlow is a dual-audience menstrual health platform built with **React 19**, **Express**, and **MongoDB**. This document explains the actual architecture, data flow, roles, and folder layout as of June 2026.
+MensFlow is a menstrual health and partner-support app built with React and an Express backend backed by MongoDB. This note explains how the system is put together, how data moves, who can see what, and the key ideas behind the privacy model.
 
 ---
 
-## 🎯 Mission
+## Why it exists
 
-MensFlow tracks menstrual cycles and translates biological changes into empathetic, actionable support for partners. It targets both **Ghanaian adolescent health education** and **general relationship wellness**, with strict privacy controls (passcode-vault chats, local-only storage toggle, partner access-level gates).
+MensFlow is built for two people at once: the person tracking their cycle, and the person who wants to support them better.
 
----
+For the tracker, it replaces scattered notes and guesswork with a single place to log symptoms, see cycle patterns, and understand what their body is doing.
 
-## 🏗️ Architecture (3 Layers)
+For the partner, it translates biological changes into plain, actionable care — so support feels informed instead of accidental.
 
-```
- MENFLOW SYSTEM
- ┌──────────────┐      HTTPS      ┌──────────────┐      MongoDB      ┌──────────────┐
- │   FRONTEND   │ ──────────────▶ │   BACKEND    │ ────────────────▶ │  DATABASE    │
- │  (localhost  │◀────────────── │  (localhost  │◀──────────────── │  (Mongoose)  │
- │   :5173)    │                │   :5001)     │                  │              │
- │              │                │              │                  │              │
- │  React 19    │                │  Express     │                  │  Users        │
- │  Router v7   │                │  JWT + bcrypt│                  │  Logs         │
- │  Zustand     │                │  Nodemailer  │                  │  Partners     │
- │  TanStack    │                │  node-cron   │                  │  Chats        │
- │  Recharts    │                │  OTP flow    │                  │  Settings     │
- └──────────────┘                └──────────────┘                  └──────────────┘
-```
-
-### What runs where
-
-| Layer | Tech | Port |
-|-------|------|------|
-| Frontend | React 19 · TypeScript · Vite · React Router v7 | `5173` |
-| Backend | Express · TypeScript · ts-node-dev | `5001` |
-| Database | MongoDB via Mongoose 8.x | — |
+The app also targets Ghanaian adolescent health education, with a dedicated educational access level that surfaces only health articles and removes everything else.
 
 ---
 
-## 🔄 Data Flow (Hybrid Mode)
+## How it’s built
 
-The frontend is **mid-migration** from localStorage-only to full backend sync:
+The system has three parts:
 
 ```
-Component → Zustand Action
-  ├── Optimistic UI update (immediate)
-  ├── HTTP call via services/ (Bearer JWT header)
-  │     ├── Success → merge server state
-  │     └── 401 → emit mf:auth:expired → logout
-  └── Fallback: localStorage persist (UI prefs only)
+ Frontend (your phone or browser)
+     ↕ HTTPS
+ Backend (Express API)
+     ↕ Mongoose
+ Database (MongoDB)
 ```
 
-- **Local-only fields** (sidebarCollapsed, themeMode) → `localStorage` only
-- **Remote fields** (logs, dashboard metrics, support streaks) → REST API → MongoDB
-- **Partner pings** → localStorage cross-tab events (`mensflow_partner_ping:v1`) until WebSocket migration lands
+**Frontend** — React 19 with TypeScript, served by Vite. It handles the views, animations, calendar, charts, chat, and all user interactions.
+
+**Backend** — Express with TypeScript. It handles login, saves logs, sends partner invites, serves education content, and runs a small scheduler.
+
+**Database** — MongoDB, accessed through Mongoose. It stores user accounts, cycle profiles, symptom logs, partner connections, chat history, and app settings.
+
+The frontend runs at `localhost:5173` in development. The backend runs at `localhost:5001`. Both are deployed on Vercel in production.
 
 ---
 
-## 📂 Folder Layout
+## How information flows
 
-```
-MensFlow/
-├── README.md
-├── docs/
-└── backend/
-    └── src/
-        ├── config/           # env, DB, mailer, rate limiter
-        ├── controllers/      # auth, cycle, chat, partner, user, tips, education
-        ├── middleware/       # JWT auth, errors
-        ├── models/           # User, Chat, Partner, Log, Dashboard, Settings,
-        │                     # Symptom, EducationArticle, WellnessTip, LoginHistory
-        ├── routes/           # auth, cycle, partner, scheduler, user, support,
-        │                     # education, wellnessTip
-        ├── services/         # auth (OTP), cycle, chat, email, partner,
-        │                     # scheduler, user
-        └── index.ts          # server entry + CORS
-└── frontend/
-    └── src/
-        ├── views/           # 15 lazy-loaded pages
-        ├── components/
-        │   ├── dashboard/   # DailyCheckIn, FeedSection, EmotionTranslator, Stories
-        │   ├── tracker/     # CycleWheel, CycleStatsHero, HealthMetrics,
-        │   │                 # CycleHistory, CycleLogs, CycleTips
-        │   ├── skeletons/   # loading states
-        │   └── ui/          # Card, Button, Input, Modal, Select, Dialog, Calendar
-        ├── context/         # AuthProvider, ChatSessionContext, SettingsProvider
-        ├── services/        # auth, chat, logs, partner, user, tips, education
-        ├── store/useStore.ts
-        ├── lib/             # apiClient, cycleUtils, theme, passwordStrength
-        ├── hooks/           # useMediaQuery, useSmartPushNotifications
-        ├── data/            # symptoms, tips, education, onboarding seeds
-        └── App.tsx          # router + guards
-```
+The app is in a hybrid state right now: it still keeps some things locally, but it is moving toward full backend sync.
+
+When you tap to log a symptom or update a setting:
+
+1. The UI updates immediately so the app feels fast.
+2. The change is sent to the backend if you’re signed in and not in local-only mode.
+3. If the request succeeds, the server’s version becomes the truth.
+4. If the request fails, the app rolls back and shows a quiet error — nothing is silently lost.
+5. Settings like theme choice and sidebar preference stay on the device only, because they don’t need to sync.
+
+Partner status pings are the one exception. Right now they travel between browser tabs using a shared localStorage key. This works on one machine. Cross-device real-time sync through WebSockets is the next step.
 
 ---
 
-## 🔐 Auth & Access Levels
+## Who can do what
+
+MensFlow has three lanes: Guest, Tracker (Lady), and Partner.
+
+**Guest** — anyone who hasn’t signed in yet. They can browse the landing page, run onboarding, read education content, and change guest-only settings. Everything else redirects to the home page.
+
+**Tracker (Lady role)** — the main user. Full access to dashboard, calendar, symptom logging, insights, tips, settings, sync, and locked chats.
+
+**Partner** — a supporter who has been invited by a tracker. Partners fall into two access levels:
+
+| Level | What they see |
+|-------|---------------|
+| **Full** | Dashboard, tracker, calendar, sync, insights, tips, notifications, and locked chats |
+| **Educational** | Education content only. All other routes redirect back to `/education` |
+
+This split exists so programs like the Ghanaian adolescent health initiative can deploy partners who see only curated health articles without exposing sensitive logs.
+
+---
+
+## Privacy by design
+
+MensFlow treats health data as sensitive by default.
+
+- **Access levels** — a tracker’s detailed logs are never visible to an educational-level partner.
+- **Passcode vault** — locked chats are stored separately from regular chats. A wrong passcode three times in a row triggers a security-question recovery instead of a permanent lockout.
+- **Local-only mode** — a privacy toggle in settings can stop all uploads. When on, data stays on the device.
+- **Token expiry** — when a login session expires, the app logs the user out cleanly and redirects them home.
+
+---
+
+## Folder layout
 
 ```
-                         ┌──────────────────┐
-                         │   AUTH STATE      │
-                         └────────┬─────────┘
-                                  │
-                   ┌──────────────┼──────────────┐
-                   ▼              ▼              ▼
-               GUEST          TRACKER         PARTNER
-          (not signed in)   (lady role)    (supporter role)
-                   │              │              │
-        ┌──────────┼──┐     ┌────┴────┐    ┌────┴────┐
-        ▼          ▼  ▼     ▼         ▼    ▼         ▼
-     Landing   Onboard  Edu   Full      Edu  Emotion  Streaks
-                   Settings access    only  Translator
-```
-
-```
-                        ┌──────────────────────────────┐
-                        │        PARTNER ROLES         │
-                        └──────────────┬───────────────┘
-                                       │
-                    ┌──────────────────┼──────────────────┐
-                    ▼                  ▼                  ▼
-               LADY (Tracker)   PARTNER (Full)   PARTNER (Educational)
-                    │                  │                  │
-            ┌───────┴───────┐          │          ┌───────┴───────┐
-            ▼   ▼   ▼   ▼   ▼          ▼          ▼   ▼   ▼   ▼   ▼
-         Dash Tracker   Calendar   Full dash   Edu   Ask   Set
-             Sympt  Sync    Ins    Tips Sync  only  only
-                    Tips  Notes  Notif  Lock
+ MensFlow/
+ ├── README.md
+ ├── docs/                     ← detailed notes on routing, design, cycle math, and API work
+ ├── backend/
+ │    └── src/
+ │        ├── config/          ← database, mailer, rate limiting, environment
+ │        ├── controllers/     ← auth, cycle, chat, partner, user, tips, education
+ │        ├── middleware/      ← JWT checks and error handling
+ │        ├── models/          ← database shapes for users, logs, partners, chats, etc.
+ │        ├── routes/          ← URL endpoints the frontend talks to
+ │        ├── services/        ← business logic for auth, cycles, email, partner, scheduler
+ │        └── index.ts         ← server start and CORS setup
+ └── frontend/
+      └── src/
+          ├── views/           ← the 15 main screens
+          ├── components/      ← reusable pieces for dashboards, trackers, and UI
+          ├── context/         ← auth, chat session, and settings providers
+          ├── services/        ← API clients for logs, partner, chat, tips, education
+          ├── store/useStore.ts ← global state for logs, dashboard, settings, and streaks
+          ├── lib/             ← helpers for cycle math, theming, and API requests
+          ├── hooks/           ← push notifications and screen-size helpers
+          └── data/            ← symptom lists, tips, education articles, and onboarding seeds
 ```
 
 ---
 
-## 🔒 Privacy Model
+## Cycle logic in plain terms
 
-- **Partner access levels** — `full` (sensitive logs) vs `educational` (health articles only)
-- **Passcode vault** — locked chats isolated into `mensflow_locked_chats`; AES-GCM before upload (planned)
-- **Local-only toggle** — `privacyStrictLocalOnly` prevents any server uploads
-- **Auth expiry** — 401 triggers `mf:auth:expired` → logout
+The app figures out which phase of the menstrual cycle you’re in by counting days from your last period start.
 
----
+- Short cycles (24 days or fewer) get a shorter assumed period window.
+- Longer cycles (36 days or more) get a longer one.
+- Ovulation is roughly fourteen days before the cycle ends.
+- The fertile window opens a few days before ovulation and closes a couple of days after.
+- Everything after that until the cycle ends is the luteal phase.
+- The days before the fertile window are the follicular phase.
 
-## 🧮 Cycle Math
-
-`frontend/src/lib/cycleUtils.ts` (frontend) and `backend/src/utils/cycleUtils.ts` (backend) share cycle-length-aware thresholds:
-
-- **Period:** 4 days (≤24), 5 days (25–35), 6 days (≥36)
-- **Ovulation:** `max(periodLen + 5, cycleLen - 14)`
-- **Fertile:** ovulation −4 → ovulation +2
-- **Luteal:** fertileEnd + 1 → cycleLen
-
-| Phase | UI Color |
-|-------|---------|
-| Menstrual | `#f43f5e` rose |
-| Follicular | `#0d9488` teal |
-| Fertile | `#26899e` sky-blue |
-| Luteal | `#d97706` amber |
+Each phase shifts the app’s colors, tips, and empathy translations so the experience feels aligned with what’s actually happening biologically.
 
 ---
 
-## 🤝 Development
+## Where things are heading
 
-MensFlow uses Agile sprints with standard branch naming (`type/short-description`), Conventional Commits, and squash-merge PRs. For details: [`docs/collaboration_guide.md`](https://github.com/dadaxlabs/mensflow/blob/main/docs/collaboration_guide.md).
+The main focus right now is finishing the backend migration. Features like full WebSocket partner sync, client-side chat encryption, and deeper TanStack Query adoption are already planned or partially in progress.
+
+For day-to-day workflow — branching, commits, reviews, and quality checks — see [`docs/collaboration_guide.md`](https://github.com/dadaxlabs/mensflow/blob/main/docs/collaboration_guide.md).
