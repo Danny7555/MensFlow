@@ -13,9 +13,11 @@ import cycleRoutes from './routes/cycleRoutes';
 import partnerRoutes from './routes/partnerRoutes';
 import chatRoutes from './routes/chatRoutes';
 import emailRoutes from './routes/emailRoutes';
+import schedulerRoutes from './routes/schedulerRoutes';
 import { startScheduler } from './services/schedulerService';
 
 const app = express();
+const isVercel = process.env.VERCEL === '1' || !!process.env.VERCEL;
 
 // ─── Global Middleware ────────────────────────────────────────────────────────
 
@@ -41,6 +43,20 @@ app.use(cors({
 app.use(express.json({ limit: '64kb' }));
 app.use(express.text({ limit: '64kb' }));
 
+// Lazy DB connection for Serverless environments (Vercel)
+let dbConnected = false;
+app.use(async (_req: Request, _res: Response, next: NextFunction) => {
+  if (isVercel && !dbConnected) {
+    try {
+      await connectDatabase();
+      dbConnected = true;
+    } catch (err) {
+      return next(err);
+    }
+  }
+  next();
+});
+
 // ─── Request Logger (development) ────────────────────────────────────────────
 
 if (!isProduction) {
@@ -64,6 +80,10 @@ app.use('/api/logs', cycleRoutes);
 app.use('/api/partner', partnerRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/email', emailRoutes);
+app.use('/api/scheduler', schedulerRoutes);
+app.get('/', (_req: Request, res: Response) => {
+  res.json({ message: 'MensFlow API is running successfully' });
+});
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 
@@ -111,6 +131,11 @@ process.on('unhandledRejection', (reason) => {
 
 async function bootstrap(): Promise<void> {
   validateRuntimeEnv();
+  if (isVercel) {
+    // Connect DB in the background on cold start
+    connectDatabase().catch(err => console.error('[Vercel] DB warm connection error:', err));
+    return;
+  }
   await connectDatabase();
   const PORT = getPort();
   const server = await listen(PORT);
@@ -123,8 +148,12 @@ async function bootstrap(): Promise<void> {
 
 bootstrap().catch((err) => {
   console.error('Failed to start server:', err);
-  process.exit(1);
+  if (!isVercel) {
+    process.exit(1);
+  }
 });
+
+export default app;
 
 // ─── Graceful Shutdown ────────────────────────────────────────────────────────
 
