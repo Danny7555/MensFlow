@@ -1,80 +1,300 @@
 # MensFlow Routing, Authentication, & Navigation Guards 🔐
 
-[← Back to README](README.md) | [← Back to Docs](README.md#-table-of-contents)
+[← Back to README](README.md) | [← Back to Overview](project_overview.md)
 
-MensFlow uses **React Router v7** with lazy-loaded views inside `App.tsx:25-40`. The router lives inside a `MainShell` component (`frontend/src/App.tsx:327`) and applies two guards:
-
-- `!isAuthenticated` — block private routes for guests
-- `ChatLockGate` — re-prompt passcode before unlocking locked-chats (`App.tsx:43`)
-- `AccessGate` — enforce `full` vs `educational` partner access on sensitive views
+This document explains the router layout, authentication states, and private navigation guards implemented in MensFlow. Understanding this structure is essential for adding new views or modifying navigation links.
 
 ---
 
-## 🚦 Routing Table
+## 📖 Table of Contents
 
-All routes are defined between `App.tsx:424-475`. The router branches on `isAuthenticated` from `useAuth()`.
+1. [System Overview](#system-overview)
+2. [Route Architecture](#route-architecture)
+3. [Authentication Journeys](#authentication-journeys)
+4. [Route Guard Reference](#route-guard-reference)
+5. [AuthProvider API](#authprovider-api)
+6. [Partner Access Levels](#partner-access-levels)
 
-### Guest Routes (`!isAuthenticated`)
+---
 
-| Path | View | Notes |
-|------|------|-------|
-| `/` | `LandingView` | Public landing + auth CTA |
-| `/onboarding` | `OnboardingView` | Role selection, cycle baseline |
-| `/settings` | `SettingsView` (isGuest) | Guest mode — pass `onLogin` |
-| `/education` | `EducationView` | Public health articles |
-| `/locked-chats` | `LockedChatsView` | Self-gated (passcode inside) |
-| `/ask`, `/dashboard`, `/calendar`, `/tracker`, `/insights`, `/tips`, `/symptoms`, `/sync`, `/notifications`, `/history` | `<Navigate to="/" replace />` | Redirects to landing |
-| `*` | `NotFoundView` | 404 |
+## 🏗️ System Overview
 
-### Authenticated Routes
+```
+ MENFLOW ROUTING ARCHITECTURE
+ ┌──────────────────────────────────────────────────────────────────┐
+ │                         App.tsx Router                           │
+ │                                                                  │
+ │  isRehydrating?  ──▶  PageLoader                                 │
+ │       │                                                          │
+ │       ▼                                                          │
+ │  isAuthenticated?                                                │
+ │       │                                                          │
+ │    ┌──┴──┐                                                       │
+ │    ▼     ▼                                                        │
+ │  Guest   Logged-In                                                │
+ │    │      │                                                        │
+ │    │  onboardingDone?                                             │
+ │    │      │                                                        │
+ │    │   ┌──┴──┐                                                    │
+ │    │   ▼     ▼                                                    │
+ │    │  No     Yes                                                  │
+ │    │   │      │                                                    │
+ │    │   ▼      └──▶ user.accessLevel?                              │
+ │    │ Onboard       │                                              │
+ │    │   │       ┌──┴──┐                                           │
+ │    │   │       ▼     ▼                                           │
+ │    │   │     Edu   Full                                          │
+ │    │   │       │      │                                           │
+ │    │   │       ▼      ▼                                           │
+ │    │   │    Edu     Dashboard                                     │
+ │    │   │   views    + full views                                  │
+ │    │   │                                                        │
+ │    └───┼──────────────────────────────────────────────────────┘
+ │        ▼                                                          │
+ │  AccessGate wraps dashboard / tracker / calendar / symptoms      │
+ │  ChatLockGate wraps /ask when privacy lock is ON                  │
+ └──────────────────────────────────────────────────────────────────┘
+```
 
-| Path | View | Guard | Partner redirect |
-|------|------|-------|-----------------|
-| `/` | → `/onboarding` or `/dashboard` or `/education` | — | `accessLevel==educational` → `/education` |
-| `/onboarding` | `OnboardingView` | — | — |
-| `/dashboard` | `DashboardView` | `AccessGate` | yes |
-| `/ask` | `ChatView` | `ChatLockGate` (outer) | — |
-| `/settings` | `SettingsView` | — | — |
-| `/insights` | `InsightsView` | `AccessGate` | yes |
-| `/calendar` | `CalendarView` | `AccessGate` | yes |
-| `/tracker` | `TrackerView` | `AccessGate` | yes |
-| `/symptoms` | `SymptomsView` | `AccessGate` | yes |
-| `/sync` | `SyncView` | `AccessGate` | yes |
-| `/notifications` | `NotificationsView` | `AccessGate` | yes |
-| `/tips` | `TipsView` | `AccessGate` | yes |
-| `/education` | `EducationView` | — | yes (all partners land here on `/`) |
-| `/locked-chats` | `LockedChatsView` | — | yes |
-| `/history`, `/health-insights`, `/wellness-tips` | `<>` redirect → `/insights`/`/tips` | — | — |
-| `*` | `NotFoundView` | — | — |
+**Three distinct routing trees exist:**
+
+- **Guest:** public landing, onboarding, guest settings, education
+- **Authenticated (Lady):** full dashboard + tracker + calendar + symptoms + sync + notifications + insights + tips + locked chats
+- **Authenticated (Partner):**
+  - `educational` access level → education only
+  - `full` access level → full dashboard + emotion translator + support streaks
+
+---
+
+## 🗺️ Route Map (All 15 Routes)
+
+Routes are defined in `frontend/src/App.tsx` between lines 424–475, all lazy-loaded via `React.lazy()` plus `Suspense` + `AnimatePresence`. Guard components surround sensitive routes.
+
+| Route | Path | Component | Auth | Guard | Description |
+|-------|------|-----------|------|-------|-------------|
+| Landing | `/` | `LandingView` | ❌ None | — | Public app intro + auth buttons |
+| Onboarding | `/onboarding` | `OnboardingView` | ✅ Both | — | Role selection + cycle baseline |
+| Dashboard | `/dashboard` | `DashboardView` | ✅ Logged-in | `AccessGate` | Home feed + Today's Plan |
+| Tracker | `/tracker` | `TrackerView` | ✅ Logged-in | `AccessGate` | Cycle wheel + metrics |
+| Calendar | `/calendar` | `CalendarView` | ✅ Logged-in | `AccessGate` | Phase indicators + day picker |
+| Symptoms | `/symptoms` | `SymptomsView` | ✅ Logged-in | `AccessGate` | Log modal + trend charts |
+| Ask AI | `/ask` | `ChatView` | ✅ Logged-in | `ChatLockGate` | AI companion chat |
+| Locked Chats | `/locked-chats` | `LockedChatsView` | ✅ Logged-in | Passcode | Privacy vault |
+| Sync | `/sync` | `SyncView` | ✅ Logged-in | `AccessGate` | Partner pings + streaks |
+| Insights | `/insights` | `InsightsView` | ✅ Logged-in | `AccessGate` | Charts + CSV/PDF export |
+| Tips | `/tips` | `TipsView` | ✅ Logged-in | `AccessGate` | Phase-specific tips |
+| Education | `/education` | `EducationView` | ❌ Guest | — | Health articles |
+| Settings | `/settings` | `SettingsView` | ✅ Both | — | Cycle + privacy + layout |
+| Notifications | `/notifications` | `NotificationsView` | ✅ Logged-in | `AccessGate` | Partner pings + alerts |
+| Tracker | `/tracker` | `TrackerView` | ✅ Logged-in | `AccessGate` | Health metrics + logs |
+| Not Found | `*` | `NotFoundView` | ❌ — | — | 404 fallback |
+
+Redirect routes (`/history`, `/health-insights`, `/wellness-tips`) point to `/insights` or `/tips` to keep the URL tree tidy.
+
+---
+
+## 🔐 Authentication Journeys
+
+```
+ GUEST AUTHENTICATION FLOW
+ ┌────────────────────────────────────────────────────────────────┐
+ │                                                                │
+ │  1. User opens app at /                                        │
+ │     → isAuthenticated = false                                  │
+ │     → isRehydrating = true                                     │
+ │     ~> PageLoader shown                                        │
+ │                                                                │
+ │  2. Rehydration done                                           │
+ │     → Navigate based on onboardingCompleted                    │
+ │                                                                │
+ │     ┌─── ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─┐            │
+ │     ▼                                            ▼            │
+ │   Not onboarded          Already onboarded                     │
+ │     │                        │                                 │
+ │     ▼                        ▼                                 │
+ │  /onboarding          Switch to dashboard                       │
+ │  OR guest             (or /education if partner)               │
+ │  settings                                                      │
+ │                                                                │
+ │  3. User clicks "Sign In"                                      │
+ │     → openAuthModal() launched from any button                 │
+ │     → Modal: Login (email + password)                          │
+ │         OR Register (UTT, email, otp flow)                     │
+ │                                                                │
+ │  4. POST /api/auth/login                                       │
+ │     200 OK → { token, user }                                   │
+ │     → isAuthenticated = true                                   │
+ │     → login() stores user object                               │
+ │     → navigate to dashboard or education                       │
+ │                                                                │
+ └────────────────────────────────────────────────────────────────┘
+
+ AUTH GUARDS
+ ┌───────────────┐     ┌───────────────┐     ┌───────────────┐
+ │     Guest      │     │   Lady/User   │     │     Partner   │
+ ├───────────────┤     ├───────────────┤     ├───────────────┤
+ │ Landing        │     │ Dashboard     │     │ Educational   │
+ │ Onboarding     │     │ Tracker       │     │  (Edu only)   │
+ │ Guest Settings │     │ Calendar      │     │ Ask           │
+ │ Education      │     │ Symptoms      │     │ Settings      │
+ │ Locked Chats*  │     │ Sync          │     │               │
+ │               │     │ Insights      │     │               │
+ │  *self-gated  │     │ Tips          │     │               │
+ │               │     │ Notifications │     │               │
+ │               │     │ Settings      │     │               │
+ └───────────────┘     │ Locked Chats  │     └───────────────┘
+                       └───────────────┘
+
+   PARTNER REDIRECT TREE
+                 user.accessLevel === 'educational'
+                               │
+                     ┌────────┴────────┐
+                     ▼                 ▼
+                  /education         — (other routes)
+                 (allowed)          redirected to /education
+
+
+   CHAT LOCK GATE STATE MACHINE
+                         privacyLockChats enabled?
+                                  │
+                         ┌──────┴──────┐
+                         ▼             ▼
+                       YES            NO
+                        │              │
+                  ┌─────┴────┐    Show ChatView
+                  ▼           ▼      normally
+              Locked    Unlocked
+                │          │
+        attempts < 3      isUnlocked = true
+                │          │
+          show passcode   Show chat content
+          input form      + "Lock Now" button
+                │
+         attempts >= 3
+                │
+         show "Forgot Password?"
+                │
+          answer security Q
+                │
+          correct?       incorrect
+            │                │
+           YES              NO
+            │                │
+     reset-password      try again
+       mode
+```
+
+---
+
+## 🧩 Guard Reference
+
+### `!isAuthenticated` — Guest Block
+
+When `isAuthenticated === false`, all private routes redirect to `LandingView` via React Router `<Navigate>`:
+
+```
+/ask  →  /
+/dashboard  →  /
+/calendar  →  /
+/tracker  →  /
+/insights  →  /
+/tips  →  /
+/symptoms  →  /
+/sync  →  /
+/notifications  →  /
+/history  →  /
+```
+
+Only four routes remain reachable:
+
+- `/` — `LandingView` (public preview)
+- `/onboarding` — `OnboardingView` (setup flow)
+- `/settings` — `SettingsView` (guest mode, lock button calls `openAuthModal`)
+- `/education` — `EducationView` (open health articles)
+- `/locked-chats` — `LockedChatsView` (self-contained gate)
+
+### `ChatLockGate` (`App.tsx:43`)
+
+A local state machine wrapping `/ask` only when `settings.privacyLockChats === true`. Manages three modes:
+
+- `unlock` — passcode input against `settings.privacyLockChatsPassword`
+- `reset-security` — answer configured security question
+- `reset-password` — set a new password (strength meter enforced)
+
+After 3 wrong passwords, the "Forgot Password?" button appears and sends the user to `reset-security` mode. Correct answer advances to `reset-password`. If the new password passes `passwordStrength.ts` checks (`isStrong === true`), it is written to settings and the chat unlocks.
+
+### `AccessGate` (`frontend/src/components/AccessGate.tsx`)
+
+Wraps these views: `/dashboard`, `/tracker`, `/calendar`, `/symptoms`, `/sync`, `/notifications`, `/insights`, `/tips`. If `user.accessLevel !== 'full'`, redirects to `/education`. Used for teen/educational deployments where detailed logs should be hidden.
 
 ---
 
 ## 🔑 `AuthProvider` (`frontend/src/context/AuthProvider.tsx`)
 
-Global auth state. Any view that calls `useAuth()` gets:
+Wraps the entire app in `App.tsx:580-588` as the outermost provider chain:
 
-- `isAuthenticated: boolean`
-- `onboardingCompleted: boolean`
-- `openAuthModal: () => void`
-- `login: (payload) => void`
-- `logout: () => void`
-- `isRehydrating: boolean` — set while Zustand rehydrates from localStorage
+```
+ <AuthProvider>
+   <ThemeSync />
+   <MainShell />
+   <DynamicToaster />
+   <GlobalModalContainer />
+ </AuthProvider>
+```
 
-The provider wraps the entire app in `App.tsx:580-588`.
+### `useAuth()` Return Type
+
+```typescript
+interface AuthContextValue {
+  isAuthenticated: boolean   // session exists
+  onboardingCompleted: boolean  // cycle baseline set
+  isRehydrating: boolean    // Zustand persist rehydrating
+  openAuthModal: () => void // show credentials overlay
+  login: (payload) => void  // register + start session
+  logout: () => void        // clear token, reset state, redirect
+}
+```
+
+The rehydration process:
+
+```
+App Mount
+ └─▶ Zustand persist reads localStorage under 'mensflow-storage'
+     └─▶ isRehydrating = true → <PageLoader /> shown
+         └─▶ rehydrate completes
+             └─▶ isRehydrating = false → router renders real routes
+```
 
 ---
 
-## 🔒 Chat Lock Gate (`frontend/src/App.tsx:43`)
+## 🤝 Partner Access Levels
 
-`ChatLockGate` is a JSX guard wrapping `/ask` when `privacyLockChats` is enabled in settings. It manages:
+Two boolean fields shape what a partner can see:
 
-- 3-state mode: `unlock` → `reset-security` → `reset-password`
-- Failed-attempt counter: 3 wrong passwords → "Forgot Password?" button
-- Security question answer check against `settings.privacyLockChatsSecurityAnswer`
-- Password strength enforcement via `lib/passwordStrength.ts`
+```
+ ACCESS LEVEL DECISION TREE
+        user.role === 'partner'?
+               │
+        ┌──────┴────────────┐
+        NO                  YES
+         │                  │
+    role = 'lady'    Is paired?
+    (tracker)             │
+         │          ┌──────┴────────────┐
+    full access       NO                  YES
+    all views         │                  │
+                     ▼                  ▼
+                no partner         accessLevel
+                 linked              set via
+                 shows            /partner/pair
+               partner-only
+               onboarding
+```
 
----
+Three access levels in practice:
 
-## 🛡️ Access Gate (`frontend/src/components/AccessGate.tsx`)
-
-Wraps `dashboard`, `insights`, `calendar`, `tracker`, `symptoms`, `sync`, `notifications`, `tips` for authenticated users. When `user.accessLevel === 'educational'`, most of these views redirect to `/education`.
+| Level | Who sees it | What is visible |
+|-------|-------------|-----------------|
+| `full` | Lady + paired Partner | Dashboard, tracker, calendar, symptoms, sync, notifications, insights, tips, locked chats |
+| `educational` | Partner in school program | `/education` content only; other routes redirect |
+| `guest` | Not signed in | Landing, onboarding, guest settings, education |
