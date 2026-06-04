@@ -507,8 +507,8 @@ export function NotificationsView() {
                   onClick={() => setReadIds(prev => { const next = new Set(prev); next.add(notification.id); return next })}
                   className={`group p-5 rounded-[24px] border transition-all animate-in fade-in slide-in-from-bottom-3 duration-300 cursor-pointer ${
                     readIds.has(notification.id) 
-                      ? 'bg-[var(--mf-card)]/50 border-[var(--mf-border)]/50 opacity-60' 
-                      : 'bg-[var(--mf-card)] border-[var(--mf-border)] hover:shadow-xs'
+                      ? 'bg-[var(--mf-card)]/50 border-[var(--mf-border)]/30 opacity-60' 
+                      : 'bg-[var(--mf-card)] border-[var(--mf-border)]/50 hover:border-[var(--mf-border)] hover:shadow-xs'
                   }`}
                   style={{ animationDelay: `${idx * 0.05}s` }}
                 >
@@ -525,7 +525,7 @@ export function NotificationsView() {
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-1.5">
-                        <h3 className="font-medium text-[var(--mf-text-strong)] text-sm md:text-base leading-snug flex-1">
+                        <h3 className="font-normal text-[var(--mf-text-strong)] text-sm md:text-base leading-snug flex-1">
                           {notification.title}
                         </h3>
                         <span className="text-[10px] text-[var(--mf-muted)] uppercase font-medium tracking-wider shrink-0 hidden sm:inline">
@@ -565,7 +565,7 @@ export function NotificationsView() {
                 <div className="size-16 rounded-full bg-[var(--mf-hover)] flex items-center justify-center text-[var(--mf-muted)] mb-4">
                   <Bell size={32} weight="light" />
                 </div>
-                <h3 className="font-semibold text-[var(--mf-text-strong)] mb-1">All caught up</h3>
+                <h3 className="font-medium text-[var(--mf-text-strong)] mb-1">All caught up</h3>
                 <p className="text-xs md:text-sm text-[var(--mf-muted)] max-w-[280px] leading-relaxed">
                   You don't have any notifications or action alerts at the moment.
                 </p>
@@ -583,15 +583,15 @@ export function NotificationsView() {
                   <h3 className="font-medium text-sm text-[var(--mf-text-strong)]">Cycle Sync Status</h3>
                 </div>
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center pb-3 border-b border-[var(--mf-border)]">
+                  <div className="flex justify-between items-center pb-3 border-b border-[var(--mf-border)]/30">
                     <span className="text-xs text-[var(--mf-muted)]">Active Phase</span>
-                    <span className="text-xs font-medium bg-pink-500/10 text-pink-500 px-2.5 py-1 rounded-full">
+                    <span className="text-xs font-normal bg-pink-500/10 text-pink-500 px-2.5 py-1 rounded-full">
                       {cycleInfo.phaseLabel}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center pb-3 border-b border-[var(--mf-border)]">
+                  <div className="flex justify-between items-center pb-3 border-b border-[var(--mf-border)]/30">
                     <span className="text-xs text-[var(--mf-muted)]">Cycle Day</span>
-                    <span className="text-xs font-medium text-[var(--mf-text-strong)]">
+                    <span className="text-xs text-[var(--mf-text-strong)]">
                       Day {cycleDay} of {cycleInfo.typicalCycleDays}
                     </span>
                   </div>
@@ -618,7 +618,7 @@ export function NotificationsView() {
                   Outstanding job! You are actively supporting partner wellness and maintaining sync.
                 </p>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-semibold text-pink-500 font-mono tracking-tight">
+                  <span className="text-4xl font-medium text-pink-500 font-mono tracking-tight">
                     {supportStreak}
                   </span>
                   <span className="text-[10px] text-[var(--mf-muted)] font-medium uppercase tracking-wider">
@@ -701,7 +701,7 @@ export function NotificationsView() {
               </div>
 
               {/* Browser Alert Permission — separated section */}
-              <div className="mt-5 pt-4 border-t border-[var(--mf-border)]">
+              <div className="mt-5 pt-4 border-t border-[var(--mf-border)]/30">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-medium text-[var(--mf-text-strong)]">Browser Push Alerts</span>
                   <span className={`text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded-full ${
