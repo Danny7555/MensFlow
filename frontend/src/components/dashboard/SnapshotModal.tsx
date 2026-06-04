@@ -64,7 +64,7 @@ export function SnapshotModal({ isOpen, onOpenChange, data, update, isSaving }: 
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] rounded-[32px] p-8 border-none">
+      <DialogContent className="sm:max-w-[425px] rounded-[32px] p-8 border-none max-h-[90vh] overflow-y-auto scrollbar-hide">
         <DialogHeader>
           <DialogTitle className="text-2xl font-normal">Your Snapshot</DialogTitle>
           <DialogDescription>
