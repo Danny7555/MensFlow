@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { AuthContext } from './auth-context'
 import { AuthModal } from '../components/AuthModal'
 import { authApi } from '../services/authService'
@@ -23,7 +23,18 @@ const getLocalPartnerCode = () => sessionStorage.getItem('mf_partner_code')
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
+  const location = useLocation()
   const { hydrate, resetStore } = useStore()
+
+  // Capture partner code from URL query parameters (e.g. from an invite link)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const code = params.get('code')
+    if (code) {
+      sessionStorage.setItem('mf_partner_code', code.toUpperCase())
+      console.log('[AuthProvider] Captured partner code from URL:', code.toUpperCase())
+    }
+  }, [location.search])
 
   const [state, setState] = useState({
     isAuthenticated: isLoggedIn(),
