@@ -98,7 +98,7 @@ function buildReminderEvents(
 
 // ─── Core job function ────────────────────────────────────────────────────────
 
-async function runDailyReminderJob(): Promise<void> {
+export async function runDailyReminderJob(): Promise<void> {
   console.log('[Scheduler] Running daily reminder job…');
 
   const todayStr = new Date().toISOString().slice(0, 10);

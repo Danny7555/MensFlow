@@ -1,6 +1,10 @@
 import mongoose from 'mongoose';
 
 export async function connectDatabase(): Promise<void> {
+  if (mongoose.connection.readyState >= 1) {
+    console.log('[DB] Already connected to MongoDB (cached)');
+    return;
+  }
   const uri = process.env.MONGO_URI;
 
   if (!uri) {
