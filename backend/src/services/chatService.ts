@@ -221,9 +221,10 @@ async function buildAIResponse(
 
   const user = await User.findById(userId).lean();
   let targetId: string = userId;
-  let targetName: string = user?.name ?? 'Partner';
+  let targetName: string = user?.name ?? 'you';
+  const isPartnerUser = user?.role === 'partner';
 
-  if (user?.partnerId) {
+  if (isPartnerUser && user?.partnerId) {
     const partner = await User.findById(user.partnerId).lean();
     if (partner) {
       targetId = String(partner._id);
@@ -252,8 +253,9 @@ async function buildAIResponse(
     ? `Symptoms logged today: ${symptomsList.join(', ')}`
     : `No symptoms logged today.`;
 
-  const systemMessage = `You are MensFlow, a warm, highly empathetic, and supportive relationship assistant.
-You help a partner support their loved one (named ${targetName}) during their menstrual cycle.
+  const systemMessage = isPartnerUser
+    ? `You are MensFlow, a warm, highly empathetic partner-support assistant.
+You help the user support their partner (named ${targetName}) during her menstrual cycle.
 
 Current context for ${targetName}:
 - Cycle Phase: ${phaseLabel}
@@ -266,7 +268,23 @@ Instructions:
 3. Do not sound clinical or overly robotic. Speak like a supportive relationship coach who understands cycle physiology.
 4. Keep context in mind (e.g. if energy is low in Luteal/Menstrual, suggest taking over chores, preparing hot water bottles, run baths, or bringing comfort food; if in Follicular/Ovulatory, suggest active dates, walking, or creative initiatives).
 5. If the user asks general relationship or support questions, address them while relating it back to cycle dynamics if relevant.
-6. CRITICAL: You must NOT ask any questions or engage in discussions about topics outside of general health, cycle tracking, cycle physiology, and supporting a partner through their menstrual cycle. If the user asks about unrelated topics (such as general news, sports, math, coding, generic cooking recipes, etc.), politely decline to discuss them and steer the conversation back to menstrual health, relationship support, or cycle symptoms. Under no circumstances should you initiate questions or ask the user questions about any topic outside of health or menstrual cycle tracking.`;
+6. CRITICAL: You must NOT ask any questions or engage in discussions about topics outside of general health, cycle tracking, cycle physiology, and supporting a partner through their menstrual cycle. If the user asks about unrelated topics (such as general news, sports, math, coding, generic cooking recipes, etc.), politely decline to discuss them and steer the conversation back to menstrual health, relationship support, or cycle symptoms. Under no circumstances should you initiate questions or ask the user questions about any topic outside of health or menstrual cycle tracking.`
+    : `You are MensFlow, a warm, highly empathetic cycle-tracking and self-care assistant.
+You help the user understand their own menstrual cycle, symptoms, flow, mood, body signals, and daily care needs.
+
+Current context for the user:
+- Name: ${targetName}
+- Cycle Phase: ${phaseLabel}
+- Cycle Day: Day ${currentDay}
+- ${symptomsText}
+
+Instructions:
+1. Speak directly to the user using "you" and "your". Do not assume they are asking about a partner.
+2. Provide practical, compassionate self-care, tracking, nutrition, rest, movement, and symptom-logging suggestions tailored to their current cycle phase and symptoms.
+3. Keep answers concise, engaging, and easy to read with markdown bullets or short paragraphs.
+4. If the user asks about partner support, you may include a small optional partner note, but the default perspective must be the user's own body and experience.
+5. Do not sound clinical or robotic. Be warm, clear, and grounded in cycle physiology.
+6. CRITICAL: You must NOT discuss unrelated topics. If the user asks about general news, sports, coding, or other unrelated subjects, politely redirect to menstrual health, cycle tracking, symptoms, or self-care.`;
 
   const recentHistory = history.slice(-15);
   const apiMessages = [
@@ -542,15 +560,15 @@ export async function sendGuestMessage(
     };
   }
 
-  const systemMessage = `You are MensFlow, a warm, highly empathetic, and supportive relationship assistant.
-You help partners support their loved ones during their menstrual cycle.
-Since this is a guest preview session, you do not have their custom cycle data yet.
-Provide warm, general cycle support suggestions, tips, and insights.
+  const systemMessage = `You are MensFlow, a warm, highly empathetic menstrual cycle, self-care, and partner-support assistant.
+Since this is a guest preview session, you do not have custom cycle data yet.
+Default to helping the user understand their own cycle using "you" and "your". If they clearly ask as a partner, switch to partner-support advice.
+Provide warm, general cycle support suggestions, symptom guidance, tracking tips, and insights.
 Instructions:
-1. Speak like a supportive relationship coach who understands cycle physiology.
+1. Speak like a supportive cycle coach who understands cycle physiology.
 2. Keep your answers concise, engaging, and easy to read (use markdown bullet points, bold text, or short paragraphs).
 3. Encourage the user to sign up or create a free account to log symptoms, sync with their partner, and get personalized, daily advice.
-4. CRITICAL: You must NOT ask any questions or engage in discussions about topics outside of general health, cycle tracking, cycle physiology, and supporting a partner through their menstrual cycle. If the user asks about unrelated topics (such as general news, sports, math, coding, generic cooking recipes, etc.), politely decline to discuss them and steer the conversation back to menstrual health, relationship support, or cycle symptoms. Under no circumstances should you initiate questions or ask the user questions about any topic outside of health or menstrual cycle tracking.`;
+4. CRITICAL: You must NOT ask any questions or engage in discussions about topics outside of general health, cycle tracking, cycle physiology, self-care, and partner support around menstrual cycles. If the user asks about unrelated topics (such as general news, sports, math, coding, generic cooking recipes, etc.), politely decline and steer the conversation back to menstrual health, cycle tracking, or symptoms.`;
 
   const apiMessages = [
     { role: 'system', content: systemMessage },
@@ -599,9 +617,9 @@ export async function getSuggestions(userId?: string): Promise<string[]> {
   const groqApiKey = process.env.GROQ_API_KEY;
   
   const defaultSuggestions = [
-    "How can I support my partner with cramps today?",
-    "What should I cook for dinner during her luteal phase?",
-    "What are simple things to reduce her stress levels?"
+    "Why am I cramping today?",
+    "What should I log today?",
+    "How can I support my energy?"
   ];
 
   if (!groqApiKey) {
@@ -611,13 +629,16 @@ export async function getSuggestions(userId?: string): Promise<string[]> {
   let phaseLabel = 'Menstrual';
   let currentDay = 1;
   let symptomsText = 'No symptoms logged today';
-  let targetName = 'Partner';
+  let targetName = 'the user';
+  let isPartnerUser = false;
 
   if (userId) {
     try {
       const user = await User.findById(userId).lean();
       let targetId = userId;
-      if (user?.partnerId) {
+      isPartnerUser = user?.role === 'partner';
+      targetName = user?.name || targetName;
+      if (isPartnerUser && user?.partnerId) {
         const partner = await User.findById(user.partnerId).lean();
         if (partner) {
           targetId = String(partner._id);
@@ -647,7 +668,8 @@ export async function getSuggestions(userId?: string): Promise<string[]> {
     }
   }
 
-  const prompt = `You are a helpful assistant.
+  const prompt = isPartnerUser
+    ? `You are a helpful assistant.
 Given a relationship context where a partner wants to support their loved one (named ${targetName}):
 - Cycle Phase: ${phaseLabel}
 - Cycle Day: Day ${currentDay}
@@ -656,7 +678,17 @@ Given a relationship context where a partner wants to support their loved one (n
 Generate 3 short, relevant, and highly actionable question prompts (maximum 8 words each) that the partner can ask the AI to get support advice.
 Return ONLY a valid JSON array of strings. Do not include markdown, bullet points, or explanation.
 Example format:
-["How can I help with her cramps?", "What should I cook for dinner?", "How to make her Luteal phase easier?"]`;
+["How can I help with her cramps?", "What should I cook for dinner?", "How to make her Luteal phase easier?"]`
+    : `You are a helpful menstrual cycle assistant.
+Given this user's own cycle context:
+- Cycle Phase: ${phaseLabel}
+- Cycle Day: Day ${currentDay}
+- Status: ${symptomsText}
+
+Generate 3 short, relevant, and highly actionable question prompts (maximum 8 words each) that the user can ask about their own cycle, symptoms, self-care, or tracking.
+Return ONLY a valid JSON array of strings. Do not include markdown, bullet points, or explanation.
+Example format:
+["Why am I cramping today?", "What should I log today?", "How can I support my energy?"]`;
 
   try {
     const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
@@ -702,8 +734,8 @@ export async function getDailyGuidance(userId: string): Promise<any> {
   const defaultGuidance = {
     scientificInsight: "Did you know? Estrogen levels rise, which stimulates the growth of follicles in your ovaries and can increase your cognitive clarity, mood, and physical stamina.",
     dailyTip: {
-      title: "Embrace rising energy",
-      desc: "Suggest starting a new creative project or outdoor activity together. Her body is highly responsive to learning and planning."
+      title: "Support your energy",
+      desc: "Choose one realistic care action today: hydrate, log symptoms, add gentle movement, or protect an earlier rest window."
     },
     wellnessTips: [
       {
@@ -734,12 +766,15 @@ export async function getDailyGuidance(userId: string): Promise<any> {
   let phaseLabel = 'Menstrual';
   let currentDay = 1;
   let symptomsText = 'No symptoms logged today';
-  let targetName = 'Partner';
+  let targetName = 'the user';
   let targetId = userId;
+  let isPartnerUser = false;
 
   try {
     const user = await User.findById(userId).lean();
-    if (user?.partnerId) {
+    targetName = user?.name || targetName;
+    isPartnerUser = user?.role === 'partner';
+    if (isPartnerUser && user?.partnerId) {
       const partner = await User.findById(user.partnerId).lean();
       if (partner) {
         targetId = String(partner._id);
@@ -749,11 +784,15 @@ export async function getDailyGuidance(userId: string): Promise<any> {
     
     const dashboard = await Dashboard.findOne({ userId: targetId }).lean();
     if (dashboard && dashboard.guidanceGeneratedDate === today && dashboard.scientificInsight && dashboard.dailyTip) {
-      return {
-        scientificInsight: dashboard.scientificInsight,
-        dailyTip: dashboard.dailyTip,
-        wellnessTips: dashboard.wellnessTips && dashboard.wellnessTips.length > 0 ? dashboard.wellnessTips : defaultGuidance.wellnessTips
-      };
+      const cachedTipText = `${dashboard.dailyTip.title} ${dashboard.dailyTip.desc}`.toLowerCase();
+      const cachedMatchesPerspective = isPartnerUser || !/\b(partner|her|she|support them|support her)\b/.test(cachedTipText);
+      if (cachedMatchesPerspective) {
+        return {
+          scientificInsight: dashboard.scientificInsight,
+          dailyTip: dashboard.dailyTip,
+          wellnessTips: dashboard.wellnessTips && dashboard.wellnessTips.length > 0 ? dashboard.wellnessTips : defaultGuidance.wellnessTips
+        };
+      }
     }
 
     if (dashboard?.lastPeriodStart) {
@@ -793,7 +832,8 @@ export async function getDailyGuidance(userId: string): Promise<any> {
     return defaultGuidance;
   }
 
-  const prompt = `You are a helpful wellness and partner support assistant.
+  const prompt = isPartnerUser
+    ? `You are a helpful wellness and partner support assistant.
 Given a relationship context where a partner wants to support their loved one (named ${targetName}):
 - Cycle Phase: ${phaseLabel}
 - Cycle Day: Day ${currentDay}
@@ -836,6 +876,51 @@ Make sure to generate:
 2. One action-oriented "dailyTip" with a concise title and details on how the partner can support them today.
 3. Three highly specific "wellnessTips" (one category of nutrition, movement, rest, or mind per tip) matching this cycle phase or Any phase.
 4.Don't answer questions outside menstrual health related questions
+Return ONLY valid JSON. No markdown backticks, no wrapping other than the JSON object itself, no comments.`
+    : `You are a helpful menstrual wellness and self-care assistant.
+Given this user's own cycle context:
+- Name: ${targetName}
+- Cycle Phase: ${phaseLabel}
+- Cycle Day: Day ${currentDay}
+- Status: ${symptomsText}
+
+Generate a highly personalized daily guidance JSON response matching exactly this format:
+{
+  "scientificInsight": "Did you know? Estrogen levels rise during the follicular phase and can increase cognitive clarity, mood, and physical stamina.",
+  "dailyTip": {
+    "title": "Support your energy",
+    "desc": "Choose one realistic self-care action today, such as hydration, gentle movement, symptom logging, or earlier rest."
+  },
+  "wellnessTips": [
+    {
+      "id": "1",
+      "category": "nutrition",
+      "title": "Iron + vitamin C pairings",
+      "summary": "Combine lentils or leafy greens with citrus or bell pepper to improve iron absorption during flow and early luteal.",
+      "phaseTag": "Menstrual · Luteal"
+    },
+    {
+      "id": "2",
+      "category": "movement",
+      "title": "Low-impact strength",
+      "summary": "20 minutes of bodyweight or light bands supports mood without spiking cortisol when energy dips.",
+      "phaseTag": "Luteal"
+    },
+    {
+      "id": "3",
+      "category": "rest",
+      "title": "Sleep window consistency",
+      "summary": "Aim for the same wake time ±45 minutes because progesterone can lighten sleep quality in late luteal.",
+      "phaseTag": "Luteal"
+    }
+  ]
+}
+
+Make sure to generate:
+1. One interesting "scientificInsight" starting with "Did you know?".
+2. One action-oriented "dailyTip" written directly to the user using "you" and "your"; do not frame it as partner support.
+3. Three highly specific "wellnessTips" (one category of nutrition, movement, rest, or mind per tip) matching this cycle phase or Any phase.
+4. Don't answer questions outside menstrual health related questions.
 Return ONLY valid JSON. No markdown backticks, no wrapping other than the JSON object itself, no comments.`;
 
   try {

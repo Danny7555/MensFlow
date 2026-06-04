@@ -39,13 +39,18 @@ type Msg = {
 
 function generateAIResponse(
   userPrompt: string, 
-  partnerName: string, 
+  targetName: string, 
   currentDay: number, 
   phase: string, 
-  todaySymptoms: string[]
+  todaySymptoms: string[],
+  userRole?: 'lady' | 'partner'
 ): string {
   const prompt = userPrompt.toLowerCase()
   const hasSymptom = (keyword: string) => prompt.includes(keyword)
+  const isPartnerView = userRole === 'partner'
+  const subject = isPartnerView ? (targetName || 'your partner') : 'you'
+  const possessive = isPartnerView ? 'her' : 'your'
+  const loggedText = isPartnerView ? 'she has' : 'you have'
 
   // Normalize phase name
   const phaseNormalized = (phase || '').toLowerCase()
@@ -59,73 +64,89 @@ function generateAIResponse(
   if (hasSymptom('cramp') || hasSymptom('pain') || hasSymptom('hurt')) {
     response += `Physical discomfort and cramps on Day ${currentDay} of the cycle are very common, especially during the Menstrual phase when uterine contractions occur to shed the lining. `
     if (isMenstrual) {
-      response += `Since ${partnerName} is currently in her **Menstrual Phase**, her body is working hard. I highly recommend preparing a warm water bottle or a heating pad for her. In terms of nutrition, a warm herbal tea like raspberry leaf or ginger tea can physically relax the muscles, and foods rich in magnesium (such as a piece of dark chocolate or a banana) help alleviate spasms. `
+      response += isPartnerView
+        ? `Since ${subject} is currently in her **Menstrual Phase**, her body is working hard. Prepare a warm water bottle or heating pad, offer ginger or chamomile tea, and keep the evening low-pressure. `
+        : `Since you are currently in your **Menstrual Phase**, your body is working hard. Try a heating pad, warm fluids like ginger or chamomile tea, and lower-pressure plans today. `
     } else if (isLuteal) {
-      response += `As ${partnerName} is in her **Luteal Phase**, premenstrual cramping can begin due to prostaglandins rising. A warm magnesium bath, light stretching, or cozy rest will help soothe her nervous system. `
+      response += isPartnerView
+        ? `As ${subject} is in her **Luteal Phase**, premenstrual cramping can begin as prostaglandins rise. Warmth, light stretching, magnesium-rich foods, and quiet rest can help. `
+        : `As you are in your **Luteal Phase**, premenstrual cramping can begin as prostaglandins rise. Warmth, light stretching, magnesium-rich foods, and quiet rest can help. `
     } else {
-      response += `Since she is not in her period, these could be minor ovulation cramps (mittelschmerz) if she is near mid-cycle, or mild tension. Gentle warmth and hydration are great first steps! `
+      response += isPartnerView
+        ? `Since she is not in her period, this could be minor ovulation pain if she is near mid-cycle, or mild tension. Gentle warmth and hydration are good first steps. `
+        : `Since you are not in your period, this could be minor ovulation pain if you are near mid-cycle, or mild tension. Gentle warmth and hydration are good first steps. `
     }
-    response += `Quietly taking over chores tonight so she can rest without having to ask will make an immense difference.`
+    response += isPartnerView
+      ? `Taking over a practical task so she can rest without asking may help a lot.`
+      : `If pain is severe, unusual, or worsening, consider checking in with a clinician.`
   }
   // 2. Food / Cook / Cravings
   else if (hasSymptom('food') || hasSymptom('eat') || hasSymptom('cook') || hasSymptom('dinner') || hasSymptom('crave') || hasSymptom('chocolate')) {
     response += `Nutrition plays a major role in hormone balance! `
     if (isMenstrual) {
-      response += `For the **Menstrual Phase**, she needs nutrient-dense, warm, and easily digestible foods. High iron is key to replenish blood loss. Consider cooking a warm stew, bone broth, beef, or spinach pasta. Dark chocolate (70%+) is also excellent for magnesium. Avoid cold foods or carbonated drinks which can worsen bloating. `
+      response += `For the **Menstrual Phase**, ${possessive} body may benefit from warm, nutrient-dense foods, iron-rich meals, hydration, and magnesium-rich snacks. `
     } else if (isLuteal) {
-      response += `During the **Luteal Phase**, metabolism naturally increases by about 100-300 calories, and serotonin levels drop, which explains why she might be experiencing intense cravings. Cook comforting, slow-burning complex carbs (sweet potatoes, brown rice, oats) and offer healthy fats like avocado or nut butter. This will prevent rapid blood sugar spikes and mood crashes! `
+      response += `During the **Luteal Phase**, cravings and appetite can rise. Slow-burning carbs, protein, healthy fats, and steady meals can reduce blood-sugar dips. `
     } else if (isFertile) {
-      response += `In the **Ovulatory Phase**, she is in high energy. Fresh, light foods, fiber-rich vegetables (broccoli, sprouts), and lean proteins are fantastic to support liver function as it processes peak estrogen levels. A vibrant quinoa salad with seeds is a great choice! `
+      response += `In the **Ovulatory Phase**, fresh meals with fiber, lean protein, and colorful vegetables can support energy and estrogen metabolism. `
     } else {
-      response += `For the **Follicular Phase**, keep it light and vibrant. Fresh stir-fries, colorful salads, and citrus fruits match her rising energy curves perfectly! `
+      response += `For the **Follicular Phase**, lighter meals, bright produce, protein, and hydration can match rising energy. `
     }
   }
   // 3. Tired / Sleep / Energy / Exhausted
   else if (hasSymptom('tired') || hasSymptom('exhaust') || hasSymptom('energy') || hasSymptom('sleep') || hasSymptom('lazy')) {
     response += `Low energy and fatigue are highly correlated with hormonal shifts. `
     if (isLuteal) {
-      response += `In the **Luteal Phase**, the high level of progesterone has a natural sedative effect on the brain, making her feel physically heavier and sleepy. Progesterone also raises her basal body temperature, which can disrupt sleep. Try keeping the bedroom a bit cooler tonight, dim the lights early, and assure her that it's completely okay to take a nap and be unproductive. `
+      response += `In the **Luteal Phase**, progesterone can feel sedating and may raise body temperature, which can affect sleep. A cooler room, earlier wind-down, and gentler expectations can help. `
     } else if (isMenstrual) {
-      response += `During the **Menstrual Phase**, the sharp drop in all hormones combined with active shedding drains her biological battery. Let her rest completely. Taking over household responsibilities today will lift a huge weight off her shoulders. ️`
+      response += isPartnerView
+        ? `During the **Menstrual Phase**, low hormone levels and active bleeding can drain energy. Help by reducing demands and taking over practical tasks.`
+        : `During the **Menstrual Phase**, low hormone levels and active bleeding can drain energy. Give yourself permission to reduce demands and rest more.`
     } else {
-      response += `If she is feeling fatigued in her follicular or fertile phases, it could be a sign of sleep debt or stress overload. Suggest a gentle evening walk together to get fresh air and boost serotonin. `
+      response += `If fatigue shows up outside the lower-energy phases, it may point to sleep debt, stress, hydration, food timing, or illness. Gentle movement and consistent rest are good first checks. `
     }
   }
   // 4. Mood / Sad / Angry / Irritable / Cry
   else if (hasSymptom('mood') || hasSymptom('sad') || hasSymptom('angry') || hasSymptom('cry') || hasSymptom('irritable') || hasSymptom('pms') || hasSymptom('space')) {
     response += `Emotions are deeply tied to neuro-chemical sensitivities. `
     if (isLuteal) {
-      response += `We are in the **Luteal Phase** (Day ${currentDay}), which is the prime window for premenstrual mood shifts. As estrogen and progesterone begin to plummet, serotonin (the joy chemical) drops with them. This is a physical, chemical shift—not a personal reaction. If she asks for space or is easily irritated, give her a gentle, reassuring environment. Say: *"Take all the time you need, I've got things handled here. I love you."* and let her recharge in peace. `
+      response += isPartnerView
+        ? `This is the **Luteal Phase** (Day ${currentDay}), a common window for premenstrual mood shifts. Respond gently, avoid taking irritability personally, and offer space or reassurance based on what she prefers. `
+        : `You are in the **Luteal Phase** (Day ${currentDay}), a common window for premenstrual mood shifts. Try lowering stimulation, naming what you need, and giving yourself extra margin. `
     } else if (isMenstrual) {
-      response += `In the **Menstrual Phase**, she may feel highly vulnerable or emotional due to physical pain. Offer validation rather than trying to 'fix' her feelings or rationalize. A warm hug, soft tones, and validation are powerful tools. `
+      response += `In the **Menstrual Phase**, pain and low hormones can make emotions feel closer to the surface. Validation, warmth, and less pressure are useful. `
     } else {
-      response += `Her hormones are currently rising, so sudden emotional drops might stem from work stress or external factors. Listen actively and let her vent without jumping to give advice unless she asks. ☕`
+      response += `Hormones may be more stable or rising now, so sudden emotional dips can also come from stress, sleep, food timing, or overwhelm. `
     }
   }
   // 5. How to support / What to do / Help
   else if (hasSymptom('support') || hasSymptom('help') || hasSymptom('do') || hasSymptom('care')) {
-    response += `The best way to support ${partnerName} depends heavily on her active phase (currently **${phase}**, Day ${currentDay}):\n\n`
+    response += isPartnerView
+      ? `The best way to support ${subject} depends on her active phase (currently **${phase}**, Day ${currentDay}):\n\n`
+      : `The best self-care plan depends on your active phase (currently **${phase}**, Day ${currentDay}):\n\n`
     if (isMenstrual) {
-      response += `1. **Warm Comfort:** Keep a heating pad plugged in and prepare warm tea (chamomile or ginger).\n`
-      response += `2. **Quiet Relief:** Handle meals, dishes, and laundry without being asked.\n`
-      response += `3. **Empathetic Listening:** Validate her discomfort and reassure her she is safe and loved.`
+      response += `1. **Warm Comfort:** Use heat, warm drinks, and comfortable clothing.\n`
+      response += `2. **Lower the Load:** Reduce demanding plans where possible.\n`
+      response += `3. **Track Signals:** Log flow, cramps, fatigue, and mood for better predictions.`
     } else if (isLuteal) {
-      response += `1. **Sensory Comfort:** Dim the lights, keep the house quiet, and make the bedroom cool (progesterone raises body temp).\n`
-      response += `2. **Comfort Cravings:** Bring her a soothing snack (avocados, dark chocolate, sweet potato fries).\n`
-      response += `3. **Give Space:** Don't take irritability personally; give her space to nest and recharge.`
+      response += `1. **Sensory Comfort:** Dim lights, keep evenings calmer, and cool the bedroom.\n`
+      response += `2. **Steady Food:** Add protein, complex carbs, and magnesium-rich snacks.\n`
+      response += `3. **Protect Energy:** Avoid overcommitting and track PMS patterns.`
     } else if (isFertile) {
-      response += `1. **Plan Dates:** Organize a special high-effort date night; she is in peak social energy.\n`
-      response += `2. **Active Engagement:** Share deep conversations and match her outgoing momentum.\n`
-      response += `3. **Physical Action:** Great time for workouts, adventures, or starting new projects together.`
+      response += `1. **Use Momentum:** Plan social, creative, or active tasks if energy feels high.\n`
+      response += `2. **Confirm Ovulation Cues:** Track LH or cervical mucus if relevant.\n`
+      response += `3. **Stay Grounded:** Hydrate and avoid overloading the schedule.`
     } else {
-      response += `1. **Gentle Motivation:** Suggest an evening stroll or dynamic activity to ease back into routines.\n`
-      response += `2. **Try New Things:** Suggest cooking a new recipe or exploring a new place.\n`
-      response += `3. **Creative Planning:** Brainstorm future ideas or travel plans together.`
+      response += `1. **Build Rhythm:** Use rising energy for planning, errands, or light movement.\n`
+      response += `2. **Try New Things:** This can be a good time for fresh routines.\n`
+      response += `3. **Keep Logging:** Record mood and energy as the baseline improves.`
     }
   }
   // 6. Phase / Cycle questions
   else if (hasSymptom('phase') || hasSymptom('cycle') || hasSymptom('current')) {
-    response += `Based on the latest logs, ${partnerName} is on **Day ${currentDay}** of her cycle, which places her in the **${phase}**. `
+    response += isPartnerView
+      ? `Based on the latest logs, ${subject} is on **Day ${currentDay}** of her cycle, which places her in the **${phase}**. `
+      : `Based on your latest logs, you are on **Day ${currentDay}** of your cycle, which places you in the **${phase}**. `
     if (isMenstrual) {
       response += `The Menstrual Phase is characterized by the shedding of the uterine lining, low hormone baselines, and a clear need for physical restoration and warmth.`
     } else if (isLuteal) {
@@ -138,14 +159,22 @@ function generateAIResponse(
   }
   // 7. General fallback
   else {
-    response += `Hi! I'm MensFlow, your empathetic relationship translator. Currently, ${partnerName} is on **Day ${currentDay}** of her cycle (**${phase}**). `
+    response += isPartnerView
+      ? `Hi! I'm MensFlow, your empathetic relationship translator. Currently, ${subject} is on **Day ${currentDay}** of her cycle (**${phase}**). `
+      : `Hi! I'm MensFlow, your cycle support companion. You are currently on **Day ${currentDay}** of your cycle (**${phase}**). `
     if (todaySymptoms.length > 0) {
-      response += `Today, she has logged the following symptoms: **${todaySymptoms.join(', ')}**. `
-      response += `These logs are excellent clues: they indicate her body is experiencing physiological shifts. Focus on providing restorative comfort, handling household chores, and asking supportive questions like *"Is there anything I can do to make you more comfortable?"* `
+      response += `Today, ${loggedText} logged: **${todaySymptoms.join(', ')}**. `
+      response += isPartnerView
+        ? `These logs are useful clues. Focus on comfort, practical support, and asking what would help most. `
+        : `These logs are useful clues. Focus on comfort, realistic plans, hydration, and tracking what changes. `
     } else {
-      response += `She hasn't logged any symptoms yet today. It's a great opportunity to check in gently. In this phase, her body values ${isLuteal ? 'calm nesting and cool spaces' : isMenstrual ? 'deep rest and soothing warmth' : 'creative ideas and fun engagement'}. `
+      response += isPartnerView
+        ? `She has not logged symptoms yet today. A gentle check-in can help. `
+        : `You have not logged symptoms yet today. A quick check-in can make today's guidance more accurate. `
     }
-    response += `Is there a specific symptom or care plan you'd like to ask about? Ask me about cramps, food cravings, fatigue, or how you can support her today! `
+    response += isPartnerView
+      ? `Ask me about cramps, food cravings, fatigue, or how to support her today.`
+      : `Ask me about cramps, food cravings, fatigue, cycle phase, or what to log today.`
   }
 
   return response
@@ -167,7 +196,9 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
   // Compute active cycle day from store data (computeCycleDay handles Date.now internally)
   const currentDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
 
-  const welcomeText = `Hi - I'm MensFlow, your personal relationship and cycle support companion. Currently, ${user.name} is on Day ${currentDay} of her cycle (${data.phaseLabel}). Ask me about her active phase, logged symptoms, how you can support her today, or what healthy meals you can cook! `
+  const welcomeText = user.role === 'partner'
+    ? `Hi - I'm MensFlow, your partner support companion. Currently, ${user.name || 'your partner'} is on Day ${currentDay} of her cycle (${data.phaseLabel}). Ask me about her active phase, logged symptoms, supportive gestures, or care ideas for today. `
+    : `Hi - I'm MensFlow, your cycle support companion. You are on Day ${currentDay} of your cycle (${data.phaseLabel}). Ask me about your active phase, symptoms, food, rest, what to log, or how to care for yourself today. `
 
   const [sessions, setSessions] = useState<ApiChatSession[]>([])
   const filteredSessions = showOnlyLocked ? sessions.filter((s) => s.isLocked) : sessions
@@ -384,7 +415,7 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
     if (temporaryChat) {
       setTimeout(() => {
         const aid = `a-${Date.now()}`
-        const aiResponse = generateAIResponse(text, user.name, currentDay, data.phaseLabel, todaySymptoms)
+        const aiResponse = generateAIResponse(text, user.name, currentDay, data.phaseLabel, todaySymptoms, user.role)
         
         setMessages((m) => [
           ...m,
