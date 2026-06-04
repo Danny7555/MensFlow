@@ -1,510 +1,322 @@
 # MensFlow 🌸
 
-Welcome to **MensFlow**, a premium, beautifully designed health application tailored specifically for tracking menstrual cycles, symptom correlations, and providing holistic wellness insights. Originally conceived to help users and their partners track, understand, and support menstrual wellness, MensFlow delivers an ultra-smooth, native-feeling iOS application experience inside a modern web environment.
+**MensFlow** is a dual-audience menstrual health and relationship support platform. It connects menstruating individuals ("trackers") and their partners in a private ecosystem that tracks cycles, logs symptoms, and translates biological changes into empathetic, actionable partner support guidelines.
 
-> [!NOTE]
-> This application follows state-of-the-art UX principles featuring tactile micro-interactions, organic glassmorphism layers, fluid page-entry animations, and custom dark mode themes that leverage **Tailwind CSS v4** alongside a unified bespoke CSS Design System.
-
----
-
-## 🔍 What is MensFlow & What Does It Actually Do?
-
-MensFlow is a **dual-audience menstrual health and relationship support platform**. Unlike typical cycle trackers that focus solely on the menstruating individual, MensFlow bridges the gap between tracking and relationship support. It connects partners in a supportive, private ecosystem to foster empathy, communication, and collaborative care.
-
-### 👩‍⚕️ For the Tracker (The Menstruator)
-*   **Intuitive Symptom Logging:** Easily log menstrual flow intensity (light, medium, heavy), physical feelings (cramps, bloating, headache, fatigue), moods (anxious, happy, irritable, calm), and lifestyle details (sleep quality, temperature/BBT, pill consumption, and custom symptoms).
-*   **Visual Cycle Dashboard:** View an interactive progress ring and cycle tracker showing the active cycle day, active phase (Menstrual, Follicular, Ovulatory, or Luteal), and predictions of upcoming periods and fertility windows.
-*   **AI-like Wellness Companion:** Chat privately with `Ask MensFlow` to get answers to questions about hormones, diets, physical recovery, and stress management.
-*   **Privacy Locked Chats:** Lock sensitive chat discussions behind a private, custom passcode and security question.
-*   **Detailed Analytics:** View beautiful charts detailing cycle length variations, symptom trends over 6 months, and export reports for doctor check-ups.
-
-### 🤝 For the Partner (The Supporter)
-*   **Empathy Translator:** Automatically translates the tracker's active cycle phase and symptoms into plain-language biological context and actionable support guidelines (e.g., *"Luteal Phase: Progesterone is peaking, which can cause fatigue. Keep the room cool and offer a magnesium-rich snack"*).
-*   **Real-Time Status Pings:** Instantly receive status checks from the tracker (e.g., *"Crampy"*, *"Exhausted"*, or *"Feeling Great!"*) via in-app banner alerts.
-*   **Support Checklist & Streaks:** Complete helpful gestures (like preparing a heating pad, picking up comfort snacks, or scheduling a date night) to build daily connection streaks.
-*   **Privacy-Respecting Insights:** View active phase forecasts and educational tips without accessing detailed private logs unless granted explicit access.
-
----
-
-## 📖 Table of Contents
-
-- [Project Overview & Mission Guide](file:///Users/david/Downloads/MensFlow/docs/project_overview.md) ( Ghanaian adolescent health context, MongoDB backend blueprint, and AI Engines )
-- [What is MensFlow & What Does It Actually Do?](#-what-is-mensflow--what-does-it-actually-do)
-
-1. [Core Features](#-core-features)
-2. [MensFlow vs. Flo: What Makes It Unique?](#-mensflow-vs-flo-what-makes-it-unique)
-3. [Tech Stack & Architecture](#-tech-stack--architecture)
-4. [Detailed View & Page Documentation](#-detailed-view--page-documentation)
-5. [Directory Layout](#-directory-layout)
-6. [Bespoke Design System](#%EF%B8%8F-bespoke-design-system)
-   - [CSS Custom Properties](#css-custom-properties)
-   - [Glassmorphism & Backdrop Blurs](#glassmorphism--backdrop-blurs)
-   - [Animations & Page Transitions](#animations--page-transitions)
-   - [Micro-interactions & Tactile Squish](#micro-interactions--tactile-squish)
-7. [State Management & Contexts](#-state-management--contexts)
-   - [Zustand Global Store](#zustand-global-store)
-   - [React Providers & Contexts](#react-providers--contexts)
-8. [Getting Started (Developer Guide)](#-getting-started-developer-guide)
-9. [Adding New Features (Developer Walkthrough)](#-adding-new-features-developer-walkthrough)
-10. [Cycle Calculations & State Architecture](docs/cycle_and_state_architecture.md)
-11. [Collaboration & Git Workflow](#-collaboration--git-workflow)
+> **Status:** Frontend (React 19 · Vite) is in active development with a live backend (Express + MongoDB + Mongoose). The frontend is transitioning from localStorage-only to full backend integration (see `feature/integrate-backend` and `feature/migrate-tanstack-query`).
 
 ---
 
 ## ✨ Core Features
 
-- **Daily Symptom Logging:** Intuitive physical, mood, and flow symptom trackers with high-quality visual states. Supports custom symptom creation.
-- **Analytical Cycle Graphs:** Custom data visualizations powered by `Recharts` showcasing 6-month cycle variations and long-term symptom correlations.
-- **Personalized Insights & Wellness Tips:** Daily science-backed advice tailored to the active cycle phase (Menstrual, Follicular, Ovulatory, or Luteal).
-- **Interactive Calendar & Phase Predictor:** An elegant calendar grid detailing flow predictions, phase splits, and cycle histories.
-- **Interactive AI-like Support:** Premium, seamless chat companion (`ChatView`) facilitating private questions regarding hormone trends, mood swings, and wellness routines.
-- **Partner Sync & Empathy Hub:** Dual-user integration enabling partners to receive instant care instructions and check-ins.
-- **Premium iOS-style Aesthetics:** Organic corner curves (`rounded-3xl` equivalent), frosted-glass mobile tabs, fluid fade-and-slide motion profiles, and a warm dark-plum color system.
+| # | Feature | Description |
+|---|---------|-------------|
+| 1 | **Cycle Tracking** | Cycle wheel, phase prediction, calendar with period/follicular/fertile/luteal indicators |
+| 2 | **Symptom Logging** | Flow, mood, physical, lifestyle, custom symptoms with trend charts |
+| 3 | **AI Companion** | Chat with `Ask MensFlow` for hormone, diet, and wellness Q&A |
+| 4 | **Locked Chats** | Passcode-protected chat vault with security question recovery |
+| 5 | **Partner Sync** | Status pings, emotion translator, support action checklist with streaks |
+| 6 | **Insights & Reports** | Phase-specific trends, CSV/PDF export, partner privacy mode |
+| 7 | **Education** | Health articles (with "educational" access level for Ghanaian adolescent health) |
+| 8 | **Wellness Tips** | Phase-specific daily tips and partner support suggestions |
+| 9 | **Dark / Light Theme** | Organic warm-plum design system with CSS custom properties |
+| 10 | **Push Notifications** | Browser push notifications aligned to real cycle data |
 
 ---
 
-## 🌸 MensFlow vs. Flo: What Makes It Unique?
+## 👩‍⚕️ For the Tracker — 🤝 For the Partner
 
-While commercial applications like Flo are excellent for personal tracking, MensFlow offers a distinct experience built around communication, zero visual clutter, and relationship support:
+**Tracker:** Log flow intensity (light / medium / heavy), moods, physical symptoms, sleep, BBT, LH levels, and cervical mucus. View cycle predictions, hormone trends, and wellness scores.
 
-### 1. 🤝 Dual-Audience & Relationship-First Design
-
-- **Flo:** Primarily a solo logging tool. Its sharing features focus on exporting data sheets or raw tracking calendars.
-- **MensFlow:** Formulated as a collaborative hub. It recognizes that a cycle is highly relevant to partners and empowers them to offer proactive support.
-
-### 2. 🔮 Core "Partner Translation" Engine
-
-MensFlow automatically translates complex biological fluctuations into helpful, empathetic real-world advice for the tracking partner:
-
-- **Menstrual Phase:** Translates low energy and cramps into clear actions: _"Offer a warm heating pad," "Take over extra chores to allow them to rest," "Be patient with mood fluctuations."_
-- **Luteal Phase:** Translates elevated body temperature and fatigue into: _"Keep the bedroom cool tonight," "Offer a magnesium-rich snack," "Give them space to unwind."_
-- **Follicular & Ovulatory Phases:** Suggests date configurations, creative projects, and communication prompts that match active energy curves.
-
-### 3. 🚀 Frictionless Syncing
-
-Includes a native, integrated **Partner Invitation portal** powered by dynamic React hooks. It generates real-time secure access states without complex setups, syncing log changes instantly using cross-tab storage synchronizations.
-
-### 4. 💎 Distraction-Free iOS Aesthetics
-
-Avoids subscription paywalls, heavy advertisements, and clinical interfaces in favor of:
-
-- Frosted glassmorphism navigation tabs (`backdrop-blur-xl`).
-- Delightful tactile micro-interactions (`.active-squish`).
-- A premium dark mode designed with comforting warm-plum highlights.
+**Partner:** Receive real-time status pings (e.g., "Crampy", "Exhausted"). Get automatic phase-specific empathy translations (e.g., "Luteal Phase — Progesterone is peaking. Keep the room cool and offer a magnesium-rich snack"). Complete support actions to build daily connection streaks.
 
 ---
 
-## 🛠️ Tech Stack & Architecture
+## 🌸 What Makes MensFlow Unique
 
-MensFlow is constructed with performance, stability, and pixel-perfection in mind:
-
-- **Runtime & Framework:** [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/) + [Vite](https://vite.dev/) (fast HMR, Rolldown-backed bundling).
-- **Styling Engine:** [Tailwind CSS v4](https://tailwindcss.com/) + Custom CSS variables.
-- **Routing:** [React Router v7](https://reactrouter.com/) for single-page routing and conditional navigation shells.
-- **State Management:** [Zustand](https://zustand-demo.pmnd.rs/) with localStorage persistence middleware.
-- **Data Fetching:** [TanStack Query](https://tanstack.com/query/latest) for async state management.
-- **Data Vis:** [Recharts](https://recharts.org/) for beautiful, responsive charts.
-- **UI Library:** Radix UI primitives + custom shadcn-style components.
-- **Date Handling:** [date-fns](https://date-fns.org/) for date utilities.
-- **Animations:** [Framer Motion](https://www.framer.com/motion/) + Tailwindcss Animate.
-- **Iconography:** [Phosphor Icons](https://phosphoricons.com/) and [Lucide React](https://lucide.dev/).
-- **Tour System:** [React Joyride](https://react-joyride.com/) for step-by-step introduction overlays.
+1. **Relationship-first design** — not just a solo tracker; it actively educates and equips partners
+2. **Native iOS aesthetics** — frosted glass navigation, tactile squish buttons, ambient phase-shifting backgrounds
+3. **Zero clutter, no paywalls** — distraction-free interface with warm plum / dark-mode color system
+4. **Privacy-centric** — passcode-locked chat vaults, local-only storage toggle, strict data controls
 
 ---
 
-## 📺 Detailed View & Page Documentation
+## 🛠️ Tech Stack
 
-The MensFlow application consists of several highly specialized, responsive page views located in [src/views](file:///Users/david/Downloads/MensFlow/src/views):
+| Layer | Technology |
+|-------|-----------|
+| **Frontend** | React 19 · TypeScript · Vite · React Router v7 |
+| **State** | Zustand (localStorage persistence) · TanStack Query v5 |
+| **Styling** | Tailwind CSS v4 · Custom CSS Design System |
+| **Animations** | Framer Motion · tailwindcss-animate |
+| **Charts** | Recharts 3 |
+| **Backend** | Express · TypeScript · ts-node-dev |
+| **Database** | MongoDB (Mongoose) |
+| **Auth** | JWT (jsonwebtoken) · bcrypt · OTP (email via Nodemailer) |
+| **Scheduler** | node-cron |
+| **Deploy** | Vercel (frontend + backend) |
 
-### 1. Dashboard View (`DashboardView.tsx`)
+---
 
-The home dashboard acts as the primary feed for tracking wellness scores, checking cycle progress, and accessing care recommendation lists.
+## 📺 What Each View Does
 
-- **Ambient Background:** Dynamically shifts colors based on the current active phase (e.g., warm rose for menstrual, teal for follicular, sky-blue for fertile/ovulatory, amber for luteal).
-- **Stories Section:** Circular navigation hubs inspired by mobile social feeds to preview daily insights, chats, or wellness tips.
-- **Today's Plan Feed:** Renders active cards including `WellnessScoreCard`, `PrimaryInsightCard`, `BodySignalsCard`, `DailyTipCard`, and the `HormoneInsightCard`.
-- **Interactive Guided Tour:** Leverages `react-joyride` to showcase primary visual elements (Cycle Tracker, Story buttons, Today's Plan, and log triggers) for first-time users.
-- **Partner Pings:** Automatically listens for cross-browser storage pings to display live toast notifications if a partner logs an update.
-
-### 2. Calendar View (`CalendarView.tsx`)
-
-Provides a highly custom calendar grid displaying historical cycle details, symptom summaries, and future predictions.
-
-- **Visual Indicators:** Period days, predicted period days, follicular segments, and fertile segments are rendered with custom border highlights and pastel circles.
-- **Day Selection:** Selecting a day loads logged symptoms, cycle details, and partner care suggestions for that calendar date.
-
-### 3. Ask MensFlow Companion (`ChatView.tsx`)
-
-An AI-like messaging interface designed to discuss hormone cycles, diet suggestions, physical recovery, and relationship tips.
-
-- **Message Stream:** Premium layout with bubble styling, avatars, and bounce animations.
-- **Temporary Mode:** Optional setting to chat in an unsaved sandbox that leaves no trail in storage history.
-- **Locked Chats Sandbox:** Uses the exact same component structure but directs message array states to a distinct, passcode-locked localStorage entry (`mensflow_locked_chats`).
-
-### 4. Locked Chats Security (`LockedChatsView.tsx`)
-
-Restricts chat access behind a password-lock.
-
-- **Password Setup:** Formulates password guidelines (requiring mixed-case letters, symbols, numbers, and minimum lengths).
-- **Security Question Recovery:** If three incorrect password attempts are detected, the user can reset their password by answering a security question defined in settings.
-
-### 5. Partner Sync Hub (`SyncView.tsx`)
-
-Handles relationship-first collaboration functions.
-
-- **Real-Time Ping Sender:** Allows a user to instantly broadcast their active status (e.g., _"Crampy"_, _"Exhausted"_, _"Feeling Great!"_) to their partner. Uses a custom event listener that catches changes to `mensflow_partner_ping:v1`.
-- **Emotion Translator:** A helper widget that translates emotional outbursts or low-energy moments into biological context (e.g., high progesterone levels) for partner empathy.
-- **Support Actions Log:** Keeps track of support actions completed by the partner, computing streaks and rewarding collaborative behavior.
-
-### 6. Symptoms View & Log Modal (`SymptomsView.tsx` & `LogSymptomsModal.tsx`)
-
-Provides a grid to log flows, mood fluctuations, physical symptoms, and lifestyle markers.
-
-- **Log Symptoms Modal:** Allows selecting symptom buttons categorized into Flow, Mood, Physical, and Lifestyle. Includes a dynamic "Add Custom Symptom" control.
-- **Symptom Trends:** Detailed analytics visualizing symptom counts over time using custom AreaCharts and BarCharts.
-
-### 7. Settings View (`SettingsView.tsx`)
-
-Manages configuration models.
-
-- **Cycle Customizer:** Edit typical cycle lengths, typical period durations, and the date of the last period start.
-- **Privacy & Security:** Controls passcode encryption flags, security questions, custom passwords, and database clear procedures.
-- **Layout Tweaks:** Set dark/light modes, sidebar collapse behaviors, and mobile navigation overrides.
-
-### 8. Onboarding View (`OnboardingView.tsx`)
-
-First-time user setup flow.
-
-- **Partner Role Selection:** Choose "Lady" or "Partner" role to customize the experience.
-- **Cycle Setup:** Configure typical cycle length, period duration, and last period start date.
-
-### 9. Landing View (`LandingView.tsx`)
-
-Public-facing landing page with app introduction and authentication options.
-
-### 10. Education View (`EducationView.tsx`)
-
-Educational content about menstrual health, hormones, and wellness.
-
-### 11. Tips View (`TipsView.tsx`)
-
-Collections of phase-specific wellness tips and partner support suggestions.
-
-### 12. Notifications View (`NotificationsView.tsx`)
-
-Displays partner pings, access requests, and system alerts.
-
-### 13. Insights View (`InsightsView.tsx`)
-
-Analytics dashboard with trend summaries, correlation charts, and export functionality.
-
-- **Trend Summary:** Key metrics showing cycle consistency, symptom frequency, and wellness scores.
-- **Pattern Charts:** SymptomTrendsChart and InteractiveAreaChart visualizing data over time.
-- **Reports & Export:** CSV download and PDF export for doctor consultations.
-- **Partner Privacy:** View-only mode for partners with option to request detailed access.
-
-### 14. Tracker View (`TrackerView.tsx`)
-
-Comprehensive cycle tracking interface.
-
-- **Cycle Tracker Hero:** Visual cycle wheel with day selection.
-- **Cycle Statistics:** Summary metrics for current cycle.
-- **Cycle History:** Historical cycle lengths and patterns.
-- **Health Metrics:** Water intake, weight tracking, LH levels, cervical mucus.
-- **Cycle Logs:** Daily symptom logging with merge support.
-- **Cycle Tips:** Context-aware suggestions based on selected day.
-- **Privacy Gate:** Restricted view for partners without detailed access permission.
+| View | Path | What it does |
+|------|------|--------------|
+| **Landing** | `/` | Public page with app intro and auth options |
+| **Onboarding** | `/onboarding` | Role selection (Lady / Partner), cycle baseline setup |
+| **Dashboard** | `/dashboard` | Home feed with ambient phase colors, Stories, and Today's Plan cards |
+| **Tracker** | `/tracker` | Cycle wheel, stats, history, health metrics (water/weight/LH/mucus), cycle tips |
+| **Calendar** | `/calendar` | Custom grid with period / fertile / follicular indicators; tap a day for symptom details |
+| **Symptoms** | `/symptoms` | Log flow, mood, physical, lifestyle, and custom symptoms; view trend charts |
+| **Ask AI** | `/ask` | Chat with the MensFlow companion; temporary sandbox mode for guests |
+| **Locked Chats** | `/locked-chats` | Passcode-protected chat vault; 3-attempt limit triggers security-question recovery |
+| **Sync** | `/sync` | Send partner pings, use the emotion translator, log support actions and streaks |
+| **Insights** | `/insights` | Trend summaries, interactive charts, CSV/PDF export, partner privacy mode |
+| **Tips** | `/tips` | Phase-specific wellness tips and partner support suggestions |
+| **Education** | `/education` | Health articles (accessible to `educational` access-level users) |
+| **Settings** | `/settings` | Cycle customization, privacy/security, theme (light/dark/system), sidebar/mobile layout |
+| **Notifications** | `/notifications` | Partner pings, access requests, system alerts |
+| **Not Found** | `*` | 404 fallback |
 
 ---
 
 ## 📂 Directory Layout
 
-```bash
+```
 MensFlow/
-├── public/                 # Static assets (fonts, icons, raw illustration SVGs)
-├── src/
-│   ├── assets/             # Bundled visual assets & images
-│   ├── components/         # Reusable presentation & layout elements
-│   │   ├── dashboard/      # Daily logs, feed progress banners, quick tips, Emotion Translator, Stories, Hormone Insight, Daily Tip, Feed Section
-│   │   ├── tracker/        # Hero grids, CycleWheel, CycleTips, CycleStatsHero, HealthMetrics, CycleHistory, CycleLogs
-│   │   ├── skeletons/      # Loading skeletons for Dashboard, Calendar, Chat, Insights, Tips, Settings, PageLoader
-│   │   └── ui/             # Core UI atoms (cards, modals, dropdowns, buttons, inputs, badge, select, tooltip, popover, dialog, calendar)
-│   ├── context/            # React global providers (Auth, Chat Session settings, Settings)
-│   ├── data/               # Static mock records & medical correlation maps (symptoms, education, tips)
-│   ├── hooks/              # Global custom hooks (e.g., useMediaQuery for responsive views)
-│   ├── lib/                # Shared utilities, constants, cycle formulas, theme solvers, and storage helpers
-│   ├── services/           # API clients (logsService, userService, partnerService)
-│   ├── store/              # Zustand state manager (useStore.ts)
-│   ├── types/              # Type definitions and interfaces
-│   ├── views/              # Page-level route views (Dashboard, Insights, Tracker, Calendar, Onboarding, Chat, Symptoms, Settings, Sync, LockedChats, Landing, Education, Tips, Notifications, Placeholder)
-│   ├── App.tsx             # Main routing engine, Shell layout, & Provider setups
-│   ├── App.css             # Main styling layer (overrides, page templates, custom grid frameworks)
-│   ├── index.css           # Tailwind base configuration, bespoke Design Tokens, & Dark Mode schemes
-│   └── main.tsx            # Application entrypoint
-├── vite.config.ts          # Vite build, alias configuration, and bundling policies
-├── tsconfig.json           # Global TypeScript configuration
-└── package.json            # Dependencies and development scripts
+├── README.md                          ← you are here
+├── docs/                              ← architecture & workflow docs
+│   ├── project_overview.md
+│   ├── routing_and_auth_guards.md
+│   ├── api_integration_blueprint.md
+│   ├── cycle_and_state_architecture.md
+│   ├── mock_api_sandbox.md
+│   ├── theme_and_design_system.md
+│   └── collaboration_guide.md
+│
+├── backend/                           ← Express + MongoDB API
+│   ├── src/
+│   │   ├── config/                    # env, DB, mailer, rate limiter
+│   │   ├── controllers/               # auth, cycle, chat, partner, user, tips, education
+│   │   ├── middleware/                # JWT auth, rate limiting, error handling
+│   │   ├── models/                    # User, Chat, Partner, Log, Dashboard, Settings,
+│   │   │                             # Symptom, EducationArticle, WellnessTip, LoginHistory
+│   │   ├── routes/                    # auth, cycle, partner, scheduler, user, support,
+│   │   │                             # education, wellnessTip
+│   │   ├── services/                  # auth (OTP), cycle, chat, email, partner,
+│   │   │                             # scheduler, user
+│   │   ├── utils/                     # cycle model, HTTP helpers, validators, seeders
+│   │   └── index.ts                   # server entry + CORS
+│   ├── vercel.json                    # serverless + cron webhook
+│   └── migrations/
+│
+└── frontend/                          ← React 19 + Vite SPA
+    ├── src/
+    │   ├── views/                     # 15 lazy-loaded page views
+    │   ├── components/
+    │   │   ├── dashboard/             # DailyCheckIn, FeedSection, EmotionTranslator,
+    │   │   │                         # Stories, wellness / hormone / tip cards
+    │   │   ├── tracker/               # CycleWheel, CycleStatsHero, HealthMetrics,
+    │   │   │                         # CycleHistory, CycleLogs, CycleTips
+    │   │   ├── skeletons/             # loading states for every major view
+    │   │   └── ui/                    # Card, Button, Input, Modal, Select, Tooltip,
+    │   │                             # Popover, Dialog, Calendar
+    │   ├── context/                   # AuthProvider, ChatSessionContext, SettingsProvider
+    │   ├── services/                  # auth, chat, logs, partner, user, tips, education
+    │   ├── store/useStore.ts          # Zustand global state
+    │   ├── lib/                       # apiClient, cycleUtils, theme, passwordStrength
+    │   ├── hooks/                     # useMediaQuery, useSmartPushNotifications
+    │   ├── data/                      # symptoms, tips, education, onboarding seeds
+    │   ├── types/                     # TypeScript interfaces
+    │   ├── App.tsx                    # router + ChatLockGate + AccessGate
+    │   ├── App.css                    # .app-shell, .app-main layout
+    │   ├── index.css                  # Tailwind base + CSS Design Tokens
+    │   └── main.tsx                   # bootstrap
+    └── package.json
 ```
 
 ---
 
-## 🎨 Bespoke Design System
+## 🎨 Design System
 
-The application relies on a unified hybrid design system configured in `src/index.css` and detailed inside `src/App.css`.
+Everything is built around warm, organic CSS custom properties — no cold clinical grays:
 
-### CSS Custom Properties
+| Token | Light | Dark |
+|-------|-------|------|
+| `--mf-main-bg` | `#fffafc` warm cream | `#1a1318` deep plum |
+| `--mf-sidebar-bg` | `#fff5f8` blush | `#1f161d` plum |
+| `--mf-card` | `#ffffff` | `#1f161d` |
+| `--mf-border` | `#f8ecf0` rose | `#2e202b` wine |
+| `--mf-accent` | `#ff6b8b` rose | `#ff8da1` glowing peach |
+| `--mf-text` | `#3d3a43` charcoal | `#c9c4d1` lavender |
+| `--mf-text-strong` | `#0c0a10` plum | `#f4f2f8` crisp white |
+| `--mf-muted` | `#8c828d` | `#807682` |
 
-MensFlow avoids cold, generic primaries in favor of an organic, premium palette utilizing warm cream bases, plum dark schemes, and elegant coral highlights:
-
-```css
-/* Light Theme Config */
-[data-theme="light"] {
-  --mf-main-bg: #fffafc; /* Gentle soft warm cream */
-  --mf-sidebar-bg: #fff5f8; /* Light blush sidebar */
-  --mf-card: #ffffff;
-  --mf-accent: #ff6b8b; /* Premium Rose/Peach */
-  --mf-text: #3d3a43; /* Warm charcoal (avoiding harsh #000) */
-  --mf-text-strong: #0c0a10; /* Deep dark plum */
-}
-
-/* Dark Theme Config */
-[data-theme="dark"] {
-  --mf-main-bg: #1a1318; /* Deep warm dark plum */
-  --mf-sidebar-bg: #1f161d; /* Slightly deeper plum card container */
-  --mf-card: #1f161d;
-  --mf-accent: #ff8da1; /* Soft glowing rose/peach */
-  --mf-text: #c9c4d1; /* Elegant warm lavender-grey */
-  --mf-text-strong: #f4f2f8; /* Sparkling white */
-}
-```
-
-### Glassmorphism & Backdrop Blurs
-
-The bottom mobile navigation uses frosted glassmorphism to look native on iOS devices. The content is blurred beneath the panel as the user scrolls.
-
-```css
-.flo-bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 72px;
-  background: rgba(var(--mf-card-rgb, 255, 255, 255), 0.75);
-  backdrop-filter: blur(24px) saturate(200%);
-  -webkit-backdrop-filter: blur(24px) saturate(200%);
-  border-top: 1px solid var(--mf-border);
-}
-```
-
-### Animations & Page Transitions
-
-All main page components use staggered slide-ups and soft fades to guarantee buttery-smooth navigation transitions:
-
-```css
-/* Staggered page transition classes applied directly on views */
-.animate-page-entry {
-  animation: in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-```
-
-In React, simply append the tailwind classes: `animate-in fade-in slide-in-from-bottom-4 duration-700` to main outer container nodes.
-
-### Micro-interactions & Tactile Squish
-
-To simulate mobile haptics and keep the app feeling incredibly responsive, interactive cards feature a physics-based "squish" scale effect whenever tapped or clicked:
-
-```css
-/* Squish effect on active elements */
-.active-squish {
-  transition: transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-.active-squish:active {
-  transform: scale(0.985);
-}
-```
+**Micro-interactions:**
+- **`.active-squish`** → `scale(0.985)` on press, simulates iOS haptic
+- **`.animate-page-entry`** → staggered fade-slide-up, `0.7s cubic-bezier(0.16, 1, 0.3, 1)`
+- **`.ambient-glow`** → `blur(150px)` phase-colored backgrounds behind dashboard cards
+- **`.flo-card`** → `border-radius: 24px`, soft shadow
+- **`.flo-bottom-nav`** → `backdrop-filter: blur(24px) saturate(200%)` frosted glass
 
 ---
 
-## ⚡ State Management & Contexts
+## ⚡ State Management & Data Flow
 
-### Zustand Global Store
+The store lives in `frontend/src/store/useStore.ts`. It uses Zustand with a `persist` middleware that saves to `localStorage` under `mensflow-storage`.
 
-Global states (logs, dashboard statistics, user parameters, and persistent storage bindings) are centralized in [useStore.ts](file:///Users/david/Downloads/MensFlow/src/store/useStore.ts).
-
-> [!TIP]
-> The store uses the Zustand `persist` middleware to automatically serialize/deserialize key states to local storage under the key `mensflow-storage`. It also simulates network latency (`1s` and `800ms`) on database saves to display premium loading overlays seamlessly across pages.
-
-```typescript
-interface AppState {
-  dashboard: DashboardSnapshot;
-  settings: MensFlowSettings;
-  logs: SymptomLog[];
-  user: { name: string };
-  customSymptoms: SymptomDef[];
-  isSaving: boolean;
-  completedActions: string[];
-  supportStreak: number;
-  lastActionDate: string;
-
-  // Actions
-  updateDashboard: (patch: Partial<DashboardSnapshot>) => Promise<void>;
-  updateUser: (patch: Partial<{ name: string }>) => void;
-  updateSettings: (patch: Partial<MensFlowSettings>) => void;
-  resetSettings: () => void;
-  addLog: (date: string, symptoms: string[]) => Promise<void>;
-  getLogForDate: (date: string) => SymptomLog | undefined;
-  clearLogs: () => void;
-  addCustomSymptom: (label: string, category: SymptomCategory) => void;
-  removeCustomSymptom: (id: string) => void;
-  resetStore: () => void;
-  toggleSupportAction: (actionId: string) => void;
-  checkAndResetDailyActions: () => void;
-}
+```
+Component → Zustand Action
+  ├── Optimistic UI update (immediate)
+  ├── HTTP call via services/ (Bearer JWT, /api/* endpoints)
+  │     ├── Success → merge server state
+  │     └── 401 → emit mf:auth:expired → automatic logout
+  └── Fallback: localStorage persist for UI preferences only
 ```
 
-### React Providers & Contexts
+**Service layer** (`frontend/src/services/`):
 
-Additional configurations and session metrics are isolated inside specialized Context providers found under [src/context/](file:///Users/david/Downloads/MensFlow/src/context/):
+| Service | Endpoints |
+|---------|-----------|
+| `authService.ts` | `POST /auth/register`, `POST /auth/login`, `POST /auth/verify-otp`, `POST /auth/resend-otp` |
+| `logsService.ts` | `GET/POST /logs`, `GET /logs/custom`, `GET /logs/review` |
+| `partnerService.ts` | `GET /partner/status`, `POST /partner/pair`, `POST /partner/invite`, `POST /partner/ping`, `GET /partner/chat`, `POST /partner/action` |
+| `chatService.ts` | Chat CRUD |
+| `tipsService.ts` | `GET /tips` |
+| `educationService.ts` | `GET /education` |
 
-- `AuthProvider.tsx` — Handles auth states, registration modes, and onboarding checks.
-- `SettingsProvider.tsx` — Manages preferences like theme (light vs dark), mobile navigation settings, and desktop sidebar states.
-- `ChatSessionContext` — Shared in `App.tsx` to handle ephemeral chat sessions and routing setups.
+### Auth & Access Levels
+
+- **Guest** — Landing, Onboarding, Guest Settings, Education. Everything else redirects to `/` or shows a login prompt.
+- **Authenticated** — Dashboard, Insights, Tips, Calendar, Tracker, Symptoms, Sync, Notifications, Locked Chats.
+- **Token expiry** — 401 responses trigger `mf:auth:expired` → logout.
+- **Partner roles** — `lady` (tracker) or `partner` (supporter). Partners have two access levels: `full` or `educational`.
+
+### Partner Sync (Cross-Tab)
+
+Right now, partner pings use **localStorage events** inside the same browser:
+
+```
+SyncView → localStorage.setItem('mensflow_partner_ping:v1', JSON)
+         → DashboardView listens on the 'storage' event
+         → sonner toast alert
+```
+
+Full cross-device WebSocket / SSE sync is the next step (see `docs/api_integration_blueprint.md`).
 
 ---
 
-## 🚀 Getting Started (Developer Guide)
+## 🔐 Privacy & Security
 
-Follow these steps to set up your local development environment:
+- **Partner access levels** — `full` vs `educational`. Educational users (e.g., Ghanaian adolescent health program) see only education content.
+- **Passcode vault** — locked chats are stored in a separate localStorage key (`mensflow_locked_chats`). Client-side AES-GCM encryption before upload is planned.
+- **Local-only toggle** — `privacyStrictLocalOnly` in settings never sends data to the server.
+- **Auth expiry** — 401 responses auto-expire the session via `mf:auth:expired`.
+
+---
+
+## 🧮 Cycle Math
+
+`frontend/src/lib/cycleUtils.ts` computes cycle phases with cycle-length-aware thresholds:
+
+- **Period:** 4 days (≤24), 5 days (25–35), 6 days (≥36)
+- **Ovulation:** `max(periodLen + 5, cycleLen - 14)` days
+- **Fertile window:** ovulation −4 → ovulation +2
+- **Luteal:** fertileEnd + 1 → cycleLen
+
+| Phase | Color |
+|-------|-------|
+| Menstrual | `#f43f5e` rose |
+| Follicular | `#0d9488` teal |
+| Fertile | `#26899e` sky-blue |
+| Luteal | `#d97706` amber |
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (v18.0.0 or higher)
-- `npm` (v9.0.0 or higher) or `bun` (v1.0.0 or higher)
+- Node.js ≥18 and npm ≥9 (or `bun`)
+- MongoDB (local or Atlas URI)
+- For email features: Gmail app-password or SMTP provider
 
-### Setup Commands
+### Clone
 
-1. **Clone the repository:**
-   ```bash
-   git clone <repository-url>
-   cd MensFlow
-   ```
-2. **Install all dependencies:**
-   ```bash
-   npm install
-   # or with bun
-   bun install
-   ```
-3. **Spin up the development environment:**
+```bash
+git clone <repo-url>
+cd MensFlow
+```
 
-   ```bash
-   npm run dev
-   # or with bun
-   bun dev
-   ```
+### Frontend
 
-   _The local server will run on [http://localhost:5173/](http://localhost:5173/)_
+```bash
+cd frontend && npm install
+npm run dev       # → http://localhost:5173/
+```
 
-4. **Verify TypeScript type safety (without compiling files):**
+### Backend
 
-   ```bash
-   npm run typecheck
-   # or with bun
-   bun run typecheck
-   ```
+```bash
+cd backend && npm install
+```
 
-5. **Lint and format checks:**
+Create `backend/.env`:
 
-   ```bash
-   npm run lint
-   # or with bun
-   bun run lint
-   ```
+```env
+PORT=5001
+MONGO_URI=mongodb://localhost:27017/mensflow  # or Atlas
+JWT_SECRET=your_jwt_secret_here
+EMAIL_USER=your_email@example.com
+EMAIL_PASS=your_email_password
+FRONTEND_URL=http://localhost:5173
+```
 
-6. **React quality diagnostics (React Doctor):**
+```bash
+npm run dev       # → http://localhost:5001/
+```
 
-   ```bash
-   npm run doctor
-   # or with bun
-   bun run doctor
-   ```
+### Run both
 
-7. **Compile and build for production:**
-   ```bash
-   npm run build
-   # or with bun
-   bun run build
-   ```
-   _Compiles code and builds the production artifact into the `dist/` directory._
+```bash
+# Terminal 1
+cd frontend && npm run dev
+
+# Terminal 2
+cd backend && npm run dev
+```
 
 ---
 
-## 🛠️ Adding New Features (Developer Walkthrough)
+## 🧪 Quality Checks
 
-To add a new view (e.g., a "Hydration Tracker") to the application, follow this standard layout pattern:
+Run before every PR:
 
-### Step 1: Add state parameters to `useStore.ts`
-
-If you need persistent state, update `AppState` inside `src/store/useStore.ts`:
-
-```typescript
-interface AppState {
-  // ... existing states
-  waterIntake: number;
-  addWater: (amount: number) => void;
-}
+```bash
+npm run typecheck   # strict TypeScript (no emit)
+npm run lint        # ESLint
+npm run doctor      # React best-practices scan
+npm run build       # production build
 ```
-
-### Step 2: Create a beautiful view component
-
-Create a file under `src/views/HydrationView.tsx`:
-
-```tsx
-import React from "react";
-import { useStore } from "../store/useStore";
-
-export function HydrationView() {
-  const { waterIntake, addWater } = useStore();
-
-  return (
-    <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flo-card active-squish p-6 bg-[var(--mf-card)]">
-        <h1 className="text-2xl font-semibold text-[var(--mf-text-strong)]">
-          Daily Hydration 💧
-        </h1>
-        <p className="text-[var(--mf-muted)] mt-2">
-          Current Intake: {waterIntake} ml
-        </p>
-        <button
-          onClick={() => addWater(250)}
-          className="mt-4 px-6 py-2 bg-[var(--mf-accent)] text-white rounded-full font-medium"
-        >
-          Add 250ml
-        </button>
-      </div>
-    </div>
-  );
-}
-```
-
-### Step 3: Register route and navigation nodes
-
-Add the path configuration inside `src/App.tsx`:
-
-```tsx
-import { HydrationView } from "./views/HydrationView";
-
-// inside MainShell Route mapping:
-<Route path="/hydration" element={<HydrationView />} />;
-```
-
-Then, update `Sidebar.tsx` and the mobile navigation container in `App.tsx` (using Phosphor Icons) to give users an entrypoint to your new dashboard section.
 
 ---
 
-## 🌿 Collaboration & Git Workflow
+## 🛠️ Adding a New Feature
 
-To maintain code quality and structural integrity across multiple developers:
+Example: adding a "Hydration Tracker" view.
 
-- We use a standardized branch naming convention (`type/short-description`).
-- All code changes must go through pull request review before merging.
-- For detailed instructions on branching protocols, commit conventions, and review procedures, refer to the [Collaboration and Branching Guide](file:///Users/david/Downloads/MensFlow/docs/collaboration_guide.md).
+1. **State (optional)** — extend `AppState` in `frontend/src/store/useStore.ts`
+2. **View** — create `frontend/src/views/HydrationView.tsx`; use `.flo-card`, `.active-squish`, `animate-in fade-in slide-in-from-bottom-4 duration-700`
+3. **Route** — lazy-import it in `App.tsx` and add `<Route path="/hydration" element={<HydrationView />} />`
+4. **Nav** — link it in `Sidebar.tsx` and/or the bottom mobile nav using Phosphor icons
+5. **Styles** — use CSS custom properties (`var(--mf-accent)`, `var(--mf-card)`) — never raw hex values
+
+---
+
+## 🌿 Branching & PRs
+
+- **Branches:** `type/short-description` in kebab-case
+- **Commits:** Conventional Commits (`feat:`, `fix:`, `docs:`, `refactor:`, etc.)
+- **PRs:** squash-merge, at least one review, lint + typecheck + build must pass
+- **Main:** protected; every merge triggers a production deploy
+
+For details: [`docs/collaboration_guide.md`](docs/collaboration_guide.md).

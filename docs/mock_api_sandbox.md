@@ -1,6 +1,6 @@
 # MensFlow Mock API & Local Sandbox Guide 🛠️
 
-[← Back to README](file:///Users/david/Downloads/MensFlow/README.md) | [← Back to Project Overview](file:///Users/david/Downloads/MensFlow/docs/project_overview.md)
+[← Back to README](../README.md) | [← Back to Project Overview](project_overview.md)
 
 When developing a frontend application that will integrate with a backend, we can avoid development blocks by running a **Local Mock API Server**. This allows developers and AI systems to write real HTTP client code (`fetch` or `axios`) inside Zustand store actions immediately, without waiting for the server to be finished.
 

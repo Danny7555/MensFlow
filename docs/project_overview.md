@@ -1,88 +1,158 @@
 # MensFlow Project Overview & System Architecture 🌸
 
-[← Back to README](file:///Users/david/Downloads/MensFlow/README.md)
+[← Back to README](README.md) | [Full docs index](README.md)
 
-This document establishes the high-level business vision, target audience context, and three-tier system architecture of the MensFlow platform. It aligns the frontend implementation with the future backend services, database schema, and machine learning processing engines.
-
-### 💡 The Platform's Mission
-MensFlow is designed to empower menstruating individuals with accurate biological insights while synchronously educating their partners. By doing so, it:
-1. **Reduces Menstrual Literacy Gaps:** Provides an accessible, private environment for users (such as Ghanaian adolescents and young women) to learn about puberty, menstrual phases, and hormone cycles.
-2. **Cultivates Empathetic Support:** Translates complex cycle changes into plain-language guidelines for partners, giving them direct, actionable checklists (e.g. preparing heating pads, adjusting home temperatures, picking up magnesium-rich foods).
-3. **Ensures Robust Privacy:** Features passcode-protected private vaults for chats and a strict local-only storage toggle, keeping sensitive reproductive health data safe.
+This document captures the **actual** current architecture of MensFlow — a dual-audience menstrual health platform built with React 19, Express, and MongoDB. It replaces the original aspirational blueprint with the real stack, folder layout, and data flow as of June 2026.
 
 ---
 
-## 📖 Table of Contents
-1. [Problem Statement & Social Impact](#-problem-statement--social-impact)
-2. [Project Purpose & Core Objectives](#-project-purpose--core-objectives)
-3. [System Architecture Layers](#-system-architecture-layers)
-4. [Database & Analytics Engine Blueprint](#-database--analytics-engine-blueprint)
-5. [Privacy, Data Security, & UX States](#-privacy-data-security--ux-states)
-6. [Development Methodology & Team Roles](#-development-methodology--team-roles)
+## 🎯 Mission
+
+MensFlow tracks menstrual cycles and translates biological changes into empathetic, actionable support for partners. It targets both **Ghanaian adolescent health education** and **general relationship wellness**, with strict privacy controls (passcode-vault chats, local-only storage toggle, partner access-level gates).
 
 ---
 
-## 🇬🇭 Problem Statement & Social Impact
+## 🏗️ Actual Architecture (3 Layers)
 
-In Ghana, studies and everyday experiences show that many female adolescents still lack access to proper menstrual health education, even though topics related to reproductive health are included in the junior and senior high school curricula. Many young girls continue to have unanswered questions about menstruation, hormonal changes, body development, and reproductive wellness, with limited safe and reliable platforms where they can seek accurate information and guidance.
-
-In many cases, mothers and guardians also lack the confidence or clinical knowledge to educate their daughters, causing adolescents to rely on myths, hearsay, and misinformation from peers or social media.
-
-**MensFlow** solves this gap by providing an intelligent, personalized, and private reproductive health assistant that educates, guides, and empowers users to become confident and informed about their menstrual health journey.
-
----
-
-## 🎯 Project Purpose & Core Objectives
-
-MensFlow is a centralized digital health assistant designed to simplify menstrual and hormonal health management by:
-*   Tracking menstrual cycles, symptoms, and active hormonal phases.
-*   Predicting upcoming fertility windows and cycles.
-*   Delivering science-backed, phase-specific recommendations.
-*   Providing secure, conversational AI assistance for private inquiries.
-
-### Core Objectives:
-1.  **Efficient Logging:** Enable users to log cycle start dates, physical symptoms, and moods.
-2.  **Biological Forecasting:** Provide accurate predictions of ovulation, cycle lengths, and hormone levels.
-3.  **Personalized AI Guidance:** Deliver dietary, lifestyle, and exercise tips matched to active hormone levels.
-4.  **Privacy-Centric Architecture:** Maintain secure data controls (e.g. encrypted local-only storage and locked chat modules).
-5.  **Analytics and Trends:** Support aggregated population insights for broader reproductive research while protecting individual anonymity.
-
----
-
-## 🏗️ System Architecture Layers
-
-MensFlow is constructed across three primary system layers:
-
-```mermaid
-graph TD
-    UI[1. Frontend Layer: React Vite App] -->|HTTPS REST / WebSockets| API[2. Backend Services: NestJS / Flask]
-    API -->|Read / Write| DB[(3. Hybrid Database: MongoDB)]
-    API -->|Process Metrics| AI[4. Analytics & AI Engine]
+```
+┌──────────────┐      HTTPS / REST      ┌──────────────┐      MongoDB      ┌──────────────┐
+│              │ ─────────────────────▶ │              │ ───────────────▶ │              │
+│  Frontend    │                        │  Backend     │                  │   Database   │
+│  (React 19)  │◀───────────────────── │  (Express)   │◀───────────────── │  (Mongoose)  │
+│  Port: 5173  │                        │  Port: 5001  │                  │              │
+└──────────────┘                        └──────────────┘                  └──────────────┘
 ```
 
-### 1. Frontend Layer (User Interaction)
-Built using **React (Vite)** + **Tailwind CSS v4** + **TypeScript** for fast performance, responsive viewports, and mobile-first layouts.
-*   **Key Features:** Visual menstrual tracker wheels, Recharts cycle trend lines, symptom logger interfaces, education articles, and the conversational companion chat portal.
-*   **Aesthetics:** iOS-style card templates, glassmorphism mobile navigation bars, active click-squish scaling, and dynamic phase-shifting background ambient glows.
-*   *See [docs/theme_and_design_system.md](file:///Users/david/Downloads/MensFlow/docs/theme_and_design_system.md) for style implementation details.*
-
-### 2. Backend Services Layer (REST APIs)
-Exposes endpoint routes to coordinate database writes and AI processes, powered by **NestJS** or **Flask**.
-*   **Core Services:** Authentication service, Cycle & Logging service, Symptom analysis service, Notification Scheduler (sending pings), and AI Guidance handlers.
-*   *See [docs/api_integration_blueprint.md](file:///Users/david/Downloads/MensFlow/docs/api_integration_blueprint.md) for API integration plans.*
-
-### 3. Analytics & AI Processing Layer (Intelligence Engine)
-Coordinates the mathematical modeling and predictive features:
-*   **Cycle & Fertility Engine:** Calculates phases (Menstrual, Follicular, Ovulatory, Luteal) and predicts period start dates.
-*   **Symptom Analysis AI:** Evaluates pain frequency, spots premenstrual symptom (PMS) patterns, and tracks mood-to-hormone correlations.
-*   **Health & Guidance Engine:** Matches daily cycle segments with specific lifestyle advice and partner translation instructions.
+| Layer | Tech | Location |
+|-------|------|----------|
+| Frontend | React 19 · TypeScript · Vite · React Router v7 | `frontend/` |
+| Backend | Express · TypeScript · ts-node-dev · node-cron | `backend/` |
+| Database | MongoDB via Mongoose 8.x | `backend/src/models/` |
 
 ---
 
-## 🗄️ Database & Analytics Engine Blueprint
+## 🔄 Data Flow (Current Hybrid Mode)
 
-### Database Layer (MongoDB)
-The backend utilizes **MongoDB** for flexible data management. This schema stores:
+The frontend is **mid-migration** from localStorage-only to full backend sync:
+
+```
+Component → Zustand Action
+  ├── Optimistic UI update (immediate)
+  ├── HTTP call via services/ (Bearer JWT header)
+  │     ├── Success → merge server state
+  │     └── 401 → emit mf:auth:expired → logout
+  └── Fallback: localStorage persist (user settings, UI prefs)
+```
+
+- **Local-only fields** (sidebarCollapsed, themeMode) → `localStorage` only via Zustand persist
+- **Remote fields** (logs, dashboard metrics, support streaks) → REST API → MongoDB
+- **Partner pings** → localStorage cross-tab events (`mensflow_partner_ping:v1`) until WebSocket migration lands
+
+---
+
+## 📂 Repository Layout
+
+```
+MensFlow/
+├── README.md
+├── docs/
+│   ├── project_overview.md          ← this file
+│   ├── routing_and_auth_guards.md
+│   ├── api_integration_blueprint.md
+│   ├── cycle_and_state_architecture.md
+│   ├── mock_api_sandbox.md
+│   ├── theme_and_design_system.md
+│   └── collaboration_guide.md
+│
+├── backend/
+│   ├── src/
+│   │   ├── config/                   # MongoDB, mailer, rate limiter, env
+│   │   ├── controllers/              # auth, cycle, chat, education, email, partner, user, wellnessTip
+│   │   ├── interfaces/               # TypeScript types
+│   │   ├── middleware/               # authenticate (JWT), rateLimiter, errors
+│   │   ├── models/                   # User, Chat, Partner, Log, Dashboard, Settings,
+│   │   │                             # Symptom, EducationArticle, WellnessTip, LoginHistory
+│   │   ├── routes/                   # auth, cycle, partner, scheduler, user, support,
+│   │   │                             # education, wellnessTip
+│   │   ├── services/                 # auth (OTP flow), cycle, chat, email (Nodemailer),
+│   │   │                             # partner, scheduler (node-cron), user
+│   │   ├── utils/                    # cycleUtils (the backend equivalent),
+│   │   │                             # http, validators, seeders
+│   │   └── index.ts                  # Express server entry
+│   ├── vercel.json                   # Serverless + cron webhook route
+│   └── migrations/                   # (schema history)
+│
+└── frontend/
+    ├── src/
+    │   ├── views/                    # 15 lazy-loaded pages (see README.md for details)
+    │   ├── components/
+    │   │   ├── dashboard/            # DailyCheckIn, FeedSection, EmotionTranslator,
+    │   │   │                         # Stories, WellnessScoreCard, PrimaryInsightCard,
+    │   │   │                         # BodySignalsCard, DailyTipCard, HormoneInsightCard
+    │   │   ├── tracker/              # CycleWheel, CycleStatsHero, HealthMetrics,
+    │   │   │                         # CycleHistory, CycleLogs, CycleTips
+    │   │   ├── skeletons/            # PageLoader + per-view loaders
+    │   │   └── ui/                   # shadcn-style atoms (Card, Button, Input, Modal,
+    │   │                            # Select, Tooltip, Popover, Dialog, Calendar)
+    │   ├── context/                  # AuthProvider, ChatSessionContext, SettingsProvider
+    │   ├── services/                 # auth, chat, logs, partner, user, tips, education
+    │   ├── store/useStore.ts         # Zustand single source of truth
+    │   ├── lib/                      # apiClient, cycleUtils, theme, passwordStrength,
+    │   │                           # constants
+    │   ├── hooks/                    # useMediaQuery, useSmartPushNotifications
+    │   │                           # useMonthInReview (TipsView)
+    │   ├── data/                     # symptomsData, tips, education, onboarding seeds
+    │   ├── types/                    # TypeScript interfaces
+    │   ├── App.tsx                   # Router (15 lazy routes) + ChatLockGate guard
+    │   ├── App.css                   # .app-shell, .app-main layout helpers
+    │   ├── index.css                 # Tailwind base + CSS Design Tokens
+    │   └── main.tsx                  # bootstrap
+    └── package.json
+```
+
+---
+
+## 🧮 Cycle Calculation Engine
+
+`frontend/src/lib/cycleUtils.ts` is the authoritative frontend cycle math; an equivalent model exists in `backend/src/utils/cycleUtils.ts` for server-side validation.
+
+**Phase thresholds** (current implementation, cycle-length-aware):
+
+- Period: 4 days (≤24), 5 days (25–35), 6 days (≥36)
+- Ovulation: `max(periodLen + 5, cycleLen - 14)` days
+- Fertile window: ovulation −4 → ovulation +2
+- Luteal: fertileEnd + 1 → cycleLen
+
+| Phase | Color | UI Feel |
+|-------|-------|---------|
+| `menstrual` | `#f43f5e` | Warm rose glow |
+| `follicular` | `#0d9488` | Teal/emerald |
+| `fertile` | `#26899e` | Sky-blue / cyan |
+| `luteal` | `#d97706` | Amber/yellow |
+
+---
+
+## 🔐 Privacy & Security Model
+
+- **Partner access levels:** `full` vs `educational` (the latter restricts log access for Ghanaian health-education use cases)
+- **Passcode vault:** chats isolated into `mensflow_locked_chats` localStorage key; client-side AES-GCM (planned) before upload
+- **Local strict mode:** `privacyStrictLocalOnly` in settings → never send data to server
+- **Token expiry:** 401 responses auto-expire the session via `mf:auth:expired` event
+
+---
+
+## 🚀 Active Feature Branches (June 2026)
+
+| Branch | Status |
+|--------|--------|
+| `main` | Production-stable |
+| `feature/integrate-backend` | Full backend sync wiring |
+| `feature/migrate-tanstack-query` | Replace manual fetch with RTK Query |
+| `feature/add-lock-chat` | Passcode + security question recovery |
+| `feature/user-avatar-upload` | Profile image upload to backend |
+| `feature/add-privacy-terms` | Terms/privacy screen |
+| `feature/home-ui-responsive` | Mobile-first layout refinements |
+| `feautre/implement-email-remainder-otp` | OTP email reminders | utilizes **MongoDB** for flexible data management. This schema stores:
 *   User profiles, typical period lengths, and configurations.
 *   Historical logs (symptom IDs, custom symptoms, flows, moods).
 *   AI-generated wellness predictions.
@@ -100,14 +170,14 @@ The backend utilizes **MongoDB** for flexible data management. This schema store
 *   **Encrypted Connections:** All remote communications route over secure HTTPS protocols.
 *   **Locked Chats module:** Restricts sensitive chat records behind custom local passcodes and security questions. 
 *   **Restricted AI Training:** Restricts training models on chats generated inside temporary sandboxes.
-*   *See [docs/routing_and_auth_guards.md](file:///Users/david/Downloads/MensFlow/docs/routing_and_auth_guards.md) for routing security guides.*
+*   *See [`docs/routing_and_auth_guards.md`](https://github.com/dadaxlabs/mensflow/blob/main/docs/routing_and_auth_guards.md) for routing security guides.*
 
 ---
 
 ## 🤝 Development Methodology & Team Roles
 
 MensFlow is developed using the **Agile software development methodology**, deploying features in incremental sprints. Each sprint includes designing, coding, linting, typechecking, and deploying.
-*   *See [docs/collaboration_guide.md](file:///Users/david/Downloads/MensFlow/docs/collaboration_guide.md) for branching, testing, and PR guidelines.*
+*   *See [`docs/collaboration_guide.md`](https://github.com/dadaxlabs/mensflow/blob/main/docs/collaboration_guide.md) for branching, testing, and PR guidelines.*
 
 ### 🌸 Project Team & Roles
 

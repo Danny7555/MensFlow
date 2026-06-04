@@ -1,6 +1,6 @@
 # MensFlow Cycle Calculations & State Architecture 🌸
 
-[← Back to README](file:///Users/david/Downloads/MensFlow/README.md) | [← Back to Project Overview](file:///Users/david/Downloads/MensFlow/docs/project_overview.md)
+[← Back to README](../README.md) | [← Back to Project Overview](project_overview.md)
 
 This document provides a technical guide to the biological calculations, global state store, and real-time syncing mechanisms that drive the MensFlow application.
 
@@ -19,7 +19,7 @@ This document provides a technical guide to the biological calculations, global 
 
 ## 🧮 Cycle Calculation Engine
 
-MensFlow computes cycle schedules dynamically based on inputs configured in the settings page. The calculation functions are central to the app and reside in [cycleUtils.ts](../frontend/src/lib/cycleUtils.ts).
+MensFlow computes cycle schedules dynamically based on inputs configured in the settings page. The calculation functions are central to the app and reside in `frontend/src/lib/cycleUtils.ts`.
 
 ### The Cycle Day Calculation
 
@@ -84,7 +84,7 @@ export function getPhaseFromDay(cycleDay: number, cycleLen = 28): CyclePhase {
 
 ## ⚡ Global State Management (Zustand)
 
-All inputs, preferences, symptom logs, and partnership stats are centralized in a single store file at [useStore.ts](../frontend/src/store/useStore.ts).
+All inputs, preferences, symptom logs, and partnership stats are centralized in a single store file at `frontend/src/store/useStore.ts`.
 
 ### 1. LocalStorage Persistence
 
@@ -128,12 +128,12 @@ sequenceDiagram
 
 ### Implementation Details:
 
-1.  **Broadcasting Status:** In [SyncView.tsx](../frontend/src/views/SyncView.tsx), when sending a check-in, the selected option is stored under the key `mensflow_partner_ping:v1`:
+1.  **Broadcasting Status:** In `frontend/src/views/SyncView.tsx`, when sending a check-in, the selected option is stored under the key `mensflow_partner_ping:v1`:
     ```typescript
     localStorage.setItem('mensflow_partner_ping:v1', JSON.stringify(pingData))
     window.dispatchEvent(new Event('storage')) // Force listener trigger in the same browser window
     ```
-2.  **Receiving Status:** In [DashboardView.tsx](../frontend/src/views/DashboardView.tsx), an event listener watches for local storage updates:
+2.  **Receiving Status:** In `frontend/src/views/DashboardView.tsx`, an event listener watches for local storage updates:
     ```typescript
     window.addEventListener('storage', handlePingEvent)
     ```
