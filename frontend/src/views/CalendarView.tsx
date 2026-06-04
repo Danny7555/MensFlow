@@ -57,7 +57,7 @@ function calendarReducer(state: CalendarState, action: CalendarAction): Calendar
 }
 
 import { useAuth } from "@/context/useAuth"
-import { CalendarSkeleton } from "@/components/skeletons/CalendarSkeleton"
+
 
 export function CalendarView() {
   const { isAuthenticated, openAuthModal } = useAuth()
@@ -65,7 +65,7 @@ export function CalendarView() {
   const isPartner = user?.role === 'partner'
   const data = (isPartner && partnerStatus?.paired && partnerStatus?.cycle) ? partnerStatus.cycle : ownDashboard
 
-  const [isLoading, setIsLoading] = React.useState(true)
+
 
   const [view, setView] = useQueryState(
     'view',
@@ -97,9 +97,6 @@ export function CalendarView() {
     })
 
     void fetchLogs()
-
-    const timer = setTimeout(() => setIsLoading(false), 500)
-    return () => clearTimeout(timer)
   }, [fetchLogs])
 
   React.useEffect(() => {
@@ -139,9 +136,7 @@ export function CalendarView() {
   const prevYear = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year - 1, month, 1) })
   const nextYear = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year + 1, month, 1) })
 
-  if (isLoading) {
-    return <CalendarSkeleton />
-  }
+
 
   return (
     <div className="flex flex-col h-full bg-background overflow-auto relative" suppressHydrationWarning>

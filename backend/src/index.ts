@@ -15,6 +15,10 @@ import chatRoutes from './routes/chatRoutes';
 import emailRoutes from './routes/emailRoutes';
 import schedulerRoutes from './routes/schedulerRoutes';
 import { startScheduler } from './services/schedulerService';
+import educationRoutes from './routes/educationRoutes';
+import { seedEducation } from './utils/seedEducation';
+import wellnessTipRoutes from './routes/wellnessTipRoutes';
+import { seedWellnessTips } from './utils/seedWellnessTips';
 
 const app = express();
 const isVercel = process.env.VERCEL === '1' || !!process.env.VERCEL;
@@ -86,6 +90,8 @@ app.use('/api/partner', partnerRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/email', emailRoutes);
 app.use('/api/scheduler', schedulerRoutes);
+app.use('/api/education', educationRoutes);
+app.use('/api/tips', wellnessTipRoutes);
 app.get('/', (_req: Request, res: Response) => {
   res.json({ message: 'MensFlow API is running successfully' });
 });
@@ -143,6 +149,8 @@ async function bootstrap(): Promise<void> {
     return;
   }
   await connectDatabase();
+  await seedEducation();
+  await seedWellnessTips();
   const PORT = getPort();
   const server = await listen(PORT);
   setupGracefulShutdown(server);

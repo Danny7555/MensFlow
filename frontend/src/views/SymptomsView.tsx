@@ -150,7 +150,7 @@ function SymptomCategoryList({
 
 export function SymptomsView() {
   const { addLog, getLogForDate, isSaving, user, partnerStatus, fetchPartnerStatus, requestDetailedAccessAction, customSymptoms, settings } = useStore()
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading] = useState(false)
   const [requestSent, setRequestSent] = useState(false)
 
   const handleRequestAccess = async () => {
@@ -158,13 +158,6 @@ export function SymptomsView() {
     await requestDetailedAccessAction()
     await fetchPartnerStatus()
   }
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 500)
-    return () => clearTimeout(timer)
-  }, [])
 
   const todayKey = useMemo(() => format(new Date(), 'yyyy-MM-dd'), [])
 

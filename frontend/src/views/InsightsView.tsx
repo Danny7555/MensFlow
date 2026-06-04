@@ -7,7 +7,6 @@ import { InteractiveAreaChart } from '../components/InteractiveAreaChart'
 import { SymptomTrendsChart } from '../components/SymptomTrendsChart'
 import { useAuth } from "@/context/useAuth"
 import { cn } from '../lib/utils'
-import { InsightsSkeleton } from '../components/skeletons/InsightsSkeleton'
 import { HormoneWave } from '../components/dashboard/HormoneWave'
 import { useStore } from '../store/useStore'
 import { SYMPTOM_DEFS } from '../data/symptomsData'
@@ -44,7 +43,7 @@ const handlePrintPDF = () => {
 
 export function InsightsView() {
   const { isAuthenticated, openAuthModal } = useAuth()
-  const [isLoading, setIsLoading] = useState(true)
+
   const { logs, customSymptoms, user, partnerStatus, fetchPartnerStatus, requestDetailedAccessAction } = useStore()
   const [requestSent, setRequestSent] = useState(false)
   const isPartner = user?.role === 'partner'
@@ -55,11 +54,6 @@ export function InsightsView() {
     await requestDetailedAccessAction()
     await fetchPartnerStatus()
   }
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 500)
-    return () => clearTimeout(timer)
-  }, [])
 
   useEffect(() => {
     if (isPartner && partnerStatus === null) {
@@ -96,9 +90,7 @@ export function InsightsView() {
     toast.success("CSV report downloaded!")
   }
 
-  if (isLoading) {
-    return <InsightsSkeleton />
-  }
+
 
   return (
     <m.div 

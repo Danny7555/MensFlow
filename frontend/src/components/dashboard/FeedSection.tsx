@@ -179,7 +179,7 @@ export function WellnessScoreCard() {
             <div className="flex-1">
               <p className="flo-card-title">Wellness Score</p>
               <div className="flex items-end gap-1">
-                <h3 className="flo-card-desc text-2xl font-normal text-muted-foreground">—</h3>
+                <h3 className="flo-card-desc text-2xl font-normal text-muted-foreground">N/A</h3>
                 <span className="text-xs mb-1.5 font-normal text-muted-foreground opacity-60">/100</span>
               </div>
               <div className="w-full h-1.5 bg-[var(--mf-border)] rounded-full mt-3 overflow-hidden">
