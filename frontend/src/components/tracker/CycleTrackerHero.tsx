@@ -9,6 +9,7 @@ import {
   Info,
   Flask,
   CalendarPlus,
+  Drop,
 } from '@phosphor-icons/react'
 import { format, addDays, startOfDay } from 'date-fns'
 import { toast } from 'sonner'
@@ -443,9 +444,24 @@ export function CycleTrackerHero({
                 : activeInfo.phase
               }
             </h2>
-            {/* Symptothermal indicators */}
-            {activeLog && (activeLog.lhLevel !== undefined && activeLog.lhLevel !== null || activeLog.mucus) && (
+            {/* Symptothermal and Flow indicators */}
+            {activeLog && (
+              (activeLog.lhLevel !== undefined && activeLog.lhLevel !== null) || 
+              activeLog.mucus || 
+              activeLog.symptoms.some(s => s.startsWith('flow-'))
+            ) && (
               <div className="flex justify-center gap-2 mt-1 mb-2 animate-in fade-in duration-300">
+                {activeLog.symptoms.find(s => s.startsWith('flow-')) && (
+                  (() => {
+                    const activeFlow = activeLog.symptoms.find(s => s.startsWith('flow-'))!;
+                    return (
+                      <span className="text-[10px] font-medium bg-[#ff5a5f]/15 text-[#ff5a5f] border border-[#ff5a5f]/25 px-2 py-0.5 rounded-full flex items-center gap-1 capitalize">
+                        <Drop size={12} weight="fill" className="text-[#ff5a5f]" />
+                        <span>Flow: {activeFlow.replace('flow-', '')}</span>
+                      </span>
+                    )
+                  })()
+                )}
                 {activeLog.lhLevel !== undefined && activeLog.lhLevel !== null && (
                   <span className="text-[10px] font-medium bg-[#e07a5f]/15 text-[#e07a5f] border border-[#e07a5f]/25 px-2 py-0.5 rounded-full flex items-center gap-1 capitalize">
                     <Flask size={12} className="text-[#e07a5f]" aria-hidden="true" />

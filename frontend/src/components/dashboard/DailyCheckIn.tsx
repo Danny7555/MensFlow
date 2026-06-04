@@ -4,12 +4,15 @@ import { useStore } from "@/store/useStore"
 import { SYMPTOM_DEFS, type SymptomDef } from "@/data/symptomsData"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
-import { Check, Question, Trophy } from "@phosphor-icons/react"
+import { Check, Question, Trophy, Drop } from "@phosphor-icons/react"
 import { buildPersonalizationProfile } from "@/lib/personalization"
 import { computeCycleDay, getPhaseFromDay } from "@/lib/cycleUtils"
 
 // Map symptom IDs to local image assets
 const symptomImages: Record<string, string> = {
+  'flow-light': '/images/flow_light.png',
+  'flow-medium': '/images/flow_medium.png',
+  'flow-heavy': '/images/flow_heavy.png',
   'mood-happy': '/images/happy.jpg',
   'mood-sad': '/images/sad.jpg',
   'mood-irritable': '/images/angry.jpg',
@@ -115,12 +118,14 @@ function QuizOption({ text, selected, showResult, correct, onClick }: QuizOption
   )
 }
 
+const EMPTY_ARRAY: string[] = []
+
 export function SymptomLogger() {
   const { addLog, getLogForDate, isSaving, customSymptoms } = useStore()
   const [showAll, setShowAll] = useState(false)
   const todayDate = format(new Date(), 'yyyy-MM-dd')
   const existingLog = getLogForDate(todayDate)
-  const currentSymptoms = existingLog?.symptoms ?? []
+  const currentSymptoms = existingLog?.symptoms ?? EMPTY_ARRAY
   const checkInSymptoms = [...SYMPTOM_DEFS, ...customSymptoms].filter(sym => sym.category !== 'Flow')
   const displayedSymptoms = (() => {
     if (showAll) return checkInSymptoms
@@ -150,6 +155,31 @@ export function SymptomLogger() {
     await addLog(todayDate, next)
   }
 
+  const toggleFlow = async (flowId: string) => {
+    if (isSaving) return
+    let next: string[]
+    const otherFlows = ['flow-light', 'flow-medium', 'flow-heavy'].filter(id => id !== flowId)
+    
+    if (currentSymptoms.includes(flowId)) {
+      // Toggle off
+      next = currentSymptoms.filter(s => s !== flowId)
+      toast.success("Flow updated", {
+        description: "Removed flow log for today.",
+        duration: 3000,
+      })
+    } else {
+      // Toggle on, remove other flows
+      next = [...currentSymptoms.filter(s => !otherFlows.includes(s)), flowId]
+      toast.success("Flow updated", {
+        description: `Logged ${flowId.replace('flow-', '')} flow for today.`,
+        duration: 3000,
+      })
+    }
+    await addLog(todayDate, next)
+  }
+
+  const loggedSymptomsList = [...SYMPTOM_DEFS, ...customSymptoms].filter(s => currentSymptoms.includes(s.id))
+
   return (
     <div className="flo-card flo-card--prominent overflow-hidden flex flex-col justify-between h-full animate-in fade-in slide-in-from-bottom-4 duration-500 delay-400">
       <div>
@@ -167,6 +197,39 @@ export function SymptomLogger() {
         </div>
         <p className="text-xs md:text-xs text-muted-foreground mb-3 md:mb-5 leading-relaxed">Tap to record your current symptoms or moods instantly. Your daily trends will update automatically.</p>
 
+        {/* Flow Intensity Quick Log */}
+        <div className="mb-5 pb-4 border-b border-[var(--mf-border)]">
+          <span className="text-[10px] font-normal text-muted-foreground uppercase tracking-wider block mb-2">Today's Flow</span>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { id: 'flow-light', label: 'Light', color: 'hover:border-rose-300 active:bg-rose-100/50' },
+              { id: 'flow-medium', label: 'Medium', color: 'hover:border-rose-400 active:bg-rose-100' },
+              { id: 'flow-heavy', label: 'Heavy', color: 'hover:border-red-500 active:bg-red-100' },
+            ].map((flowOpt) => {
+              const isActive = currentSymptoms.includes(flowOpt.id)
+              return (
+                <button
+                  key={flowOpt.id}
+                  type="button"
+                  onClick={() => toggleFlow(flowOpt.id)}
+                  className={cn(
+                    "py-2 px-3 rounded-xl border text-xs font-normal transition-all flex items-center justify-center gap-1.5 cursor-pointer outline-none",
+                    isActive
+                      ? (flowOpt.id === 'flow-heavy' 
+                          ? "bg-red-500/10 text-red-500 border-red-500 font-medium dark:bg-red-500/20" 
+                          : "bg-rose-500/10 text-rose-500 border-rose-500 font-medium dark:bg-rose-500/20")
+                      : "bg-card text-muted-foreground border-border hover:border-[var(--mf-accent)]"
+                  )}
+                >
+                  <Drop size={12} weight={isActive ? "fill" : "regular"} className={isActive ? (flowOpt.id === 'flow-heavy' ? "text-red-500" : "text-rose-500") : "text-muted-foreground"} />
+                  <span>{flowOpt.label}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        <span className="text-[10px] font-normal text-muted-foreground uppercase tracking-wider block mb-2">Symptoms & Moods</span>
         <div className="flex flex-wrap justify-start gap-2 md:gap-3 pb-4">
           {displayedSymptoms.map((sym) => (
             <SymptomBubble
@@ -177,6 +240,36 @@ export function SymptomLogger() {
             />
           ))}
         </div>
+
+        {/* Today's Logged Signals Section */}
+        {loggedSymptomsList.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-[var(--mf-border)]">
+            <span className="text-[10px] font-normal text-muted-foreground uppercase tracking-wider block mb-2">Today's Logged Signals</span>
+            <div className="flex flex-wrap gap-2">
+              {loggedSymptomsList.map((s) => {
+                const imgUrl = symptomImages[s.id]
+                return (
+                  <div
+                    key={s.id}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-normal border transition-all",
+                      s.id.startsWith('flow-')
+                        ? "bg-rose-500/10 text-rose-500 border-rose-500/30"
+                        : "bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] border-[var(--mf-accent-border)]"
+                    )}
+                  >
+                    {imgUrl ? (
+                      <img src={imgUrl} alt="" className="size-4 rounded-full object-cover shrink-0" />
+                    ) : (
+                      <span className="size-1.5 rounded-full bg-[var(--mf-accent)] shrink-0" />
+                    )}
+                    <span>{s.label}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="mt-4 pt-3 border-t border-[var(--mf-border)] flex items-center justify-between text-[11px] text-muted-foreground">

@@ -4,6 +4,12 @@
 
 This document establishes the high-level business vision, target audience context, and three-tier system architecture of the MensFlow platform. It aligns the frontend implementation with the future backend services, database schema, and machine learning processing engines.
 
+### 💡 The Platform's Mission
+MensFlow is designed to empower menstruating individuals with accurate biological insights while synchronously educating their partners. By doing so, it:
+1. **Reduces Menstrual Literacy Gaps:** Provides an accessible, private environment for users (such as Ghanaian adolescents and young women) to learn about puberty, menstrual phases, and hormone cycles.
+2. **Cultivates Empathetic Support:** Translates complex cycle changes into plain-language guidelines for partners, giving them direct, actionable checklists (e.g. preparing heating pads, adjusting home temperatures, picking up magnesium-rich foods).
+3. **Ensures Robust Privacy:** Features passcode-protected private vaults for chats and a strict local-only storage toggle, keeping sensitive reproductive health data safe.
+
 ---
 
 ## 📖 Table of Contents

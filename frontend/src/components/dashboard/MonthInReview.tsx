@@ -17,6 +17,37 @@ const cardVariants: Variants = {
 export function MonthInReview() {
   const { logs, dashboard, partnerStatus, monthInReview } = useStore()
 
+  if (!logs || logs.length === 0) {
+    return (
+      <m.div 
+        variants={cardVariants}
+        className="flo-card flo-card--prominent p-6 border-[var(--mf-border-strong)] bg-white dark:bg-[var(--mf-card)] text-left flex flex-col justify-between min-h-[320px]"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <span className="text-[9px] font-regular text-[var(--mf-accent)] uppercase tracking-[0.2em] block mb-0.5">Cycle Story</span>
+            <h3 className="text-base font-regular text-[var(--mf-text-strong)] flex items-center gap-1.5 font-semibold">
+              Your Month in Review
+              <Sparkle size={14} className="text-[var(--mf-accent)]" weight="fill" />
+            </h3>
+          </div>
+        </div>
+
+        <div className="flex flex-col items-center justify-center text-center my-auto py-4 space-y-4">
+          <div className="size-12 rounded-2xl bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] flex items-center justify-center">
+            <Calendar size={24} weight="duotone" />
+          </div>
+          <div className="space-y-1.5 max-w-xs">
+            <h4 className="text-sm font-semibold text-[var(--mf-text-strong)]">No Cycle Data Logged Yet</h4>
+            <p className="text-xs text-[var(--mf-muted)] leading-relaxed">
+              Once you start logging symptoms and flow details, your personalized cycle insights, hormonal exertion peaks, and symptom trends will appear here.
+            </p>
+          </div>
+        </div>
+      </m.div>
+    )
+  }
+
   const stats = useMemo(() => {
     // If backend-calculated month-in-review is available, use it directly
     if (monthInReview) {

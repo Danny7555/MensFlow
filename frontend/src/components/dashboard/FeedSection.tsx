@@ -154,9 +154,58 @@ export function WellnessScoreCard() {
   const { logs, user, partnerStatus } = useStore()
   const todayStr = new Date().toLocaleDateString('en-CA')
   const todayLog = logs.find(l => l.date === todayStr)
+  
+  const hasLoggedToday = user?.role === 'partner' 
+    ? !!(partnerStatus?.cycle?.symptoms && partnerStatus.cycle.symptoms.length > 0)
+    : !!(todayLog?.symptoms && todayLog.symptoms.length > 0)
+
   const symptoms = user?.role === 'partner' && partnerStatus?.cycle?.symptoms
     ? partnerStatus.cycle.symptoms
     : (todayLog?.symptoms ?? [])
+
+  if (!hasLoggedToday) {
+    return (
+      <m.div variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
+        <div className="flex flex-col h-full">
+          <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden bg-card">
+            <img src="/images/heart.png" alt="Wellness" className="w-full h-full object-cover" />
+          </div>
+          <div className="flo-card-top relative z-10">
+            <div className="flo-card-icon flo-card-icon--pink flex items-center justify-center">
+              <img src="/images/heart.png" alt="" className="size-5 object-contain" />
+            </div>
+          </div>
+          <div className="mt-2 relative z-10 flex flex-col flex-1">
+            <div className="flex-1">
+              <p className="flo-card-title">Wellness Score</p>
+              <div className="flex items-end gap-1">
+                <h3 className="flo-card-desc text-2xl font-normal text-muted-foreground">—</h3>
+                <span className="text-xs mb-1.5 font-normal text-muted-foreground opacity-60">/100</span>
+              </div>
+              <div className="w-full h-1.5 bg-[var(--mf-border)] rounded-full mt-3 overflow-hidden">
+                <div className="h-full bg-muted rounded-full w-0" />
+              </div>
+              <p className="text-xs text-[var(--mf-muted)] mt-4 leading-relaxed">
+                {user?.role === 'partner' 
+                  ? "Your partner hasn't logged any symptoms today yet." 
+                  : "Log today's symptoms, mood, or sleep to calculate your daily wellness score."}
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-[var(--mf-border)] relative z-10 grid grid-cols-2 gap-2 text-[10px]">
+              <div>
+                <span className="opacity-80 block uppercase tracking-wider text-[8px] font-normal">Sleep Rating</span>
+                <span className="font-normal text-muted-foreground">No logs today</span>
+              </div>
+              <div>
+                <span className="opacity-80 block uppercase tracking-wider text-[8px] font-normal">Stress level</span>
+                <span className="font-normal text-muted-foreground">No logs today</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </m.div>
+    )
+  }
   
   const score = Math.max(50, 100 - symptoms.length * 10)
   
