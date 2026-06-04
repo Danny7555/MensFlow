@@ -1,4 +1,5 @@
-import { get, post, put } from '../lib/apiClient'
+import { get, post, put, upload } from '../lib/apiClient'
+
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -101,6 +102,12 @@ export const userApi = {
 
   getLoginHistory: () =>
     get<ApiLoginRecord[]>('/user/login-history'),
+
+  uploadImage: (file: File, type: 'avatar' | 'cover') => {
+    const formData = new FormData()
+    formData.append('image', file)
+    return upload<{ url: string }>(`/upload?type=${type}`, formData)
+  },
 }
 
 export const userKeys = {

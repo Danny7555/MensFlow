@@ -7,9 +7,9 @@ import { partnerApi } from '../services/partnerService'
 import { isLoggedIn } from '../lib/auth-token'
 
 export function useReactQuerySync() {
-  const store = useStore()
+  const hydrate = useStore(state => state.hydrate)
+  const isLocalOnly = useStore(state => state.settings.privacyStrictLocalOnly)
   const loggedIn = isLoggedIn()
-  const isLocalOnly = store.settings.privacyStrictLocalOnly
   const shouldFetch = loggedIn && !isLocalOnly
 
   // 1. Profile Query (fetch user, settings, dashboard)
@@ -22,13 +22,13 @@ export function useReactQuerySync() {
 
   useEffect(() => {
     if (profile) {
-      store.hydrate({
+      hydrate({
         user: profile.user,
         settings: profile.settings,
         dashboard: profile.dashboard,
       })
     }
-  }, [profile, store])
+  }, [profile, hydrate])
 
   // 2. Symptom Logs Query
   const { data: logs } = useQuery({

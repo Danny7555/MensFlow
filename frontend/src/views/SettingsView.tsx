@@ -2,6 +2,8 @@
 import type { ComponentType, ReactNode } from 'react'
 import { useState, useRef, useEffect } from 'react'
 import { useStore } from '../store/useStore'
+import { userApi } from '../services/userService'
+import { resolveAssetUrl } from '../lib/apiClient'
 import { useAuth } from '../context/useAuth'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 import {
@@ -511,7 +513,7 @@ function GeneralPanel({
                 <div className="flex items-center gap-3">
                   <div className="size-10 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center overflow-hidden border border-[var(--mf-border)]">
                     {partnerStatus.partner?.avatar ? (
-                      <img src={partnerStatus.partner.avatar} alt="" className="w-full h-full object-cover" />
+                      <img src={resolveAssetUrl(partnerStatus.partner.avatar)} alt="" className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-base font-normal text-[var(--mf-accent)]">
                         {partnerStatus.partner?.name?.charAt(0).toUpperCase()}
@@ -1407,7 +1409,7 @@ function AccountPanel({
             <div className="flex flex-col items-center gap-2 mr-4">
               <div className="size-20 rounded-full bg-muted border border-border flex items-center justify-center overflow-hidden shrink-0 relative group">
                 {user?.avatar ? (
-                  <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+                  <img src={resolveAssetUrl(user.avatar)} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
                   <UserCircle size={48} weight="duotone" className="text-muted-foreground" aria-hidden />
                 )}
@@ -1422,14 +1424,18 @@ function AccountPanel({
                   type="file" 
                   accept="image/*" 
                   className="hidden" 
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     const file = e.target.files?.[0]
                     if (file) {
-                      const reader = new FileReader()
-                      reader.onloadend = () => {
-                        updateUser({ avatar: reader.result as string })
+                      const toastId = toast.loading('Uploading avatar...')
+                      try {
+                        const res = await userApi.uploadImage(file, 'avatar')
+                        await updateUser({ avatar: res.url })
+                        toast.success('Avatar updated successfully!', { id: toastId })
+                      } catch (err) {
+                        console.error('Failed to upload avatar:', err)
+                        toast.error('Failed to upload avatar. Please try again.', { id: toastId })
                       }
-                      reader.readAsDataURL(file)
                     }
                   }} 
                 />

@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { PartnerChat } from '../components/dashboard/PartnerChat'
 import { PresenceBadge } from '../components/dashboard/PresenceBadge'
 import { useStore } from '../store/useStore'
+import { resolveAssetUrl } from '../lib/apiClient'
 import {
   Dialog,
   DialogContent,
@@ -546,7 +547,7 @@ export function SyncView() {
                     <div className="flex items-center gap-2">
                       <div className="size-7 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center overflow-hidden border border-[var(--mf-border)]">
                         {partnerStatus.partner.avatar ? (
-                          <img src={partnerStatus.partner.avatar} alt="" className="size-full object-cover" />
+                          <img src={resolveAssetUrl(partnerStatus.partner.avatar)} alt="" className="size-full object-cover" />
                         ) : (
                           <img src="/images/girl.png" alt="" className="size-full object-cover" />
                         )}

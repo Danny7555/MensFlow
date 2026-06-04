@@ -4,6 +4,7 @@ import { Bell, Calendar as CalendarIcon, SignOut, Ghost, Question } from "@phosp
 import { Link } from "react-router-dom"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
+import { resolveAssetUrl } from "@/lib/apiClient"
 import {
   Dialog,
   DialogContent,
@@ -63,7 +64,7 @@ export function DashboardHeader({
           className="flo-avatar-wrap"
         >
           <img 
-            src={user.avatar || (user.role === 'partner' ? '/images/mens.jpg' : '/images/girl.png')} 
+            src={resolveAssetUrl(user.avatar) || (user.role === 'partner' ? '/images/mens.jpg' : '/images/girl.png')} 
             alt="Profile" 
             className="flo-avatar" 
           />

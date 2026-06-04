@@ -19,6 +19,9 @@ import educationRoutes from './routes/educationRoutes';
 import { seedEducation } from './utils/seedEducation';
 import wellnessTipRoutes from './routes/wellnessTipRoutes';
 import { seedWellnessTips } from './utils/seedWellnessTips';
+import path from 'path';
+import uploadRoutes from './routes/uploadRoutes';
+import { ensureUploadDirectories } from './controllers/uploadController';
 
 const app = express();
 const isVercel = process.env.VERCEL === '1' || !!process.env.VERCEL;
@@ -51,6 +54,7 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '64kb' }));
 app.use(express.text({ limit: '64kb' }));
+app.use('/uploads', express.static(path.resolve(process.cwd(), 'public/uploads')));
 
 // Lazy DB connection for Serverless environments (Vercel)
 let dbConnected = false;
@@ -92,6 +96,7 @@ app.use('/api/email', emailRoutes);
 app.use('/api/scheduler', schedulerRoutes);
 app.use('/api/education', educationRoutes);
 app.use('/api/tips', wellnessTipRoutes);
+app.use('/api/upload', uploadRoutes);
 app.get('/', (_req: Request, res: Response) => {
   res.json({ message: 'MensFlow API is running successfully' });
 });
@@ -143,6 +148,7 @@ process.on('unhandledRejection', (reason) => {
 
 async function bootstrap(): Promise<void> {
   validateRuntimeEnv();
+  ensureUploadDirectories();
   if (isVercel) {
     // Connect DB in the background on cold start
     connectDatabase().catch(err => console.error('[Vercel] DB warm connection error:', err));

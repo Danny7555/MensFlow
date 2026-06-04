@@ -20,6 +20,7 @@ import {
 } from '@phosphor-icons/react'
 import { educationApi } from '../../services/educationService'
 import type { ApiEducationArticle } from '../../services/educationService'
+import { userApi } from '../../services/userService'
 
 // ─── Icon map (same as parent view) ─────────────────────────────────────────
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -236,17 +237,64 @@ export function EducationFormModal({ open, editingArticle, onClose, onSaved }: E
             </div>
 
             <div className="space-y-1.5 text-left">
-              <label htmlFor="edu-image" className="text-xs font-medium text-[var(--mf-text-strong)]">
-                Optional Image Path
-              </label>
-              <input
-                id="edu-image"
-                type="text"
-                value={form.image}
-                onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'image', value: e.target.value })}
-                placeholder="e.g. /images/star.png"
-                className="w-full bg-white dark:bg-white/5 border border-[var(--mf-border)] rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--mf-accent)]/50 focus:border-[var(--mf-accent)] text-[var(--mf-text-strong)] transition-all"
+              <div className="flex items-center justify-between">
+                <label htmlFor="edu-image" className="text-xs font-medium text-[var(--mf-text-strong)]">
+                  Optional Image Path or Upload
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById('cover-upload')?.click()}
+                    className="text-[10px] font-semibold text-[var(--mf-accent)] hover:underline cursor-pointer"
+                  >
+                    Upload Cover
+                  </button>
+                  {form.image && (
+                    <button
+                      type="button"
+                      onClick={() => dispatch({ type: 'SET_FIELD', field: 'image', value: '' })}
+                      className="text-[10px] font-semibold text-rose-500 hover:underline cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+              </div>
+              <input 
+                id="cover-upload" 
+                type="file" 
+                accept="image/*" 
+                className="hidden" 
+                onChange={async (e) => {
+                  const file = e.target.files?.[0]
+                  if (file) {
+                    const toastId = toast.loading('Uploading cover image...')
+                    try {
+                      const res = await userApi.uploadImage(file, 'cover')
+                      dispatch({ type: 'SET_FIELD', field: 'image', value: res.url })
+                      toast.success('Cover image uploaded!', { id: toastId })
+                    } catch (err) {
+                      console.error('Failed to upload cover:', err)
+                      toast.error('Failed to upload cover. Please try again.', { id: toastId })
+                    }
+                  }
+                }} 
               />
+              <div className="flex gap-3 items-center">
+                {form.image && (
+                  <div className="size-10 rounded-xl overflow-hidden border border-border shrink-0 bg-muted">
+                    <img src={form.image} alt="" className="size-full object-cover" />
+                  </div>
+                )}
+                <input
+                  id="edu-image"
+                  type="text"
+                  value={form.image}
+                  onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'image', value: e.target.value })}
+                  placeholder="e.g. /images/star.png or upload a file"
+                  className="w-full bg-white dark:bg-white/5 border border-[var(--mf-border)] rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--mf-accent)]/50 focus:border-[var(--mf-accent)] text-[var(--mf-text-strong)] transition-all"
+                />
+              </div>
             </div>
           </div>
 
