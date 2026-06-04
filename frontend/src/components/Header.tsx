@@ -22,6 +22,55 @@ type HeaderProps = {
   isMobile?: boolean
 }
 
+const getPageTitle = (pathname: string, search: string) => {
+  if (pathname === '/settings') {
+    const params = new URLSearchParams(search)
+    const section = params.get('section')
+    switch (section) {
+      case 'general': return 'General'
+      case 'notifications': return 'Notifications'
+      case 'personalization': return 'Personalization'
+      case 'apps': return 'Apps'
+      case 'data_controls': return 'Data Controls'
+      case 'security': return 'Security'
+      case 'parental': return 'Parental Controls'
+      case 'account': return 'Account'
+      default: return 'Settings'
+    }
+  }
+
+  switch (pathname) {
+    case '/dashboard':
+      return 'Home'
+    case '/ask':
+      return 'Ask AI'
+    case '/insights':
+    case '/health-insights':
+      return 'Insights'
+    case '/tips':
+    case '/wellness-tips':
+      return 'Wellness'
+    case '/notifications':
+      return 'Alerts'
+    case '/settings':
+      return 'Settings'
+    case '/calendar':
+      return 'Calendar'
+    case '/tracker':
+      return 'Tracker'
+    case '/symptoms':
+      return 'Symptoms'
+    case '/education':
+      return 'Education'
+    case '/sync':
+      return 'Partner Sync'
+    case '/locked-chats':
+      return 'Locked Chats'
+    default:
+      return 'MensFlow'
+  }
+}
+
 export function Header({
   isAuthenticated,
   onToggleSidebar,
@@ -47,55 +96,6 @@ export function Header({
     document.addEventListener('mousedown', close)
     return () => document.removeEventListener('mousedown', close)
   }, [profileOpen])
-
-  const getPageTitle = (pathname: string, search: string) => {
-    if (pathname === '/settings') {
-      const params = new URLSearchParams(search)
-      const section = params.get('section')
-      switch (section) {
-        case 'general': return 'General'
-        case 'notifications': return 'Notifications'
-        case 'personalization': return 'Personalization'
-        case 'apps': return 'Apps'
-        case 'data_controls': return 'Data Controls'
-        case 'security': return 'Security'
-        case 'parental': return 'Parental Controls'
-        case 'account': return 'Account'
-        default: return 'Settings'
-      }
-    }
-
-    switch (pathname) {
-      case '/dashboard':
-        return 'Home'
-      case '/ask':
-        return 'Ask AI'
-      case '/insights':
-      case '/health-insights':
-        return 'Insights'
-      case '/tips':
-      case '/wellness-tips':
-        return 'Wellness'
-      case '/notifications':
-        return 'Alerts'
-      case '/settings':
-        return 'Settings'
-      case '/calendar':
-        return 'Calendar'
-      case '/tracker':
-        return 'Tracker'
-      case '/symptoms':
-        return 'Symptoms'
-      case '/education':
-        return 'Education'
-      case '/sync':
-        return 'Partner Sync'
-      case '/locked-chats':
-        return 'Locked Chats'
-      default:
-        return 'MensFlow'
-    }
-  }
 
   const params = new URLSearchParams(location.search)
   const hasSettingsSection = location.pathname === '/settings' && params.has('section')
