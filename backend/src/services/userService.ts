@@ -2,6 +2,7 @@ import { User } from '../models/User';
 import { Settings, SettingsDocument } from '../models/Settings';
 import { Dashboard, DashboardDocument } from '../models/Dashboard';
 import { PartnerPing } from '../models/Partner';
+import { SymptomLog } from '../models/Symptom';
 import { IUser, ISettings, IDashboard } from '../interfaces';
 import { sendReminderEmail, sendGuardianEmail } from './emailService';
 import { buildCycleModel } from '../utils/cycleModel';
@@ -47,7 +48,7 @@ export async function getUserProfile(
       quizCountToday: user.quizCountToday || 0,
     },
     settings: toSettings(settings),
-    dashboard: toDashboard(dashboard),
+    dashboard: await toDashboard(dashboard),
   };
 }
 
@@ -210,7 +211,7 @@ export async function updateDashboard(
   if (!dashboard) {
     throw Object.assign(new Error('Unable to update dashboard'), { status: 500 });
   }
-  return toDashboard(dashboard);
+  return await toDashboard(dashboard);
 }
 
 function toSettings(settings: SettingsDocument): ISettings {
@@ -254,11 +255,15 @@ function toSettings(settings: SettingsDocument): ISettings {
   };
 }
 
-function toDashboard(dashboard: DashboardDocument): IDashboard {
+async function toDashboard(dashboard: DashboardDocument): Promise<IDashboard> {
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todayLog = await SymptomLog.findOne({ userId: dashboard.userId, date: todayStr }).lean();
+
   const model = buildCycleModel({
     lastPeriodStart: dashboard.lastPeriodStart,
     typicalCycleDays: dashboard.typicalCycleDays,
     cycleVariationDays: dashboard.cycleVariationDays,
+    symptoms: todayLog?.symptoms || [],
   });
   return {
     userId: String(dashboard.userId),
@@ -266,8 +271,8 @@ function toDashboard(dashboard: DashboardDocument): IDashboard {
     typicalCycleDays: dashboard.typicalCycleDays,
     phaseLabel: model.phaseLabel,
     hormoneTrend: model.hormoneTrend,
-    bodySignals: dashboard.bodySignals || model.bodySignals,
-    guidanceLines: dashboard.guidanceLines?.length ? dashboard.guidanceLines : model.guidanceLines,
+    bodySignals: todayLog?.symptoms?.length ? model.bodySignals : (dashboard.bodySignals || model.bodySignals),
+    guidanceLines: model.guidanceLines,
     cycleNotes: dashboard.cycleNotes,
     cycleVariationDays: model.cycleVariationDays,
     isAtypical: model.isAtypical,

@@ -284,6 +284,7 @@ export function OnboardingView() {
 
               <OnboardingFooter
                 currentStep={currentActiveIndex}
+                isLastStep={currentActiveIndex === activeQuestions.length - 1}
                 isStepValid={isStepValid()}
                 handleNext={handleNext}
                 handleNoThanks={handleNoThanks}
@@ -394,6 +395,7 @@ function OnboardingHeader({
 
 interface OnboardingFooterProps {
   currentStep: number;
+  isLastStep: boolean;
   isStepValid: boolean;
   handleNext: () => void;
   handleNoThanks: () => void;
@@ -401,6 +403,7 @@ interface OnboardingFooterProps {
 
 function OnboardingFooter({
   currentStep,
+  isLastStep,
   isStepValid,
   handleNext,
   handleNoThanks,
@@ -418,7 +421,7 @@ function OnboardingFooter({
          >
           {currentStep === 0
             ? "Yes, fine by me"
-            : currentStep === 0
+            : isLastStep
               ? "Finish"
               : "Next"}
         </Button>

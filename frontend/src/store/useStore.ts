@@ -441,6 +441,13 @@ export const useStore = create<AppState>()((set, get) => ({
             { date: log.date, symptoms: log.symptoms, water: log.water, weight: log.weight, lhLevel: log.lhLevel, mucus: log.mucus },
           ],
         }))
+        // Refresh profile to update dashboard cycle state/variation metrics
+        try {
+          const profile = await userApi.getProfile()
+          get().hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
+        } catch (err) {
+          console.error('Failed to sync dashboard metrics:', err)
+        }
         void get().fetchMonthInReview()
       } else {
         set((state) => ({
@@ -484,6 +491,13 @@ export const useStore = create<AppState>()((set, get) => ({
             { date: log.date, symptoms: log.symptoms, water: log.water, weight: log.weight, lhLevel: log.lhLevel, mucus: log.mucus },
           ],
         }))
+        // Refresh profile to update dashboard cycle state/variation metrics
+        try {
+          const profile = await userApi.getProfile()
+          get().hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
+        } catch (err) {
+          console.error('Failed to sync dashboard metrics:', err)
+        }
         void get().fetchMonthInReview()
       } else {
         set((state) => ({
@@ -507,6 +521,12 @@ export const useStore = create<AppState>()((set, get) => ({
   clearLogs: async () => {
     if (isLoggedIn()) {
       await logsApi.clearAll()
+      try {
+        const profile = await userApi.getProfile()
+        get().hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
+      } catch (err) {
+        console.error('Failed to sync dashboard after clear:', err)
+      }
     }
     set({ logs: [] })
   },
