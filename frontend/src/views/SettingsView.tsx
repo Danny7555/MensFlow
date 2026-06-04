@@ -174,7 +174,7 @@ function MfaSetupModal({ trigger }: { trigger: ReactNode }) {
       <DialogTrigger asChild>
         {trigger}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[420px] bg-card border-border p-0 overflow-hidden">
+      <DialogContent className="sm:max-w-[420px] bg-card border-border p-0 overflow-hidden max-h-[90vh] overflow-y-auto scrollbar-hide">
         <div className="p-6">
           <DialogHeader className="mb-6">
             <DialogTitle className="text-2xl font-medium tracking-tight">
@@ -820,7 +820,7 @@ function LockChatSetupModal({
       }
     }}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="sm:max-w-[420px] bg-card border-border p-6">
+      <DialogContent className="sm:max-w-[420px] bg-card border-border p-6 max-h-[90vh] overflow-y-auto scrollbar-hide">
         <DialogHeader className="mb-4">
           <DialogTitle className="text-xl font-medium tracking-tight flex items-center gap-2">
             <Lock size={24} className="text-[var(--mf-accent)]" /> {step === 1 ? 'Setup Locked Chats' : 'Security Question'}
@@ -1007,7 +1007,7 @@ function DeleteLockChatModal({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="sm:max-w-[420px] bg-card border-border p-6">
+      <DialogContent className="sm:max-w-[420px] bg-card border-border p-6 max-h-[90vh] overflow-y-auto scrollbar-hide">
         <DialogHeader className="mb-4">
           <DialogTitle className="text-xl font-medium tracking-tight text-red-500 flex items-center gap-2">
             <Trash size={24} /> Delete Locked Chats

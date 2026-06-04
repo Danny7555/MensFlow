@@ -430,7 +430,7 @@ export function SyncView() {
 
           {/* Invite Partner Dialog */}
           <Dialog open={isInviteModalOpen} onOpenChange={setIsInviteModalOpen}>
-            <DialogContent className="sm:max-w-[480px] w-[calc(100%-32px)] p-0 overflow-hidden border border-border rounded-2xl sm:rounded-3xl bg-background invite-partner-dialog-content">
+            <DialogContent className="sm:max-w-[480px] w-[calc(100%-32px)] p-0 overflow-hidden border border-border rounded-2xl sm:rounded-3xl bg-background invite-partner-dialog-content max-h-[90vh] overflow-y-auto scrollbar-hide">
               <div className="p-5 sm:p-6 md:p-8">
                 <DialogHeader className="mb-4">
                   <div className="size-12 rounded-xl bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-3">
@@ -695,7 +695,7 @@ export function SyncView() {
 
         {/* Invite Partner Dialog */}
         <Dialog open={isInviteModalOpen} onOpenChange={setIsInviteModalOpen}>
-          <DialogContent className="sm:max-w-[480px] w-[calc(100%-32px)] p-0 overflow-hidden border border-border rounded-2xl sm:rounded-3xl bg-background invite-partner-dialog-content">
+          <DialogContent className="sm:max-w-[480px] w-[calc(100%-32px)] p-0 overflow-hidden border border-border rounded-2xl sm:rounded-3xl bg-background invite-partner-dialog-content max-h-[90vh] overflow-y-auto scrollbar-hide">
             <div className="p-5 sm:p-6 md:p-8">
               <DialogHeader className="mb-4">
                 <div className="size-12 rounded-xl bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-3">
