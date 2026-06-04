@@ -261,7 +261,7 @@ export function SymptomLogger() {
                     {imgUrl ? (
                       <img src={imgUrl} alt="" className="size-4 rounded-full object-cover shrink-0" />
                     ) : (
-                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--mf-accent)] shrink-0" />
+                      <span className="size-1.5 rounded-full bg-[var(--mf-accent)] shrink-0" />
                     )}
                     <span>{s.label}</span>
                   </div>
