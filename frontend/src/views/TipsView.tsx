@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useCallback } from 'react'
+import { useMemo, useReducer, useState, useEffect, useCallback } from 'react'
 import { useStore } from '../store/useStore'
 import { TipsSkeleton } from '../components/skeletons/TipsSkeleton'
 import { cn } from '@/lib/utils'
@@ -83,6 +83,40 @@ function TipCard({ tip, isSaved, isAuthenticated, onToggleSave, onEdit, onDelete
   )
 }
 
+// ─── Fetch state reducer ──────────────────────────────────────────────────────
+interface FetchState {
+  tips: ApiWellnessTip[]
+  isLoading: boolean
+}
+type FetchAction =
+  | { type: 'loaded'; tips: ApiWellnessTip[] }
+  | { type: 'error' }
+
+function fetchReducer(state: FetchState, action: FetchAction): FetchState {
+  switch (action.type) {
+    case 'loaded': return { tips: action.tips, isLoading: false }
+    case 'error':  return { ...state, isLoading: false }
+    default:       return state
+  }
+}
+
+// ─── Modal state reducer ──────────────────────────────────────────────────────
+interface ModalState {
+  isOpen: boolean
+  editingTip: ApiWellnessTip | null
+}
+type ModalAction =
+  | { type: 'open'; tip?: ApiWellnessTip }
+  | { type: 'close' }
+
+function modalReducer(_state: ModalState, action: ModalAction): ModalState {
+  switch (action.type) {
+    case 'open':  return { isOpen: true, editingTip: action.tip ?? null }
+    case 'close': return { isOpen: false, editingTip: null }
+    default:      return _state
+  }
+}
+
 // ─── Main View ───────────────────────────────────────────────────────────────
 export function TipsView() {
   const { isAuthenticated } = useAuth()
@@ -92,19 +126,20 @@ export function TipsView() {
     ? partnerStatus.cycle
     : ownDashboard
 
+  // Independent state — each controls a separate, unrelated concern
   const [cat, setCat] = useState<(typeof CATS)[number]['id']>('all')
-  const [tips, setTips] = useState<ApiWellnessTip[]>([])
   const [saved, setSaved] = useState<Set<string>>(() => new Set())
-  const [isLoading, setIsLoading] = useState(true)
 
-  // Modal state — only 2 values: open flag + which tip is being edited
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingTip, setEditingTip] = useState<ApiWellnessTip | null>(null)
+  // Grouped: data loading (tips + isLoading always transition together)
+  const [fetch, dispatchFetch] = useReducer(fetchReducer, { tips: [], isLoading: true })
+
+  // Grouped: modal visibility + which tip is being edited (always transition together)
+  const [modal, dispatchModal] = useReducer(modalReducer, { isOpen: false, editingTip: null })
 
   const fetchTips = useCallback(async () => {
     try {
       const dbTips = await tipsApi.getTips()
-      setTips(dbTips)
+      dispatchFetch({ type: 'loaded', tips: dbTips })
       setSaved((prev) => {
         if (prev.size === 0 && dbTips.length > 0) {
           return new Set(dbTips.slice(0, 2).map((t) => t.id || t._id || ''))
@@ -114,8 +149,7 @@ export function TipsView() {
     } catch (err) {
       console.error('Failed to load wellness tips:', err)
       toast.error('Could not load wellness tips from server.')
-    } finally {
-      setIsLoading(false)
+      dispatchFetch({ type: 'error' })
     }
   }, [])
 
@@ -145,9 +179,9 @@ export function TipsView() {
         summary: t.summary,
         phaseTag: t.phaseTag,
       })),
-      ...tips,
+      ...fetch.tips,
     ],
-    [fromDashboard, tips],
+    [fromDashboard, fetch.tips],
   )
 
   const filtered = merged.filter((t) => cat === 'all' || t.category === cat)
@@ -175,7 +209,7 @@ export function TipsView() {
     }
   }
 
-  if (isLoading) {
+  if (fetch.isLoading) {
     return <TipsSkeleton />
   }
 
@@ -200,7 +234,7 @@ export function TipsView() {
         {isAuthenticated && (
           <button
             type="button"
-            onClick={() => { setEditingTip(null); setIsModalOpen(true) }}
+            onClick={() => dispatchModal({ type: 'open' })}
             className="px-5 py-2 rounded-full text-sm font-medium bg-[var(--mf-accent)] text-white hover:bg-[var(--mf-accent-hover)] transition-all cursor-pointer flex items-center gap-1.5 shadow-sm active-squish"
           >
             <Plus size={16} weight="bold" />
@@ -219,7 +253,7 @@ export function TipsView() {
               isSaved={saved.has(keyId)}
               isAuthenticated={isAuthenticated}
               onToggleSave={toggleSave}
-              onEdit={(tip) => { setEditingTip(tip); setIsModalOpen(true) }}
+              onEdit={(tip) => dispatchModal({ type: 'open', tip })}
               onDelete={handleDeleteClick}
             />
           )
@@ -227,9 +261,9 @@ export function TipsView() {
       </ul>
 
       <TipFormModal
-        open={isModalOpen}
-        editingTip={editingTip}
-        onClose={() => setIsModalOpen(false)}
+        open={modal.isOpen}
+        editingTip={modal.editingTip}
+        onClose={() => dispatchModal({ type: 'close' })}
         onSaved={fetchTips}
       />
     </div>
