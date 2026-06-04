@@ -117,6 +117,7 @@ app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
   const { status, message } = getErrorResponse(err);
   const requestId = res.getHeader('X-Request-Id') ?? '-';
   console.error(`[ERROR] [${requestId}] ${req.method} ${req.path} — ${status}: ${message}`);
+  console.error('Actual error details:', err);
   res.status(status).json({ error: message });
 });
 

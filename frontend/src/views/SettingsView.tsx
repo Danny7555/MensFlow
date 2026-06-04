@@ -3,6 +3,7 @@ import type { ComponentType, ReactNode } from 'react'
 import { useState, useRef, useEffect } from 'react'
 import { useStore } from '../store/useStore'
 import { useAuth } from '../context/useAuth'
+import { useMediaQuery } from '../hooks/useMediaQuery'
 import {
   ArrowCounterClockwise,
   Bell,
@@ -1636,9 +1637,11 @@ export function SettingsView({
   const [cat, setCat] = useQueryState(
     'section',
     parseAsStringLiteral(SETTINGS_CATS)
-      .withDefault('general')
       .withOptions({ shallow: false })
   )
+  const isMobile = useMediaQuery('(max-width: 768px)')
+  const effectiveCat = cat || (isMobile ? null : 'general')
+
   const { settings, updateSettings: storeUpdateSettings, resetSettings, user, updateUser, resetStore, showConfirm } = useStore()
   const { user: authUser } = useAuth()
 
@@ -1787,11 +1790,11 @@ export function SettingsView({
   }
 
   const panelTitle =
-    NAV.find((n) => n.id === cat)?.label ?? 'Settings'
+    NAV.find((n) => n.id === effectiveCat)?.label ?? 'Settings'
 
   let panel: ReactNode
 
-  switch (cat) {
+  switch (effectiveCat) {
     case 'general':
       panel = (
         <GeneralPanel
@@ -1873,23 +1876,49 @@ export function SettingsView({
 
   return (
     <div className="settings-shell">
-      <aside className="settings-shell-nav" aria-label="Settings sections">
-        {NAV.map(({ id, label, Icon }) => (
-          <button
-            key={id}
-            type="button"
-            className={`settings-nav-item ${cat === id ? 'settings-nav-item--active' : ''}`}
-            onClick={() => setCat(id)}
-          >
-            <Icon size={20} aria-hidden />
-            <span>{label}</span>
-          </button>
-        ))}
-      </aside>
-      <div className="settings-shell-main">
-        <h2 className="settings-panel-heading">{panelTitle}</h2>
-        <div className="settings-panel-body">{panel}</div>
-      </div>
+      {(!isMobile || !effectiveCat) && (
+        <aside className="settings-shell-nav" aria-label="Settings sections">
+          {isMobile ? (
+            <div className="ios-settings-list">
+              {NAV.map(({ id, label, Icon }) => (
+                <button
+                  key={id}
+                  type="button"
+                  className="ios-settings-row"
+                  onClick={() => setCat(id)}
+                >
+                  <div className="ios-settings-left">
+                    <div className={`ios-settings-icon-wrapper ios-settings-icon--${id}`}>
+                      <Icon size={18} />
+                    </div>
+                    <span className="ios-settings-label">{label}</span>
+                  </div>
+                  <CaretRight size={16} className="ios-settings-chevron" />
+                </button>
+              ))}
+            </div>
+          ) : (
+            NAV.map(({ id, label, Icon }) => (
+              <button
+                key={id}
+                type="button"
+                className={`settings-nav-item ${effectiveCat === id ? 'settings-nav-item--active' : ''}`}
+                onClick={() => setCat(id)}
+              >
+                <Icon size={20} aria-hidden />
+                <span>{label}</span>
+              </button>
+            ))
+          )}
+        </aside>
+      )}
+      
+      {(!isMobile || effectiveCat) && (
+        <div className="settings-shell-main">
+          {!isMobile && <h2 className="settings-panel-heading">{panelTitle}</h2>}
+          <div className="settings-panel-body">{panel}</div>
+        </div>
+      )}
     </div>
   )
 }

@@ -28,6 +28,9 @@ export async function upsertSymptomLog(
   lhLevel?: string | null,
   mucus?: string | null
 ): Promise<ISymptomLog> {
+  const user = await User.findById(userId).lean();
+  const targetId = (user?.role === 'partner' && user.partnerId) ? user.partnerId : userId;
+
   const updateFields: any = {};
   if (symptoms !== undefined) {
     updateFields.symptoms = symptoms;
@@ -48,7 +51,7 @@ export async function upsertSymptomLog(
   }
 
   const log = await SymptomLog.findOneAndUpdate(
-    { userId, date },
+    { userId: targetId, date },
     { $set: updateFields },
     { upsert: true, new: true, lean: true, runValidators: true, setDefaultsOnInsert: true }
   );
@@ -66,7 +69,9 @@ export async function upsertSymptomLog(
 }
 
 export async function clearAllLogs(userId: string): Promise<void> {
-  await SymptomLog.deleteMany({ userId });
+  const user = await User.findById(userId).lean();
+  const targetId = (user?.role === 'partner' && user.partnerId) ? user.partnerId : userId;
+  await SymptomLog.deleteMany({ userId: targetId });
 }
 
 export async function getCustomSymptoms(userId: string): Promise<ICustomSymptom[]> {
@@ -86,7 +91,9 @@ export async function addCustomSymptom(
   label: string,
   category: string
 ): Promise<ICustomSymptom> {
-  const item = await CustomSymptom.create({ userId, label, category });
+  const user = await User.findById(userId).lean();
+  const targetId = (user?.role === 'partner' && user.partnerId) ? user.partnerId : userId;
+  const item = await CustomSymptom.create({ userId: targetId, label, category });
   return {
     id: String(item._id),
     userId: String(item.userId),
@@ -99,7 +106,9 @@ export async function removeCustomSymptom(
   userId: string,
   symptomId: string
 ): Promise<boolean> {
-  const result = await CustomSymptom.findOneAndDelete({ _id: symptomId, userId });
+  const user = await User.findById(userId).lean();
+  const targetId = (user?.role === 'partner' && user.partnerId) ? user.partnerId : userId;
+  const result = await CustomSymptom.findOneAndDelete({ _id: symptomId, userId: targetId });
   return result !== null;
 }
 

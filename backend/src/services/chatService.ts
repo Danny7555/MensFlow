@@ -3,7 +3,7 @@ import { Types } from 'mongoose';
 import { ChatMessage } from '../models/Chat';
 import { User } from '../models/User';
 import { Dashboard } from '../models/Dashboard';
-import { SymptomLog } from '../models/Symptom';
+import { SymptomLog, CustomSymptom } from '../models/Symptom';
 import { IChatMessage, ISessionSummary } from '../interfaces';
 import { httpError } from '../utils/http';
 import { buildCycleModel } from '../utils/cycleModel';
@@ -326,6 +326,13 @@ async function extractAndSaveCycleData(userId: string, text: string): Promise<vo
 
     const today = new Date().toISOString().split('T')[0];
 
+    const customSymptoms = await CustomSymptom.find({ userId: targetId }).lean();
+    let customText = '';
+    if (customSymptoms.length > 0) {
+      customText = `\n   - Custom symptoms configured by the user (match these to their corresponding ID if mentioned):\n` +
+        customSymptoms.map(c => `     - "${c.label}" -> "${c._id}"`).join('\n');
+    }
+
     const prompt = `You are a data extraction assistant for MensFlow, a menstrual cycle tracking app.
 Analyze the user's message below (which may be from a woman tracking her own cycle, or from her partner reporting on her cycle/symptoms/flow).
 Extract any of the following fields if they are mentioned:
@@ -338,7 +345,7 @@ Extract any of the following fields if they are mentioned:
    - PCOS: "pcos-hirsutism", "pcos-oily", "pcos-hairloss"
    - Endometriosis: "endo-pelvicpain", "endo-painsex", "endo-backache"
    - Perimenopause: "peri-hotflash", "peri-nightsweat", "peri-brainfog"
-   - Lifestyle: "life-sleep", "life-bbt", "life-sex", "life-pill"
+   - Lifestyle: "life-sleep", "life-bbt", "life-sex", "life-pill"${customText}
    (e.g., "she is having severe cramps and light flow today" -> ["phys-cramps", "flow-light"])
 4. "water": Daily water intake in ml (e.g., "drank 1500ml water", "drank 2 liters of water").
 5. "weight": Body weight in kg (e.g., "my weight is 61.5 kg", "she weighs 60kg").
@@ -393,7 +400,10 @@ Example Output:
     // 1. Update Dashboard
     const dashboardPatch: any = {};
     if (extracted.lastPeriodStart && /^\d{4}-\d{2}-\d{2}$/.test(extracted.lastPeriodStart)) {
-      dashboardPatch.lastPeriodStart = extracted.lastPeriodStart;
+      const parsedDate = new Date(extracted.lastPeriodStart);
+      if (!Number.isNaN(parsedDate.getTime()) && parsedDate <= new Date()) {
+        dashboardPatch.lastPeriodStart = extracted.lastPeriodStart;
+      }
     }
     if (extracted.typicalCycleDays && typeof extracted.typicalCycleDays === 'number' && extracted.typicalCycleDays >= 15 && extracted.typicalCycleDays <= 60) {
       dashboardPatch.typicalCycleDays = extracted.typicalCycleDays;
@@ -432,17 +442,32 @@ Example Output:
     const logDoc = await SymptomLog.findOne({ userId: new Types.ObjectId(targetId), date: today }).lean();
 
     if (Array.isArray(extracted.symptoms) && extracted.symptoms.length > 0) {
-      const validSymptoms = extracted.symptoms.filter((s: any) => typeof s === 'string');
-      const existingSymptoms = logDoc?.symptoms || [];
-      symptomPatch.symptoms = Array.from(new Set([...existingSymptoms, ...validSymptoms]));
+      const standardSymptomIds = new Set([
+        'flow-light', 'flow-medium', 'flow-heavy',
+        'mood-calm', 'mood-happy', 'mood-anxious', 'mood-sad', 'mood-irritable',
+        'phys-cramps', 'phys-headache', 'phys-bloating', 'phys-fatigue', 'phys-tender', 'phys-acne',
+        'pcos-hirsutism', 'pcos-oily', 'pcos-hairloss',
+        'endo-pelvicpain', 'endo-painsex', 'endo-backache',
+        'peri-hotflash', 'peri-nightsweat', 'peri-brainfog',
+        'life-sleep', 'life-bbt', 'life-sex', 'life-pill'
+      ]);
+      const customIds = new Set(customSymptoms.map(c => String(c._id)));
+
+      const validSymptoms = extracted.symptoms.filter((s: any) => 
+        typeof s === 'string' && (standardSymptomIds.has(s) || customIds.has(s))
+      );
+      if (validSymptoms.length > 0) {
+        const existingSymptoms = logDoc?.symptoms || [];
+        symptomPatch.symptoms = Array.from(new Set([...existingSymptoms, ...validSymptoms]));
+      }
     }
 
-    if (extracted.water !== undefined && typeof extracted.water === 'number') {
-      symptomPatch.water = extracted.water;
+    if (extracted.water !== undefined && typeof extracted.water === 'number' && !Number.isNaN(extracted.water)) {
+      symptomPatch.water = Math.max(0, Math.min(10000, Math.round(extracted.water)));
     }
 
-    if (extracted.weight !== undefined && typeof extracted.weight === 'number') {
-      symptomPatch.weight = Math.round(extracted.weight * 10) / 10;
+    if (extracted.weight !== undefined && typeof extracted.weight === 'number' && !Number.isNaN(extracted.weight)) {
+      symptomPatch.weight = Math.max(0, Math.min(500, Math.round(extracted.weight * 10) / 10));
     }
 
     if (Object.keys(symptomPatch).length > 0) {

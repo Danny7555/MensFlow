@@ -117,8 +117,8 @@ export async function runDailyReminderJob(): Promise<void> {
         // Skip users who have disabled email notifications
         if (!settings.notificationsEmail || !settings.notificationsCycleReminders) continue;
 
-        // email = username (stored as email in this app)
-        const toEmail = user.username;
+        // email = user.email (fallback to username for legacy accounts)
+        const toEmail = user.email || user.username;
         const toName = user.name;
 
         let cycleDay = 1;

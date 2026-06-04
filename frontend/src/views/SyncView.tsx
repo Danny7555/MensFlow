@@ -305,7 +305,7 @@ export function SyncView() {
                     Sign in or create an account to sync cycles with your partner.
                   </p>
                   <button type="button"
-                    onClick={() => openAuthModal()}
+                    onClick={() => openAuthModal(window.location.search.includes('code') ? 'register' : 'login')}
                     className="inline-flex items-center gap-2 bg-[var(--mf-accent)] text-white hover:opacity-95 px-6 py-3 rounded-xl text-xs font-normal transition-all cursor-pointer border-0 outline-none"
                   >
                     <span>Sign In or Sign Up</span>
