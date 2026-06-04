@@ -64,6 +64,29 @@ These aren't just labels. They drive the app's background colors, the wellness t
 
 ---
 
+## Onboarding — what to expect
+
+The first time you open MensFlow, you'll land on a short setup that takes about a minute. It asks two things: who you are, and what your cycle looks like.
+
+**Step 1: Choose your role**
+You pick either **Lady** (I'm tracking my cycle) or **Partner** (I'm supporting someone). This shapes everything that follows — the home screen, the features you see, and the way the app talks to you.
+
+**Step 2: Set your cycle baseline**
+You enter three pieces of information:
+
+- Your typical cycle length (how many days from the first day of one period to the first day of the next)
+- Your typical period duration (how many days bleeding usually lasts)
+- The start date of your last period
+
+That's it. The app uses these to figure out your current cycle day, your active phase, and when to expect your next period. If your cycle shifts over time, you can update these numbers anytime in Settings.
+
+**Step 3: Start using the app**
+Once onboarding is done, you land on your home dashboard. If you're a tracker, you'll see your cycle status, daily tips, and a log button. If you're a partner, you'll see your tracker's current phase, empathy translations, and support actions you can complete.
+
+There's no long questionnaire, no medical history form, no pressure to get every detail right on day one. The app learns with you.
+
+---
+
 ## Who it's for
 
 **For the tracker**
