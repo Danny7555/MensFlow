@@ -3,7 +3,8 @@ import { type DashboardSnapshot, DEFAULT_DASHBOARD } from '../lib/dashboardStora
 import { DEFAULT_SETTINGS, type MensFlowSettings } from '../context/settings-types'
 import { type SymptomDef, type SymptomCategory } from '../data/symptomsData'
 import { logsApi, type ApiMonthInReview } from '../services/logsService'
-import { userApi, type ApiUser, type ApiSettings, type ApiDashboard, type ApiLoginRecord } from '../services/userService'
+import { userApi, type ApiUser, type ApiSettings, type ApiDashboard, type ApiLoginRecord, userKeys } from '../services/userService'
+import { queryClient } from '../lib/queryClient'
 import { partnerApi } from '../services/partnerService'
 import { toast } from 'sonner'
 import { isLoggedIn } from '../lib/auth-token'
@@ -308,6 +309,7 @@ export const useStore = create<AppState>()((set, get) => ({
         if (settingsPatch) {
           await userApi.updateSettings(settingsPatch)
         }
+        queryClient.invalidateQueries({ queryKey: userKeys.profile })
       } else {
         set((state) => ({
           dashboard: {
@@ -384,6 +386,7 @@ export const useStore = create<AppState>()((set, get) => ({
         if (dashboardPatch) {
           await userApi.updateDashboard(dashboardPatch)
         }
+        queryClient.invalidateQueries({ queryKey: userKeys.profile })
       } catch {
         // Revert on failure (re-fetch would be ideal but keep it simple)
       }
@@ -441,14 +444,9 @@ export const useStore = create<AppState>()((set, get) => ({
             { date: log.date, symptoms: log.symptoms, water: log.water, weight: log.weight, lhLevel: log.lhLevel, mucus: log.mucus },
           ],
         }))
-        // Refresh profile to update dashboard cycle state/variation metrics
-        try {
-          const profile = await userApi.getProfile()
-          get().hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
-        } catch (err) {
-          console.error('Failed to sync dashboard metrics:', err)
-        }
-        void get().fetchMonthInReview()
+        queryClient.invalidateQueries({ queryKey: ['symptomLogs'] })
+        queryClient.invalidateQueries({ queryKey: ['monthInReview'] })
+        queryClient.invalidateQueries({ queryKey: userKeys.profile })
       } else {
         set((state) => ({
           logs: [
@@ -491,14 +489,9 @@ export const useStore = create<AppState>()((set, get) => ({
             { date: log.date, symptoms: log.symptoms, water: log.water, weight: log.weight, lhLevel: log.lhLevel, mucus: log.mucus },
           ],
         }))
-        // Refresh profile to update dashboard cycle state/variation metrics
-        try {
-          const profile = await userApi.getProfile()
-          get().hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
-        } catch (err) {
-          console.error('Failed to sync dashboard metrics:', err)
-        }
-        void get().fetchMonthInReview()
+        queryClient.invalidateQueries({ queryKey: ['symptomLogs'] })
+        queryClient.invalidateQueries({ queryKey: ['monthInReview'] })
+        queryClient.invalidateQueries({ queryKey: userKeys.profile })
       } else {
         set((state) => ({
           logs: [
@@ -521,12 +514,9 @@ export const useStore = create<AppState>()((set, get) => ({
   clearLogs: async () => {
     if (isLoggedIn()) {
       await logsApi.clearAll()
-      try {
-        const profile = await userApi.getProfile()
-        get().hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
-      } catch (err) {
-        console.error('Failed to sync dashboard after clear:', err)
-      }
+      queryClient.invalidateQueries({ queryKey: ['symptomLogs'] })
+      queryClient.invalidateQueries({ queryKey: ['monthInReview'] })
+      queryClient.invalidateQueries({ queryKey: userKeys.profile })
     }
     set({ logs: [] })
   },
@@ -583,7 +573,8 @@ export const useStore = create<AppState>()((set, get) => ({
         supportStreak: result.supportStreak,
         lastActionDate: result.lastActionDate,
       })
-      void get().fetchMonthInReview()
+      queryClient.invalidateQueries({ queryKey: ['partnerStatus'] })
+      queryClient.invalidateQueries({ queryKey: ['monthInReview'] })
     } else {
       set((state) => {
         const completed = state.completedActions.includes(actionId)
@@ -631,9 +622,8 @@ export const useStore = create<AppState>()((set, get) => ({
     set({ isSaving: true })
     try {
       const result = await partnerApi.pair(partnerCode)
-      const profile = await userApi.getProfile()
-      get().hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
-      await get().fetchPartnerStatus()
+      queryClient.invalidateQueries({ queryKey: userKeys.profile })
+      queryClient.invalidateQueries({ queryKey: ['partnerStatus'] })
       toast.success(`Successfully paired with ${result.partner.name}!`)
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Failed to pair with partner')
@@ -647,9 +637,8 @@ export const useStore = create<AppState>()((set, get) => ({
     try {
       const result = await partnerApi.invite(email) as { partnerFound: boolean; emailSent?: boolean; name?: string }
       if (result.partnerFound) {
-        const profile = await userApi.getProfile()
-        get().hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
-        await get().fetchPartnerStatus()
+        queryClient.invalidateQueries({ queryKey: userKeys.profile })
+        queryClient.invalidateQueries({ queryKey: ['partnerStatus'] })
         toast.success(`Partner found! Successfully paired with ${result.name}!`)
       } else if (result.emailSent) {
         toast.success(`Invitation email sent to ${email}!`, {
@@ -670,8 +659,8 @@ export const useStore = create<AppState>()((set, get) => ({
     set({ isSaving: true })
     try {
       await partnerApi.disconnect()
-      const profile = await userApi.getProfile()
-      get().hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
+      queryClient.invalidateQueries({ queryKey: userKeys.profile })
+      queryClient.invalidateQueries({ queryKey: ['partnerStatus'] })
       set({ partnerStatus: null })
       toast.success('Successfully disconnected from partner')
     } catch (err: unknown) {

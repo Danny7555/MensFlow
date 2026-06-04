@@ -79,10 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         const store = useStore.getState()
         await Promise.all([
-          store.fetchLogs(),
           store.fetchCustomSymptoms(),
-          store.fetchPartnerStatus(),
-          store.fetchMonthInReview(),
           store.fetchLoginHistory(),
         ]).catch((err) => console.error('Failed to load user data', err))
 
@@ -132,19 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('mf:auth:expired', handleAuthExpired)
   }, [navigate, resetStore])
 
-  // ── Global Background Real-Time Synchronization (every 10s) ────────────────
-  useEffect(() => {
-    if (!state.isAuthenticated || state.isRehydrating) return
-
-    const syncInterval = setInterval(() => {
-      const store = useStore.getState()
-      store.fetchPartnerStatus().catch((err) => console.error('Failed to sync partner status in background', err))
-      store.fetchLogs().catch((err) => console.error('Failed to sync daily logs in background', err))
-      store.fetchMonthInReview().catch((err) => console.error('Failed to sync month-in-review in background', err))
-    }, 10000)
-
-    return () => clearInterval(syncInterval)
-  }, [state.isAuthenticated, state.isRehydrating])
+  // Background synchronization is now managed reactively by the useReactQuerySync hook.
 
   // ── Post-auth hydration helper ─────────────────────────────────────────────
   const completeAuthFlow = useCallback(async (token: string, u: ApiUser) => {
@@ -204,9 +189,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const store = useStore.getState()
     await Promise.all([
-      store.fetchLogs(),
       store.fetchCustomSymptoms(),
-      store.fetchPartnerStatus(),
       store.fetchLoginHistory(),
     ]).catch(err => console.error('Failed to load user data', err))
 
