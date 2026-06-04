@@ -155,28 +155,24 @@ export function CalendarView() {
         {/* Top Control Bar */}
         <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-6 px-6 mb-8 text-center">
           <div className="flex justify-center sm:justify-start order-2 sm:order-1">
-            <div className="flex bg-[#f3f4f6] dark:bg-muted p-1 rounded-lg border border-[#d1d5db]">
+            <div className="ios-segmented-control max-w-[200px] mx-auto sm:mx-0">
               <button type="button"
                 onClick={() => setView("month")}
                 className={cn(
-                  "px-6 sm:px-8 py-1.5 rounded-md text-[11px] font-normal transition-all border",
-                  view === "month" 
-                    ? "bg-white dark:bg-muted-foreground/20 text-[var(--mf-accent)] border-border/40" 
-                    : "text-muted-foreground hover:text-foreground border-transparent hover:border-border/20"
+                  "ios-segmented-control-item",
+                  view === "month" && "active"
                 )}
               >
-                MONTH
+                Month
               </button>
               <button type="button"
                 onClick={() => setView("year")}
                 className={cn(
-                  "px-6 sm:px-8 py-1.5 rounded-md text-[11px] font-normal transition-all border",
-                  view === "year" 
-                    ? "bg-white dark:bg-muted-foreground/20 text-[var(--mf-accent)] border-border/40" 
-                    : "text-muted-foreground hover:text-foreground border-transparent hover:border-border/20"
+                  "ios-segmented-control-item",
+                  view === "year" && "active"
                 )}
               >
-                YEAR
+                Year
               </button>
             </div>
           </div>
@@ -460,6 +456,9 @@ function DetailSheet({ selectedDate, isAuthenticated, onOpenAuth }: { selectedDa
   return (
     <div className="sticky bottom-0 z-20 w-full">
       <Card className="rounded-t-[32px] rounded-b-none border-t border-x-0 border-b-0 p-6 pb-8 relative bg-white dark:bg-card max-w-[1200px] mx-auto overflow-hidden">
+        {/* iOS bottom sheet drag handle indicator on mobile view */}
+        <div className="md:hidden mx-auto w-12 h-1 rounded-full bg-muted/40 mb-4" />
+        
         {!isAuthenticated && (
           <div className="absolute inset-0 bg-white/60 dark:bg-card/60 backdrop-blur-[2px] z-30 flex items-center justify-center">
             <button type="button" 

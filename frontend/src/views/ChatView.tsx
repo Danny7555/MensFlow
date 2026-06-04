@@ -172,7 +172,12 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
   const [sessions, setSessions] = useState<ApiChatSession[]>([])
   const filteredSessions = showOnlyLocked ? sessions.filter((s) => s.isLocked) : sessions
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth > 768
+    }
+    return true
+  })
 
   const [messages, setMessages] = useState<Msg[]>([])
   const [draft, setDraft] = useState('')

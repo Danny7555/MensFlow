@@ -35,7 +35,7 @@ export function PartnerChat() {
 
   const [messageText, setMessageText] = useState('')
   const [showSuggestions, setShowSuggestions] = useState(false)
-  const bottomRef = useRef<HTMLDivElement>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
 
   // Query message history with 3-second refetch for a live-chat experience
   const { data: messages = [], isLoading: messagesLoading } = usePartnerChatMessagesQuery({
@@ -52,9 +52,15 @@ export function PartnerChat() {
     refetch: refetchSuggestions 
   } = usePartnerChatSuggestionsQuery()
 
-  // Auto scroll to bottom
+  // Auto scroll to bottom of messages container
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    const container = messagesContainerRef.current
+    if (container) {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: 'smooth'
+      })
+    }
   }, [messages])
 
   const handleSend = async (e: React.FormEvent) => {
@@ -112,7 +118,10 @@ export function PartnerChat() {
       </div>
 
       {/* Messages list */}
-      <div className="overflow-y-auto pr-1 space-y-3 mb-3 scrollbar-thin">
+      <div 
+        ref={messagesContainerRef}
+        className="overflow-y-auto pr-1 space-y-3 mb-3 scrollbar-thin"
+      >
         {messagesLoading && messages.length === 0 ? (
           <div className="flex items-center justify-center py-4">
             <CircleNotch size={24} className="animate-spin text-[var(--mf-muted)]" />
@@ -155,7 +164,6 @@ export function PartnerChat() {
             )
           })
         )}
-        <div ref={bottomRef} />
       </div>
 
       {/* Suggested replies helper section for partner */}
