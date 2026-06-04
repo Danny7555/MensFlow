@@ -1,53 +1,34 @@
-# MensFlow Cycle Calculations & State Architecture 🌸
+# MensFlow Cycle Calculations, State Management & Sync 🌸
 
-[← Back to README](../README.md) | [← Back to Project Overview](project_overview.md)
+[← Back to README](README.md) | [← Back to Overview](project_overview.md)
 
-This document provides a technical guide to the biological calculations, global state store, and real-time syncing mechanisms that drive the MensFlow application.
-
----
-
-## 📖 Table of Contents
-
-1. [Cycle Calculation Engine](#-cycle-calculation-engine)
-2. [Menstrual Cycle Phases](#-menstrual-cycle-phases)
-3. [Global State Management (Zustand)](#-global-state-management-zustand)
-4. [Partner Synchronization (Cross-Tab Messaging)](#-partner-synchronization-cross-tab-messaging)
-5. [Symptom Logs System](#-symptom-logs-system)
-6. [Locked Chats Security State](#-locked-chats-security-state)
+This document is the technical deep-dive into three systems: **cycle-phase math**, **global Zustand state**, and **partner cross-tab synchronization**. Use it when modifying symptom logic, adding log fields, or reworking the sync layer.
 
 ---
 
 ## 🧮 Cycle Calculation Engine
 
-MensFlow computes cycle schedules dynamically based on inputs configured in the settings page. The calculation functions are central to the app and reside in `frontend/src/lib/cycleUtils.ts`.
+`frontend/src/lib/cycleUtils.ts` is the authoritative frontend cycle math; a backend equivalent lives at `backend/src/utils/cycleUtils.ts` for server-side validation.
 
-### The Cycle Day Calculation
-
-To find out what cycle day the tracker is on, the app calculates the days elapsed since the user's last recorded period start date:
+### Cycle Day Calculation
 
 ```typescript
 export function computeCycleDay(startIso: string, cycleLen: number): number {
   const safeCycleLen = Math.min(60, Math.max(15, Math.round(cycleLen || 28)))
-  const start = new Date(`${startIso}T12:00:00`)
+  const start = new Date(`${startIso}T12:00:00`)  // noon avoids tz edge cases
   if (Number.isNaN(+start)) return 1
   const days = Math.floor((Date.now() - +start) / 86400000)
   const m = ((days % safeCycleLen) + safeCycleLen) % safeCycleLen
-  return m + 1
+  return m + 1  // 1-indexed for biological convention
 }
 ```
 
-*   **Cycle Length Clamp:** `safeCycleLen` constrains input to 15-60 days with default 28
-*   **Noon Timestamp:** Date parsed with T12:00:00 to avoid timezone edge cases at midnight
-*   **Modulo Anchor:** Prevents overflow or negative dates if cycle lengths shift
-*   **1-Indexed Return:** Biological cycles start counting from Day 1
+Key guarantees:
+- Clamped length: 15–60 days, default 28
+- Noon `T12:00:00` prevents midnight timezone rollover bugs
+- Negative or overflow cycles handled by double modulo
 
----
-
-## 📅 Menstrual Cycle Phases
-
-The cycle day maps directly to one of four biological phases. Each phase changes the dashboard colors, tips, and partner translation cards.
-
-The actual implementation in `cycleUtils.ts` uses cycle-length-aware thresholds:
+### Phase Detection (Cycle-Length-Aware)
 
 ```typescript
 export function getPhaseFromDay(cycleDay: number, cycleLen = 28): CyclePhase {
@@ -55,8 +36,8 @@ export function getPhaseFromDay(cycleDay: number, cycleLen = 28): CyclePhase {
   const periodLength = safeCycleLen <= 24 ? 4 : safeCycleLen >= 36 ? 6 : 5
   const ovulationDay = Math.max(periodLength + 5, safeCycleLen - 14)
   const fertileStart = Math.max(periodLength + 1, ovulationDay - 4)
-  const fertileEnd = Math.min(safeCycleLen, ovulationDay + 2)
-  const lutealStart = fertileEnd + 1
+  const fertileEnd   = Math.min(safeCycleLen, ovulationDay + 2)
+  const lutealStart  = fertileEnd + 1
 
   if (cycleDay <= periodLength) return 'menstrual'
   if (cycleDay >= fertileStart && cycleDay <= fertileEnd) return 'fertile'
@@ -65,158 +46,235 @@ export function getPhaseFromDay(cycleDay: number, cycleLen = 28): CyclePhase {
 }
 ```
 
-**Calculation logic:**
-- Period length adapts: 4 days (cycles ≤24), 5 days (cycles 25-35), 6 days (cycles ≥36)
-- Ovulation fixed ~14 days before cycle end
-- Fertile window: 4 days before through 2 days after ovulation
-- Luteal phase: days after fertile window until cycle ends
+```
+ PHASE THRESHOLDS (visual)
+ ┌─────────────────────────────────────────────────────────┐
+ │                        Cycle (day 1 → cycleLen)          │
+ │  menstrual     fertile            luteal                 │
+ │  ░░░░░░        ░░░░░░░░░░          ░░░░░░░░░░           │
+ │  ▓▓▓▓▓▓▓       ▓▓▓▓▓▓▓▓▓▓▓         ▓▓▓▓▓▓▓▓▓▓▓          │
+ │  4-6 days      4-6 days           remaining days        │
+ │           ░░░░░░░░░░░                                    │
+ │           follicular (the rest)                          │
+ └─────────────────────────────────────────────────────────┘
 
-### Phase Metadata Mappings
-
-| Phase ID | UI Label | Color Code (Hex) | Background | Description |
-| :--- | :--- | :--- | :--- | :--- |
-| `menstrual` | **Menstrual** | `#f43f5e` | `rgba(244, 63, 94, 0.1)` | Estrogen/progesterone low. focus on physical recovery, warmth, and rest. |
-| `follicular` | **Follicular** | `#0d9488` | `rgba(13, 148, 136, 0.1)` | Estrogen rises. Higher cognitive energy, planning, and creative initiatives. |
-| `fertile` | **Ovulatory** | `#26899e` | `rgba(38, 137, 158, 0.1)` | Peak LH and estrogen. Highest physical stamina and social connection potential. |
-| `luteal` | **Luteal** | `#d97706` | `rgba(217, 119, 6, 0.1)` | Progesterone peaks then drops. Higher body heat, fatigue, needing calming environments. |
-
----
-
-## ⚡ Global State Management (Zustand)
-
-All inputs, preferences, symptom logs, and partnership stats are centralized in a single store file at `frontend/src/store/useStore.ts`.
-
-### 1. LocalStorage Persistence
-
-The state is persisted locally using Zustand's `persist` middleware:
-*   **Storage Key:** `mensflow-storage`
-*   **Behavior:** Any changes to user names, symptoms logged, or settings are immediately serialized and saved.
-
-### 2. Persistence Strategy
-
-State persistence is handled by the `isLocalOnly` flag in settings:
-
-- **Authenticated + Remote storage:** API calls sync to backend, state updates optimistically
-- **Authenticated + `privacyStrictLocalOnly = true`:** State changes stored in memory/localStorage only  
-- **Unauthenticated (guest):** All state remains in memory, can be promoted to backend on login
-
-### 3. Support Actions & Streaks
-
-The partner support checklist tracks consecutive days of support:
-*   **Daily Reset:** `checkAndResetDailyActions()` resets the checklist if the day changes.
-*   **Streak Accumulation:** If a support action is completed on consecutive days, `supportStreak` increments. If a day is missed, it resets to `0`.
-
----
-
-## 🚀 Partner Synchronization (Cross-Tab Messaging)
-
-Since MensFlow is a collaborative partner application, it supports synchronized data transmissions. 
-
-To simulate real-time notifications without a backend server, the app uses a **reactive local storage listener system**:
-
-```mermaid
-sequenceDiagram
-    participant Partner Tab (SyncView)
-    participant LocalStorage
-    participant User Tab (DashboardView)
-    
-    Partner Tab (SyncView)->>LocalStorage: Set 'mensflow_partner_ping:v1' with timestamp & status
-    Partner Tab (SyncView)->>LocalStorage: Fire window 'storage' event
-    LocalStorage-->>User Tab (DashboardView): Caught 'storage' event listener
-    User Tab (DashboardView)->>User Tab (DashboardView): Toast notification alerts user of status update
+ Thresholds vary by total cycle length:
+   ≤24 days  → period = 4 days
+   25-35     → period = 5 days
+   ≥36       → period = 6 days
+   Ovulation ≈ cycleLen - 14
+   Fertile window = ovulation - 4 … ovulation + 2
+   Luteal = fertileEnd + 1 … end of cycle
 ```
 
-### Implementation Details:
+### Phase Metadata
 
-1.  **Broadcasting Status:** In `frontend/src/views/SyncView.tsx`, when sending a check-in, the selected option is stored under the key `mensflow_partner_ping:v1`:
-    ```typescript
-    localStorage.setItem('mensflow_partner_ping:v1', JSON.stringify(pingData))
-    window.dispatchEvent(new Event('storage')) // Force listener trigger in the same browser window
-    ```
-2.  **Receiving Status:** In `frontend/src/views/DashboardView.tsx`, an event listener watches for local storage updates:
-    ```typescript
-    window.addEventListener('storage', handlePingEvent)
-    ```
-    If `mensflow_partner_ping:v1` changes, it checks the timestamp against the last processed ping to prevent duplicate warnings, and fires a `sonner` toast notification containing the partner's status.
+| Phase | Color | UI vibe | Partner guidance |
+|-------|-------|---------|------------------|
+| `menstrual` | `#f43f5e` rose | Warm red | "Prepare heating pad, handle chores" |
+| `follicular` | `#0d9488` teal | Upbeat teal | "Plan outdoor activity, encourage social time" |
+| `fertile` | `#26899e` sky-blue | High energy | "Schedule date night, leave post-it" |
+| `luteal` | `#d97706` amber | Slowing amber | "Pick up comfort snack, avoid big talks" |
 
 ---
 
-## 📊 Symptom Logs System
+## 📦 Global State Management (Zustand)
 
-Logs are managed through the Zustand store at [useStore.ts](../frontend/src/store/useStore.ts). Each log entry contains:
+All inputs, preferences, symptom logs, and partnership stats are centralized in `frontend/src/store/useStore.ts`.
+
+### Persistence Strategy
+
+```
+ STATE PERSISTENCE DECISION TREE
+                   persisted in Zustand 'persist'
+                   (localStorage key: mensflow-storage)
+                              │
+            ┌─────────────────┴──────────────────┐
+            ▼                                    ▼
+     settings.*                        logs, dashboard
+     sidebarCollapsed                  supportStreak,
+     themeMode                         completedActions
+     user.name                          ← remote owned
+     customSymptoms
+     privacyLock*
+     ← always local
+     ↑
+
+     On login: local logs can be pushed to backend
+     On logout: remote data cleared; local prefs stay
+```
+
+Three modes in practice:
+
+| Is Authenticated | `privacyStrictLocalOnly` | Where data lives |
+|-----------------|--------------------------|-----------------|
+| No (guest) | any | memory + localStorage |
+| Yes | `false` | optimistic local + backend sync via `logsApi.upsert()` |
+| Yes | `true` | memory + localStorage only (no server contact) |
+
+### Log Entry Shape
 
 ```typescript
 export type SymptomLog = {
-  date: string           // ISO date string (YYYY-MM-DD)
-  symptoms: string[]     // Array of symptom IDs
-  water?: number         // Daily water intake in ml
-  weight?: number        // Daily weight in kg
-  lhLevel?: string | null // LH hormone level indicator
-  mucus?: string | null  // Cervical mucus observation
+  date: string             // YYYY-MM-DD
+  symptoms: string[]       // kebab-case symptom IDs
+  water?: number           // ml (default 1000)
+  weight?: number          // kg (default 62.5)
+  lhLevel?: string | null  // fertility indicator
+  mucus?: string | null    // cervical mucus observation
 }
 ```
 
-### Log Storage Behavior
-
-- **Authenticated users:** Logs are synced to backend via `logsApi.upsert()` which performs POST to `/api/cycle/logs`
-- **Local-only mode:** Logs persist in memory via Zustand store state only
-- **Fetch:** `fetchLogs()` retrieves all historical logs via `logsApi.getAll()` GET request
-- **Clear:** `clearLogs()` removes all logs (authenticated: API call + local state reset)
-
-### Daily Metrics Update
-
-`updateDailyMetrics()` updates water, weight, LH level, and mucus without modifying symptoms - preserves existing symptom array while updating numeric health metrics.
-
-### Log Entry Merge Logic
-
-When adding/updating logs, the system:
-1. Checks for existing log on same date
-2. Preserves existing values for any fields not explicitly provided
-3. Merges water/weight/lhLevel/mucus defaults: 1000ml water, 62.5kg weight, null for hormone fields
+Merge rules:
+1. Existing log on same date → update fields, not replace
+2. Unmentioned fields → keep previous value
+3. Numeric defaults → 1000ml water, 62.5kg weight
 
 ### Symptom Categories
 
-Symptoms are organized into five categories in `symptomsData.ts` (frontend/src/data/symptomsData.ts):
+`frontend/src/data/symptomsData.ts`:
 
-```typescript
-export type SymptomCategory = 'Flow' | 'Mood' | 'Physical' | 'Lifestyle' | 'Other'
+| Category | Examples |
+|----------|---------|
+| Flow | `flow-light`, `flow-medium`, `flow-heavy` |
+| Mood | `mood-calm`, `mood-happy`, `mood-anxious`, `mood-sad`, `mood-irritable` |
+| Physical | cramps, headache, bloating, fatigue, breast tenderness, acne |
+| Lifestyle | sleep quality, BBT, sexual activity, pill taken |
+| Other | PCOS, endometriosis, perimenopause |
 
-export type SymptomDef = {
-  id: string      // kebab-case identifier
-  label: string   // Human-readable name
-  category: SymptomCategory
-}
+---
+
+## 🤝 Partner Sync (Cross-Tab)
+
+The app uses a **localStorage event bridge** to communicate between SyncView and DashboardView within the same browser:
+
+```
+ CROSS-TAB PARTNER PING FLOW
+ ┌────────────────────────────────────────────────────────────────────┐
+ │                                                                    │
+ │  Partner sends          Tracker receives                           │
+ │  status ping            (open tab / window)                        │
+ │       │                    │                                       │
+ │       ▼                    ▼                                       │
+ │  SyncView.tsx         DashboardView.tsx                            │
+ │       │                    │                                       │
+ │  localStorage         window.addEventListener('storage', ...)      │
+ │  .setItem(                               │                       │
+ │    'mensflow_                              │                       │
+ │     partner_                               ▼                       │
+ │     ping:v1',                             │                       │
+ │     JSON(                                 │                       │
+ │       pingData                            │                       │
+ │     )                                     │                       │
+ │  )                    compares timestamp                            │
+ │       │                 against last seen                           │
+ │       ▼                    │                                       │
+ │  dispatch             prevents                                    │
+ │  'storage'            duplicates                                   │
+ │  event                                            ▼              │
+ │                                            sonner toast            │
+ │                                            "Partner update"       │
+ │                                                                    │
+ └────────────────────────────────────────────────────────────────────┘
 ```
 
-**Flow symptoms:** `flow-light`, `flow-medium`, `flow-heavy`
-**Mood symptoms:** `mood-calm`, `mood-happy`, `mood-anxious`, `mood-sad`, `mood-irritable`
-**Physical symptoms:** cramps, headache, bloating, fatigue, breast tenderness, acne
-**Lifestyle symptoms:** sleep quality, BBT, sexual activity, pill taken
-**Additional categories:** PCOS, endometriosis, and perimenopause niche conditions
+**Sender (`SyncView.tsx`):**
+```typescript
+localStorage.setItem('mensflow_partner_ping:v1', JSON.stringify(pingData))
+window.dispatchEvent(new Event('storage'))  // force same-window listeners
+```
 
-### Phase Support Tasks
+**Receiver (`DashboardView.tsx`):**
+```typescript
+window.addEventListener('storage', handlePingEvent)
+```
 
-Each phase provides context-sensitive support suggestions via `getPhaseTasks(phase)` in cycleUtils.ts:
+This is a same-browser workaround. Cross-device real-time sync via **WebSocket or SSE** is the planned upgrade (see `docs/api_integration_blueprint.md`).
 
-| Phase | Support Tasks |
-| :--- | :--- |
-| **Menstrual** | Prepare heating pad, Offer warm ginger tea, Handle physical chores |
-| **Follicular** | Plan outdoor activity, Encourage social time, Surprise with gesture |
-| **Fertile/Ovulatory** | Schedule date night, Leave post-it note, Initiate creative connection |
-| **Luteal** | Pick up comfort snack, Hold off on heavy discussions, Run foot/back massage |
+### Support Actions & Streaks
+
+The partnership tool lives in Zustand state:
+
+| Key | Meaning |
+|-----|---------|
+| `completedActions: string[]` | IDs of gestures finished today |
+| `supportStreak: number` | consecutive days with ≥1 action |
+| `lastActionDate: string (ISO)` | calendar day of the last streak |
+
+`checkAndResetDailyActions()` runs on app open; if `lastActionDate` is yesterday or older, the streak resets to zero. Partner support suggestions are generated per-phase via `getPhaseTasks(phase)` in `cycleUtils.ts`.
 
 ---
 
 ## 🔒 Locked Chats Security State
 
-For conversations that require extra privacy, the app isolates messages into a locked workspace.
+Messages for `ChatView` and `LockedChatsView` are **not mixed**. The app creates isolation through a separate localStorage key:
 
-### 1. Storage Isolation
+```
+ CHAT STATE ISOLATION
+ ┌─────────────────────────────────────────────────────────┐
+ │                                                         │
+ │   mensflow-storage (Zustand persist)                     │
+ │        │                                                │
+ │        ▼                                                │
+ │   [standard chat messages — in-memory only or backend]  │
+ │                                                         │
+ │                                                         │
+ │   mensflow_locked_chats (separate localStorage key)      │
+ │        │                                                │
+ │        ▼                                                │
+ │   [encrypted array — passcode required to read/write]   │
+ │                                                         │
+ └─────────────────────────────────────────────────────────┘
+```
 
-*   **Standard Chats:** Message states are stored within standard session components.
-*   **Locked Chats:** Messages are read from and written to a separate localStorage key `mensflow_locked_chats`.
+### Current Behavior (no encryption at rest)
 
-### 2. Lockout and Verification Flow
+- `privacyLockChats === false`: chat messages stored normally in session state
+- `privacyLockChats === true`: messages read from + written to `mensflow_locked_chats`
+- Re-entry without passcode → password input shown again
 
-*   **Passcode Lock:** If `privacyLockChats` is true, the user must input their passcode to set `isUnlocked` to true in [LockedChatsView.tsx](../frontend/src/views/LockedChatsView.tsx).
-*   **Recovery Safeguard:** If a passcode is forgotten and three incorrect attempts are entered, the view displays the "Security Question" recovery layout, prompting the user for the answer configured in settings.
+### Planned Behavior (`feature/add-lock-chat`)
+
+1. User provides passcode in `LockedChatsView.tsx`
+2. App derives AES-GCM key via `crypto.subtle` from passcode
+3. All messages are encrypted client-side
+4. POST `/api/chats/locked` stores **ciphertext only**
+5. Decryption occurs in memory — plaintext never touches disk
+6. Backend cannot read message contents
+
+### Lockout Flow
+
+```
+ LOCKOUT RECOVERY STATE MACHINE
+              failedAttempts >= 3
+                        │
+                        ▼
+               Show "Forgot Password?"
+                        │
+             User taps button
+                        │
+                        ▼
+             reset-security mode
+                        │
+           Answer security question
+                        │
+              ┌─────┴─────┐
+              ▼           ▼
+           Correct     Incorrect
+              │           │
+              ▼           ▼
+         reset-      try again
+        password
+              │
+         Enter new pass
+         (strength check)
+              │
+         isStrong?        ──►  show strength hint
+              │
+             YES
+              │
+         Save to settings
+              │
+              ▼
+         isUnlocked = true
+```
