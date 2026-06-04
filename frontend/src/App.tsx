@@ -409,7 +409,15 @@ function MainShell() {
             />
           )}
 
-          <main className={cn("app-canvas", isAuthenticated && isMobile && !location.pathname.startsWith('/onboarding') && "pb-bottom-nav")}>
+          <main className={cn(
+            "app-canvas",
+            isAuthenticated &&
+            isMobile &&
+            !location.pathname.startsWith('/onboarding') &&
+            location.pathname !== '/dashboard' &&
+            location.pathname !== '/sync' &&
+            "pb-bottom-nav"
+          )}>
             <Suspense fallback={<PageLoader />}>
               <AnimatePresence mode="wait">
                 <Routes location={location} key={location.pathname}>

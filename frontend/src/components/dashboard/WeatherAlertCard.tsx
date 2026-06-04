@@ -19,6 +19,7 @@ interface WeatherData {
   temp: number
   humidity: number
   code: number
+  location?: string
 }
 
 interface AlertInfo {
@@ -266,23 +267,55 @@ const fetchWeatherWithGeolocation = async (): Promise<WeatherData> => {
   return new Promise<WeatherData>((resolve) => {
     const fetchWeather = async (lat: number, lon: number) => {
       try {
-        const response = await fetch(
+        const weatherPromise = fetch(
           `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code`
-        )
-        if (!response.ok) throw new Error('Weather API error')
-        const json = await response.json()
-        if (json.current) {
+        ).then(r => {
+          if (!r.ok) throw new Error('Weather API error')
+          return r.json()
+        })
+
+        const geoPromise = fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10&addressdetails=1`,
+          {
+            headers: {
+              'User-Agent': 'MensFlow/1.0 (contact: support@mensflow.app)'
+            }
+          }
+        ).then(r => r.ok ? r.json() : null).catch(() => null)
+
+        const [weatherJson, geoJson] = await Promise.all([weatherPromise, geoPromise])
+
+        let locationName = ''
+        if (geoJson && geoJson.address) {
+          const addr = geoJson.address
+          locationName = addr.city || addr.town || addr.village || addr.suburb || addr.county || addr.state || addr.country || ''
+        }
+
+        if (weatherJson.current) {
           resolve({
-            temp: json.current.temperature_2m,
-            humidity: json.current.relative_humidity_2m,
-            code: json.current.weather_code
+            temp: weatherJson.current.temperature_2m,
+            humidity: weatherJson.current.relative_humidity_2m,
+            code: weatherJson.current.weather_code,
+            location: locationName || undefined
           })
           return
         }
         throw new Error('No current weather data')
       } catch (err) {
         console.error('Failed to fetch weather:', err)
-        // Fallback moderate default
+        resolve({ temp: 23.3, humidity: 55, code: 0 })
+      }
+    }
+
+    const fetchWeatherByIp = async () => {
+      try {
+        const ipGeo = await fetch('https://ip-api.com/json/?fields=lat,lon,city').then(r => r.ok ? r.json() : null).catch(() => null)
+        if (ipGeo && ipGeo.lat && ipGeo.lon) {
+          void fetchWeather(ipGeo.lat, ipGeo.lon)
+        } else {
+          resolve({ temp: 23.3, humidity: 55, code: 0 })
+        }
+      } catch {
         resolve({ temp: 23.3, humidity: 55, code: 0 })
       }
     }
@@ -293,13 +326,12 @@ const fetchWeatherWithGeolocation = async (): Promise<WeatherData> => {
           void fetchWeather(pos.coords.latitude, pos.coords.longitude)
         },
         () => {
-          // Default location: New York City
-          void fetchWeather(40.7128, -74.006)
-        }
+          void fetchWeatherByIp()
+        },
+        { timeout: 8000 }
       )
     } else {
-      // Default location: New York City
-      void fetchWeather(40.7128, -74.006)
+      void fetchWeatherByIp()
     }
   })
 }
@@ -385,7 +417,7 @@ export function WeatherAlertCard() {
         <div className="flex items-center justify-between gap-4 mb-3">
           <div className="space-y-0.5">
             <span className="text-[9px] font-normal text-[var(--mf-accent)] uppercase tracking-[0.2em] block">
-              {weatherInfo.alertData.title}
+              {weatherInfo.alertData.title}{weather.location ? ` • ${weather.location}` : ''}
             </span>
             <h3 className="text-base font-semibold text-[var(--mf-text-strong)] capitalize">
               {weather.temp}°C, {style.label}
