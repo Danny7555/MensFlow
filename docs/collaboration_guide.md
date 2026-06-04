@@ -1,6 +1,6 @@
 # MensFlow Developer Collaboration & Branching Guide 🌿
 
-[← Back to README](file:///Users/david/Downloads/MensFlow/README.md) | [← Back to Project Overview](file:///Users/david/Downloads/MensFlow/docs/project_overview.md)
+[← Back to README](../README.md) | [← Back to Project Overview](project_overview.md)
 
 Welcome to the MensFlow development team! This document outlines our team's engineering standards, branching strategy, commit guidelines, code review protocols, and collaboration workflows. Following these policies ensures a clean, stable, and highly auditable codebase.
 
@@ -217,3 +217,10 @@ If conflicts occur in `package-lock.json` or `bun.lock`:
 
 *   We prefer **Squash and Merge** when closing PRs. This squashes all commits in the feature branch into a single, clean commit on the `main` branch.
 *   The title of the squashed merge commit should follow the Conventional Commit standard.
+
+---
+
+## 🌿 Active Branches (June 2026)
+
+**Main:** `main` — production-stable.
+**Active feature branches:** `feature/integrate-backend`, `feature/migrate-tanstack-query`, `feature/add-lock-chat`, `feature/user-avatar-upload`, `feature/add-privacy-terms`, `feature/home-ui-responsive`, `feautre/implement-email-remainder-otp`. Keep `main` up to date before opening PRs.

@@ -1,6 +1,6 @@
 # MensFlow Theme, Styling, & Design System Architecture 🎨
 
-[← Back to README](file:///Users/david/Downloads/MensFlow/README.md) | [← Back to Project Overview](file:///Users/david/Downloads/MensFlow/docs/project_overview.md)
+[← Back to README](README.md) | [← Back to Project Overview](project_overview.md)
 
 This document outlines the styling methodology, theme synchronization mechanisms, CSS variable design tokens, and animation mechanics that define the MensFlow premium user experience.
 
@@ -20,8 +20,8 @@ This document outlines the styling methodology, theme synchronization mechanisms
 MensFlow blends **Tailwind CSS v4** with native **CSS Custom Properties (CSS variables)** to enforce a consistent styling system.
 
 ### Style Directories:
-1.  **[src/index.css](file:///Users/david/Downloads/MensFlow/src/index.css):** Holds the tailwind directives, HSL token declarations, global body settings, theme configurations, scrollbar styles, and core utility helpers.
-2.  **[src/App.css](file:///Users/david/Downloads/MensFlow/src/App.css):** Contains view-specific container styles, custom dashboard grid definitions, layout wrappers (`.app-shell`, `.app-main`, `.app-canvas`), and sidebar layout metrics.
+1.  **`frontend/src/index.css`** — Tailwind base, CSS tokens, theme configs
+2.  **`frontend/src/App.css`** — Layout wrappers (`.app-shell`, `.app-main`, `.app-canvas`), sidebar metrics
 
 ---
 
@@ -61,7 +61,7 @@ To prevent cold, clinical gray tones, MensFlow defines a warm, organic color pal
 
 ## 🔄 Dynamic Theme Synchronization (`ThemeSync`)
 
-The application supports three theme modes: `light`, `dark`, and `system`. This is synchronized using a renderless component, [ThemeSync.tsx](file:///Users/david/Downloads/MensFlow/src/components/ThemeSync.tsx), mounted inside the main root wrapper:
+The application supports three theme modes: `light`, `dark`, and `system`. This is synchronized using a renderless component, [`ThemeSync.tsx`](https://github.com/dadaxlabs/mensflow/blob/main/frontend/src/components/ThemeSync.tsx), mounted inside the main root wrapper:
 
 ```typescript
 export function ThemeSync() {

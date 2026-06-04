@@ -1,100 +1,80 @@
 # MensFlow Routing, Authentication, & Navigation Guards 🔐
 
-[← Back to README](file:///Users/david/Downloads/MensFlow/README.md) | [← Back to Project Overview](file:///Users/david/Downloads/MensFlow/docs/project_overview.md)
+[← Back to README](README.md) | [← Back to Docs](README.md#-table-of-contents)
 
-This document explains the router layout, authentication states, and private navigation guards implemented in MensFlow. Understanding this structure is essential for adding new views or modifying navigation links.
+MensFlow uses **React Router v7** with lazy-loaded views inside `App.tsx:25-40`. The router lives inside a `MainShell` component (`frontend/src/App.tsx:327`) and applies two guards:
 
----
-
-## 📖 Table of Contents
-1. [Routing Framework (React Router v7)](#-routing-framework-react-router-v7)
-2. [User Authentication Matrix](#-user-authentication-matrix)
-3. [Guarded Routes & Fallback Portals](#-guarded-routes--fallback-portals)
-4. [Authentication State Provider (`AuthProvider`)](#-authentication-state-provider-authprovider)
+- `!isAuthenticated` — block private routes for guests
+- `ChatLockGate` — re-prompt passcode before unlocking locked-chats (`App.tsx:43`)
+- `AccessGate` — enforce `full` vs `educational` partner access on sensitive views
 
 ---
 
-## 🚦 Routing Framework (React Router v7)
+## 🚦 Routing Table
 
-The application routing is configured inside [App.tsx](file:///Users/david/Downloads/MensFlow/src/App.tsx) and managed within the `MainShell` layout component. It uses lazy-loaded view components wrapped in `React.Suspense` to improve loading speeds.
+All routes are defined between `App.tsx:424-475`. The router branches on `isAuthenticated` from `useAuth()`.
 
-```mermaid
-graph TD
-    User([User visits App]) --> AuthCheck{Is Authenticated?}
-    
-    AuthCheck -->|No| OnboardCheck{Onboarding Done?}
-    OnboardCheck -->|No| Onboarding[Redirect to /onboarding]
-    OnboardCheck -->|Yes| GuestMode[Guest Mode: Access Dashboard & Local Logs]
-    
-    AuthCheck -->|Yes| FullMode[Full Mode: Access Cloud Sync, Alerts, Locked Chats]
-```
+### Guest Routes (`!isAuthenticated`)
 
----
+| Path | View | Notes |
+|------|------|-------|
+| `/` | `LandingView` | Public landing + auth CTA |
+| `/onboarding` | `OnboardingView` | Role selection, cycle baseline |
+| `/settings` | `SettingsView` (isGuest) | Guest mode — pass `onLogin` |
+| `/education` | `EducationView` | Public health articles |
+| `/locked-chats` | `LockedChatsView` | Self-gated (passcode inside) |
+| `/ask`, `/dashboard`, `/calendar`, `/tracker`, `/insights`, `/tips`, `/symptoms`, `/sync`, `/notifications`, `/history` | `<Navigate to="/" replace />` | Redirects to landing |
+| `*` | `NotFoundView` | 404 |
 
-## 📊 User Authentication Matrix
+### Authenticated Routes
 
-Depending on the user's login state (`isAuthenticated`) and onboarding completion status (`onboardingCompleted`), the router dynamically mounts different route templates:
-
-| Route Path | Guest User State (Logged Out) | Authenticated User State (Logged In) |
-| :--- | :--- | :--- |
-| `/` | Redirects to `/onboarding` or loads Dashboard | Redirects to `/onboarding` or `/dashboard` |
-| `/onboarding` | Accessible (Loads Onboarding questionnaire) | Accessible (Loads Onboarding questionnaire) |
-| `/dashboard` | Redirects to `/` (Guest Dashboard) | Accessible (Loads User Dashboard) |
-| `/ask` | Loads guest chat sandbox view (`LandingView`) | Loads authenticated database chat (`ChatView`) |
-| `/settings` | Loads guest settings configuration panel | Loads authenticated user settings panel |
-| `/sync` | Accessible (Local mock synchronization) | Accessible (Real-time partner synchronization) |
-| `/locked-chats` | Not accessible | Protected by passcode verification |
-| `/notifications`| Not accessible | Accessible (Alerts and support logs) |
-
----
-
-## 🛡️ Guarded Routes & Fallback Portals
-
-To prevent unauthorized guests from accessing screens that require cloud profiles, the app uses a fallback component generator called `guestPlaceholder`.
-
-### 1. Guest Placeholder Function
-If a guest attempts to visit a page that requires database persistence, they are displayed a placeholder view with an account creation call-to-action:
-
-```typescript
-const guestPlaceholder = (title: string, body: string) => (
-  <PlaceholderView
-    title={title}
-    description={body}
-    actionLabel="Log in"
-    onAction={openAuthModal}
-  />
-)
-```
-
-### 2. Route Guard Example in `App.tsx`
-Guarded routes are defined conditionally inside the `<Routes>` container:
-
-```tsx
-{!isAuthenticated ? (
-  <>
-    {/* Guest Paths */}
-    <Route path="/settings" element={<SettingsView isGuest onLogin={openAuthModal} />} />
-    <Route path="/history" element={guestPlaceholder('History / logs', 'Symptom history stays private to your account.')} />
-  </>
-) : (
-  <>
-    {/* Authenticated-Only Paths */}
-    <Route path="/settings" element={<SettingsView onLogout={handleLogout} />} />
-    <Route path="/locked-chats" element={<LockedChatsView />} />
-  </>
-)}
-```
+| Path | View | Guard | Partner redirect |
+|------|------|-------|-----------------|
+| `/` | → `/onboarding` or `/dashboard` or `/education` | — | `accessLevel==educational` → `/education` |
+| `/onboarding` | `OnboardingView` | — | — |
+| `/dashboard` | `DashboardView` | `AccessGate` | yes |
+| `/ask` | `ChatView` | `ChatLockGate` (outer) | — |
+| `/settings` | `SettingsView` | — | — |
+| `/insights` | `InsightsView` | `AccessGate` | yes |
+| `/calendar` | `CalendarView` | `AccessGate` | yes |
+| `/tracker` | `TrackerView` | `AccessGate` | yes |
+| `/symptoms` | `SymptomsView` | `AccessGate` | yes |
+| `/sync` | `SyncView` | `AccessGate` | yes |
+| `/notifications` | `NotificationsView` | `AccessGate` | yes |
+| `/tips` | `TipsView` | `AccessGate` | yes |
+| `/education` | `EducationView` | — | yes (all partners land here on `/`) |
+| `/locked-chats` | `LockedChatsView` | — | yes |
+| `/history`, `/health-insights`, `/wellness-tips` | `<>` redirect → `/insights`/`/tips` | — | — |
+| `*` | `NotFoundView` | — | — |
 
 ---
 
-## 🔑 Authentication State Provider (`AuthProvider`)
+## 🔑 `AuthProvider` (`frontend/src/context/AuthProvider.tsx`)
 
-The global user credentials, registration sessions, and modal states are distributed through the `AuthProvider` component located in [AuthProvider.tsx](file:///Users/david/Downloads/MensFlow/src/context/AuthProvider.tsx).
+Global auth state. Any view that calls `useAuth()` gets:
 
-### Context Methods
-Any component can access authentication triggers by calling the custom hook `useAuth()`:
-*   `isAuthenticated: boolean` - Direct flag representing session presence.
-*   `onboardingCompleted: boolean` - Flag representing if the cycle baseline has been configured.
-*   `openAuthModal: () => void` - Global trigger to display the credentials modal overlay.
-*   `login: (username: string) => void` - Registers user profile and establishes active session.
-*   `logout: () => void` - Wipes active credentials, clears local sandbox, and redirects to home.
+- `isAuthenticated: boolean`
+- `onboardingCompleted: boolean`
+- `openAuthModal: () => void`
+- `login: (payload) => void`
+- `logout: () => void`
+- `isRehydrating: boolean` — set while Zustand rehydrates from localStorage
+
+The provider wraps the entire app in `App.tsx:580-588`.
+
+---
+
+## 🔒 Chat Lock Gate (`frontend/src/App.tsx:43`)
+
+`ChatLockGate` is a JSX guard wrapping `/ask` when `privacyLockChats` is enabled in settings. It manages:
+
+- 3-state mode: `unlock` → `reset-security` → `reset-password`
+- Failed-attempt counter: 3 wrong passwords → "Forgot Password?" button
+- Security question answer check against `settings.privacyLockChatsSecurityAnswer`
+- Password strength enforcement via `lib/passwordStrength.ts`
+
+---
+
+## 🛡️ Access Gate (`frontend/src/components/AccessGate.tsx`)
+
+Wraps `dashboard`, `insights`, `calendar`, `tracker`, `symptoms`, `sync`, `notifications`, `tips` for authenticated users. When `user.accessLevel === 'educational'`, most of these views redirect to `/education`.
