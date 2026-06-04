@@ -127,17 +127,15 @@ export function Header({
                 <span className="text-[15px] font-normal">Back</span>
               </button>
             ) : (
-              (!isAuthenticated && !sidebarExpanded) && (
-                <button
-                  type="button"
-                  className="icon-btn top-header-menu"
-                  aria-label={sidebarToggleLabel}
-                  aria-expanded={sidebarExpanded}
-                  onClick={onToggleSidebar}
-                >
-                  <SidebarSimple size={22} aria-hidden />
-                </button>
-              )
+              <button
+                type="button"
+                className="icon-btn top-header-menu"
+                aria-label={sidebarToggleLabel}
+                aria-expanded={sidebarExpanded}
+                onClick={onToggleSidebar}
+              >
+                <SidebarSimple size={22} aria-hidden />
+              </button>
             )}
           </div>
 

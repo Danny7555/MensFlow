@@ -430,7 +430,7 @@ export function SyncView() {
 
           {/* Invite Partner Dialog */}
           <Dialog open={isInviteModalOpen} onOpenChange={setIsInviteModalOpen}>
-            <DialogContent className="sm:max-w-[480px] w-[calc(100%-32px)] p-0 overflow-hidden border border-border rounded-2xl sm:rounded-3xl bg-background">
+            <DialogContent className="sm:max-w-[480px] w-[calc(100%-32px)] p-0 overflow-hidden border border-border rounded-2xl sm:rounded-3xl bg-background invite-partner-dialog-content">
               <div className="p-5 sm:p-6 md:p-8">
                 <DialogHeader className="mb-4">
                   <div className="size-12 rounded-xl bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-3">
@@ -481,7 +481,7 @@ export function SyncView() {
                   </div>
 
                   <div className="space-y-2.5">
-                    <div className="flex items-center gap-2 p-3 rounded-xl bg-muted/30 border transition-colors">
+                    <div className="flex items-center gap-2 p-3 rounded-xl bg-muted/30 border transition-colors min-w-0 invite-link-box">
                       <span className="flex-1 truncate text-xs sm:text-sm text-muted-foreground font-mono select-all">
                         {inviteUrl}
                       </span>
@@ -695,7 +695,7 @@ export function SyncView() {
 
         {/* Invite Partner Dialog */}
         <Dialog open={isInviteModalOpen} onOpenChange={setIsInviteModalOpen}>
-          <DialogContent className="sm:max-w-[480px] w-[calc(100%-32px)] p-0 overflow-hidden border border-border rounded-2xl sm:rounded-3xl bg-background">
+          <DialogContent className="sm:max-w-[480px] w-[calc(100%-32px)] p-0 overflow-hidden border border-border rounded-2xl sm:rounded-3xl bg-background invite-partner-dialog-content">
             <div className="p-5 sm:p-6 md:p-8">
               <DialogHeader className="mb-4">
                 <div className="size-12 rounded-xl bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-3">
@@ -746,7 +746,7 @@ export function SyncView() {
                 </div>
 
                 <div className="space-y-2.5">
-                  <div className="flex items-center gap-2 p-3 rounded-xl bg-muted/30 border transition-colors">
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-muted/30 border transition-colors min-w-0 invite-link-box">
                     <span className="flex-1 truncate text-xs sm:text-sm text-muted-foreground font-mono select-all">
                       {inviteUrl}
                     </span>

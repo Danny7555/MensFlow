@@ -202,15 +202,6 @@ export function CycleTips({ activeDay }: CycleTipsProps) {
               )}
               style={idx === 0 ? { backgroundImage: `linear-gradient(135deg, var(--mf-card), rgba(${isMenstrual ? '239, 68, 68' : isFollicular ? '245, 158, 11' : isFertile ? '20, 184, 166' : '236, 72, 153'}, 0.04))` } : undefined}
             >
-              {/* Subtle accent highlight on hover */}
-              <div className={cn(
-                "absolute top-0 left-0 w-1 h-full opacity-0 group-hover:opacity-100 transition-opacity duration-300",
-                isMenstrual && "bg-rose-500",
-                isFollicular && "bg-amber-500",
-                isFertile && "bg-teal-500",
-                isLuteal && "bg-pink-500"
-              )} />
-              
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <div className={cn("p-1.5 rounded-xl border border-transparent", tip.bgClass, tip.borderClass)}>
