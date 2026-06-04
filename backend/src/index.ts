@@ -36,6 +36,11 @@ app.use(cors({
       callback(null, true);
       return;
     }
+    // Automatically allow any Vercel preview/deployment subdomains
+    if (origin.endsWith('.vercel.app')) {
+      callback(null, true);
+      return;
+    }
     callback(null, false);
   },
   optionsSuccessStatus: 204,
