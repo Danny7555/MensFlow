@@ -297,20 +297,34 @@ export function AuthModal({
           <X size={18} weight="bold" aria-hidden />
         </button>
 
-        <h1 id="auth-modal-title" className="auth-modal-title auth-modal-title--gpt">
-          {mode === 'login'
-            ? 'Welcome back'
-            : preFillName
-              ? 'One last step'
-              : 'Sign up'}
-        </h1>
-        <p className="auth-modal-lede">
-          {mode === 'login'
-            ? 'Enter your email or username and password to sign in.'
-            : preFillName
-              ? `Hi ${preFillName}! Set up your email, username and password to save your progress.`
-              : 'Set up your details to save your MensFlow profile.'}
-        </p>
+        {mode === 'login' ? (
+          <>
+            <h1 id="auth-modal-title" className="auth-modal-title auth-modal-title--gpt">
+              Welcome back
+            </h1>
+            <p className="auth-modal-lede">
+              Enter your email or username and password to sign in.
+            </p>
+          </>
+        ) : preFillName ? (
+          <>
+            <h1 id="auth-modal-title" className="auth-modal-title auth-modal-title--gpt">
+              One last step
+            </h1>
+            <p className="auth-modal-lede">
+              Hi {preFillName}! Add login details to save your progress.
+            </p>
+          </>
+        ) : (
+          <>
+            <h1 id="auth-modal-title" className="auth-modal-title auth-modal-title--gpt">
+              Sign up
+            </h1>
+            <p className="auth-modal-lede">
+              Enter your details to create your account.
+            </p>
+          </>
+        )}
 
         <div className={`auth-modal-form ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}>
           {mode === 'register' && (
@@ -341,7 +355,7 @@ export function AuthModal({
 
           <input
             type="text"
-            placeholder={mode === 'login' ? 'Email or username' : 'Choose a username'}
+            placeholder={mode === 'login' ? 'Email or username' : 'Username'}
             className="auth-modal-email"
             value={username}
             onChange={e => setUsername(e.target.value)}
@@ -353,7 +367,7 @@ export function AuthModal({
           <div className="password-input-wrapper">
             <input
               type={showPassword ? 'text' : 'password'}
-              placeholder={mode === 'login' ? 'Password' : 'Create a password'}
+              placeholder="Password"
               className="auth-modal-email"
               value={password}
               onChange={e => setPassword(e.target.value)}

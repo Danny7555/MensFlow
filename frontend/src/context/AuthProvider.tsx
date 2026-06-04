@@ -163,6 +163,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (storeUser.name) patch.name = storeUser.name
       if (storeUser.role) patch.role = storeUser.role
       if (storeUser.accessLevel) patch.accessLevel = storeUser.accessLevel
+      if (storeUser.onboardingData && Object.keys(storeUser.onboardingData).length > 0) {
+        patch.onboardingData = storeUser.onboardingData
+      }
       await userApi.updateProfile(patch).catch(err => console.error('Failed to sync guest onboarding', err))
 
       const storeDashboard = useStore.getState().dashboard
@@ -177,6 +180,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         cycleVariationDays: storeDashboard.cycleVariationDays,
         isAtypical: storeDashboard.isAtypical,
       }).catch(err => console.error('Failed to sync guest dashboard', err))
+
+      const storeSettings = useStore.getState().settings
+      await userApi.updateSettings({
+        cycleAvgLengthDays: storeSettings.cycleAvgLengthDays,
+      }).catch(err => console.error('Failed to sync guest settings', err))
     }
 
     const profile = await userApi.getProfile()
@@ -311,7 +319,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const openAuthModal = useCallback((initialMode: 'login' | 'register' = 'login') => {
-    setInitialAuthMode(initialMode)
+    const mode = initialMode === 'register' ? 'register' : 'login'
+    setInitialAuthMode(mode)
     // Remember where the user is so we can return them after auth
     setReturnTo(window.location.pathname)
     // Reset any stale OTP state from a previous abandoned flow
@@ -346,7 +355,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         open={authModalOpen}
         isLoading={state.isLoading}
         initialMode={initialAuthMode}
-        preFillName={initialAuthMode === 'register' ? (useStore.getState().user.name || '') : ''}
+        preFillName={
+          initialAuthMode === 'register'
+            ? (
+                useStore.getState().user.name ||
+                String(useStore.getState().user.onboardingData?.name ?? '')
+              )
+            : ''
+        }
         onClose={() => {
           // Allow closing even if OTP is pending — user can always
           // dismiss the modal and start a fresh flow later.
