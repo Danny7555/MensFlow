@@ -57,7 +57,7 @@ function EmptyState() {
       <div className="flex items-center justify-between mb-4">
         <CardHeader />
       </div>
-      <div className="flex flex-col items-center justify-center text-center my-auto py-4 space-y-4">
+      <div className="flex flex-col items-center justify-center text-center my-auto py-4 gap-4">
         <div className="size-12 rounded-2xl bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] flex items-center justify-center">
           <Calendar size={24} weight="duotone" />
         </div>
