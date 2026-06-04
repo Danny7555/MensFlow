@@ -7,9 +7,29 @@ Welcome to **MensFlow**, a premium, beautifully designed health application tail
 
 ---
 
+## 🔍 What is MensFlow & What Does It Actually Do?
+
+MensFlow is a **dual-audience menstrual health and relationship support platform**. Unlike typical cycle trackers that focus solely on the menstruating individual, MensFlow bridges the gap between tracking and relationship support. It connects partners in a supportive, private ecosystem to foster empathy, communication, and collaborative care.
+
+### 👩‍⚕️ For the Tracker (The Menstruator)
+*   **Intuitive Symptom Logging:** Easily log menstrual flow intensity (light, medium, heavy), physical feelings (cramps, bloating, headache, fatigue), moods (anxious, happy, irritable, calm), and lifestyle details (sleep quality, temperature/BBT, pill consumption, and custom symptoms).
+*   **Visual Cycle Dashboard:** View an interactive progress ring and cycle tracker showing the active cycle day, active phase (Menstrual, Follicular, Ovulatory, or Luteal), and predictions of upcoming periods and fertility windows.
+*   **AI-like Wellness Companion:** Chat privately with `Ask MensFlow` to get answers to questions about hormones, diets, physical recovery, and stress management.
+*   **Privacy Locked Chats:** Lock sensitive chat discussions behind a private, custom passcode and security question.
+*   **Detailed Analytics:** View beautiful charts detailing cycle length variations, symptom trends over 6 months, and export reports for doctor check-ups.
+
+### 🤝 For the Partner (The Supporter)
+*   **Empathy Translator:** Automatically translates the tracker's active cycle phase and symptoms into plain-language biological context and actionable support guidelines (e.g., *"Luteal Phase: Progesterone is peaking, which can cause fatigue. Keep the room cool and offer a magnesium-rich snack"*).
+*   **Real-Time Status Pings:** Instantly receive status checks from the tracker (e.g., *"Crampy"*, *"Exhausted"*, or *"Feeling Great!"*) via in-app banner alerts.
+*   **Support Checklist & Streaks:** Complete helpful gestures (like preparing a heating pad, picking up comfort snacks, or scheduling a date night) to build daily connection streaks.
+*   **Privacy-Respecting Insights:** View active phase forecasts and educational tips without accessing detailed private logs unless granted explicit access.
+
+---
+
 ## 📖 Table of Contents
 
 - [Project Overview & Mission Guide](../docs/project_overview.md) ( Ghanaian adolescent health context, MongoDB backend blueprint, and AI Engines )
+- [What is MensFlow & What Does It Actually Do?](#-what-is-mensflow--what-does-it-actually-do)
 
 1. [Core Features](#-core-features)
 2. [MensFlow vs. Flo: What Makes It Unique?](#-mensflow-vs-flo-what-makes-it-unique)
