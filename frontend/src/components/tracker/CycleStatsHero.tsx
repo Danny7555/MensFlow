@@ -59,6 +59,7 @@ export function CycleStatsHero() {
 
   const lengthPercent = Math.min(100, Math.max(15, Math.round((calculatedTypical / 40) * 100)));
   const variationPercent = Math.min(100, Math.max(5, Math.round((calculatedVariation / 15) * 100)));
+  const variationColor = calculatedIsAtypical ? "#e25c00" : "#007e94";
 
   return (
     <div className="cycle-stats-hero">
@@ -80,8 +81,8 @@ export function CycleStatsHero() {
                </svg>
             </div>
             <div className="stats-card-info">
-              <span className="stats-label">Cycle length</span>
-              <span className="stats-value">{calculatedTypical} days</span>
+               <span className="stats-label">Cycle length</span>
+               <span className="stats-value">{calculatedTypical} days</span>
             </div>
           </div>
           <div className="stats-card-action">
@@ -114,11 +115,11 @@ export function CycleStatsHero() {
             <div className="stats-ring-box">
                <svg viewBox="0 0 36 36" className="stats-ring stats-ring--grey">
                  <path d="M18 3 a 15 15 0 0 1 0 30 a 15 15 0 0 1 0 -30" fill="none" stroke="currentColor" className="opacity-10" strokeWidth="4" />
-                 <path d="M18 3 a 15 15 0 0 1 0 30 a 15 15 0 0 1 0 -30" fill="none" stroke={calculatedIsAtypical ? "#e25c00" : "#007e94"} strokeWidth="4" strokeLinecap="round" strokeDasharray={`${variationPercent}, 100`} />
+                 <path d="M18 3 a 15 15 0 0 1 0 30 a 15 15 0 0 1 0 -30" fill="none" stroke={variationColor} strokeWidth="4" strokeLinecap="round" strokeDasharray={`${variationPercent}, 100`} />
                  {/* Trailing dots */}
-                 <circle cx="12" cy="5.5" r="1.2" fill="#007e94" />
-                 <circle cx="7.5" cy="9.5" r="1.8" fill="#007e94" />
-                 <circle cx="4" cy="16" r="2.5" fill="#007e94" />
+                 <circle cx="12" cy="5.5" r="1.2" fill={variationColor} />
+                 <circle cx="7.5" cy="9.5" r="1.8" fill={variationColor} />
+                 <circle cx="4" cy="16" r="2.5" fill={variationColor} />
                </svg>
             </div>
             <div className="stats-card-info">
