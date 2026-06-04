@@ -37,8 +37,7 @@ export function AuthModal({
   initialMode = 'login',
   preFillName = '',
 }: AuthModalProps) {
-  const initialCredentialMode = initialMode === 'register' && !preFillName ? 'login' : initialMode
-  const [mode, setMode] = useState<Mode>(initialCredentialMode)
+  const [mode, setMode] = useState<Mode>(initialMode)
   const [name, setName] = useState('')
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
@@ -81,7 +80,7 @@ export function AuthModal({
     )
   ) {
     openSyncStateRef.current = { open, initialMode, preFillName }
-    setMode(initialMode === 'register' && !preFillName ? 'login' : initialMode)
+    setMode(initialMode)
     if (preFillName) setName(preFillName)
   } else if (openSyncStateRef.current.open !== open) {
     openSyncStateRef.current = { open, initialMode, preFillName }
@@ -151,8 +150,6 @@ export function AuthModal({
       toast.error(err instanceof Error ? err.message : 'Something went wrong')
     }
   }, [isLoading, username, password, name, email, mode, onLogin, onRegister, preFillName, role, reset])
-
-  const isGenericRegister = mode === 'register' && !preFillName
 
   // ── OTP digit input handling ───────────────────────────────────────────────
   const handleOtpChange = useCallback((index: number, value: string) => {
@@ -291,7 +288,7 @@ export function AuthModal({
     )
   }
 
-  // ── Credentials UI (login / onboarding save-progress register) ────────────
+  // ── Credentials UI (login / register) ─────────────────────────────────────
   return (
     <div className="auth-modal-root" role="dialog" aria-modal aria-labelledby="auth-modal-title">
       <button type="button" className="auth-modal-backdrop" aria-label="Close" onClick={onClose} />
@@ -300,19 +297,37 @@ export function AuthModal({
           <X size={18} weight="bold" aria-hidden />
         </button>
 
-        <h1 id="auth-modal-title" className="auth-modal-title auth-modal-title--gpt">
-          {mode === 'login'
-            ? 'Welcome back'
-            : 'One last step'}
-        </h1>
-        <p className="auth-modal-lede">
-          {mode === 'login'
-            ? 'Enter your email or username and password to sign in.'
-            : `Hi ${preFillName}! Set up your email, username and password to save your progress.`}
-        </p>
+        {mode === 'login' ? (
+          <>
+            <h1 id="auth-modal-title" className="auth-modal-title auth-modal-title--gpt">
+              Welcome back
+            </h1>
+            <p className="auth-modal-lede">
+              Enter your email or username and password to sign in.
+            </p>
+          </>
+        ) : preFillName ? (
+          <>
+            <h1 id="auth-modal-title" className="auth-modal-title auth-modal-title--gpt">
+              One last step
+            </h1>
+            <p className="auth-modal-lede">
+              Hi {preFillName}! Add login details to save your progress.
+            </p>
+          </>
+        ) : (
+          <>
+            <h1 id="auth-modal-title" className="auth-modal-title auth-modal-title--gpt">
+              Sign up
+            </h1>
+            <p className="auth-modal-lede">
+              Enter your details to create your account.
+            </p>
+          </>
+        )}
 
         <div className={`auth-modal-form ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}>
-          {mode === 'register' && !isGenericRegister && (
+          {mode === 'register' && (
             <>
               {/* Only show name input if name wasn't already collected in onboarding */}
               {!preFillName && (
@@ -338,20 +353,18 @@ export function AuthModal({
             </>
           )}
 
-          {!isGenericRegister && (
-            <input
-              type="text"
-              placeholder={mode === 'login' ? 'Email or username' : 'Username'}
-              className="auth-modal-email"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              disabled={isLoading}
-              autoComplete="username"
-              onKeyDown={e => { if (e.key === 'Enter') handleSubmit() }}
-            />
-          )}
+          <input
+            type="text"
+            placeholder={mode === 'login' ? 'Email or username' : 'Username'}
+            className="auth-modal-email"
+            value={username}
+            onChange={e => setUsername(e.target.value)}
+            disabled={isLoading}
+            autoComplete="username"
+            onKeyDown={e => { if (e.key === 'Enter') handleSubmit() }}
+          />
 
-          {!isGenericRegister && <div className="password-input-wrapper">
+          <div className="password-input-wrapper">
             <input
               type={showPassword ? 'text' : 'password'}
               placeholder="Password"
@@ -371,9 +384,9 @@ export function AuthModal({
             >
               {showPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
             </button>
-          </div>}
+          </div>
 
-          {mode === 'register' && !isGenericRegister && password && (
+          {mode === 'register' && password && (
             <div className="w-full mt-2 mb-3 px-1 space-y-2 animate-in fade-in slide-in-from-top-1 duration-300">
               <div className="flex justify-between items-center text-[10.5px] font-medium tracking-wide">
                 <span className="text-muted-foreground uppercase">Password Strength</span>
@@ -424,29 +437,25 @@ export function AuthModal({
             </div>
           )}
 
-          {!isGenericRegister && (
-            <button
-              type="button"
-              className="auth-modal-continue-main flex items-center justify-center gap-2"
-              onClick={handleSubmit}
-              disabled={isLoading || !username.trim() || !password.trim()}
-            >
-              {isLoading ? <div className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
-              {mode === 'login' ? 'Sign in' : 'Save progress'}
-            </button>
-          )}
-        </div>
-
-        {mode !== 'login' && (
           <button
             type="button"
-            className="auth-modal-demo-text"
-            disabled={isLoading}
-            onClick={() => switchMode('login')}
+            className="auth-modal-continue-main flex items-center justify-center gap-2"
+            onClick={handleSubmit}
+            disabled={isLoading || !username.trim() || !password.trim()}
           >
-            Already have an account? Sign in
+            {isLoading ? <div className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
+            {mode === 'login' ? 'Sign in' : preFillName ? 'Save progress' : 'Sign up'}
           </button>
-        )}
+        </div>
+
+        <button
+          type="button"
+          className="auth-modal-demo-text"
+          disabled={isLoading}
+          onClick={() => switchMode(mode === 'login' ? 'register' : 'login')}
+        >
+          {mode === 'login' ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
+        </button>
       </div>
     </div>
   )

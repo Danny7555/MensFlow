@@ -187,7 +187,7 @@ export function OnboardingView() {
                 progress={progress}
                 handleBack={handleBack}
                 handleNext={handleNext}
-                onOpenAuth={openAuthModal}
+                onOpenAuth={() => openAuthModal("login")}
               />
 
               <main className="onboarding-main">
