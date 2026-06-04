@@ -82,7 +82,11 @@ export async function toggleAction(req: AuthRequest, res: Response, next: NextFu
 
 export async function requestDetailedAccess(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   try {
-    const result = await partnerService.requestDetailedAccess(req.user!.id);
+    const body = objectRecord(req.body);
+    const requestedFields = Array.isArray(body.requestedFields)
+      ? (body.requestedFields as string[]).filter((f) => typeof f === 'string' && f.length <= 40)
+      : ['cycle', 'symptoms', 'charts'];
+    const result = await partnerService.requestDetailedAccess(req.user!.id, requestedFields);
     res.json({ success: true, ...result });
   } catch (err) {
     next(err);

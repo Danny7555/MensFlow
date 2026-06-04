@@ -7,10 +7,14 @@ import { isLoggedIn } from '../lib/auth-token'
 export type ApiPartnerStatus = {
   paired: boolean
   privacyShareCycleDetails?: boolean
+  privacyShareSymptomLogs?: boolean
+  privacyShareHealthCharts?: boolean
+  privacyRequestedFields?: string[]
   partner?: {
     name: string
     avatar: string | null
     accessLevel: 'full' | 'educational'
+    lastActive?: number | null
   }
   cycle?: {
     lastPeriodStart: string
@@ -23,6 +27,7 @@ export type ApiPartnerStatus = {
     weight?: number
     bbt?: number | null
     mucus?: string | null
+    lhLevel?: string | null
     cycleVariationDays?: number
     isAtypical?: boolean
     scientificInsight?: string
@@ -69,8 +74,8 @@ export const partnerApi = {
   disconnect: () =>
     post<{ success: boolean }>('/partner/disconnect', {}),
 
-  requestAccess: () =>
-    post<{ success: boolean; alreadyPending: boolean; emailQueued: boolean }>('/partner/request-access', {}),
+  requestAccess: (requestedFields: string[] = ['cycle', 'symptoms', 'charts']) =>
+    post<{ success: boolean; alreadyPending: boolean; emailQueued: boolean }>('/partner/request-access', { requestedFields }),
 
   sendPing: (pingId: string, label: string, message: string) =>
     post<{ success: boolean; ping: ApiPing }>('/partner/ping', { pingId, label, message }),

@@ -5,7 +5,7 @@ import { type SymptomDef, type SymptomCategory } from '../data/symptomsData'
 import { logsApi, type ApiMonthInReview } from '../services/logsService'
 import { userApi, type ApiUser, type ApiSettings, type ApiDashboard, type ApiLoginRecord, userKeys } from '../services/userService'
 import { queryClient } from '../lib/queryClient'
-import { partnerApi } from '../services/partnerService'
+import { partnerApi, type ApiPartnerStatus } from '../services/partnerService'
 import { toast } from 'sonner'
 import { isLoggedIn } from '../lib/auth-token'
 
@@ -46,41 +46,8 @@ interface AppState {
   completedActions: string[]
   supportStreak: number
   lastActionDate: string
-  partnerStatus: {
-    paired: boolean
-    privacyShareCycleDetails?: boolean
-    partner?: {
-      name: string
-      avatar: string | null
-      accessLevel: 'full' | 'educational'
-      lastActive?: number | null
-    }
-    cycle?: {
-      lastPeriodStart: string
-      typicalCycleDays: number
-      phaseLabel: string
-      hormoneTrend: string
-      bodySignals: string
-      symptoms?: string[]
-      water?: number
-      weight?: number
-      lhLevel?: string | null
-      mucus?: string | null
-      cycleVariationDays?: number
-      isAtypical?: boolean
-      scientificInsight?: string
-      dailyTip?: {
-        title: string
-        desc: string
-      }
-    } | null
-    support?: {
-      completedActions: string[]
-      supportStreak: number
-      lastActionDate: string
-      totalActionsThisCycle?: number
-    }
-  } | null
+  partnerStatus: ApiPartnerStatus | null
+
 
   notificationCount: number
   incrementNotificationCount: () => void
@@ -119,7 +86,7 @@ interface AppState {
   pairPartner: (partnerCode: string) => Promise<void>
   invitePartner: (email: string) => Promise<void>
   disconnectPartnerAction: () => Promise<void>
-  requestDetailedAccessAction: () => Promise<void>
+  requestDetailedAccessAction: (requestedFields?: string[]) => Promise<void>
 
   // Confirmation / Alerts
   confirmDialog: {
@@ -670,15 +637,15 @@ export const useStore = create<AppState>()((set, get) => ({
     }
   },
 
-  requestDetailedAccessAction: async () => {
+  requestDetailedAccessAction: async (requestedFields: string[] = ['cycle', 'symptoms', 'charts']) => {
     if (isLoggedIn()) {
       set({ isSaving: true })
       try {
-        const result = await partnerApi.requestAccess()
+        const result = await partnerApi.requestAccess(requestedFields)
         toast.success(result.alreadyPending ? "Access request already pending." : "Access request sent!", {
           description: result.emailQueued
             ? "Your partner received an in-app notification and an email."
-            : "Your partner received an in-app notification to enable detailed sharing.",
+            : "Your partner received an in-app notification to review your request.",
         })
       } catch (err: unknown) {
         toast.error(err instanceof Error ? err.message : 'Failed to send access request')

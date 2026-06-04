@@ -183,6 +183,10 @@ export async function getPartnerStatus(userId: string): Promise<object> {
 
   const symptoms = latestLog?.symptoms ?? [];
   const shareDetails = partnerSettings ? partnerSettings.privacyShareCycleDetails !== false : true;
+  const shareSymptoms = partnerSettings ? partnerSettings.privacyShareSymptomLogs !== false : true;
+  const shareCharts = partnerSettings ? partnerSettings.privacyShareHealthCharts !== false : true;
+  const requestedFields = partnerSettings?.privacyRequestedFields ?? [];
+
   const cycleModel = buildCycleModel({
     lastPeriodStart: partnerDash?.lastPeriodStart,
     typicalCycleDays: partnerDash?.typicalCycleDays,
@@ -238,6 +242,9 @@ export async function getPartnerStatus(userId: string): Promise<object> {
       lastActive: partnerLastActive,
     },
     privacyShareCycleDetails: shareDetails,
+    privacyShareSymptomLogs: shareSymptoms,
+    privacyShareHealthCharts: shareCharts,
+    privacyRequestedFields: requestedFields,
     cycle: partnerDash
       ? shareDetails
         ? {
@@ -249,11 +256,12 @@ export async function getPartnerStatus(userId: string): Promise<object> {
             guidanceLines: partnerDash.guidanceLines?.length ? partnerDash.guidanceLines : cycleModel.guidanceLines,
             cycleVariationDays: cycleModel.cycleVariationDays,
             isAtypical: cycleModel.isAtypical,
-            symptoms,
-            water: latestLog?.water !== undefined ? latestLog.water : 1000,
-            weight: latestLog?.weight !== undefined ? latestLog.weight : 62.5,
-            lhLevel: latestLog?.lhLevel !== undefined ? latestLog.lhLevel : null,
-            mucus: latestLog?.mucus !== undefined ? latestLog.mucus : null,
+            // Redact symptom-level data if shareSymptoms is off
+            symptoms: shareSymptoms ? symptoms : [],
+            water: shareSymptoms && latestLog?.water !== undefined ? latestLog.water : 1000,
+            weight: shareSymptoms && latestLog?.weight !== undefined ? latestLog.weight : 62.5,
+            lhLevel: shareSymptoms && latestLog?.lhLevel !== undefined ? latestLog.lhLevel : null,
+            mucus: shareSymptoms && latestLog?.mucus !== undefined ? latestLog.mucus : null,
             scientificInsight: partnerDash.scientificInsight || '',
             dailyTip: partnerDash.dailyTip || { title: '', desc: '' },
           }
@@ -396,7 +404,10 @@ function yesterdayString(): string {
   return d.toISOString().split('T')[0];
 }
 
-export async function requestDetailedAccess(userId: string): Promise<{ alreadyPending: boolean; emailQueued: boolean }> {
+export async function requestDetailedAccess(
+  userId: string,
+  requestedFields: string[] = ['cycle', 'symptoms', 'charts']
+): Promise<{ alreadyPending: boolean; emailQueued: boolean }> {
   const user = await User.findById(userId).lean();
   if (!user?.partnerId) {
     throw httpError('You must pair with a partner before requesting detailed access', 400);
@@ -414,9 +425,24 @@ export async function requestDetailedAccess(userId: string): Promise<{ alreadyPe
   }
 
   const alreadyPending = previousSettings?.privacyPendingAccessRequest === true;
+
+  // Build human-readable list of what is being requested
+  const fieldLabels: Record<string, string> = {
+    cycle: 'Cycle phase & predictions',
+    symptoms: 'Logged symptoms & flow',
+    charts: 'Health trends & charts',
+  };
+  const requestedLabels = requestedFields.map((f) => fieldLabels[f] || f).join(', ');
+
   await Settings.findOneAndUpdate(
     { userId: user.partnerId },
-    { $set: { privacyPendingAccessRequest: true }, $setOnInsert: { userId: user.partnerId } },
+    {
+      $set: {
+        privacyPendingAccessRequest: true,
+        privacyRequestedFields: requestedFields,
+      },
+      $setOnInsert: { userId: user.partnerId },
+    },
     { upsert: true, new: true, setDefaultsOnInsert: true }
   );
 
@@ -425,7 +451,12 @@ export async function requestDetailedAccess(userId: string): Promise<{ alreadyPe
   }
 
   const partnerName = user.name || 'Your partner';
-  await sendPing(userId, 'access-request-ping', 'Access Request', `${partnerName} has requested detailed cycle access.`);
+  await sendPing(
+    userId,
+    'access-request-ping',
+    'Access Request',
+    `${partnerName} is requesting access to: ${requestedLabels}.`
+  );
 
   const emailQueued = Boolean(recipient.email && previousSettings?.notificationsEmail);
   if (emailQueued && recipient.email) {
@@ -433,7 +464,7 @@ export async function requestDetailedAccess(userId: string): Promise<{ alreadyPe
       toEmail: recipient.email,
       toName: recipient.name,
       reminderTitle: 'Detailed cycle access requested',
-      reminderMessage: `${partnerName} asked to view detailed cycle metrics, symptoms, and analytics. Open MensFlow Notifications to approve or decline.`,
+      reminderMessage: `${partnerName} is requesting access to: ${requestedLabels}. Open MensFlow Notifications to approve or decline.`,
     }).catch((err) => console.error('[requestDetailedAccess] Failed to send access request email:', err));
   }
 

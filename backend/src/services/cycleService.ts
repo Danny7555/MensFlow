@@ -7,6 +7,12 @@ import { Settings } from '../models/Settings';
 
 export async function getSymptomLogs(userId: string): Promise<ISymptomLog[]> {
   const user = await User.findById(userId).lean();
+  if (user?.role === 'partner' && user.partnerId) {
+    const partnerSettings = await Settings.findOne({ userId: user.partnerId }).lean();
+    if (partnerSettings && !partnerSettings.privacyShareSymptomLogs) {
+      return [];
+    }
+  }
   const targetId = (user?.role === 'partner' && user.partnerId) ? user.partnerId : userId;
   const logs = await SymptomLog.find({ userId: targetId }).sort({ date: -1 }).lean();
   return logs.map((l) => ({
@@ -130,6 +136,21 @@ export async function getMonthInReview(userId: string): Promise<object> {
   // If caller is partner, analyze their lady partner's data
   const ladyId = (user.role === 'partner' && user.partnerId) ? String(user.partnerId) : userId;
   const partnerId = (user.role === 'lady' && user.partnerId) ? String(user.partnerId) : (user.role === 'partner' ? userId : null);
+
+  if (user.role === 'partner' && user.partnerId) {
+    const partnerSettings = await Settings.findOne({ userId: user.partnerId }).lean();
+    if (partnerSettings && !partnerSettings.privacyShareHealthCharts) {
+      return {
+        cycleLength: partnerSettings.cycleAvgLengthDays || 28,
+        periodLength: 5,
+        energyPeakStart: 0,
+        energyPeakEnd: 0,
+        crampingChange: 0,
+        partnerActions: 0,
+        redacted: true
+      };
+    }
+  }
 
   // Fetch Lady's dashboard & logs
   const [ladyDash, logs] = await Promise.all([

@@ -155,7 +155,11 @@ export async function updateUserSettings(
     previousSettings?.privacyPendingAccessRequest &&
     patch.privacyPendingAccessRequest === false
   ) {
-    const decision = patch.privacyShareCycleDetails === true ? 'granted' : 'declined';
+    const anyGranted =
+      patch.privacyShareCycleDetails === true ||
+      patch.privacyShareSymptomLogs === true ||
+      patch.privacyShareHealthCharts === true;
+    const decision = anyGranted ? 'granted' : 'declined';
     void notifyAccessDecision(userId, decision).catch((err) => {
       console.error('[updateUserSettings] Failed to notify partner access decision:', err);
     });
@@ -240,7 +244,10 @@ function toSettings(settings: SettingsDocument): ISettings {
     cycleAvgLengthDays: settings.cycleAvgLengthDays,
     cycleShowFertileWindow: settings.cycleShowFertileWindow,
     privacyShareCycleDetails: settings.privacyShareCycleDetails,
+    privacyShareSymptomLogs: settings.privacyShareSymptomLogs ?? true,
+    privacyShareHealthCharts: settings.privacyShareHealthCharts ?? true,
     privacyPendingAccessRequest: settings.privacyPendingAccessRequest,
+    privacyRequestedFields: settings.privacyRequestedFields ?? [],
     privacyStrictLocalOnly: settings.privacyStrictLocalOnly,
     conditionOptimization: settings.conditionOptimization,
     disableAIPopups: settings.disableAIPopups,

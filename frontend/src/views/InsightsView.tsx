@@ -8,6 +8,7 @@ import { SymptomTrendsChart } from '../components/SymptomTrendsChart'
 import { useAuth } from "@/context/useAuth"
 import { cn } from '../lib/utils'
 import { HormoneWave } from '../components/dashboard/HormoneWave'
+import { RequestAccessModal } from '../components/dashboard/RequestAccessModal'
 import { useStore } from '../store/useStore'
 import { SYMPTOM_DEFS } from '../data/symptomsData'
 import { format } from 'date-fns'
@@ -44,14 +45,18 @@ const handlePrintPDF = () => {
 export function InsightsView() {
   const { isAuthenticated, openAuthModal } = useAuth()
 
-  const { logs, customSymptoms, user, partnerStatus, fetchPartnerStatus, requestDetailedAccessAction } = useStore()
+  const { logs, customSymptoms, user, partnerStatus, fetchPartnerStatus, requestDetailedAccessAction, isSaving } = useStore()
+  const [showModal, setShowModal] = useState(false)
   const [requestSent, setRequestSent] = useState(false)
   const isPartner = user?.role === 'partner'
-  const showRestrictedView = isPartner && partnerStatus?.paired && partnerStatus?.privacyShareCycleDetails === false
+  const showRestrictedView = isPartner && partnerStatus?.paired && partnerStatus?.privacyShareHealthCharts === false
 
-  const handleRequestAccess = async () => {
+  const handleOpenModal = () => setShowModal(true)
+
+  const handleConfirmRequest = async (selectedFields: string[]) => {
+    setShowModal(false)
     setRequestSent(true)
-    await requestDetailedAccessAction()
+    await requestDetailedAccessAction(selectedFields)
     await fetchPartnerStatus()
   }
 
@@ -89,7 +94,6 @@ export function InsightsView() {
     document.body.removeChild(link)
     toast.success("CSV report downloaded!")
   }
-
 
 
   // ── Gate 1: not logged in ────────────────────────────────────────────────
@@ -166,7 +170,7 @@ export function InsightsView() {
             </p>
             <button
               type="button"
-              onClick={handleRequestAccess}
+              onClick={handleOpenModal}
               disabled={requestSent}
               className={cn(
                 "px-6 py-2.5 rounded-full text-xs font-normal transition-all mb-6",
@@ -189,6 +193,12 @@ export function InsightsView() {
             </div>
           </div>
         </m.div>
+        <RequestAccessModal
+          open={showModal}
+          onClose={() => setShowModal(false)}
+          onConfirm={handleConfirmRequest}
+          isLoading={isSaving}
+        />
       </m.div>
     )
   }

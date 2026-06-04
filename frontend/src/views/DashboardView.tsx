@@ -17,6 +17,7 @@ import { LogSymptomsModal } from '../components/tracker/LogSymptomsModal'
 import { SnapshotModal } from '../components/dashboard/SnapshotModal'
 import { CustomizePlanModal } from '../components/dashboard/CustomizePlanModal'
 import { DashboardSkeleton } from '../components/skeletons/DashboardSkeleton'
+import { RequestAccessModal } from '../components/dashboard/RequestAccessModal'
 
 import { DashboardHeader } from '../components/dashboard/DashboardHeader'
 import { StoriesSection } from '../components/dashboard/StoriesSection'
@@ -249,11 +250,15 @@ export function DashboardView() {
 
   const [dashboardPartnerCodeInput, setDashboardPartnerCodeInput] = useState('')
   const [isDashboardPairing, setIsDashboardPairing] = useState(false)
+  const [showModal, setShowModal] = useState(false)
   const [requestSent, setRequestSent] = useState(false)
 
-  const handleRequestAccess = async () => {
+  const handleOpenModal = () => setShowModal(true)
+
+  const handleConfirmRequest = async (selectedFields: string[]) => {
+    setShowModal(false)
     setRequestSent(true)
-    await requestDetailedAccessAction()
+    await requestDetailedAccessAction(selectedFields)
     await fetchPartnerStatus()
   }
 
@@ -516,7 +521,12 @@ export function DashboardView() {
   }, [data.lastPeriodStart, data.typicalCycleDays, data.phaseLabel])
 
   const currentDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
-  const showRestrictedView = user?.role === 'partner' && partnerStatus?.paired && partnerStatus?.privacyShareCycleDetails === false
+  
+  const isPartner = user?.role === 'partner'
+  const shareDetails = !isPartner || (partnerStatus?.paired && partnerStatus?.privacyShareCycleDetails !== false)
+  const shareSymptoms = !isPartner || (partnerStatus?.paired && partnerStatus?.privacyShareSymptomLogs !== false)
+  const shareCharts = !isPartner || (partnerStatus?.paired && partnerStatus?.privacyShareHealthCharts !== false)
+  const showRequestAccessBox = isPartner && partnerStatus?.paired && (!shareDetails || !shareSymptoms || !shareCharts)
   const dashboardNotificationCount = notificationCount + (user?.role === 'lady' && settings.privacyPendingAccessRequest ? 1 : 0)
   const [tipCompleted, setTipCompleted] = useState(false)
 
@@ -704,7 +714,7 @@ export function DashboardView() {
   }
 
   const ladyName = partnerStatus?.partner?.name || 'your partner'
-  const isPartner = user?.role === 'partner'
+
 
   return (
     <div className="dashboard-flo-theme relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -818,34 +828,52 @@ export function DashboardView() {
                   />
                 </div>
 
-                {!showRestrictedView && (
+                {(shareDetails || shareSymptoms) && (
                   <div className="flex flex-col gap-6 md:gap-8 min-w-0 mt-2">
                     <div className="flex items-center gap-2 border-b border-[var(--mf-border)] pb-2">
                       <Sparkle size={18} className="text-teal-500" weight="fill" />
                       <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--mf-text-strong)]">Her Cycle Insights</h3>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 min-w-0">
-                      <PrimaryInsightCard 
-                        label={phase}
-                        currentDay={currentDay}
-                        trend={data.hormoneTrend}
-                      />
-                      <BodySignalsCard 
-                        signals={data.bodySignals}
-                        currentDay={currentDay}
-                        phaseLabel={phase}
-                      />
+                      {shareDetails ? (
+                        <PrimaryInsightCard 
+                          label={phase}
+                          currentDay={currentDay}
+                          trend={data.hormoneTrend}
+                        />
+                      ) : (
+                        <div className="flo-card p-6 flex flex-col items-center justify-center text-center border border-[var(--mf-border)] bg-[var(--mf-card)] min-h-[160px] rounded-3xl">
+                          <LockSimple size={24} className="text-muted-foreground mb-2" />
+                          <h4 className="text-xs font-semibold text-[var(--mf-text-strong)]">Cycle Details Private</h4>
+                          <p className="text-[10px] text-muted-foreground mt-1 max-w-[200px]">Your partner is keeping her cycle predictions and phase information private.</p>
+                        </div>
+                      )}
+                      {shareSymptoms ? (
+                        <BodySignalsCard 
+                          signals={data.bodySignals}
+                          currentDay={currentDay}
+                          phaseLabel={phase}
+                        />
+                      ) : (
+                        <div className="flo-card p-6 flex flex-col items-center justify-center text-center border border-[var(--mf-border)] bg-[var(--mf-card)] min-h-[160px] rounded-3xl">
+                          <LockSimple size={24} className="text-muted-foreground mb-2" />
+                          <h4 className="text-xs font-semibold text-[var(--mf-text-strong)]">Symptom Logs Private</h4>
+                          <p className="text-[10px] text-muted-foreground mt-1 max-w-[200px]">Daily logged symptoms and signals are kept private.</p>
+                        </div>
+                      )}
                     </div>
-                    <div className="w-full min-w-0">
-                      <HormoneInsightCard phaseLabel={phase} aiInsightText={aiInsightText} />
-                    </div>
+                    {shareDetails && (
+                      <div className="w-full min-w-0">
+                        <HormoneInsightCard phaseLabel={phase} aiInsightText={aiInsightText} />
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
 
               {/* Right Column: Her Passive Status Reference & Real-Time Interaction */}
               <div className="flex flex-col gap-6 md:gap-8 min-w-0">
-                {!showRestrictedView && (
+                {shareDetails && (
                   <section className="flo-hero-panel min-w-0" aria-label="Cycle overview">
                     <CycleTrackerHero showCheckIn={false} data={data} />
                   </section>
@@ -856,21 +884,29 @@ export function DashboardView() {
                 </div>
 
                 <div className="min-w-0">
-                  <WellnessScoreCard />
+                  {shareCharts ? (
+                    <WellnessScoreCard />
+                  ) : (
+                    <div className="flo-card p-6 flex flex-col items-center justify-center text-center border border-[var(--mf-border)] bg-[var(--mf-card)] min-h-[140px] rounded-3xl">
+                      <LockSimple size={24} className="text-muted-foreground mb-2" />
+                      <h4 className="text-xs font-semibold text-[var(--mf-text-strong)]">Health Trends Private</h4>
+                      <p className="text-[10px] text-muted-foreground mt-1 max-w-[220px]">Monthly reviews and analytics scores are private.</p>
+                    </div>
+                  )}
                 </div>
 
-                {showRestrictedView && (
+                {showRequestAccessBox && (
                   <div className="p-5 sm:p-6 rounded-[2rem] bg-gradient-to-br from-teal-500/5 via-[var(--mf-composer-bg)] to-[var(--mf-composer-bg)] border border-[var(--mf-border)] text-center w-full space-y-4 flex flex-col items-center">
                     <div className="size-10 rounded-xl bg-teal-500/10 flex items-center justify-center mx-auto text-teal-500">
                       <Users size={20} weight="bold" />
                     </div>
-                    <h3 className="text-xs font-semibold text-[var(--mf-text-strong)]">Detailed Metrics Kept Private</h3>
+                    <h3 className="text-xs font-semibold text-[var(--mf-text-strong)]">Request More Access</h3>
                     <p className="text-[11px] text-[var(--mf-muted)] leading-relaxed max-w-xs mx-auto">
-                      {ladyName} has restricted sharing. The cycle status, hormone wave trends, and body signals are hidden.
+                      Some details are hidden. Request additional access categories from your partner to support her better.
                     </p>
                     <button
                       type="button"
-                      onClick={handleRequestAccess}
+                      onClick={handleOpenModal}
                       disabled={requestSent}
                       className={cn(
                         "px-5 py-2 rounded-full text-[10px] font-normal transition-all mt-2",
@@ -992,6 +1028,13 @@ export function DashboardView() {
           activeDate={state.now}
         />
       )}
+
+      <RequestAccessModal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        onConfirm={handleConfirmRequest}
+        isLoading={isSaving}
+      />
     </div>
   )
 }

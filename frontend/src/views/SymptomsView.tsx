@@ -13,6 +13,7 @@ import { SymptomsChart } from '../components/SymptomsChart'
 import { CycleLengthChart } from '../components/tracker/CycleLengthChart'
 import { useStore } from '../store/useStore'
 import { TrackerSkeleton } from '../components/skeletons/TrackerSkeleton'
+import { RequestAccessModal } from "@/components/dashboard/RequestAccessModal"
 import {
   Select,
   SelectContent,
@@ -151,11 +152,19 @@ function SymptomCategoryList({
 export function SymptomsView() {
   const { addLog, getLogForDate, isSaving, user, partnerStatus, fetchPartnerStatus, requestDetailedAccessAction, customSymptoms, settings } = useStore()
   const [isLoading] = useState(false)
+  const [showModal, setShowModal] = useState(false)
   const [requestSent, setRequestSent] = useState(false)
 
-  const handleRequestAccess = async () => {
+  const isPartner = user?.role === 'partner'
+  const showSymptomLogsGate = isPartner && partnerStatus?.paired && partnerStatus?.privacyShareSymptomLogs === false
+  const showHealthChartsGate = isPartner && partnerStatus?.paired && partnerStatus?.privacyShareHealthCharts === false
+
+  const handleOpenModal = () => setShowModal(true)
+
+  const handleConfirmRequest = async (selectedFields: string[]) => {
+    setShowModal(false)
     setRequestSent(true)
-    await requestDetailedAccessAction()
+    await requestDetailedAccessAction(selectedFields)
     await fetchPartnerStatus()
   }
 
@@ -171,8 +180,6 @@ export function SymptomsView() {
       return true;
     });
   }, [customSymptoms, settings.conditionOptimization]);
-  const isPartner = user?.role === 'partner'
-  const showRestrictedView = isPartner && partnerStatus?.paired && partnerStatus?.privacyShareCycleDetails === false
 
   useEffect(() => {
     if (isPartner && partnerStatus === null) {
@@ -201,6 +208,30 @@ export function SymptomsView() {
     if (next.has(id)) next.delete(id)
     else next.add(id)
     await addLog(todayKey, Array.from(next), currentLog?.lhLevel ?? null, currentLog?.mucus ?? null)
+  }
+
+  // ── Gate: partner not yet connected to a lady ──────────────────────────
+  if (isPartner && !partnerStatus?.paired) {
+    return (
+      <div className="flex flex-col h-full bg-background overflow-auto items-center justify-center p-6 min-h-[60vh]">
+        <div className="max-w-[420px] w-full text-center bg-card border border-border p-8 sm:p-10 rounded-[2.5rem] shadow-xl gap-6 relative overflow-hidden flex flex-col items-center">
+          <div className="absolute top-0 right-0 size-32 bg-[var(--mf-accent)]/5 rounded-full blur-2xl pointer-events-none" />
+          <div className="size-16 rounded-3xl bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] flex items-center justify-center mx-auto border border-[var(--mf-accent)]/10">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-8">
+              <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-normal tracking-tight text-[var(--mf-text-strong)]">
+              Not Connected Yet
+            </h2>
+            <p className="text-xs text-[var(--mf-muted)] leading-relaxed max-w-sm mx-auto">
+              Symptom details are shared with you once you connect with your partner. Head to <strong>Partner Sync</strong> to pair up first.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -233,210 +264,246 @@ export function SymptomsView() {
         </p>
       </header>
 
-      {/* Symptothermal NFP Indicators Panel */}
-      <section className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-normal tracking-tight text-foreground">
-            Symptothermal NFP Indicators
-          </h2>
-          <span className="text-[9px] font-normal uppercase tracking-[0.2em] bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] px-3 py-1 rounded-full border border-[var(--mf-accent)]/20">
-            Evidence-Based NFP
-          </span>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* LH Ovulation Test Card */}
-          <div className="dash-panel p-6 flex flex-col justify-between">
-            <div className="flex items-start justify-between w-full">
-              <div className="space-y-1 flex-1">
-                <span className="text-[10px] font-normal uppercase tracking-[0.1em] text-muted-foreground block">LH Ovulation Test</span>
-                {isPartner ? (
-                  <h4 className="text-2xl font-normal text-[var(--mf-text-strong)] capitalize mt-1">
-                    {partnerStatus?.cycle?.lhLevel ? partnerStatus.cycle.lhLevel : 'Not logged'}
-                  </h4>
-                ) : (
-                  <div className="mt-1">
-                    <Select
-                      value={currentLog?.lhLevel ?? "not-logged"}
-                      onValueChange={async (value) => {
-                        const val = value === "not-logged" ? null : value;
-                        await addLog(todayKey, currentLog?.symptoms ?? [], val, currentLog?.mucus ?? null);
-                      }}
-                    >
-                      <SelectTrigger 
-                        title={currentLog?.lhLevel && currentLog.lhLevel !== 'not-logged' ? "Click to edit LH result" : "Click to select LH result"}
-                        className={cn(
-                          "border-none p-0 bg-transparent hover:bg-transparent h-auto focus-visible:ring-0 focus:ring-0 flex items-center gap-1 cursor-pointer text-left shadow-none outline-none focus-visible:ring-offset-0 focus:ring-offset-0 select-none data-[placeholder]:text-muted-foreground group/trigger",
-                          (currentLog?.lhLevel && currentLog.lhLevel !== 'not-logged') 
-                            ? "text-2xl font-normal text-[var(--mf-text-strong)] hover:text-[var(--mf-accent)] transition-colors capitalize [&_svg]:hidden border-b border-dashed border-muted-foreground/30 hover:border-[var(--mf-accent)]/50 pb-0.5" 
-                            : "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-normal border border-border/50 hover:bg-muted/20 text-muted-foreground transition-colors [&_svg]:hidden"
-                        )}
-                      >
-                        <SelectValue placeholder="➕ Not logged" />
-                        {(currentLog?.lhLevel && currentLog.lhLevel !== 'not-logged') && (
-                          <PencilSimple size={14} className="opacity-60 group-hover/trigger:opacity-100 transition-opacity text-muted-foreground group-hover/trigger:text-[var(--mf-accent)] shrink-0 ml-1.5" />
-                        )}
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl border border-border bg-card">
-                        <SelectItem value="not-logged" className="text-muted-foreground">➕ Not logged</SelectItem>
-                        <SelectItem value="negative">Negative</SelectItem>
-                        <SelectItem value="positive">Positive</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </div>
-              <div className="size-10 rounded-2xl bg-pink-500/10 flex items-center justify-center shrink-0">
-                <Flask size={22} className="text-pink-500" />
-              </div>
+      {showSymptomLogsGate ? (
+        <section className="space-y-6">
+          <div className="dash-panel p-8 rounded-[2rem] bg-[var(--mf-card)] border border-[var(--mf-border)] text-center w-full max-w-[500px] mx-auto gap-6 flex flex-col items-center">
+            <div className="size-16 rounded-3xl bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] flex items-center justify-center mx-auto border border-[var(--mf-accent)]/10">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-8">
+                <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clipRule="evenodd" />
+              </svg>
             </div>
-          </div>
-
-          {/* Cervical Mucus Card */}
-          <div className="dash-panel p-6 flex flex-col justify-between">
-            <div className="flex items-start justify-between w-full">
-              <div className="space-y-1 flex-1">
-                <span className="text-[10px] font-normal uppercase tracking-[0.1em] text-muted-foreground block">Cervical Mucus Consistency</span>
-                {isPartner ? (
-                  <h4 className="text-2xl font-normal text-[var(--mf-text-strong)] capitalize mt-1">
-                    {partnerStatus?.cycle?.mucus ? partnerStatus.cycle.mucus.replace('-', ' ') : 'Not logged'}
-                  </h4>
-                ) : (
-                  <div className="mt-1">
-                    <Select
-                      value={currentLog?.mucus ?? "not-logged"}
-                      onValueChange={async (value) => {
-                        const val = value === "not-logged" ? null : value;
-                        await addLog(todayKey, currentLog?.symptoms ?? [], currentLog?.lhLevel ?? null, val);
-                      }}
-                    >
-                      <SelectTrigger 
-                        title={currentLog?.mucus && currentLog.mucus !== 'not-logged' ? "Click to edit cervical mucus" : "Click to select consistency"}
-                        className={cn(
-                          "border-none p-0 bg-transparent hover:bg-transparent h-auto focus-visible:ring-0 focus:ring-0 flex items-center gap-1 cursor-pointer text-left shadow-none outline-none focus-visible:ring-offset-0 focus:ring-offset-0 select-none data-[placeholder]:text-muted-foreground group/trigger",
-                          (currentLog?.mucus && currentLog.mucus !== 'not-logged') 
-                            ? "text-2xl font-normal text-[var(--mf-text-strong)] hover:text-[var(--mf-accent)] transition-colors capitalize [&_svg]:hidden border-b border-dashed border-muted-foreground/30 hover:border-[var(--mf-accent)]/50 pb-0.5" 
-                            : "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-normal border border-border/50 hover:bg-muted/20 text-muted-foreground transition-colors [&_svg]:hidden"
-                        )}
-                      >
-                        <SelectValue placeholder="➕ Not logged" />
-                        {(currentLog?.mucus && currentLog.mucus !== 'not-logged') && (
-                          <PencilSimple size={14} className="opacity-60 group-hover/trigger:opacity-100 transition-opacity text-muted-foreground group-hover/trigger:text-[var(--mf-accent)] shrink-0 ml-1.5" />
-                        )}
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl border border-border bg-card">
-                        <SelectItem value="not-logged" className="text-muted-foreground">➕ Not logged</SelectItem>
-                        <SelectItem value="dry">Dry</SelectItem>
-                        <SelectItem value="sticky">Sticky</SelectItem>
-                        <SelectItem value="creamy">Creamy</SelectItem>
-                        <SelectItem value="egg-white">Egg White (Fertile)</SelectItem>
-                        <SelectItem value="watery">Watery</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </div>
-              <div className="size-10 flex items-center justify-center shrink-0">
-                <img src="/images/water.png" alt="" className="size-8 object-contain" />
-              </div>
+            <div className="space-y-2">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.2em] bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] px-3 py-1 rounded-full border border-[var(--mf-accent)]/20 inline-block">
+                Privacy Settings Active
+              </span>
+              <h3 className="text-xl font-normal text-[var(--mf-text-strong)]">Daily Symptom Logs Private</h3>
+              <p className="text-xs text-[var(--mf-muted)] leading-relaxed max-w-sm mx-auto">
+                Your partner has kept daily symptom logs, LH test results, and cervical mucus details private.
+              </p>
             </div>
+            <button
+              type="button"
+              onClick={handleOpenModal}
+              disabled={requestSent}
+              className={cn(
+                "px-6 py-2.5 rounded-full text-xs font-normal transition-all",
+                requestSent 
+                  ? "bg-emerald-500 text-white cursor-default animate-in fade-in" 
+                  : "bg-[var(--mf-accent)] text-white hover:brightness-110 active-squish cursor-pointer border-0 outline-none"
+              )}
+            >
+              {requestSent ? "Access Request Sent ✔" : "Request Detailed Access"}
+            </button>
           </div>
-        </div>
-      </section>
-
-      <section aria-labelledby="today-log-title" className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 id="today-log-title" className="text-lg font-normal tracking-tight text-foreground">
-            Current Status
-          </h2>
-          <p className="text-xs text-muted-foreground">
-            {activeSymptoms.size} symptoms logged
-          </p>
-        </div>
-
-        {isPartner ? (
-          <div className="dash-panel p-8 rounded-[2rem] bg-[var(--mf-card)] border border-[var(--mf-border)]">
-            {activeSymptoms.size === 0 ? (
-              <div className="text-center py-8 space-y-4">
-                <div className="size-16 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center mx-auto text-emerald-600 dark:text-emerald-400">
-                  <Pulse size={32} />
+        </section>
+      ) : (
+        <>
+          {/* Symptothermal NFP Indicators Panel */}
+          <section className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-normal tracking-tight text-foreground">
+                Symptothermal NFP Indicators
+              </h2>
+              <span className="text-[9px] font-normal uppercase tracking-[0.2em] bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] px-3 py-1 rounded-full border border-[var(--mf-accent)]/20">
+                Evidence-Based NFP
+              </span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* LH Ovulation Test Card */}
+              <div className="dash-panel p-6 flex flex-col justify-between">
+                <div className="flex items-start justify-between w-full">
+                  <div className="space-y-1 flex-1">
+                    <span className="text-[10px] font-normal uppercase tracking-[0.1em] text-muted-foreground block">LH Ovulation Test</span>
+                    {isPartner ? (
+                      <h4 className="text-2xl font-normal text-[var(--mf-text-strong)] capitalize mt-1">
+                        {partnerStatus?.cycle?.lhLevel ? partnerStatus.cycle.lhLevel : 'Not logged'}
+                      </h4>
+                    ) : (
+                      <div className="mt-1">
+                        <Select
+                          value={currentLog?.lhLevel ?? "not-logged"}
+                          onValueChange={async (value) => {
+                            const val = value === "not-logged" ? null : value;
+                            await addLog(todayKey, currentLog?.symptoms ?? [], val, currentLog?.mucus ?? null);
+                          }}
+                        >
+                          <SelectTrigger 
+                            title={currentLog?.lhLevel && currentLog.lhLevel !== 'not-logged' ? "Click to edit LH result" : "Click to select LH result"}
+                            className={cn(
+                              "border-none p-0 bg-transparent hover:bg-transparent h-auto focus-visible:ring-0 focus:ring-0 flex items-center gap-1 cursor-pointer text-left shadow-none outline-none focus-visible:ring-offset-0 focus:ring-offset-0 select-none data-[placeholder]:text-muted-foreground group/trigger",
+                              (currentLog?.lhLevel && currentLog.lhLevel !== 'not-logged') 
+                                ? "text-2xl font-normal text-[var(--mf-text-strong)] hover:text-[var(--mf-accent)] transition-colors capitalize [&_svg]:hidden border-b border-dashed border-muted-foreground/30 hover:border-[var(--mf-accent)]/50 pb-0.5" 
+                                : "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-normal border border-border/50 hover:bg-muted/20 text-muted-foreground transition-colors [&_svg]:hidden"
+                            )}
+                          >
+                            <SelectValue placeholder="➕ Not logged" />
+                            {(currentLog?.lhLevel && currentLog.lhLevel !== 'not-logged') && (
+                              <PencilSimple size={14} className="opacity-60 group-hover/trigger:opacity-100 transition-opacity text-muted-foreground group-hover/trigger:text-[var(--mf-accent)] shrink-0 ml-1.5" />
+                            )}
+                          </SelectTrigger>
+                          <SelectContent className="rounded-xl border border-border bg-card">
+                            <SelectItem value="not-logged" className="text-muted-foreground">➕ Not logged</SelectItem>
+                            <SelectItem value="negative">Negative</SelectItem>
+                            <SelectItem value="positive">Positive</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+                  <div className="size-10 rounded-2xl bg-pink-500/10 flex items-center justify-center shrink-0">
+                    <Flask size={22} className="text-pink-500" />
+                  </div>
                 </div>
-                <h3 className="text-base font-normal text-[var(--mf-text-strong)]">No Symptoms Logged</h3>
-                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                  {partnerStatus?.partner?.name || 'Your partner'} has not logged any symptoms for today yet.
-                </p>
+              </div>
+
+              {/* Cervical Mucus Card */}
+              <div className="dash-panel p-6 flex flex-col justify-between">
+                <div className="flex items-start justify-between w-full">
+                  <div className="space-y-1 flex-1">
+                    <span className="text-[10px] font-normal uppercase tracking-[0.1em] text-muted-foreground block">Cervical Mucus Consistency</span>
+                    {isPartner ? (
+                      <h4 className="text-2xl font-normal text-[var(--mf-text-strong)] capitalize mt-1">
+                        {partnerStatus?.cycle?.mucus ? partnerStatus.cycle.mucus.replace('-', ' ') : 'Not logged'}
+                      </h4>
+                    ) : (
+                      <div className="mt-1">
+                        <Select
+                          value={currentLog?.mucus ?? "not-logged"}
+                          onValueChange={async (value) => {
+                            const val = value === "not-logged" ? null : value;
+                            await addLog(todayKey, currentLog?.symptoms ?? [], currentLog?.lhLevel ?? null, val);
+                          }}
+                        >
+                          <SelectTrigger 
+                            title={currentLog?.mucus && currentLog.mucus !== 'not-logged' ? "Click to edit cervical mucus" : "Click to select consistency"}
+                            className={cn(
+                              "border-none p-0 bg-transparent hover:bg-transparent h-auto focus-visible:ring-0 focus:ring-0 flex items-center gap-1 cursor-pointer text-left shadow-none outline-none focus-visible:ring-offset-0 focus:ring-offset-0 select-none data-[placeholder]:text-muted-foreground group/trigger",
+                              (currentLog?.mucus && currentLog.mucus !== 'not-logged') 
+                                ? "text-2xl font-normal text-[var(--mf-text-strong)] hover:text-[var(--mf-accent)] transition-colors capitalize [&_svg]:hidden border-b border-dashed border-muted-foreground/30 hover:border-[var(--mf-accent)]/50 pb-0.5" 
+                                : "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-normal border border-border/50 hover:bg-muted/20 text-muted-foreground transition-colors [&_svg]:hidden"
+                            )}
+                          >
+                            <SelectValue placeholder="➕ Not logged" />
+                            {(currentLog?.mucus && currentLog.mucus !== 'not-logged') && (
+                              <PencilSimple size={14} className="opacity-60 group-hover/trigger:opacity-100 transition-opacity text-muted-foreground group-hover/trigger:text-[var(--mf-accent)] shrink-0 ml-1.5" />
+                            )}
+                          </SelectTrigger>
+                          <SelectContent className="rounded-xl border border-border bg-card">
+                            <SelectItem value="not-logged" className="text-muted-foreground">➕ Not logged</SelectItem>
+                            <SelectItem value="dry">Dry</SelectItem>
+                            <SelectItem value="sticky">Sticky</SelectItem>
+                            <SelectItem value="creamy">Creamy</SelectItem>
+                            <SelectItem value="egg-white">Egg White (Fertile)</SelectItem>
+                            <SelectItem value="watery">Watery</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+                  <div className="size-10 flex items-center justify-center shrink-0">
+                    <img src="/images/water.png" alt="" className="size-8 object-contain" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section aria-labelledby="today-log-title" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 id="today-log-title" className="text-lg font-normal tracking-tight text-foreground">
+                Current Status
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                {activeSymptoms.size} symptoms logged
+              </p>
+            </div>
+
+            {isPartner ? (
+              <div className="dash-panel p-8 rounded-[2rem] bg-[var(--mf-card)] border border-[var(--mf-border)]">
+                {activeSymptoms.size === 0 ? (
+                  <div className="text-center py-8 space-y-4">
+                    <div className="size-16 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center mx-auto text-emerald-600 dark:text-emerald-400">
+                      <Pulse size={32} />
+                    </div>
+                    <h3 className="text-base font-normal text-[var(--mf-text-strong)]">No Symptoms Logged</h3>
+                    <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                      {partnerStatus?.partner?.name || 'Your partner'} has not logged any symptoms for today yet.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-8">
+                    <p className="text-xs text-muted-foreground">
+                      Here is what {partnerStatus?.partner?.name || 'your partner'} logged today:
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                      {['Flow', 'Mood', 'Physical'].map((cat) => {
+                        const catSymptoms = [...SYMPTOM_DEFS, ...customSymptoms].filter(
+                          (s) => s.category === cat && activeSymptoms.has(s.id)
+                        )
+                        if (catSymptoms.length === 0) return null
+
+                        const IconComponent = cat === 'Physical' ? Pulse : cat === 'Mood' ? Pill : Drop
+                        const imgMap: Record<string, string> = {
+                          'mood-happy': '/images/happy.jpg',
+                          'mood-sad': '/images/sad.jpg',
+                          'mood-irritable': '/images/angry.jpg',
+                          'mood-anxious': '/images/anxious.jpg',
+                          'mood-calm': '/images/calm.jpg',
+                          'phys-cramps': '/images/cramps.jpg',
+                          'phys-fatigue': '/images/fatique.jpg',
+                          'phys-bloating': '/images/bloat.jpg',
+                          'phys-headache': '/images/headache.jpg',
+                          'phys-acne': '/images/acne.jpg',
+                          'phys-tender': '/images/tender.jpg',
+                        }
+
+                        return (
+                          <div key={cat} className="space-y-4 p-5 rounded-2xl bg-muted/20 border border-border/50">
+                            <h4 className="text-xs font-normal tracking-wider text-muted-foreground uppercase flex items-center gap-1.5">
+                              <IconComponent size={16} className="text-[var(--mf-accent)]" />
+                              {cat}
+                            </h4>
+                            <div className="flex flex-col gap-2">
+                              {catSymptoms.map((symptom) => (
+                                <div 
+                                  key={symptom.id} 
+                                  className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-card border border-border text-sm font-normal text-[var(--mf-text-strong)]"
+                                >
+                                  {imgMap[symptom.id] ? (
+                                    <img src={imgMap[symptom.id]} alt="" className="size-6 rounded-full object-cover" />
+                                  ) : SYMPTOM_ICONS[symptom.id] ? (
+                                    (() => {
+                                      const Icon = SYMPTOM_ICONS[symptom.id]
+                                      return (
+                                        <span className="text-[var(--mf-accent)]">
+                                          <Icon size={16} />
+                                        </span>
+                                      )
+                                    })()
+                                  ) : null}
+                                  <span>{symptom.label}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
-              <div className="space-y-8">
-                <p className="text-xs text-muted-foreground">
-                  Here is what {partnerStatus?.partner?.name || 'your partner'} logged today:
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                  {['Flow', 'Mood', 'Physical'].map((cat) => {
-                    const catSymptoms = [...SYMPTOM_DEFS, ...customSymptoms].filter(
-                      (s) => s.category === cat && activeSymptoms.has(s.id)
-                    )
-                    if (catSymptoms.length === 0) return null
-
-                    const IconComponent = cat === 'Physical' ? Pulse : cat === 'Mood' ? Pill : Drop
-                    const imgMap: Record<string, string> = {
-                      'mood-happy': '/images/happy.jpg',
-                      'mood-sad': '/images/sad.jpg',
-                      'mood-irritable': '/images/angry.jpg',
-                      'mood-anxious': '/images/anxious.jpg',
-                      'mood-calm': '/images/calm.jpg',
-                      'phys-cramps': '/images/cramps.jpg',
-                      'phys-fatigue': '/images/fatique.jpg',
-                      'phys-bloating': '/images/bloat.jpg',
-                      'phys-headache': '/images/headache.jpg',
-                      'phys-acne': '/images/acne.jpg',
-                      'phys-tender': '/images/tender.jpg',
-                    }
-
-                    return (
-                      <div key={cat} className="space-y-4 p-5 rounded-2xl bg-muted/20 border border-border/50">
-                        <h4 className="text-xs font-normal tracking-wider text-muted-foreground uppercase flex items-center gap-1.5">
-                          <IconComponent size={16} className="text-[var(--mf-accent)]" />
-                          {cat}
-                        </h4>
-                        <div className="flex flex-col gap-2">
-                          {catSymptoms.map((symptom) => (
-                            <div 
-                              key={symptom.id} 
-                              className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-card border border-border text-sm font-normal text-[var(--mf-text-strong)]"
-                            >
-                              {imgMap[symptom.id] ? (
-                                <img src={imgMap[symptom.id]} alt="" className="size-6 rounded-full object-cover" />
-                              ) : SYMPTOM_ICONS[symptom.id] ? (
-                                (() => {
-                                  const Icon = SYMPTOM_ICONS[symptom.id]
-                                  return (
-                                    <span className="text-[var(--mf-accent)]">
-                                      <Icon size={16} />
-                                    </span>
-                                  )
-                                })()
-                              ) : null}
-                              <span>{symptom.label}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <SymptomCategoryList category="Physical" IconComponent={Pulse} activeSymptoms={activeSymptoms} toggleSymptom={toggleSymptom} isSaving={isSaving} readOnly={isPartner} availableSymptoms={availableSymptoms} />
+                <SymptomCategoryList category="Mood" IconComponent={Pill} activeSymptoms={activeSymptoms} toggleSymptom={toggleSymptom} isSaving={isSaving} readOnly={isPartner} availableSymptoms={availableSymptoms} />
+                <SymptomCategoryList category="Flow" IconComponent={Drop} activeSymptoms={activeSymptoms} toggleSymptom={toggleSymptom} isSaving={isSaving} readOnly={isPartner} availableSymptoms={availableSymptoms} />
               </div>
             )}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <SymptomCategoryList category="Physical" IconComponent={Pulse} activeSymptoms={activeSymptoms} toggleSymptom={toggleSymptom} isSaving={isSaving} readOnly={isPartner} availableSymptoms={availableSymptoms} />
-            <SymptomCategoryList category="Mood" IconComponent={Pill} activeSymptoms={activeSymptoms} toggleSymptom={toggleSymptom} isSaving={isSaving} readOnly={isPartner} availableSymptoms={availableSymptoms} />
-            <SymptomCategoryList category="Flow" IconComponent={Drop} activeSymptoms={activeSymptoms} toggleSymptom={toggleSymptom} isSaving={isSaving} readOnly={isPartner} availableSymptoms={availableSymptoms} />
-          </div>
-        )}
-      </section>
+          </section>
+        </>
+      )}
 
-      {!showRestrictedView ? (
+      {!showHealthChartsGate ? (
         <section aria-labelledby="trends-title" className="space-y-6 pt-4">
           <h2 id="trends-title" className="text-lg font-normal tracking-tight text-foreground">
             Analytical Cycle Graphs & Trends
@@ -459,7 +526,7 @@ export function SymptomsView() {
             </p>
             <button
               type="button"
-              onClick={handleRequestAccess}
+              onClick={handleOpenModal}
               disabled={requestSent}
               className={cn(
                 "px-6 py-2.5 rounded-full text-xs font-normal transition-all",
@@ -473,6 +540,13 @@ export function SymptomsView() {
           </div>
         </section>
       )}
+
+      <RequestAccessModal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        onConfirm={handleConfirmRequest}
+        isLoading={isSaving}
+      />
     </div>
   )
 }
