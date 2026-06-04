@@ -81,6 +81,9 @@ app.use('/api/partner', partnerRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/email', emailRoutes);
 app.use('/api/scheduler', schedulerRoutes);
+app.get('/', (_req: Request, res: Response) => {
+  res.json({ message: 'MensFlow API is running successfully' });
+});
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 
