@@ -1,7 +1,7 @@
 import { User } from '../models/User';
 import { Dashboard } from '../models/Dashboard';
 import { PartnerPing, SupportAction, SupportStreak, PartnerChatMessage } from '../models/Partner';
-import { SymptomLog } from '../models/Symptom';
+import { SymptomLog, CustomSymptom } from '../models/Symptom';
 import { Settings } from '../models/Settings';
 import { IPartnerPing, IPartnerChatMessage } from '../interfaces';
 import { httpError } from '../utils/http';
@@ -530,19 +530,36 @@ export async function suggestReplies(userId: string): Promise<string[]> {
   // Local fallback templates
   const fallbackSuggestions: string[] = [];
 
+  // Fetch lady's custom symptom definitions to check custom labels
+  const customDefs = await CustomSymptom.find({ userId: ladyId }).lean();
+  const loggedCustomLabels = symptomsList
+    .map(id => customDefs.find(c => String(c._id) === id)?.label.toLowerCase() || '')
+    .filter(Boolean);
+
+  const hasCramps = symptomsList.some(s => s === 'phys-cramps' || s === 'endo-pelvicpain' || s === 'endo-backache') ||
+    loggedCustomLabels.some(l => l.includes('cramp') || l.includes('pain') || l.includes('ache'));
+
+  const hasFatigue = symptomsList.some(s => s === 'phys-fatigue' || s === 'peri-brainfog') ||
+    loggedCustomLabels.some(l => l.includes('fatigue') || l.includes('exhaust') || l.includes('tired') || l.includes('fog'));
+
+  const hasCravings = loggedCustomLabels.some(l => l.includes('craving') || l.includes('sweet') || l.includes('chocolate'));
+
+  const hasCalm = symptomsList.includes('mood-calm') ||
+    loggedCustomLabels.some(l => l.includes('calm') || l.includes('space'));
+
   // Symptom-based specific templates
-  if (symptomsList.includes('cramps') || symptomsList.includes('pelvicpain') || symptomsList.includes('backache')) {
+  if (hasCramps) {
     fallbackSuggestions.push("Can I bring you a warm water bottle or some tea? ☕");
     fallbackSuggestions.push("I've got dinner covered tonight, just rest. 🍳");
   }
-  if (symptomsList.includes('exhausted') || symptomsList.includes('fatigue') || symptomsList.includes('brainfog')) {
+  if (hasFatigue) {
     fallbackSuggestions.push("Don't worry about anything tonight, I'll handle the chores. 🛌");
     fallbackSuggestions.push("Take all the time you need to rest, I'm right here. ❤️");
   }
-  if (symptomsList.includes('sweets') || symptomsList.includes('cravings')) {
+  if (hasCravings) {
     fallbackSuggestions.push("I'm heading home, would you like me to pick up some chocolate? 🍫");
   }
-  if (symptomsList.includes('space') || symptomsList.includes('calm')) {
+  if (hasCalm) {
     fallbackSuggestions.push("I'll make sure you have a quiet, peaceful space to rest today. 🤫");
   }
 
