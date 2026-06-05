@@ -55,6 +55,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Incrementing key forces AuthModal to fully remount every time it opens,
   // preventing stale internal state (mode, form fields) from persisting.
   const [modalKey, setModalKey] = useState(0)
+  // Reset-password flow state
+  const resetTokenRef = useRef<string | null>(null)
+  const passwordResetTokenRef = useRef<string | null>(null)
+  const [resetPending, setResetPending] = useState<false | 'otp' | 'new-password'>(false)
 
   // ── Rehydrate store from API on mount if token exists ──────────────────────
   useEffect(() => {
@@ -272,6 +276,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     otpTokenRef.current = result.otpToken
   }, [])
 
+  // ── Reset Password ─────────────────────────────────────────────────────────
+  const forgotPassword = useCallback(async (email: string) => {
+    setState(prev => ({ ...prev, isLoading: true }))
+    try {
+      const result = await authApi.forgotPassword(email)
+      // Store the resetToken (may be undefined if email not registered — that's fine)
+      resetTokenRef.current = result.resetToken ?? null
+      setResetPending('otp')
+    } finally {
+      setState(prev => ({ ...prev, isLoading: false }))
+    }
+  }, [])
+
+  const verifyResetOtp = useCallback(async (code: string) => {
+    if (!resetTokenRef.current) return
+    setState(prev => ({ ...prev, isLoading: true }))
+    try {
+      const result = await authApi.verifyResetOtp(resetTokenRef.current, code)
+      passwordResetTokenRef.current = result.passwordResetToken
+      resetTokenRef.current = null
+      setResetPending('new-password')
+    } catch (err) {
+      setState(prev => ({ ...prev, isLoading: false }))
+      throw err
+    } finally {
+      setState(prev => ({ ...prev, isLoading: false }))
+    }
+  }, [])
+
+  const resetPassword = useCallback(async (newPassword: string) => {
+    if (!passwordResetTokenRef.current) return
+    setState(prev => ({ ...prev, isLoading: true }))
+    try {
+      await authApi.resetPassword(passwordResetTokenRef.current, newPassword)
+      passwordResetTokenRef.current = null
+      setResetPending(false)
+      // Close the modal and show the login step so the user can sign in
+      setAuthModalOpen(false)
+      setModalKey(k => k + 1)
+    } catch (err) {
+      setState(prev => ({ ...prev, isLoading: false }))
+      throw err
+    } finally {
+      setState(prev => ({ ...prev, isLoading: false }))
+    }
+  }, [])
+
   // ── Logout ─────────────────────────────────────────────────────────────────
   const logout = useCallback(() => {
     clearToken()
@@ -306,10 +357,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setInitialAuthMode(mode)
     // Remember where the user is so we can return them after auth
     setReturnTo(window.location.pathname)
-    // Reset any stale OTP state from a previous abandoned flow
+    // Reset any stale OTP/reset state from a previous abandoned flow
     setOtpPending(false)
     otpTokenRef.current = null
     setOtpEmail('')
+    setResetPending(false)
+    resetTokenRef.current = null
+    passwordResetTokenRef.current = null
     setModalKey(k => k + 1)
     setAuthModalOpen(true)
   }, [])
@@ -326,8 +380,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout,
       openAuthModal,
       completeOnboarding,
+      forgotPassword,
+      verifyResetOtp,
+      resetPassword,
     }),
-    [state.isAuthenticated, state.onboardingCompleted, state.isLoading, state.isRehydrating, state.user, login, register, logout, openAuthModal, completeOnboarding]
+    [state.isAuthenticated, state.onboardingCompleted, state.isLoading, state.isRehydrating, state.user, login, register, logout, openAuthModal, completeOnboarding, forgotPassword, verifyResetOtp, resetPassword]
   )
 
   return (
@@ -347,12 +404,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             : ''
         }
         onClose={() => {
-          // Allow closing even if OTP is pending — user can always
-          // dismiss the modal and start a fresh flow later.
           setAuthModalOpen(false)
           setOtpPending(false)
           otpTokenRef.current = null
           setOtpEmail('')
+          setResetPending(false)
+          resetTokenRef.current = null
+          passwordResetTokenRef.current = null
         }}
         onLogin={login}
         onRegister={register}
@@ -360,6 +418,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         onResendOtp={resendOtp}
         otpMode={otpPending}
         otpEmail={otpEmail}
+        onForgotPassword={forgotPassword}
+        onVerifyResetOtp={verifyResetOtp}
+        onResetPassword={resetPassword}
+        resetMode={resetPending}
       />
     </AuthContext.Provider>
   )

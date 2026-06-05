@@ -264,6 +264,7 @@ export function EducationFormModal({ open, editingArticle, onClose, onSaved }: E
                 id="cover-upload" 
                 type="file" 
                 accept="image/*" 
+                aria-label="Upload cover image"
                 className="hidden" 
                 onChange={async (e) => {
                   const file = e.target.files?.[0]

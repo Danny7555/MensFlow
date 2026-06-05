@@ -12,6 +12,10 @@ export type AuthContextValue = {
   logout: () => void
   openAuthModal: (initialMode?: 'login' | 'register') => void
   completeOnboarding: () => void
+  forgotPassword: (email: string) => Promise<void>
+  verifyResetOtp: (code: string) => Promise<void>
+  resetPassword: (newPassword: string) => Promise<void>
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)
+

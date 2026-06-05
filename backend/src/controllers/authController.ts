@@ -121,3 +121,50 @@ export async function resendOtp(req: Request, res: Response, next: NextFunction)
     next(err);
   }
 }
+
+// ─── Reset Password ───────────────────────────────────────────────────────────
+
+export async function forgotPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const body = objectRecord(req.body);
+    const email = requiredString(body.email, 'email', { max: 254 }).toLowerCase();
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      res.status(400).json({ error: 'Please enter a valid email address.' });
+      return;
+    }
+
+    const result = await authService.forgotPassword(email);
+    // Always 200 — even if email not found (security: no enumeration)
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function verifyResetOtp(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const body = objectRecord(req.body);
+    const resetToken = requiredString(body.resetToken, 'resetToken');
+    const code = requiredString(body.code, 'code', { min: 6, max: 6 });
+
+    const result = await authService.verifyResetOtp(resetToken, code);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function resetPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const body = objectRecord(req.body);
+    const passwordResetToken = requiredString(body.passwordResetToken, 'passwordResetToken');
+    const newPassword = requiredString(body.newPassword, 'newPassword', { min: 8, max: 128 });
+
+    const result = await authService.resetPassword(passwordResetToken, newPassword);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
