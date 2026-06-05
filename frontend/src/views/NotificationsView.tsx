@@ -103,6 +103,22 @@ export function NotificationsView() {
     localStorage.getItem('mensflow_guest_pending_access_request') === 'true'
   )
 
+  const requestedFields = useMemo(() => {
+    return settings?.privacyRequestedFields && settings.privacyRequestedFields.length > 0
+      ? settings.privacyRequestedFields
+      : ['cycle', 'symptoms', 'charts']
+  }, [settings?.privacyRequestedFields])
+
+  const [approveCycle, setApproveCycle] = useState(true)
+  const [approveSymptoms, setApproveSymptoms] = useState(true)
+  const [approveCharts, setApproveCharts] = useState(true)
+
+  useEffect(() => {
+    setApproveCycle(requestedFields.includes('cycle'))
+    setApproveSymptoms(requestedFields.includes('symptoms'))
+    setApproveCharts(requestedFields.includes('charts'))
+  }, [requestedFields])
+
   useEffect(() => {
     const handleStorageChange = () => {
       setGuestRequest(localStorage.getItem('mensflow_guest_pending_access_request') === 'true')
@@ -126,12 +142,21 @@ export function NotificationsView() {
         localStorage.removeItem('mensflow_guest_pending_access_request')
         setGuestRequest(false)
         window.dispatchEvent(new Event('storage'))
-        await updateSettings({ privacyShareCycleDetails: true })
+        await updateSettings({ 
+          privacyShareCycleDetails: approveCycle,
+          privacyShareSymptomLogs: approveSymptoms,
+          privacyShareHealthCharts: approveCharts 
+        })
       } else {
-        await updateSettings({ privacyShareCycleDetails: true, privacyPendingAccessRequest: false })
+        await updateSettings({ 
+          privacyShareCycleDetails: approveCycle,
+          privacyShareSymptomLogs: approveSymptoms,
+          privacyShareHealthCharts: approveCharts,
+          privacyPendingAccessRequest: false 
+        })
       }
       resetNotificationCount()
-      toast.success("Access granted! Your partner can now view detailed cycle metrics.")
+      toast.success("Access permissions updated!")
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Failed to approve request.")
     } finally {
@@ -438,35 +463,91 @@ export function NotificationsView() {
       <main className="max-w-6xl mx-auto mt-8 px-4 sm:px-6">
         {/* Full-width access request banner */}
         {isPendingRequest && (
-          <div className="mb-8 p-6 rounded-[24px] border border-pink-500/20 bg-pink-500/5 backdrop-blur-md flex flex-col md:flex-row gap-4 justify-between items-start md:items-center animate-in fade-in slide-in-from-top-3 duration-300">
-            <div className="flex gap-4 items-start">
-              <div className="size-12 rounded-full bg-pink-500/10 text-pink-500 flex items-center justify-center shrink-0">
-                <Bell size={24} weight="fill" />
+          <div className="mb-8 p-6 rounded-[24px] border border-pink-500/20 bg-pink-500/5 backdrop-blur-md flex flex-col gap-6 animate-in fade-in slide-in-from-top-3 duration-300">
+            <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
+              <div className="flex gap-4 items-start">
+                <div className="size-12 rounded-full bg-pink-500/10 text-pink-500 flex items-center justify-center shrink-0">
+                  <Bell size={24} weight="fill" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-base text-[var(--mf-text-strong)] mb-1">
+                    Detailed Cycle Access Requested
+                  </h3>
+                  <p className="text-xs md:text-sm text-[var(--mf-muted)] leading-relaxed max-w-xl">
+                    {partnerStatus?.partner?.name || 'Your partner'} has requested access to the following categories. Customize exactly what you wish to share:
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-medium text-base text-[var(--mf-text-strong)] mb-1">
-                  Detailed Cycle Access Requested
-                </h3>
-                <p className="text-xs md:text-sm text-[var(--mf-muted)] leading-relaxed max-w-xl">
-                  {partnerStatus?.partner?.name || 'Your partner'} is requesting permission to view your cycle metrics, logs, and analytics. Do you want to share your detailed data?
-                </p>
+              <div className="flex items-center gap-3 shrink-0 self-stretch md:self-auto justify-end">
+                <button type="button"
+                  onClick={handleDeclineRequest}
+                  disabled={isProcessing}
+                  className="px-4 py-2 text-xs font-medium rounded-xl bg-[var(--mf-hover)] hover:bg-[var(--mf-active)] text-[var(--mf-text-strong)] transition-all cursor-pointer disabled:opacity-50 active-squish"
+                >
+                  Decline
+                </button>
+                <button type="button"
+                  onClick={handleApproveRequest}
+                  disabled={isProcessing || (!approveCycle && !approveSymptoms && !approveCharts)}
+                  className="px-5 py-2 text-xs font-medium rounded-xl bg-pink-500 hover:bg-pink-600 text-white shadow-lg shadow-pink-500/20 hover:shadow-pink-500/35 transition-all cursor-pointer disabled:opacity-50 active-squish"
+                >
+                  Approve &amp; Share
+                </button>
               </div>
             </div>
-            <div className="flex items-center gap-3 shrink-0 self-stretch md:self-auto justify-end">
-              <button type="button"
-                onClick={handleDeclineRequest}
-                disabled={isProcessing}
-                className="px-4 py-2 text-xs font-medium rounded-xl bg-[var(--mf-hover)] hover:bg-[var(--mf-active)] text-[var(--mf-text-strong)] transition-all cursor-pointer disabled:opacity-50 active-squish"
-              >
-                Decline
-              </button>
-              <button type="button"
-                onClick={handleApproveRequest}
-                disabled={isProcessing}
-                className="px-5 py-2 text-xs font-medium rounded-xl bg-pink-500 hover:bg-pink-600 text-white shadow-lg shadow-pink-500/20 hover:shadow-pink-500/35 transition-all cursor-pointer disabled:opacity-50 active-squish"
-              >
-                Approve & Share
-              </button>
+
+            {/* Granular checkboxes */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-[var(--mf-border)]/50">
+              <label className="flex items-start gap-3 p-3.5 rounded-xl border border-[var(--mf-border)] bg-card/40 hover:bg-card/85 transition-all cursor-pointer select-none">
+                <input 
+                  type="checkbox" 
+                  checked={approveCycle} 
+                  onChange={(e) => setApproveCycle(e.target.checked)}
+                  className="mt-1 accent-pink-500 size-4 cursor-pointer"
+                />
+                <div className="space-y-0.5">
+                  <span className="text-xs font-medium text-[var(--mf-text-strong)] block">
+                    Cycle Phase &amp; Predictions
+                  </span>
+                  <span className="text-[10px] text-[var(--mf-muted)] block leading-snug">
+                    Current phase, calendar forecasts, and tracker wheel.
+                  </span>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-3 p-3.5 rounded-xl border border-[var(--mf-border)] bg-card/40 hover:bg-card/85 transition-all cursor-pointer select-none">
+                <input 
+                  type="checkbox" 
+                  checked={approveSymptoms} 
+                  onChange={(e) => setApproveSymptoms(e.target.checked)}
+                  className="mt-1 accent-pink-500 size-4 cursor-pointer"
+                />
+                <div className="space-y-0.5">
+                  <span className="text-xs font-medium text-[var(--mf-text-strong)] block">
+                    Logged Symptoms &amp; Flow
+                  </span>
+                  <span className="text-[10px] text-[var(--mf-muted)] block leading-snug">
+                    Today's logged symptoms, LH ovulation tests, mucus logs.
+                  </span>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-3 p-3.5 rounded-xl border border-[var(--mf-border)] bg-card/40 hover:bg-card/85 transition-all cursor-pointer select-none">
+                <input 
+                  type="checkbox" 
+                  checked={approveCharts} 
+                  onChange={(e) => setApproveCharts(e.target.checked)}
+                  className="mt-1 accent-pink-500 size-4 cursor-pointer"
+                />
+                <div className="space-y-0.5">
+                  <span className="text-xs font-medium text-[var(--mf-text-strong)] block">
+                    Health Trends &amp; Charts
+                  </span>
+                  <span className="text-[10px] text-[var(--mf-muted)] block leading-snug">
+                    Symptom analytics, monthly reviews, and cycle graphs.
+                  </span>
+                </div>
+              </label>
             </div>
           </div>
         )}

@@ -9,6 +9,7 @@ import { AuthProvider } from './context/AuthProvider'
 import { ChatSessionContext } from './context/chat-session-context'
 import { useAuth } from './context/useAuth'
 import { useStore } from './store/useStore'
+import { useReactQuerySync } from './hooks/useReactQuerySync'
 import { Header } from './components/Header'
 import { Sidebar } from './components/Sidebar'
 import { House, Target, Heartbeat, Bell, UserCircle, BookOpen, ChatCircle, Lock, LockKey, ShieldCheck, WarningCircle, CheckCircle, Sparkle } from '@phosphor-icons/react'
@@ -325,6 +326,7 @@ function ChatLockGate({ children }: { children: React.ReactNode }) {
 
 
 function MainShell() {
+  useReactQuerySync()
   const { isAuthenticated, onboardingCompleted, logout, openAuthModal, isRehydrating } = useAuth()
   const { settings, updateSettings, user } = useStore()
   const navigate = useNavigate()

@@ -65,7 +65,12 @@ export async function updateSettings(req: AuthRequest, res: Response, next: Next
       cycleAvgLengthDays: optionalNumber(body, 'cycleAvgLengthDays', { min: 15, max: 60, integer: true }),
       cycleShowFertileWindow: optionalBoolean(body, 'cycleShowFertileWindow'),
       privacyShareCycleDetails: optionalBoolean(body, 'privacyShareCycleDetails'),
+      privacyShareSymptomLogs: optionalBoolean(body, 'privacyShareSymptomLogs'),
+      privacyShareHealthCharts: optionalBoolean(body, 'privacyShareHealthCharts'),
       privacyPendingAccessRequest: optionalBoolean(body, 'privacyPendingAccessRequest'),
+      privacyRequestedFields: Array.isArray(body.privacyRequestedFields)
+        ? (body.privacyRequestedFields as string[]).filter((f) => typeof f === 'string')
+        : undefined,
       privacyStrictLocalOnly: optionalBoolean(body, 'privacyStrictLocalOnly'),
       conditionOptimization: optionalOneOf(body, 'conditionOptimization', ['none', 'pcos', 'endometriosis', 'perimenopause'] as const),
       disableAIPopups: optionalBoolean(body, 'disableAIPopups'),

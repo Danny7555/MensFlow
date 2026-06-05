@@ -190,8 +190,8 @@ export function useMonthInReviewStats(): MonthInReviewStats {
 
     // 4. Partner support actions
     const partnerActions =
-      partnerStatus?.support?.totalActionsThisCycle !== undefined
-        ? partnerStatus.support.totalActionsThisCycle
+      partnerStatus?.support?.completedActions
+        ? partnerStatus.support.completedActions.length
         : 2
     const partnerText = `Your partner completed ${partnerActions} support action${partnerActions === 1 ? '' : 's'}.`
 

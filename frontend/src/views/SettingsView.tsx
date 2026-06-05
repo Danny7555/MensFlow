@@ -2,6 +2,8 @@
 import type { ComponentType, ReactNode } from 'react'
 import { useState, useRef, useEffect } from 'react'
 import { useStore } from '../store/useStore'
+import { userApi } from '../services/userService'
+import { resolveAssetUrl } from '../lib/apiClient'
 import { useAuth } from '../context/useAuth'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 import {
@@ -490,17 +492,45 @@ function GeneralPanel({
           </div>
 
           {user?.role === 'lady' && (
-            <ToggleRow
-              label="Share Detailed Cycle Metrics"
-              description="Allow your partner to see your cycle tracker wheel, daily water/weight tracking, and logged symptoms. When disabled, they only see phase support checklists and empathy translators."
-              checked={settings.privacyShareCycleDetails}
-              onChange={(v) => {
-                updateSettings({ 
-                  privacyShareCycleDetails: v, 
-                  ...(v ? { privacyPendingAccessRequest: false } : {}) 
-                })
-              }}
-            />
+            <div className="space-y-4 pt-2 border-t border-[var(--mf-border)]/40">
+              <span className="text-[10px] font-normal uppercase tracking-widest text-muted-foreground block mb-2">Sharing Permissions</span>
+              
+              <ToggleRow
+                label="Share Cycle Phase & Predictions"
+                description="Allow your partner to see your cycle tracker wheel, day predictions, and calendar forecasts."
+                checked={settings.privacyShareCycleDetails}
+                onChange={(v) => {
+                  updateSettings({ 
+                    privacyShareCycleDetails: v, 
+                    ...(v ? { privacyPendingAccessRequest: false } : {}) 
+                  })
+                }}
+              />
+
+              <ToggleRow
+                label="Share Logged Symptoms & Flow"
+                description="Allow your partner to see daily symptom lists, LH test results, and cervical mucus consistency."
+                checked={settings.privacyShareSymptomLogs}
+                onChange={(v) => {
+                  updateSettings({ 
+                    privacyShareSymptomLogs: v, 
+                    ...(v ? { privacyPendingAccessRequest: false } : {}) 
+                  })
+                }}
+              />
+
+              <ToggleRow
+                label="Share Health Trends & Charts"
+                description="Allow your partner to view historical graphs, monthly reviews, and analytics summaries."
+                checked={settings.privacyShareHealthCharts}
+                onChange={(v) => {
+                  updateSettings({ 
+                    privacyShareHealthCharts: v, 
+                    ...(v ? { privacyPendingAccessRequest: false } : {}) 
+                  })
+                }}
+              />
+            </div>
           )}
 
           {partnerStatus?.paired ? (
@@ -511,7 +541,7 @@ function GeneralPanel({
                 <div className="flex items-center gap-3">
                   <div className="size-10 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center overflow-hidden border border-[var(--mf-border)]">
                     {partnerStatus.partner?.avatar ? (
-                      <img src={partnerStatus.partner.avatar} alt="" className="w-full h-full object-cover" />
+                      <img src={resolveAssetUrl(partnerStatus.partner.avatar)} alt="" className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-base font-normal text-[var(--mf-accent)]">
                         {partnerStatus.partner?.name?.charAt(0).toUpperCase()}
@@ -521,8 +551,14 @@ function GeneralPanel({
                   <div className="flex flex-col">
                     <span className="text-sm font-normal text-[var(--mf-text-strong)]">{partnerStatus.partner?.name}</span>
                     <span className="text-[10px] text-muted-foreground">
-                        {partnerStatus.privacyShareCycleDetails !== false ? 'Full cycle details' : 'Phase info only'}
-                      </span>
+                      {(() => {
+                        const shared = []
+                        if (partnerStatus.privacyShareCycleDetails !== false) shared.push('Cycle')
+                        if (partnerStatus.privacyShareSymptomLogs !== false) shared.push('Symptoms')
+                        if (partnerStatus.privacyShareHealthCharts !== false) shared.push('Charts')
+                        return shared.length > 0 ? `Sharing: ${shared.join(', ')}` : 'No categories shared'
+                      })()}
+                    </span>
                   </div>
                 </div>
                 <button
@@ -1407,7 +1443,7 @@ function AccountPanel({
             <div className="flex flex-col items-center gap-2 mr-4">
               <div className="size-20 rounded-full bg-muted border border-border flex items-center justify-center overflow-hidden shrink-0 relative group">
                 {user?.avatar ? (
-                  <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+                  <img src={resolveAssetUrl(user.avatar)} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
                   <UserCircle size={48} weight="duotone" className="text-muted-foreground" aria-hidden />
                 )}
@@ -1422,14 +1458,18 @@ function AccountPanel({
                   type="file" 
                   accept="image/*" 
                   className="hidden" 
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     const file = e.target.files?.[0]
                     if (file) {
-                      const reader = new FileReader()
-                      reader.onloadend = () => {
-                        updateUser({ avatar: reader.result as string })
+                      const toastId = toast.loading('Uploading avatar...')
+                      try {
+                        const res = await userApi.uploadImage(file, 'avatar')
+                        await updateUser({ avatar: res.url })
+                        toast.success('Avatar updated successfully!', { id: toastId })
+                      } catch (err) {
+                        console.error('Failed to upload avatar:', err)
+                        toast.error('Failed to upload avatar. Please try again.', { id: toastId })
                       }
-                      reader.readAsDataURL(file)
                     }
                   }} 
                 />

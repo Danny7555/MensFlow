@@ -30,7 +30,10 @@ export type MensFlowSettings = {
   cycleAvgLengthDays: number
   cycleShowFertileWindow: boolean
   privacyShareCycleDetails: boolean
+  privacyShareSymptomLogs: boolean
+  privacyShareHealthCharts: boolean
   privacyPendingAccessRequest: boolean
+  privacyRequestedFields: string[]
   privacyStrictLocalOnly: boolean
   conditionOptimization: 'none' | 'pcos' | 'endometriosis' | 'perimenopause'
   disableAIPopups: boolean
@@ -70,7 +73,10 @@ export const DEFAULT_SETTINGS: MensFlowSettings = {
   cycleAvgLengthDays: 28,
   cycleShowFertileWindow: true,
   privacyShareCycleDetails: true,
+  privacyShareSymptomLogs: true,
+  privacyShareHealthCharts: true,
   privacyPendingAccessRequest: false,
+  privacyRequestedFields: [],
   privacyStrictLocalOnly: false,
   conditionOptimization: 'none',
   disableAIPopups: false,

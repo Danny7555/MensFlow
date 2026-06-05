@@ -20,4 +20,15 @@ export const authApi = {
 
   resendOtp: (otpToken: string) =>
     request<{ otpToken: string; message: string }>('POST', '/auth/resend-otp', { otpToken }, false),
+
+  // ── Reset Password ──────────────────────────────────────────────────────────
+  forgotPassword: (email: string) =>
+    request<{ message: string; resetToken?: string }>('POST', '/auth/forgot-password', { email }, false),
+
+  verifyResetOtp: (resetToken: string, code: string) =>
+    request<{ passwordResetToken: string }>('POST', '/auth/verify-reset-otp', { resetToken, code }, false),
+
+  resetPassword: (passwordResetToken: string, newPassword: string) =>
+    request<{ message: string }>('POST', '/auth/reset-password', { passwordResetToken, newPassword }, false),
 }
+

@@ -24,6 +24,7 @@ import { cn } from '../lib/utils'
 import { useAuth } from '../context/useAuth'
 import { useStore } from '../store/useStore'
 import { computeCycleDay, getPhaseFromDay, getPhaseInfo, type CyclePhase } from '../lib/cycleUtils'
+import { resolveAssetUrl } from '../lib/apiClient'
 
 type NavIcon = ComponentType<IconProps>
 
@@ -165,13 +166,13 @@ export function Sidebar({
                 >
                   {user?.role === 'partner' ? (
                     partnerStatus?.partner?.avatar ? (
-                      <img src={partnerStatus.partner.avatar} alt="Partner" className="w-full h-full object-cover" />
+                      <img src={resolveAssetUrl(partnerStatus.partner.avatar)} alt="Partner" className="w-full h-full object-cover" />
                     ) : (
                       <img src="/images/girl.png" alt="Partner" className="w-full h-full object-cover" />
                     )
                   ) : (
                     user?.avatar ? (
-                      <img src={user.avatar} alt="You" className="w-full h-full object-cover" />
+                      <img src={resolveAssetUrl(user.avatar)} alt="You" className="w-full h-full object-cover" />
                     ) : (
                       <img src="/images/girl.png" alt="You" className="w-full h-full object-cover" />
                     )

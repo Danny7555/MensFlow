@@ -142,6 +142,93 @@ export function verifyOtpTempToken(token: string): { id: string } {
   return { id: payload.id };
 }
 
+// ─── Reset-password session JWT ───────────────────────────────────────────────
+
+function signResetTempToken(userId: string): string {
+  const secret = getJwtSecret();
+  return jwt.sign(
+    { id: userId, type: 'reset_session' },
+    secret,
+    { expiresIn: `${OTP_TEMP_TOKEN_MINUTES}m` } as jwt.SignOptions
+  );
+}
+
+export function verifyResetToken(token: string): { id: string } {
+  const secret = getJwtSecret();
+  let payload: { id: string; type: string };
+  try {
+    payload = jwt.verify(token, secret) as { id: string; type: string };
+  } catch {
+    throw httpError('Reset link has expired. Please request a new one.', 401);
+  }
+  if (payload.type !== 'reset_session' && payload.type !== 'password_reset') {
+    throw httpError('Invalid reset token', 401);
+  }
+  return { id: payload.id };
+}
+
+// Signs a short-lived token that authorises only the final password change step
+export function signPasswordResetToken(userId: string): string {
+  const secret = getJwtSecret();
+  return jwt.sign(
+    { id: userId, type: 'password_reset' },
+    secret,
+    { expiresIn: '10m' } as jwt.SignOptions
+  );
+}
+
+// ─── Create reset-password OTP session ────────────────────────────────────────
+
+/**
+ * Looks up a user by email and, if found, generates a 6-digit OTP, stores
+ * its bcrypt hash + expiry, sends the same branded digit-box email, and
+ * returns a reset_session JWT.
+ *
+ * Always resolves successfully (never reveals whether the email is registered).
+ */
+export async function createResetSession(email: string): Promise<string | null> {
+  const normalised = email.toLowerCase().trim();
+  const user = await User.findOne({ email: normalised });
+
+  // Security: silently succeed even if user not found (no enumeration)
+  if (!user) return null;
+
+  const code = generateOtpCode();
+  console.log(`\n[RESET] 🔑 Reset code for ${user.name} (${user.email}): ${code}\n`);
+  const hash = await bcrypt.hash(code, 8);
+  const expiry = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
+  const tempToken = signResetTempToken(String(user._id));
+
+  user.otpHash = hash;
+  user.otpExpiry = expiry;
+  user.otpTempToken = tempToken;
+  await user.save();
+
+  const recipientEmail = user.email || user.username;
+  try {
+    const fromName = process.env.SMTP_FROM_NAME || 'MensFlow';
+    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'no-reply@mensflow.app';
+    const transporter = await getTransporter();
+
+    const info = await transporter.sendMail({
+      from: `"${fromName}" <${fromEmail}>`,
+      to: `"${user.name}" <${recipientEmail}>`,
+      subject: 'MensFlow — Reset your password',
+      html: buildOtpEmailHtml(user.name, code, OTP_EXPIRY_MINUTES),
+      text: `Your MensFlow password reset code: ${code}\n\nExpires in ${OTP_EXPIRY_MINUTES} minutes. Do not share it with anyone.`,
+    });
+
+    const previewUrl = nodemailer.getTestMessageUrl(info);
+    if (previewUrl) {
+      console.log(`[RESET] 📧 Preview reset email at: ${previewUrl}`);
+    }
+  } catch (emailErr) {
+    console.error('[RESET] Failed to send reset email:', emailErr);
+  }
+
+  return tempToken;
+}
+
 // ─── Create OTP session ───────────────────────────────────────────────────────
 
 /**

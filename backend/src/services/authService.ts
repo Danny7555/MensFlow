@@ -113,3 +113,79 @@ function signToken(id: string, username: string): string {
   const expiresIn = process.env.JWT_EXPIRES_IN || '30d';
   return jwt.sign({ id, username }, secret, { expiresIn } as jwt.SignOptions);
 }
+
+// ─── Reset Password ───────────────────────────────────────────────────────────
+
+/**
+ * Step 1 — Request a password-reset code.
+ * Always returns the same generic message to prevent email enumeration.
+ */
+export async function forgotPassword(email: string): Promise<{ message: string; resetToken?: string }> {
+  const { createResetSession } = await import('./otpService');
+  const resetToken = await createResetSession(email);
+  return {
+    message: 'If that email address is registered, a reset code has been sent.',
+    resetToken: resetToken ?? undefined,
+  };
+}
+
+/**
+ * Step 2 — Verify the 6-digit reset code.
+ * Returns a short-lived passwordResetToken if valid.
+ */
+export async function verifyResetOtp(
+  resetToken: string,
+  code: string
+): Promise<{ passwordResetToken: string }> {
+  const { verifyResetToken, signPasswordResetToken } = await import('./otpService');
+  const bcrypt = (await import('bcryptjs')).default;
+
+  const { id: userId } = verifyResetToken(resetToken);
+  const user = await User.findById(userId);
+  if (!user) throw httpError('User not found', 404);
+
+  if (!user.otpHash || !user.otpExpiry) {
+    throw httpError('No pending reset found. Please request a new code.', 400);
+  }
+  if (new Date() > user.otpExpiry) {
+    user.otpHash = null;
+    user.otpExpiry = null;
+    user.otpTempToken = null;
+    await user.save();
+    throw httpError('Reset code has expired. Please request a new one.', 400);
+  }
+
+  const isMatch = await bcrypt.compare(code.trim(), user.otpHash);
+  if (!isMatch) throw httpError('Incorrect code. Please check your email and try again.', 400);
+
+  // Clear OTP fields — code is consumed
+  user.otpHash = null;
+  user.otpExpiry = null;
+  user.otpTempToken = null;
+  await user.save();
+
+  const passwordResetToken = signPasswordResetToken(String(user._id));
+  return { passwordResetToken };
+}
+
+/**
+ * Step 3 — Set a new password.
+ * Requires the short-lived passwordResetToken from step 2.
+ */
+export async function resetPassword(
+  passwordResetToken: string,
+  newPassword: string
+): Promise<{ message: string }> {
+  const { verifyResetToken } = await import('./otpService');
+  const bcrypt = (await import('bcryptjs')).default;
+
+  const { id: userId } = verifyResetToken(passwordResetToken);
+  const user = await User.findById(userId);
+  if (!user) throw httpError('User not found', 404);
+
+  user.passwordHash = await bcrypt.hash(newPassword, 10);
+  await user.save();
+
+  return { message: 'Password updated successfully. You can now sign in with your new password.' };
+}
+

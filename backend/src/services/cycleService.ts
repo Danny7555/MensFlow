@@ -3,9 +3,16 @@ import { ISymptomLog, ICustomSymptom } from '../interfaces';
 import { User } from '../models/User';
 import { Dashboard } from '../models/Dashboard';
 import { SupportAction } from '../models/Partner';
+import { Settings } from '../models/Settings';
 
 export async function getSymptomLogs(userId: string): Promise<ISymptomLog[]> {
   const user = await User.findById(userId).lean();
+  if (user?.role === 'partner' && user.partnerId) {
+    const partnerSettings = await Settings.findOne({ userId: user.partnerId }).lean();
+    if (partnerSettings && !partnerSettings.privacyShareSymptomLogs) {
+      return [];
+    }
+  }
   const targetId = (user?.role === 'partner' && user.partnerId) ? user.partnerId : userId;
   const logs = await SymptomLog.find({ userId: targetId }).sort({ date: -1 }).lean();
   return logs.map((l) => ({
@@ -55,6 +62,10 @@ export async function upsertSymptomLog(
     { $set: updateFields },
     { upsert: true, new: true, lean: true, runValidators: true, setDefaultsOnInsert: true }
   );
+
+  // Recalculate cycle metrics
+  await recalculateCycleMetrics(String(targetId));
+
   // findOneAndUpdate with upsert:true and new:true always returns a document
   const saved = log!;
   return {
@@ -72,6 +83,12 @@ export async function clearAllLogs(userId: string): Promise<void> {
   const user = await User.findById(userId).lean();
   const targetId = (user?.role === 'partner' && user.partnerId) ? user.partnerId : userId;
   await SymptomLog.deleteMany({ userId: targetId });
+
+  // Reset dashboard cycle variation to defaults when clearing all logs
+  await Dashboard.updateOne(
+    { userId: targetId },
+    { $set: { cycleVariationDays: 8, isAtypical: false } }
+  );
 }
 
 export async function getCustomSymptoms(userId: string): Promise<ICustomSymptom[]> {
@@ -119,6 +136,21 @@ export async function getMonthInReview(userId: string): Promise<object> {
   // If caller is partner, analyze their lady partner's data
   const ladyId = (user.role === 'partner' && user.partnerId) ? String(user.partnerId) : userId;
   const partnerId = (user.role === 'lady' && user.partnerId) ? String(user.partnerId) : (user.role === 'partner' ? userId : null);
+
+  if (user.role === 'partner' && user.partnerId) {
+    const partnerSettings = await Settings.findOne({ userId: user.partnerId }).lean();
+    if (partnerSettings && !partnerSettings.privacyShareHealthCharts) {
+      return {
+        cycleLength: partnerSettings.cycleAvgLengthDays || 28,
+        periodLength: 5,
+        energyPeakStart: 0,
+        energyPeakEnd: 0,
+        crampingChange: 0,
+        partnerActions: 0,
+        redacted: true
+      };
+    }
+  }
 
   // Fetch Lady's dashboard & logs
   const [ladyDash, logs] = await Promise.all([
@@ -294,4 +326,100 @@ export async function getMonthInReview(userId: string): Promise<object> {
     crampingChange: crampingPctChange,
     partnerActions
   };
+}
+
+export async function recalculateCycleMetrics(userId: string): Promise<void> {
+  const user = await User.findById(userId).lean();
+  if (!user) return;
+
+  const targetId = (user.role === 'partner' && user.partnerId) ? String(user.partnerId) : userId;
+
+  // 1. Fetch all symptom logs for target user, sorted by date ascending
+  const logs = await SymptomLog.find({ userId: targetId }).sort({ date: 1 }).lean();
+
+  // 2. Find period start dates
+  const flowLogs = logs.filter(l => l.symptoms.some(s => s.startsWith('flow-')));
+  const periodStarts: Date[] = [];
+  const periodDurations: Record<string, number> = {};
+
+  let currentStartStr: string | null = null;
+  let prevDate: Date | null = null;
+  let currentDuration = 0;
+
+  for (const log of flowLogs) {
+    const d = new Date(log.date + 'T12:00:00');
+    if (!currentStartStr || !prevDate) {
+      currentStartStr = log.date;
+      currentDuration = 1;
+    } else {
+      const diff = Math.round((d.getTime() - prevDate.getTime()) / (1000 * 3600 * 24));
+      if (diff > 4) { // gap > 4 days starts a new period
+        periodStarts.push(new Date(currentStartStr + 'T12:00:00'));
+        periodDurations[currentStartStr] = currentDuration;
+        currentStartStr = log.date;
+        currentDuration = 1;
+      } else {
+        currentDuration++;
+      }
+    }
+    prevDate = d;
+  }
+  if (currentStartStr) {
+    periodStarts.push(new Date(currentStartStr + 'T12:00:00'));
+    periodDurations[currentStartStr] = currentDuration;
+  }
+
+  // Calculate actual cycle lengths
+  const cycleLengths: number[] = [];
+  for (let i = 0; i < periodStarts.length - 1; i++) {
+    const len = Math.round((periodStarts[i + 1].getTime() - periodStarts[i].getTime()) / (1000 * 3600 * 24));
+    if (len >= 15 && len <= 60) {
+      cycleLengths.push(len);
+    }
+  }
+
+  // Get current dashboard
+  const dashboard = await Dashboard.findOne({ userId: targetId });
+  if (!dashboard) return;
+
+  const updates: any = {};
+
+  // Auto-detect lastPeriodStart if there are any period starts logged
+  if (currentStartStr) {
+    if (dashboard.lastPeriodStart !== currentStartStr) {
+      updates.lastPeriodStart = currentStartStr;
+    }
+  }
+
+  // Auto-calculate typicalCycleDays and cycleVariationDays
+  if (cycleLengths.length > 0) {
+    const sum = cycleLengths.reduce((a, b) => a + b, 0);
+    const avg = Math.round(sum / cycleLengths.length);
+    const clampedAvg = Math.min(60, Math.max(15, avg));
+
+    updates.typicalCycleDays = clampedAvg;
+
+    if (cycleLengths.length >= 2) {
+      const max = Math.max(...cycleLengths);
+      const min = Math.min(...cycleLengths);
+      updates.cycleVariationDays = max - min;
+    } else {
+      updates.cycleVariationDays = clampedAvg > 35 || clampedAvg < 24 ? 18 : 8;
+    }
+  }
+
+  if (Object.keys(updates).length > 0) {
+    const finalTypical = updates.typicalCycleDays ?? dashboard.typicalCycleDays;
+    const finalVariation = updates.cycleVariationDays ?? dashboard.cycleVariationDays;
+    updates.isAtypical = finalTypical < 24 || finalTypical > 35 || finalVariation > 14;
+
+    await Dashboard.updateOne({ userId: targetId }, { $set: updates });
+
+    if (updates.typicalCycleDays !== undefined) {
+      await Settings.updateOne(
+        { userId: targetId },
+        { $set: { cycleAvgLengthDays: updates.typicalCycleDays } }
+      );
+    }
+  }
 }

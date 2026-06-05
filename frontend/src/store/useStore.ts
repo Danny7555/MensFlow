@@ -3,8 +3,9 @@ import { type DashboardSnapshot, DEFAULT_DASHBOARD } from '../lib/dashboardStora
 import { DEFAULT_SETTINGS, type MensFlowSettings } from '../context/settings-types'
 import { type SymptomDef, type SymptomCategory } from '../data/symptomsData'
 import { logsApi, type ApiMonthInReview } from '../services/logsService'
-import { userApi, type ApiUser, type ApiSettings, type ApiDashboard, type ApiLoginRecord } from '../services/userService'
-import { partnerApi } from '../services/partnerService'
+import { userApi, type ApiUser, type ApiSettings, type ApiDashboard, type ApiLoginRecord, userKeys } from '../services/userService'
+import { queryClient } from '../lib/queryClient'
+import { partnerApi, type ApiPartnerStatus } from '../services/partnerService'
 import { toast } from 'sonner'
 import { isLoggedIn } from '../lib/auth-token'
 
@@ -45,41 +46,8 @@ interface AppState {
   completedActions: string[]
   supportStreak: number
   lastActionDate: string
-  partnerStatus: {
-    paired: boolean
-    privacyShareCycleDetails?: boolean
-    partner?: {
-      name: string
-      avatar: string | null
-      accessLevel: 'full' | 'educational'
-      lastActive?: number | null
-    }
-    cycle?: {
-      lastPeriodStart: string
-      typicalCycleDays: number
-      phaseLabel: string
-      hormoneTrend: string
-      bodySignals: string
-      symptoms?: string[]
-      water?: number
-      weight?: number
-      lhLevel?: string | null
-      mucus?: string | null
-      cycleVariationDays?: number
-      isAtypical?: boolean
-      scientificInsight?: string
-      dailyTip?: {
-        title: string
-        desc: string
-      }
-    } | null
-    support?: {
-      completedActions: string[]
-      supportStreak: number
-      lastActionDate: string
-      totalActionsThisCycle?: number
-    }
-  } | null
+  partnerStatus: ApiPartnerStatus | null
+
 
   notificationCount: number
   incrementNotificationCount: () => void
@@ -118,7 +86,7 @@ interface AppState {
   pairPartner: (partnerCode: string) => Promise<void>
   invitePartner: (email: string) => Promise<void>
   disconnectPartnerAction: () => Promise<void>
-  requestDetailedAccessAction: () => Promise<void>
+  requestDetailedAccessAction: (requestedFields?: string[]) => Promise<void>
 
   // Confirmation / Alerts
   confirmDialog: {
@@ -308,6 +276,7 @@ export const useStore = create<AppState>()((set, get) => ({
         if (settingsPatch) {
           await userApi.updateSettings(settingsPatch)
         }
+        queryClient.invalidateQueries({ queryKey: userKeys.profile })
       } else {
         set((state) => ({
           dashboard: {
@@ -384,6 +353,7 @@ export const useStore = create<AppState>()((set, get) => ({
         if (dashboardPatch) {
           await userApi.updateDashboard(dashboardPatch)
         }
+        queryClient.invalidateQueries({ queryKey: userKeys.profile })
       } catch {
         // Revert on failure (re-fetch would be ideal but keep it simple)
       }
@@ -441,7 +411,9 @@ export const useStore = create<AppState>()((set, get) => ({
             { date: log.date, symptoms: log.symptoms, water: log.water, weight: log.weight, lhLevel: log.lhLevel, mucus: log.mucus },
           ],
         }))
-        void get().fetchMonthInReview()
+        queryClient.invalidateQueries({ queryKey: ['symptomLogs'] })
+        queryClient.invalidateQueries({ queryKey: ['monthInReview'] })
+        queryClient.invalidateQueries({ queryKey: userKeys.profile })
       } else {
         set((state) => ({
           logs: [
@@ -484,7 +456,9 @@ export const useStore = create<AppState>()((set, get) => ({
             { date: log.date, symptoms: log.symptoms, water: log.water, weight: log.weight, lhLevel: log.lhLevel, mucus: log.mucus },
           ],
         }))
-        void get().fetchMonthInReview()
+        queryClient.invalidateQueries({ queryKey: ['symptomLogs'] })
+        queryClient.invalidateQueries({ queryKey: ['monthInReview'] })
+        queryClient.invalidateQueries({ queryKey: userKeys.profile })
       } else {
         set((state) => ({
           logs: [
@@ -507,6 +481,9 @@ export const useStore = create<AppState>()((set, get) => ({
   clearLogs: async () => {
     if (isLoggedIn()) {
       await logsApi.clearAll()
+      queryClient.invalidateQueries({ queryKey: ['symptomLogs'] })
+      queryClient.invalidateQueries({ queryKey: ['monthInReview'] })
+      queryClient.invalidateQueries({ queryKey: userKeys.profile })
     }
     set({ logs: [] })
   },
@@ -563,7 +540,8 @@ export const useStore = create<AppState>()((set, get) => ({
         supportStreak: result.supportStreak,
         lastActionDate: result.lastActionDate,
       })
-      void get().fetchMonthInReview()
+      queryClient.invalidateQueries({ queryKey: ['partnerStatus'] })
+      queryClient.invalidateQueries({ queryKey: ['monthInReview'] })
     } else {
       set((state) => {
         const completed = state.completedActions.includes(actionId)
@@ -611,9 +589,8 @@ export const useStore = create<AppState>()((set, get) => ({
     set({ isSaving: true })
     try {
       const result = await partnerApi.pair(partnerCode)
-      const profile = await userApi.getProfile()
-      get().hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
-      await get().fetchPartnerStatus()
+      queryClient.invalidateQueries({ queryKey: userKeys.profile })
+      queryClient.invalidateQueries({ queryKey: ['partnerStatus'] })
       toast.success(`Successfully paired with ${result.partner.name}!`)
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Failed to pair with partner')
@@ -627,9 +604,8 @@ export const useStore = create<AppState>()((set, get) => ({
     try {
       const result = await partnerApi.invite(email) as { partnerFound: boolean; emailSent?: boolean; name?: string }
       if (result.partnerFound) {
-        const profile = await userApi.getProfile()
-        get().hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
-        await get().fetchPartnerStatus()
+        queryClient.invalidateQueries({ queryKey: userKeys.profile })
+        queryClient.invalidateQueries({ queryKey: ['partnerStatus'] })
         toast.success(`Partner found! Successfully paired with ${result.name}!`)
       } else if (result.emailSent) {
         toast.success(`Invitation email sent to ${email}!`, {
@@ -650,8 +626,8 @@ export const useStore = create<AppState>()((set, get) => ({
     set({ isSaving: true })
     try {
       await partnerApi.disconnect()
-      const profile = await userApi.getProfile()
-      get().hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
+      queryClient.invalidateQueries({ queryKey: userKeys.profile })
+      queryClient.invalidateQueries({ queryKey: ['partnerStatus'] })
       set({ partnerStatus: null })
       toast.success('Successfully disconnected from partner')
     } catch (err: unknown) {
@@ -661,15 +637,15 @@ export const useStore = create<AppState>()((set, get) => ({
     }
   },
 
-  requestDetailedAccessAction: async () => {
+  requestDetailedAccessAction: async (requestedFields: string[] = ['cycle', 'symptoms', 'charts']) => {
     if (isLoggedIn()) {
       set({ isSaving: true })
       try {
-        const result = await partnerApi.requestAccess()
+        const result = await partnerApi.requestAccess(requestedFields)
         toast.success(result.alreadyPending ? "Access request already pending." : "Access request sent!", {
           description: result.emailQueued
             ? "Your partner received an in-app notification and an email."
-            : "Your partner received an in-app notification to enable detailed sharing.",
+            : "Your partner received an in-app notification to review your request.",
         })
       } catch (err: unknown) {
         toast.error(err instanceof Error ? err.message : 'Failed to send access request')

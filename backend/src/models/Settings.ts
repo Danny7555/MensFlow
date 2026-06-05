@@ -25,7 +25,10 @@ export interface SettingsDocument extends Document {
   cycleAvgLengthDays: number;
   cycleShowFertileWindow: boolean;
   privacyShareCycleDetails: boolean;
+  privacyShareSymptomLogs: boolean;
+  privacyShareHealthCharts: boolean;
   privacyPendingAccessRequest: boolean;
+  privacyRequestedFields: string[];
   privacyStrictLocalOnly: boolean;
   conditionOptimization: 'none' | 'pcos' | 'endometriosis' | 'perimenopause';
   disableAIPopups: boolean;
@@ -64,7 +67,10 @@ const SettingsSchema = new Schema<SettingsDocument>({
   cycleAvgLengthDays: { type: Number, default: 28, min: 15, max: 60 },
   cycleShowFertileWindow: { type: Boolean, default: true },
   privacyShareCycleDetails: { type: Boolean, default: true },
+  privacyShareSymptomLogs: { type: Boolean, default: true },
+  privacyShareHealthCharts: { type: Boolean, default: true },
   privacyPendingAccessRequest: { type: Boolean, default: false },
+  privacyRequestedFields: { type: [String], default: [] },
   privacyStrictLocalOnly: { type: Boolean, default: false },
   conditionOptimization: { type: String, enum: ['none', 'pcos', 'endometriosis', 'perimenopause'], default: 'none' },
   disableAIPopups: { type: Boolean, default: false },

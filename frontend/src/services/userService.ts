@@ -1,4 +1,5 @@
-import { get, post, put } from '../lib/apiClient'
+import { get, post, put, upload } from '../lib/apiClient'
+
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -43,7 +44,10 @@ export type ApiSettings = {
   cycleAvgLengthDays: number
   cycleShowFertileWindow: boolean
   privacyShareCycleDetails: boolean
+  privacyShareSymptomLogs: boolean
+  privacyShareHealthCharts: boolean
   privacyPendingAccessRequest: boolean
+  privacyRequestedFields: string[]
   privacyStrictLocalOnly: boolean
   conditionOptimization: 'none' | 'pcos' | 'endometriosis' | 'perimenopause'
   disableAIPopups: boolean
@@ -101,6 +105,12 @@ export const userApi = {
 
   getLoginHistory: () =>
     get<ApiLoginRecord[]>('/user/login-history'),
+
+  uploadImage: (file: File, type: 'avatar' | 'cover') => {
+    const formData = new FormData()
+    formData.append('image', file)
+    return upload<{ url: string }>(`/upload?type=${type}`, formData)
+  },
 }
 
 export const userKeys = {

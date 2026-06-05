@@ -19,9 +19,20 @@ import educationRoutes from './routes/educationRoutes';
 import { seedEducation } from './utils/seedEducation';
 import wellnessTipRoutes from './routes/wellnessTipRoutes';
 import { seedWellnessTips } from './utils/seedWellnessTips';
+import path from 'path';
+import uploadRoutes from './routes/uploadRoutes';
+import { ensureUploadDirectories } from './controllers/uploadController';
 
 const app = express();
 const isVercel = process.env.VERCEL === '1' || !!process.env.VERCEL;
+
+// ─── Trust proxy (MUST be set before rate-limiters) ──────────────────────────
+// Vercel and all load-balancer environments set X-Forwarded-For.
+// Without this, express-rate-limit throws ERR_ERL_UNEXPECTED_X_FORWARDED_FOR
+// on every request and cannot identify the real client IP.
+if (isVercel || isProduction) {
+  app.set('trust proxy', 1); // trust the first hop (Vercel edge)
+}
 
 // ─── Global Middleware ────────────────────────────────────────────────────────
 
@@ -51,8 +62,11 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '64kb' }));
 app.use(express.text({ limit: '64kb' }));
+app.use('/uploads', express.static(path.resolve(process.cwd(), 'public/uploads')));
 
 // Lazy DB connection for Serverless environments (Vercel)
+// The dbConnected flag is reset on disconnect so the next request
+// triggers a fresh connectDatabase() call rather than hitting a dead socket.
 let dbConnected = false;
 app.use(async (_req: Request, _res: Response, next: NextFunction) => {
   if (isVercel && !dbConnected) {
@@ -64,6 +78,12 @@ app.use(async (_req: Request, _res: Response, next: NextFunction) => {
     }
   }
   next();
+});
+
+// Reset the dbConnected flag whenever Mongoose drops the connection so that
+// the lazy-connect middleware above will re-establish it on the next request.
+mongoose.connection.on('disconnected', () => {
+  dbConnected = false;
 });
 
 // ─── Request Logger (development) ────────────────────────────────────────────
@@ -92,6 +112,7 @@ app.use('/api/email', emailRoutes);
 app.use('/api/scheduler', schedulerRoutes);
 app.use('/api/education', educationRoutes);
 app.use('/api/tips', wellnessTipRoutes);
+app.use('/api/upload', uploadRoutes);
 app.get('/', (_req: Request, res: Response) => {
   res.json({ message: 'MensFlow API is running successfully' });
 });
@@ -143,6 +164,7 @@ process.on('unhandledRejection', (reason) => {
 
 async function bootstrap(): Promise<void> {
   validateRuntimeEnv();
+  ensureUploadDirectories();
   if (isVercel) {
     // Connect DB in the background on cold start
     connectDatabase().catch(err => console.error('[Vercel] DB warm connection error:', err));

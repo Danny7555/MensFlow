@@ -31,18 +31,26 @@ function trackerReducer(state: TrackerState, action: TrackerAction): TrackerStat
   }
 }
 
+import { RequestAccessModal } from "@/components/dashboard/RequestAccessModal"
+
 export function TrackerView() {
   const navigate = useNavigate()
   const { isSaving, dashboard: ownDashboard, partnerStatus, user, fetchPartnerStatus, fetchLogs, requestDetailedAccessAction } = useStore()
   const { isAuthenticated, openAuthModal } = useAuth()
+  const [showModal, setShowModal] = useState(false)
   const [requestSent, setRequestSent] = useState(false)
 
-  const handleRequestAccess = async () => {
-    setRequestSent(true)
-    await requestDetailedAccessAction()
-  }
+  const isPartner = user?.role === 'partner'
+  const showRestrictedView = isPartner && partnerStatus?.paired && partnerStatus?.privacyShareCycleDetails === false
 
-  const showRestrictedView = user?.role === 'partner' && partnerStatus?.paired && partnerStatus?.privacyShareCycleDetails === false
+  const handleOpenModal = () => setShowModal(true)
+
+  const handleConfirmRequest = async (selectedFields: string[]) => {
+    setShowModal(false)
+    setRequestSent(true)
+    await requestDetailedAccessAction(selectedFields)
+    await fetchPartnerStatus()
+  }
 
   // Swapped dashboard data source for partner role
   const data = useMemo(() => {
@@ -100,9 +108,34 @@ export function TrackerView() {
     const timer = setTimeout(() => dispatch({ type: 'SET_LOADING', payload: false }), 500)
     return () => clearTimeout(timer)
   }, [])
-
   if (state.isLoading) {
     return <TrackerSkeleton />
+  }
+
+  // ── Gate 2: partner not yet connected to a lady ──────────────────────────
+  if (isPartner && !partnerStatus?.paired) {
+    return (
+      <div className="flex flex-col h-full bg-background overflow-auto items-center justify-center p-6 min-h-[80vh]">
+        <div className="max-w-[420px] w-full text-center bg-card border border-border p-8 sm:p-10 rounded-[2.5rem] shadow-xl gap-6 relative overflow-hidden flex flex-col items-center">
+          <div className="absolute top-0 right-0 size-32 bg-[var(--mf-accent)]/5 rounded-full blur-2xl pointer-events-none" />
+          
+          <div className="size-16 rounded-3xl bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] flex items-center justify-center mx-auto border border-[var(--mf-accent)]/10">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-8">
+              <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clipRule="evenodd" />
+            </svg>
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-2xl font-normal tracking-tight text-[var(--mf-text-strong)]">
+              Not Connected Yet
+            </h2>
+            <p className="text-xs text-[var(--mf-muted)] leading-relaxed max-w-sm mx-auto">
+              Cycle details are shared with you once you connect with your partner. Head to <strong>Partner Sync</strong> to pair up first.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (showRestrictedView) {
@@ -132,7 +165,7 @@ export function TrackerView() {
           <div className="w-full flex flex-col gap-3">
             <button
               type="button"
-              onClick={handleRequestAccess}
+              onClick={handleOpenModal}
               disabled={requestSent}
               className={cn(
                 "w-full py-3 text-white rounded-2xl text-xs font-semibold transition-all border-0 outline-none",
@@ -153,6 +186,12 @@ export function TrackerView() {
             </button>
           </div>
         </div>
+        <RequestAccessModal
+          open={showModal}
+          onClose={() => setShowModal(false)}
+          onConfirm={handleConfirmRequest}
+          isLoading={isSaving}
+        />
       </div>
     )
   }
