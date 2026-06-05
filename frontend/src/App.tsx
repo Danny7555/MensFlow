@@ -356,7 +356,15 @@ function MainShell() {
   }, [isMobile, settings.sidebarCollapsed, updateSettings])
 
   if (isRehydrating) {
-    return <PageLoader />
+    return (
+      <div className={cn("app-shell", user?.role === 'partner' && "partner-theme")}>
+        <div className="app-main app-main--full">
+          <main className="app-canvas">
+            <PageLoader />
+          </main>
+        </div>
+      </div>
+    )
   }
 
   const sidebarExpanded = isMobile ? sidebarOpen : !settings.sidebarCollapsed

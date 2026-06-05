@@ -20,7 +20,7 @@ This document explains the router layout, authentication states, and private nav
 ## 🏗️ System Overview
 
 ```
- MENFLOW ROUTING ARCHITECTURE
+ MENSFLOW ROUTING ARCHITECTURE
  ┌──────────────────────────────────────────────────────────────────┐
  │                         App.tsx Router                           │
  │                                                                  │
@@ -70,24 +70,24 @@ This document explains the router layout, authentication states, and private nav
 
 Routes are defined in `frontend/src/App.tsx` between lines 424–475, all lazy-loaded via `React.lazy()` plus `Suspense` + `AnimatePresence`. Guard components surround sensitive routes.
 
-| Route | Path | Component | Auth | Guard | Description |
-|-------|------|-----------|------|-------|-------------|
-| Landing | `/` | `LandingView` | ❌ None | — | Public app intro + auth buttons |
-| Onboarding | `/onboarding` | `OnboardingView` | ✅ Both | — | Role selection + cycle baseline |
-| Dashboard | `/dashboard` | `DashboardView` | ✅ Logged-in | `AccessGate` | Home feed + Today's Plan |
-| Tracker | `/tracker` | `TrackerView` | ✅ Logged-in | `AccessGate` | Cycle wheel + metrics |
-| Calendar | `/calendar` | `CalendarView` | ✅ Logged-in | `AccessGate` | Phase indicators + day picker |
-| Symptoms | `/symptoms` | `SymptomsView` | ✅ Logged-in | `AccessGate` | Log modal + trend charts |
-| Ask AI | `/ask` | `ChatView` | ✅ Logged-in | `ChatLockGate` | AI companion chat |
-| Locked Chats | `/locked-chats` | `LockedChatsView` | ✅ Logged-in | Passcode | Privacy vault |
-| Sync | `/sync` | `SyncView` | ✅ Logged-in | `AccessGate` | Partner pings + streaks |
-| Insights | `/insights` | `InsightsView` | ✅ Logged-in | `AccessGate` | Charts + CSV/PDF export |
-| Tips | `/tips` | `TipsView` | ✅ Logged-in | `AccessGate` | Phase-specific tips |
-| Education | `/education` | `EducationView` | ❌ Guest | — | Health articles |
-| Settings | `/settings` | `SettingsView` | ✅ Both | — | Cycle + privacy + layout |
-| Notifications | `/notifications` | `NotificationsView` | ✅ Logged-in | `AccessGate` | Partner pings + alerts |
-| Tracker | `/tracker` | `TrackerView` | ✅ Logged-in | `AccessGate` | Health metrics + logs |
-| Not Found | `*` | `NotFoundView` | ❌ — | — | 404 fallback |
+| Route         | Path             | Component           | Auth         | Guard          | Description                     |
+| ------------- | ---------------- | ------------------- | ------------ | -------------- | ------------------------------- |
+| Landing       | `/`              | `LandingView`       | ❌ None      | —              | Public app intro + auth buttons |
+| Onboarding    | `/onboarding`    | `OnboardingView`    | ✅ Both      | —              | Role selection + cycle baseline |
+| Dashboard     | `/dashboard`     | `DashboardView`     | ✅ Logged-in | `AccessGate`   | Home feed + Today's Plan        |
+| Tracker       | `/tracker`       | `TrackerView`       | ✅ Logged-in | `AccessGate`   | Cycle wheel + metrics           |
+| Calendar      | `/calendar`      | `CalendarView`      | ✅ Logged-in | `AccessGate`   | Phase indicators + day picker   |
+| Symptoms      | `/symptoms`      | `SymptomsView`      | ✅ Logged-in | `AccessGate`   | Log modal + trend charts        |
+| Ask AI        | `/ask`           | `ChatView`          | ✅ Logged-in | `ChatLockGate` | AI companion chat               |
+| Locked Chats  | `/locked-chats`  | `LockedChatsView`   | ✅ Logged-in | Passcode       | Privacy vault                   |
+| Sync          | `/sync`          | `SyncView`          | ✅ Logged-in | `AccessGate`   | Partner pings + streaks         |
+| Insights      | `/insights`      | `InsightsView`      | ✅ Logged-in | `AccessGate`   | Charts + CSV/PDF export         |
+| Tips          | `/tips`          | `TipsView`          | ✅ Logged-in | `AccessGate`   | Phase-specific tips             |
+| Education     | `/education`     | `EducationView`     | ❌ Guest     | —              | Health articles                 |
+| Settings      | `/settings`      | `SettingsView`      | ✅ Both      | —              | Cycle + privacy + layout        |
+| Notifications | `/notifications` | `NotificationsView` | ✅ Logged-in | `AccessGate`   | Partner pings + alerts          |
+| Tracker       | `/tracker`       | `TrackerView`       | ✅ Logged-in | `AccessGate`   | Health metrics + logs           |
+| Not Found     | `*`              | `NotFoundView`      | ❌ —         | —              | 404 fallback                    |
 
 Redirect routes (`/history`, `/health-insights`, `/wellness-tips`) point to `/insights` or `/tips` to keep the URL tree tidy.
 
@@ -246,12 +246,12 @@ Wraps the entire app in `App.tsx:580-588` as the outermost provider chain:
 
 ```typescript
 interface AuthContextValue {
-  isAuthenticated: boolean   // session exists
-  onboardingCompleted: boolean  // cycle baseline set
-  isRehydrating: boolean    // Zustand persist rehydrating
-  openAuthModal: () => void // show credentials overlay
-  login: (payload) => void  // register + start session
-  logout: () => void        // clear token, reset state, redirect
+  isAuthenticated: boolean; // session exists
+  onboardingCompleted: boolean; // cycle baseline set
+  isRehydrating: boolean; // Zustand persist rehydrating
+  openAuthModal: () => void; // show credentials overlay
+  login: (payload) => void; // register + start session
+  logout: () => void; // clear token, reset state, redirect
 }
 ```
 
@@ -293,8 +293,8 @@ Two boolean fields shape what a partner can see:
 
 Three access levels in practice:
 
-| Level | Who sees it | What is visible |
-|-------|-------------|-----------------|
-| `full` | Lady + paired Partner | Dashboard, tracker, calendar, symptoms, sync, notifications, insights, tips, locked chats |
-| `educational` | Partner in school program | `/education` content only; other routes redirect |
-| `guest` | Not signed in | Landing, onboarding, guest settings, education |
+| Level         | Who sees it               | What is visible                                                                           |
+| ------------- | ------------------------- | ----------------------------------------------------------------------------------------- |
+| `full`        | Lady + paired Partner     | Dashboard, tracker, calendar, symptoms, sync, notifications, insights, tips, locked chats |
+| `educational` | Partner in school program | `/education` content only; other routes redirect                                          |
+| `guest`       | Not signed in             | Landing, onboarding, guest settings, education                                            |
