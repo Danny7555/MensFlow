@@ -15,6 +15,7 @@ import { Sidebar } from './components/Sidebar'
 import { House, Target, Heartbeat, Bell, UserCircle, BookOpen, ChatCircle, Lock, LockKey, ShieldCheck, WarningCircle, CheckCircle, Sparkle } from '@phosphor-icons/react'
 import { useMediaQuery } from './hooks/useMediaQuery'
 import { useSmartPushNotifications } from './hooks/useSmartPushNotifications'
+import { useNotificationsListener } from './hooks/useNotificationsListener'
 import { PageLoader } from './components/skeletons/PageLoader'
 import { ScrollToTop } from './components/ScrollToTop'
 import { AccessGate } from './components/AccessGate'
@@ -328,16 +329,30 @@ function ChatLockGate({ children }: { children: React.ReactNode }) {
 function MainShell() {
   useReactQuerySync()
   const { isAuthenticated, onboardingCompleted, logout, openAuthModal, isRehydrating } = useAuth()
-  const { settings, updateSettings, user } = useStore()
+  const { settings, updateSettings, user, notificationCount } = useStore()
   const navigate = useNavigate()
   const location = useLocation()
   const isMobile = useMediaQuery('(max-width: 768px)')
+  const handleTabClick = (path: string) => {
+    if ('vibrate' in navigator) {
+      try {
+        navigator.vibrate(15);
+      } catch (e) {
+        // ignore
+      }
+    }
+    navigate(path);
+  }
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [temporaryChat, setTemporaryChat] = useState(false)
   const contextValue = useMemo(() => ({ temporaryChat, setTemporaryChat }), [temporaryChat])
 
   // Fire smart browser push notifications based on real cycle data
   useSmartPushNotifications()
+  // Globally listen for and process real-time notifications
+  useNotificationsListener()
+
+  const dashboardNotificationCount = notificationCount + (user?.role === 'lady' && settings.privacyPendingAccessRequest ? 1 : 0)
 
   const handleLogout = useCallback(() => {
     logout()
@@ -351,7 +366,15 @@ function MainShell() {
   }, [isMobile, settings.sidebarCollapsed, updateSettings])
 
   if (isRehydrating) {
-    return <PageLoader />
+    return (
+      <div className={cn("app-shell", user?.role === 'partner' && "partner-theme")}>
+        <div className="app-main app-main--full">
+          <main className="app-canvas">
+            <PageLoader />
+          </main>
+        </div>
+      </div>
+    )
   }
 
   const sidebarExpanded = isMobile ? sidebarOpen : !settings.sidebarCollapsed
@@ -487,21 +510,21 @@ function MainShell() {
               <>
                 <button type="button" 
                   className={cn("flo-nav-item", location.pathname === '/education' && "flo-nav-item--active")}
-                  onClick={() => navigate('/education')}
+                  onClick={() => handleTabClick('/education')}
                 >
                   <BookOpen size={24} weight={location.pathname === '/education' ? "fill" : "regular"} />
                   <span className="flo-nav-label">Education</span>
                 </button>
                 <button type="button" 
                   className={cn("flo-nav-item", location.pathname === '/ask' && "flo-nav-item--active")}
-                  onClick={() => navigate('/ask')}
+                  onClick={() => handleTabClick('/ask')}
                 >
                   <ChatCircle size={24} weight={location.pathname === '/ask' ? "fill" : "regular"} />
                   <span className="flo-nav-label">Ask AI</span>
                 </button>
                 <button type="button" 
                   className={cn("flo-nav-item", location.pathname === '/settings' && "flo-nav-item--active")}
-                  onClick={() => navigate('/settings')}
+                  onClick={() => handleTabClick('/settings')}
                 >
                   <UserCircle size={24} weight={location.pathname === '/settings' ? "fill" : "light"} />
                   <span className="flo-nav-label">Profile</span>
@@ -511,35 +534,42 @@ function MainShell() {
               <>
                 <button type="button" 
                   className={cn("flo-nav-item", location.pathname === '/dashboard' && "flo-nav-item--active")}
-                  onClick={() => navigate('/dashboard')}
+                  onClick={() => handleTabClick('/dashboard')}
                 >
                   <House size={24} weight={location.pathname === '/dashboard' ? "fill" : "regular"} />
                   <span className="flo-nav-label">Home</span>
                 </button>
                 <button type="button" 
                   className={cn("flo-nav-item", (location.pathname === '/insights' || location.pathname === '/health-insights') && "flo-nav-item--active")}
-                  onClick={() => navigate('/insights')}
+                  onClick={() => handleTabClick('/insights')}
                 >
                   <Target size={24} weight={(location.pathname === '/insights' || location.pathname === '/health-insights') ? "fill" : "regular"} />
                   <span className="flo-nav-label">Insights</span>
                 </button>
                 <button type="button" 
                   className={cn("flo-nav-item", (location.pathname === '/tips' || location.pathname === '/wellness-tips') && "flo-nav-item--active")}
-                  onClick={() => navigate('/tips')}
+                  onClick={() => handleTabClick('/tips')}
                 >
                   <Heartbeat size={24} weight={(location.pathname === '/tips' || location.pathname === '/wellness-tips') ? "fill" : "light"} />
                   <span className="flo-nav-label">Wellness</span>
                 </button>
                 <button type="button" 
                   className={cn("flo-nav-item", location.pathname === '/notifications' && "flo-nav-item--active")}
-                  onClick={() => navigate('/notifications')}
+                  onClick={() => handleTabClick('/notifications')}
                 >
-                  <Bell size={24} weight={location.pathname === '/notifications' ? "fill" : "light"} />
+                  <div className="relative">
+                    <Bell size={24} weight={location.pathname === '/notifications' ? "fill" : "light"} />
+                    {dashboardNotificationCount > 0 && (
+                      <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-[var(--mf-accent)] text-white text-[9px] font-bold flex items-center justify-center shadow-md animate-in fade-in zoom-in-95 duration-200">
+                        {dashboardNotificationCount > 99 ? '99+' : dashboardNotificationCount}
+                      </span>
+                    )}
+                  </div>
                   <span className="flo-nav-label">Alerts</span>
                 </button>
                 <button type="button" 
                   className={cn("flo-nav-item", location.pathname === '/settings' && "flo-nav-item--active")}
-                  onClick={() => navigate('/settings')}
+                  onClick={() => handleTabClick('/settings')}
                 >
                   <UserCircle size={24} weight={location.pathname === '/settings' ? "fill" : "light"} />
                   <span className="flo-nav-label">Profile</span>

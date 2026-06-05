@@ -96,7 +96,7 @@ export function DashboardHeader({
             </m.div>
           </m.div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
             <m.h1 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -106,7 +106,7 @@ export function DashboardHeader({
               {mounted ? getGreeting() : 'Welcome'}, {user.name}
             </m.h1>
             {mounted && user.role === 'partner' && (
-              <span className="px-2.5 py-0.5 rounded-full text-[9px] font-normal uppercase tracking-widest bg-gradient-to-r from-teal-500/20 to-emerald-500/20 text-teal-600 dark:text-teal-400 border border-teal-500/25 shrink-0 self-center mt-1">
+              <span className="px-2.5 py-0.5 rounded-full text-[9px] font-normal uppercase tracking-widest bg-gradient-to-r from-teal-500/20 to-emerald-500/20 text-teal-600 dark:text-teal-400 border border-teal-500/25 shrink-0 self-start sm:self-center mt-0.5 sm:mt-1">
                 Partner Support
               </span>
             )}
@@ -123,8 +123,8 @@ export function DashboardHeader({
         >
           <Ghost size={20} weight={temporaryChat ? "fill" : "regular"} />
         </m.button>
-        <m.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-          <Link to="/notifications" className="flo-icon-btn hidden md:flex hover:bg-muted/50 transition-colors relative" aria-label="Notifications">
+        <m.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="!hidden md:!block">
+          <Link to="/notifications" className="flo-icon-btn !hidden md:!flex hover:bg-muted/50 transition-colors relative" aria-label="Notifications">
             <Bell size={24} weight="light" />
             {unreadNotifications > 0 && (
               <span className="absolute -top-1 -right-1 size-5 rounded-full bg-[var(--mf-accent)] text-white text-[10px] font-bold flex items-center justify-center shadow-lg shadow-[var(--mf-accent)]/30 animate-in fade-in zoom-in-95 duration-200">
@@ -141,20 +141,20 @@ export function DashboardHeader({
         <m.button 
           whileHover={{ scale: 1.1, rotate: 15 }}
           whileTap={{ scale: 0.9 }}
-          className="flo-icon-btn hover:bg-muted/50 transition-colors"
+          className="flo-icon-btn !hidden md:!flex hover:bg-muted/50 transition-colors"
           onClick={onStartTour}
           title="Start Tour"
         >
           <Question size={24} weight="light" />
         </m.button>
-        <div className="w-px h-6 bg-border mx-2 opacity-50 hidden md:block" />
+        <div className="w-px h-6 bg-border mx-2 opacity-50 !hidden md:!block" />
         
         <Dialog>
           <DialogTrigger asChild>
             <m.button 
               whileHover={{ scale: 1.1, color: "var(--mf-danger)" }}
               whileTap={{ scale: 0.9 }}
-              className="flo-icon-btn hidden md:flex text-destructive/50 hover:bg-destructive/5 transition-colors"
+              className="flo-icon-btn !hidden md:!flex text-destructive/50 hover:bg-destructive/5 transition-colors"
               title="Log out"
             >
               <SignOut size={24} weight="light" />

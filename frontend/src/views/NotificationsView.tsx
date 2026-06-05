@@ -9,38 +9,7 @@ import { computeCycleDay } from "../lib/cycleUtils"
 import { sendEmailReminder } from "../lib/emailService"
 import { toast } from "sonner"
 import { partnerApi } from '../services/partnerService'
-
-function playNotificationSound() {
-  try {
-    const AudioContextClass = window.AudioContext || (window as Window & typeof globalThis & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
-    if (!AudioContextClass) return
-    const ctx = new AudioContextClass()
-    
-    const playNote = (frequency: number, startTime: number, duration: number) => {
-      const osc = ctx.createOscillator()
-      const gain = ctx.createGain()
-      
-      osc.type = 'sine'
-      osc.frequency.setValueAtTime(frequency, startTime)
-      
-      gain.gain.setValueAtTime(0, startTime)
-      gain.gain.linearRampToValueAtTime(0.12, startTime + 0.05)
-      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration)
-      
-      osc.connect(gain)
-      gain.connect(ctx.destination)
-      
-      osc.start(startTime)
-      osc.stop(startTime + duration)
-    }
-    
-    const now = ctx.currentTime
-    playNote(523.25, now, 0.3)
-    playNote(659.25, now + 0.12, 0.4)
-  } catch (e) {
-    console.error("Web Audio failed to play:", e)
-  }
-}
+import { playNotificationSound } from '../lib/sound'
 
 interface Notification {
   id: string
@@ -606,8 +575,13 @@ export function NotificationsView() {
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-1.5">
-                        <h3 className="font-normal text-[var(--mf-text-strong)] text-sm md:text-base leading-snug flex-1">
-                          {notification.title}
+                        <h3 className="font-normal text-[var(--mf-text-strong)] text-sm md:text-base leading-snug flex-1 flex items-center gap-2">
+                          <span>{notification.title}</span>
+                          {!readIds.has(notification.id) && (
+                            <span className="text-[10px] font-semibold tracking-wider uppercase text-[var(--mf-accent)] shrink-0">
+                              New
+                            </span>
+                          )}
                         </h3>
                         <span className="text-[10px] text-[var(--mf-muted)] uppercase font-medium tracking-wider shrink-0 hidden sm:inline">
                           {format(notification.time, 'HH:mm')}
@@ -631,10 +605,6 @@ export function NotificationsView() {
                           <EnvelopeSimple size={18} />
                         )}
                       </button>
-
-                      {!readIds.has(notification.id) && (
-                        <div className="size-3 rounded-full bg-[var(--mf-accent)] shadow-[0_0_8px_var(--mf-accent)] shrink-0" />
-                      )}
                     </div>
                   </div>
                 </div>

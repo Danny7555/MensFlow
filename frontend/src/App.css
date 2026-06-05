@@ -238,7 +238,11 @@
     transform: translateX(-100%);
     transition: transform 0.22s ease;
     box-shadow: var(--mf-shadow);
-    z-index: 50;
+    z-index: 150;
+  }
+
+  .sidebar-backdrop {
+    z-index: 140;
   }
 
   .sidebar.sidebar--collapsed {
@@ -2302,17 +2306,20 @@
     border-radius: 0;
     border: none;
     box-shadow: none;
-    height: 100%;
+    height: auto;
+    min-height: 100%;
+    background: var(--mf-main-bg);
+    overflow: visible;
   }
 
   .settings-shell-nav {
     width: 100%;
-    flex-direction: row;
-    flex-wrap: wrap;
+    flex-direction: column;
     border-right: none;
-    border-bottom: 1px solid var(--border);
-    padding: 0.5rem;
-    gap: 0.5rem;
+    border-bottom: none;
+    padding: 0.5rem 1rem 1rem;
+    background: transparent;
+    overflow-y: visible;
   }
 
   .settings-nav-item {
@@ -2325,7 +2332,13 @@
     font-size: 1.2rem;
   }
 
+  .settings-shell-main {
+    height: auto;
+    overflow: visible;
+  }
+
   .settings-panel-body {
+    overflow-y: visible;
     padding: 0 1rem calc(88px + env(safe-area-inset-bottom) + 1rem);
   }
 }
@@ -4847,10 +4860,12 @@
   .flo-header {
     padding: 0.85rem 0.75rem 0.5rem;
     border-bottom: 1px solid var(--mf-border);
+    min-width: 0;
   }
 
   .flo-header-left {
     gap: 0.75rem;
+    min-width: 0;
   }
 
   .flo-avatar-wrap {
@@ -4858,8 +4873,13 @@
     height: 40px;
   }
 
+  .flo-greeting {
+    min-width: 0;
+  }
+
   .flo-user-name {
     font-size: 1.15rem;
+    min-width: 0;
   }
 
   .flo-date {
@@ -5907,6 +5927,29 @@
       align-items: stretch !important;
       text-align: center;
       gap: 0.75rem;
+    }
+
+    .flo-header {
+      padding: 0.75rem 0.5rem 0.5rem !important;
+      gap: 0.25rem !important;
+    }
+
+    .flo-header-left {
+      gap: 0.5rem !important;
+    }
+
+    .flo-avatar-wrap {
+      width: 34px !important;
+      height: 34px !important;
+    }
+
+    .flo-user-name {
+      font-size: 1rem !important;
+      max-width: 170px !important;
+    }
+
+    .flo-header-right {
+      gap: 0.2rem !important;
     }
   }
 }

@@ -135,6 +135,7 @@
 
 [data-theme='light'] {
   color-scheme: light;
+  --background: #fdf6f9;
   --mf-text: #3d3a43;
   --mf-text-strong: #0c0a10;
   --mf-muted: #6f6a76;
@@ -1276,8 +1277,8 @@
 /* ─── Partner Empathy Support Theme ────────────────────────────────────────── */
 
 /* Partner theme — warm plum accent that complements the main pink palette */
-[data-theme='light'] .partner-theme,
-.partner-theme[data-theme='light'] {
+[data-theme='light'][data-accent='default'] .partner-theme,
+[data-accent='default'] .partner-theme[data-theme='light'] {
   --mf-accent: #7c3aed;
   --mf-accent-rgb: 124, 58, 237;
   --mf-accent-hover: #6d28d9;
@@ -1286,8 +1287,8 @@
   --mf-ring: rgba(124, 58, 237, 0.4);
 }
 
-[data-theme='dark'] .partner-theme,
-.partner-theme[data-theme='dark'] {
+[data-theme='dark'][data-accent='default'] .partner-theme,
+[data-accent='default'] .partner-theme[data-theme='dark'] {
   --mf-accent: #a78bfa;
   --mf-accent-rgb: 167, 139, 250;
   --mf-accent-hover: #c4b5fd;
@@ -1397,8 +1398,7 @@
 
   .flo-nav-item:active {
     background: transparent !important;
-    opacity: 0.65 !important;
-    transform: scale(0.95) !important;
+    opacity: 0.7 !important;
   }
 
   .flo-nav-item.flo-nav-item--active {
@@ -1418,36 +1418,54 @@
     margin-top: 1px !important;
   }
 
+  /* Base transitions for smooth release animation */
+  button:not(.flo-nav-item),
+  .btn,
+  .filter-chip,
+  .active-squish {
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
   /* Tactile iOS Feedback for generic buttons */
   button:not(.flo-nav-item):active,
   .btn:active,
   .filter-chip:active,
-  .ios-settings-row:active,
   .active-squish:active {
     opacity: 0.75 !important;
     transform: scale(0.96) !important;
-    transition: transform 0.1s ease, opacity 0.1s ease !important;
+    transition: transform 0.05s ease, opacity 0.05s ease !important;
   }
 
   /* iOS Bottom Sheets */
   [data-slot="dialog-content"] {
     position: fixed !important;
     top: auto !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    transform: none !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    border-radius: 20px 20px 0 0 !important;
+    bottom: max(12px, calc(12px + env(safe-area-inset-bottom))) !important;
+    left: 12px !important;
+    right: 12px !important;
+    --tw-translate-x: 0px !important;
+    --tw-translate-y: 0px !important;
+    --tw-enter-translate-x: 0px !important;
+    --tw-enter-translate-y: 0px !important;
+    width: calc(100% - 24px) !important;
+    max-width: 480px !important;
+    margin: 0 auto !important;
+    border-radius: 24px !important;
     border: none !important;
     border-top: 0.5px solid rgba(212, 188, 201, 0.4) !important;
     background: var(--mf-card) !important;
-    padding: 8px 16px calc(24px + env(safe-area-inset-bottom)) !important;
+    padding: 8px 16px 20px !important;
     max-height: 85vh !important;
     overflow-y: auto !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  [data-slot="dialog-content"][data-state="open"] {
     animation: ios-sheet-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
-    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.05) !important;
+  }
+
+  [data-slot="dialog-content"][data-state="closed"] {
+    animation: ios-sheet-down 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
   }
 
   [data-theme='dark'] [data-slot="dialog-content"] {
@@ -1472,12 +1490,47 @@
     -webkit-backdrop-filter: blur(4px) !important;
   }
 
+  [data-slot="dialog-overlay"][data-state="open"] {
+    animation: ios-fade-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  }
+
+  [data-slot="dialog-overlay"][data-state="closed"] {
+    animation: ios-fade-out 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  }
+
   @keyframes ios-sheet-up {
     from {
       transform: translateY(100%);
     }
     to {
       transform: translateY(0);
+    }
+  }
+
+  @keyframes ios-sheet-down {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(100%);
+    }
+  }
+
+  @keyframes ios-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes ios-fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
     }
   }
 }
@@ -1556,7 +1609,7 @@
 }
 
 .ios-settings-row:active {
-  background-color: var(--mf-hover);
+  background-color: var(--mf-active) !important;
 }
 
 .ios-settings-left {
