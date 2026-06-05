@@ -212,7 +212,7 @@ export function NotificationsView() {
         message: isPartner 
           ? `She is feeling: "${ping.label}" (${ping.message})`
           : `Partner says: "${ping.message}"`,
-        time: new Date(ping.timestamp),
+        time: (() => { const d = new Date(ping.timestamp); return isNaN(d.getTime()) ? new Date() : d; })(),
         type: 'info',
         read: readIds.has(pingId)
       })
@@ -584,7 +584,7 @@ export function NotificationsView() {
                           )}
                         </h3>
                         <span className="text-[10px] text-[var(--mf-muted)] uppercase font-medium tracking-wider shrink-0 hidden sm:inline">
-                          {format(notification.time, 'HH:mm')}
+                          {(() => { try { return format(notification.time, 'HH:mm'); } catch { return '--:--'; } })()}
                         </span>
                       </div>
                       <p className="text-xs md:text-sm text-[var(--mf-muted)] leading-relaxed font-normal">
