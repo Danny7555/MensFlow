@@ -138,8 +138,8 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden border-none rounded-[32px] bg-background">
-        <div className="p-8">
-          <DialogHeader className="mb-6">
+        <div className="p-0 sm:p-8">
+          <DialogHeader className="mb-4 sm:mb-6">
             <DialogTitle className="text-2xl font-normal tracking-tight">
               {isPartner ? `Partner Symptoms: Day ${activeDay}` : `Log Symptoms: Day ${activeDay}`}
             </DialogTitle>
@@ -148,7 +148,7 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
             </DialogDescription>
           </DialogHeader>
 
-          <div className={cn("space-y-6 max-h-[440px] overflow-y-auto pr-2 scrollbar-hide transition-opacity", isSaving && "opacity-50 pointer-events-none")}>
+          <div className={cn("space-y-4 sm:space-y-6 max-h-[440px] overflow-y-auto pr-2 scrollbar-hide transition-opacity", isSaving && "opacity-50 pointer-events-none")}>
             {categories.map((cat) => {
               const items = allSymptoms.filter(s => s.category === cat.name)
               if (items.length === 0) return null
@@ -293,7 +293,7 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
             )}
           </div>
 
-          <div className="mt-8 flex gap-3">
+          <div className="mt-6 sm:mt-8 flex gap-3">
             {isPartner ? (
               <button
                 type="button"

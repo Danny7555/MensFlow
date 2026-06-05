@@ -123,8 +123,8 @@ export function DashboardHeader({
         >
           <Ghost size={20} weight={temporaryChat ? "fill" : "regular"} />
         </m.button>
-        <m.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-          <Link to="/notifications" className="flo-icon-btn hidden md:flex hover:bg-muted/50 transition-colors relative" aria-label="Notifications">
+        <m.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="!hidden md:!block">
+          <Link to="/notifications" className="flo-icon-btn !hidden md:!flex hover:bg-muted/50 transition-colors relative" aria-label="Notifications">
             <Bell size={24} weight="light" />
             {unreadNotifications > 0 && (
               <span className="absolute -top-1 -right-1 size-5 rounded-full bg-[var(--mf-accent)] text-white text-[10px] font-bold flex items-center justify-center shadow-lg shadow-[var(--mf-accent)]/30 animate-in fade-in zoom-in-95 duration-200">
@@ -141,20 +141,20 @@ export function DashboardHeader({
         <m.button 
           whileHover={{ scale: 1.1, rotate: 15 }}
           whileTap={{ scale: 0.9 }}
-          className="flo-icon-btn hover:bg-muted/50 transition-colors"
+          className="flo-icon-btn !hidden md:!flex hover:bg-muted/50 transition-colors"
           onClick={onStartTour}
           title="Start Tour"
         >
           <Question size={24} weight="light" />
         </m.button>
-        <div className="w-px h-6 bg-border mx-2 opacity-50 hidden md:block" />
+        <div className="w-px h-6 bg-border mx-2 opacity-50 !hidden md:!block" />
         
         <Dialog>
           <DialogTrigger asChild>
             <m.button 
               whileHover={{ scale: 1.1, color: "var(--mf-danger)" }}
               whileTap={{ scale: 0.9 }}
-              className="flo-icon-btn hidden md:flex text-destructive/50 hover:bg-destructive/5 transition-colors"
+              className="flo-icon-btn !hidden md:!flex text-destructive/50 hover:bg-destructive/5 transition-colors"
               title="Log out"
             >
               <SignOut size={24} weight="light" />
