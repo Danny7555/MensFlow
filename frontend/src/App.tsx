@@ -22,6 +22,7 @@ import { AccessGate } from './components/AccessGate'
 import { Button } from './components/ui/button'
 import { SECURITY_QUESTIONS } from './lib/constants'
 import { getPasswordStrength } from './lib/passwordStrength'
+import { EducationView } from './views/EducationView'
 import './App.css'
 
 // Asynchronously Lazy Loaded Page Components
@@ -34,7 +35,6 @@ const SettingsView = lazy(() => import('./views/SettingsView').then(m => ({ defa
 const CalendarView = lazy(() => import('./views/CalendarView').then(m => ({ default: m.CalendarView })))
 const TrackerView = lazy(() => import('./views/TrackerView').then(m => ({ default: m.TrackerView })))
 const SymptomsView = lazy(() => import('./views/SymptomsView').then(m => ({ default: m.SymptomsView })))
-const EducationView = lazy(() => import('./views/EducationView').then(m => ({ default: m.EducationView })))
 const OnboardingView = lazy(() => import('./views/OnboardingView').then(m => ({ default: m.OnboardingView })))
 const NotificationsView = lazy(() => import('./views/NotificationsView').then(m => ({ default: m.NotificationsView })))
 const SyncView = lazy(() => import('./views/SyncView').then(m => ({ default: m.SyncView })))
@@ -409,7 +409,11 @@ function MainShell() {
           />
         )}
 
-        <div className={cn("app-main", location.pathname.startsWith('/onboarding') && "app-main--full")}>
+        <div className={cn(
+          "app-main",
+          location.pathname.startsWith('/onboarding') && "app-main--full",
+          !location.pathname.startsWith('/onboarding') && isAuthenticated && isMobile && "has-bottom-nav"
+        )}>
           {!location.pathname.startsWith('/onboarding') && location.pathname !== '/dashboard' && location.pathname !== '/' && (
             <Header
               isAuthenticated={isAuthenticated}
@@ -449,7 +453,14 @@ function MainShell() {
                 {!isAuthenticated ? (
                   <>
                     <Route path="/" element={<LandingView />} />
-                    <Route path="/onboarding" element={<OnboardingView />} />
+                    <Route 
+                      path="/onboarding" 
+                      element={
+                        onboardingCompleted 
+                          ? <Navigate to="/" replace /> 
+                          : <OnboardingView />
+                      } 
+                    />
                     <Route path="/settings" element={<SettingsView isGuest onLogin={openAuthModal} />} />
                     <Route path="/education" element={<EducationView />} />
                     
@@ -480,7 +491,14 @@ function MainShell() {
                               : <Navigate to="/dashboard" replace />)
                       } 
                     />
-                    <Route path="/onboarding" element={<OnboardingView />} />
+                    <Route 
+                      path="/onboarding" 
+                      element={
+                        onboardingCompleted 
+                          ? <Navigate to={user?.accessLevel === 'educational' ? "/education" : "/dashboard"} replace /> 
+                          : <OnboardingView />
+                      } 
+                    />
                     <Route path="/dashboard" element={<AccessGate><DashboardView /></AccessGate>} />
                     <Route path="/ask" element={<ChatLockGate><Suspense fallback={<PageLoader />}><ChatView /></Suspense></ChatLockGate>} />
                     <Route path="/settings" element={<SettingsView onLogout={handleLogout} />} />

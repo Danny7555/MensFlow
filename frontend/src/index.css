@@ -432,6 +432,7 @@
   }
   html, body {
     @apply bg-background text-foreground;
+    background-color: var(--mf-main-bg) !important;
     overflow-x: hidden;
     scroll-behavior: smooth;
   }
@@ -573,7 +574,7 @@
   flex-direction: column;
   height: 100vh;
   height: 100dvh;
-  background: var(--mf-background);
+  background: var(--mf-main-bg);
   color: var(--mf-text);
   padding: 0;
   width: 100%;
