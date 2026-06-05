@@ -155,7 +155,7 @@ export function RequestAccessModal({ open, onClose, onConfirm, isLoading }: Requ
                     >
                       {isChecked && (
                         <m.svg
-                          initial={{ scale: 0, opacity: 0 }}
+                          initial={{ scale: 0.95, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
                           transition={{ type: 'spring', stiffness: 400, damping: 20 }}
                           viewBox="0 0 12 10"
