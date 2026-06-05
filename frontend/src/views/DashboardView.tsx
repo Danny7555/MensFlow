@@ -619,7 +619,7 @@ export function DashboardView() {
 
 
   return (
-    <div className="dashboard-flo-theme relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="dashboard-flo-theme relative overflow-hidden animate-in fade-in duration-500">
       <AmbientBackground phase={phase} isPartner={isPartner} />
       {!isAuthenticated && (
         <div className="bg-gradient-to-r from-[var(--mf-accent)] to-[#f472b6] text-white py-2.5 px-4 text-center text-xs font-normal flex items-center justify-center gap-2 relative z-50 animate-in slide-in-from-top duration-500">
@@ -646,7 +646,7 @@ export function DashboardView() {
         notificationCount={dashboardNotificationCount}
       />
 
-      <main className="flo-main-container pb-32 px-4 md:px-0 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
+      <main className="flo-main-container pb-32 px-4 md:px-0">
         <div className="flo-content-inner">
           <div className="flo-dashboard-top mb-6 md:mb-8">
             {!settings.hideDailyStoriesAndTips && <StoriesSection />}

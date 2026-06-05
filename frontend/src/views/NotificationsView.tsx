@@ -575,8 +575,13 @@ export function NotificationsView() {
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-1.5">
-                        <h3 className="font-normal text-[var(--mf-text-strong)] text-sm md:text-base leading-snug flex-1">
-                          {notification.title}
+                        <h3 className="font-normal text-[var(--mf-text-strong)] text-sm md:text-base leading-snug flex-1 flex items-center gap-2">
+                          <span>{notification.title}</span>
+                          {!readIds.has(notification.id) && (
+                            <span className="text-[10px] font-semibold tracking-wider uppercase text-[var(--mf-accent)] shrink-0">
+                              New
+                            </span>
+                          )}
                         </h3>
                         <span className="text-[10px] text-[var(--mf-muted)] uppercase font-medium tracking-wider shrink-0 hidden sm:inline">
                           {format(notification.time, 'HH:mm')}
