@@ -3,7 +3,7 @@ import { use, useReducer, useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Joyride, STATUS, type EventData, type TooltipRenderProps } from 'react-joyride'
 import { m } from 'framer-motion'
-import { Plus, LinkSimple, Users, ArrowRight, Sparkle, Check, Cookie, CookingPot, Heart, Moon, HandWaving, LockSimple, PersonIcon } from '@phosphor-icons/react'
+import { Plus, LinkSimple, Users, ArrowRight, Sparkle, Check, Cookie, CookingPot, Heart, Moon, LockSimple, PersonIcon } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { useStore } from '../store/useStore'
 import { useAuth } from '../context/useAuth'
@@ -244,7 +244,7 @@ function TourTooltip({
 }
 
 export function DashboardView() {
-  const { dashboard: ownDashboard, partnerStatus, fetchPartnerStatus, updateDashboard: update, isSaving, user, pairPartner, requestDetailedAccessAction, settings, notificationCount, incrementNotificationCount } = useStore()
+  const { dashboard: ownDashboard, partnerStatus, fetchPartnerStatus, updateDashboard: update, isSaving, user, pairPartner, requestDetailedAccessAction, settings, notificationCount } = useStore()
   const { logout, isAuthenticated, openAuthModal } = useAuth()
   const { data: dailyGuidance } = useDailyGuidance()
 
@@ -377,117 +377,19 @@ export function DashboardView() {
   }
 
   useEffect(() => {
-    let active = true
-    const mountTime = Date.now()
-    const isAccessPing = (pingId?: string) => Boolean(pingId?.startsWith('access-'))
-
-    const handlePingEvent = (e?: StorageEvent) => {
-      if (e && e.key && e.key !== 'mensflow_partner_ping:v1') return
-      try {
-        const pingStr = localStorage.getItem('mensflow_partner_ping:v1')
-        if (pingStr) {
-          const ping = JSON.parse(pingStr)
-          if (ping && ping.timestamp) {
-            if (ping.senderId && ping.senderId === (user?.id || 'guest')) {
-              return
-            }
-            const lastProcessed = localStorage.getItem('mensflow_last_ping_processed:v1')
-            if (lastProcessed !== String(ping.timestamp)) {
-              localStorage.setItem('mensflow_last_ping_processed:v1', String(ping.timestamp))
-              incrementNotificationCount()
-              
-              const pingsListStr = localStorage.getItem('mensflow_received_pings_list:v1') || '[]'
-              const pingsList = JSON.parse(pingsListStr)
-              if (!pingsList.some((p: any) => p.timestamp === ping.timestamp)) {
-                pingsList.push({
-                  id: ping.pingId || `ping-${ping.timestamp}`,
-                  label: ping.label,
-                  message: ping.message,
-                  timestamp: ping.timestamp,
-                  senderId: ping.senderId
-                })
-                localStorage.setItem('mensflow_received_pings_list:v1', JSON.stringify(pingsList))
-              }
-
-              if (isAccessPing(ping.pingId)) {
-                void fetchPartnerStatus()
-                setRequestSent(false)
-              }
-              // Only toast if the message is fresh (sent after mount or within the last 15 seconds)
-              if (ping.timestamp > mountTime - 15000) {
-                toast.info(user?.role === 'lady' ? "Support Update received!" : "Partner Update received!", {
-                  icon: <HandWaving size={16} weight="fill" className="text-amber-500" />,
-                  description: user?.role === 'lady' ? `Partner says: "${ping.message}"` : `She is: "${ping.label}" (${ping.message})`,
-                  duration: 8000,
-                })
-              }
-            }
-          }
-        }
-      } catch (err) {
-        console.error("Failed to parse local storage ping", err)
+    const handlePingReceived = (e: Event) => {
+      const customEvent = e as CustomEvent
+      const ping = customEvent.detail
+      const isAccessPing = (pingId?: string) => Boolean(pingId?.startsWith('access-'))
+      if (ping && isAccessPing(ping.pingId)) {
+        setRequestSent(false)
       }
     }
-
-    window.addEventListener('storage', handlePingEvent as EventListener)
-
-    // Trigger check immediately in case storage is already set or on initial mount
-    handlePingEvent()
-
-    let interval: ReturnType<typeof setInterval> | null = null
-
-    if (isAuthenticated) {
-      const checkLatestPing = () => {
-        partnerApi.getLatestPing()
-          .then((ping) => {
-            if (!active) return
-            if (ping) {
-              const lastProcessed = localStorage.getItem('mensflow_last_ping_processed:v1')
-              if (lastProcessed !== String(ping.timestamp)) {
-                localStorage.setItem('mensflow_last_ping_processed:v1', String(ping.timestamp))
-                incrementNotificationCount()
-                
-                const pingsListStr = localStorage.getItem('mensflow_received_pings_list:v1') || '[]'
-                const pingsList = JSON.parse(pingsListStr)
-                if (!pingsList.some((p: any) => p.timestamp === ping.timestamp)) {
-                  pingsList.push({
-                    id: ping.pingId || `ping-${ping.timestamp}`,
-                    label: ping.label,
-                    message: ping.message,
-                    timestamp: ping.timestamp,
-                    senderId: ping.senderId
-                  })
-                  localStorage.setItem('mensflow_received_pings_list:v1', JSON.stringify(pingsList))
-                }
-
-                if (isAccessPing(ping.pingId)) {
-                  void fetchPartnerStatus()
-                  setRequestSent(false)
-                }
-                // Only toast if the message is fresh (sent after mount or within the last 15 seconds)
-                if (ping.timestamp > mountTime - 15000) {
-                  toast.info(user?.role === 'lady' ? "Support Update received!" : "Partner Update received!", {
-                    icon: <HandWaving size={16} weight="fill" className="text-amber-500" />,
-                    description: user?.role === 'lady' ? `Partner says: "${ping.message}"` : `She is: "${ping.label}" (${ping.message})`,
-                    duration: 8000,
-                  })
-                }
-              }
-            }
-          })
-          .catch((e) => console.error("Failed to fetch latest partner ping", e))
-      }
-
-      checkLatestPing()
-      interval = setInterval(checkLatestPing, 10000)
-    }
-
+    window.addEventListener('mensflow_ping_received', handlePingReceived)
     return () => {
-      active = false
-      window.removeEventListener('storage', handlePingEvent as EventListener)
-      if (interval) clearInterval(interval)
+      window.removeEventListener('mensflow_ping_received', handlePingReceived)
     }
-  }, [isAuthenticated, user?.role, fetchPartnerStatus, incrementNotificationCount])
+  }, [])
 
   useEffect(() => {
     const hasSeenTour = sessionStorage.getItem('mensflow_tour_completed')

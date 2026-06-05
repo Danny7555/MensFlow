@@ -15,6 +15,7 @@ import { Sidebar } from './components/Sidebar'
 import { House, Target, Heartbeat, Bell, UserCircle, BookOpen, ChatCircle, Lock, LockKey, ShieldCheck, WarningCircle, CheckCircle, Sparkle } from '@phosphor-icons/react'
 import { useMediaQuery } from './hooks/useMediaQuery'
 import { useSmartPushNotifications } from './hooks/useSmartPushNotifications'
+import { useNotificationsListener } from './hooks/useNotificationsListener'
 import { PageLoader } from './components/skeletons/PageLoader'
 import { ScrollToTop } from './components/ScrollToTop'
 import { AccessGate } from './components/AccessGate'
@@ -328,7 +329,7 @@ function ChatLockGate({ children }: { children: React.ReactNode }) {
 function MainShell() {
   useReactQuerySync()
   const { isAuthenticated, onboardingCompleted, logout, openAuthModal, isRehydrating } = useAuth()
-  const { settings, updateSettings, user } = useStore()
+  const { settings, updateSettings, user, notificationCount } = useStore()
   const navigate = useNavigate()
   const location = useLocation()
   const isMobile = useMediaQuery('(max-width: 768px)')
@@ -338,6 +339,10 @@ function MainShell() {
 
   // Fire smart browser push notifications based on real cycle data
   useSmartPushNotifications()
+  // Globally listen for and process real-time notifications
+  useNotificationsListener()
+
+  const dashboardNotificationCount = notificationCount + (user?.role === 'lady' && settings.privacyPendingAccessRequest ? 1 : 0)
 
   const handleLogout = useCallback(() => {
     logout()
@@ -534,7 +539,14 @@ function MainShell() {
                   className={cn("flo-nav-item", location.pathname === '/notifications' && "flo-nav-item--active")}
                   onClick={() => navigate('/notifications')}
                 >
-                  <Bell size={24} weight={location.pathname === '/notifications' ? "fill" : "light"} />
+                  <div className="relative">
+                    <Bell size={24} weight={location.pathname === '/notifications' ? "fill" : "light"} />
+                    {dashboardNotificationCount > 0 && (
+                      <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-[var(--mf-accent)] text-white text-[9px] font-bold flex items-center justify-center shadow-md animate-in fade-in zoom-in-95 duration-200">
+                        {dashboardNotificationCount > 99 ? '99+' : dashboardNotificationCount}
+                      </span>
+                    )}
+                  </div>
                   <span className="flo-nav-label">Alerts</span>
                 </button>
                 <button type="button" 
