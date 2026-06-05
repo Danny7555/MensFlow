@@ -2,6 +2,7 @@ import { useState, useEffect, Fragment, useCallback } from 'react'
 import { useQueryState, parseAsStringEnum } from 'nuqs'
 import { cn } from '../lib/utils'
 import { useAuth } from '@/context/useAuth'
+import { resolveAssetUrl } from '../lib/apiClient'
 import { TipsSkeleton } from '../components/skeletons/TipsSkeleton'
 import { DailyQuiz } from '../components/dashboard/DailyCheckIn'
 import { educationApi } from '../services/educationService'
@@ -41,6 +42,7 @@ interface ArticleCardProps {
 
 function ArticleCard({ article, isFeatured, isAuthenticated, onEdit, onDelete }: ArticleCardProps) {
   const IconComponent = ICON_MAP[article.iconName] || BookOpen
+  const [imageError, setImageError] = useState(false)
 
   return (
     <Fragment>
@@ -73,16 +75,16 @@ function ArticleCard({ article, isFeatured, isAuthenticated, onEdit, onDelete }:
 
         {isFeatured ? (
           <div className="absolute -right-8 -bottom-8 opacity-[0.15] pointer-events-none rotate-6">
-            {article.image ? (
-              <img src={article.image} alt="" className="size-[300px] object-cover rounded-full" />
+            {article.image && !imageError ? (
+              <img src={resolveAssetUrl(article.image)} alt="" className="size-[300px] object-cover rounded-full" onError={() => setImageError(true)} />
             ) : (
               <IconComponent size={340} weight="duotone" className="text-[var(--mf-accent)]" />
             )}
           </div>
         ) : (
           <div className="absolute -right-4 -bottom-4 opacity-[0.1] pointer-events-none">
-            {article.image ? (
-              <img src={article.image} alt="" className="size-[120px] object-cover rounded-full" />
+            {article.image && !imageError ? (
+              <img src={resolveAssetUrl(article.image)} alt="" className="size-[120px] object-cover rounded-full" onError={() => setImageError(true)} />
             ) : (
               <IconComponent size={180} weight="duotone" />
             )}
@@ -93,9 +95,9 @@ function ArticleCard({ article, isFeatured, isAuthenticated, onEdit, onDelete }:
           <div>
             <div className="flex items-center justify-between">
               <div className={cn('text-foreground', isFeatured && 'text-[var(--mf-accent)]')}>
-                {article.image ? (
+                {article.image && !imageError ? (
                   <div className="size-12 rounded-xl overflow-hidden border border-border/30">
-                    <img src={article.image} alt="" className="size-full object-cover" />
+                    <img src={resolveAssetUrl(article.image)} alt="" className="size-full object-cover" onError={() => setImageError(true)} />
                   </div>
                 ) : (
                   <IconComponent size={isFeatured ? 44 : 32} weight="duotone" />
