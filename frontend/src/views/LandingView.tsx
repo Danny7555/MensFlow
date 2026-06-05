@@ -209,7 +209,7 @@ export function LandingView() {
           />
         </div>
 
-        {!onboardingCompleted && messages.length === 0 && (
+        {!onboardingCompleted && messages.length === 0 ? (
           <>
             <div className="landing-cta-divider">
               <span>or</span>
@@ -223,6 +223,29 @@ export function LandingView() {
               <CaretRight className="size-5" />
             </button>
           </>
+        ) : (
+          onboardingCompleted && messages.length === 0 && (
+            <>
+              <div className="landing-cta-divider">
+                <span>or</span>
+              </div>
+
+              <div className="flex gap-4 w-full max-w-[340px] mt-1">
+                <button type="button" 
+                  onClick={() => openAuthModal('login')}
+                  className="btn btn-secondary flex-1 h-[3.25rem] rounded-full font-semibold cursor-pointer active-squish shadow-xs"
+                >
+                  Log in
+                </button>
+                <button type="button" 
+                  onClick={() => openAuthModal('register')}
+                  className="btn btn-primary flex-1 h-[3.25rem] rounded-full font-semibold cursor-pointer active-squish shadow-sm bg-gradient-to-r from-[var(--mf-accent)] to-[var(--mf-accent-hover,#ff5277)]"
+                >
+                  Create account
+                </button>
+              </div>
+            </>
+          )
         )}
       </div>
     </div>
