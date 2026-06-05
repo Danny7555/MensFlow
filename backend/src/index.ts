@@ -26,6 +26,14 @@ import { ensureUploadDirectories } from './controllers/uploadController';
 const app = express();
 const isVercel = process.env.VERCEL === '1' || !!process.env.VERCEL;
 
+// ─── Trust proxy (MUST be set before rate-limiters) ──────────────────────────
+// Vercel and all load-balancer environments set X-Forwarded-For.
+// Without this, express-rate-limit throws ERR_ERL_UNEXPECTED_X_FORWARDED_FOR
+// on every request and cannot identify the real client IP.
+if (isVercel || isProduction) {
+  app.set('trust proxy', 1); // trust the first hop (Vercel edge)
+}
+
 // ─── Global Middleware ────────────────────────────────────────────────────────
 
 app.disable('x-powered-by');
@@ -57,6 +65,8 @@ app.use(express.text({ limit: '64kb' }));
 app.use('/uploads', express.static(path.resolve(process.cwd(), 'public/uploads')));
 
 // Lazy DB connection for Serverless environments (Vercel)
+// The dbConnected flag is reset on disconnect so the next request
+// triggers a fresh connectDatabase() call rather than hitting a dead socket.
 let dbConnected = false;
 app.use(async (_req: Request, _res: Response, next: NextFunction) => {
   if (isVercel && !dbConnected) {
@@ -68,6 +78,12 @@ app.use(async (_req: Request, _res: Response, next: NextFunction) => {
     }
   }
   next();
+});
+
+// Reset the dbConnected flag whenever Mongoose drops the connection so that
+// the lazy-connect middleware above will re-establish it on the next request.
+mongoose.connection.on('disconnected', () => {
+  dbConnected = false;
 });
 
 // ─── Request Logger (development) ────────────────────────────────────────────
