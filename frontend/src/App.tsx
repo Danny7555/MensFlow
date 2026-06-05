@@ -333,6 +333,16 @@ function MainShell() {
   const navigate = useNavigate()
   const location = useLocation()
   const isMobile = useMediaQuery('(max-width: 768px)')
+  const handleTabClick = (path: string) => {
+    if ('vibrate' in navigator) {
+      try {
+        navigator.vibrate(15);
+      } catch (e) {
+        // ignore
+      }
+    }
+    navigate(path);
+  }
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [temporaryChat, setTemporaryChat] = useState(false)
   const contextValue = useMemo(() => ({ temporaryChat, setTemporaryChat }), [temporaryChat])
@@ -500,21 +510,21 @@ function MainShell() {
               <>
                 <button type="button" 
                   className={cn("flo-nav-item", location.pathname === '/education' && "flo-nav-item--active")}
-                  onClick={() => navigate('/education')}
+                  onClick={() => handleTabClick('/education')}
                 >
                   <BookOpen size={24} weight={location.pathname === '/education' ? "fill" : "regular"} />
                   <span className="flo-nav-label">Education</span>
                 </button>
                 <button type="button" 
                   className={cn("flo-nav-item", location.pathname === '/ask' && "flo-nav-item--active")}
-                  onClick={() => navigate('/ask')}
+                  onClick={() => handleTabClick('/ask')}
                 >
                   <ChatCircle size={24} weight={location.pathname === '/ask' ? "fill" : "regular"} />
                   <span className="flo-nav-label">Ask AI</span>
                 </button>
                 <button type="button" 
                   className={cn("flo-nav-item", location.pathname === '/settings' && "flo-nav-item--active")}
-                  onClick={() => navigate('/settings')}
+                  onClick={() => handleTabClick('/settings')}
                 >
                   <UserCircle size={24} weight={location.pathname === '/settings' ? "fill" : "light"} />
                   <span className="flo-nav-label">Profile</span>
@@ -524,28 +534,28 @@ function MainShell() {
               <>
                 <button type="button" 
                   className={cn("flo-nav-item", location.pathname === '/dashboard' && "flo-nav-item--active")}
-                  onClick={() => navigate('/dashboard')}
+                  onClick={() => handleTabClick('/dashboard')}
                 >
                   <House size={24} weight={location.pathname === '/dashboard' ? "fill" : "regular"} />
                   <span className="flo-nav-label">Home</span>
                 </button>
                 <button type="button" 
                   className={cn("flo-nav-item", (location.pathname === '/insights' || location.pathname === '/health-insights') && "flo-nav-item--active")}
-                  onClick={() => navigate('/insights')}
+                  onClick={() => handleTabClick('/insights')}
                 >
                   <Target size={24} weight={(location.pathname === '/insights' || location.pathname === '/health-insights') ? "fill" : "regular"} />
                   <span className="flo-nav-label">Insights</span>
                 </button>
                 <button type="button" 
                   className={cn("flo-nav-item", (location.pathname === '/tips' || location.pathname === '/wellness-tips') && "flo-nav-item--active")}
-                  onClick={() => navigate('/tips')}
+                  onClick={() => handleTabClick('/tips')}
                 >
                   <Heartbeat size={24} weight={(location.pathname === '/tips' || location.pathname === '/wellness-tips') ? "fill" : "light"} />
                   <span className="flo-nav-label">Wellness</span>
                 </button>
                 <button type="button" 
                   className={cn("flo-nav-item", location.pathname === '/notifications' && "flo-nav-item--active")}
-                  onClick={() => navigate('/notifications')}
+                  onClick={() => handleTabClick('/notifications')}
                 >
                   <div className="relative">
                     <Bell size={24} weight={location.pathname === '/notifications' ? "fill" : "light"} />
@@ -559,7 +569,7 @@ function MainShell() {
                 </button>
                 <button type="button" 
                   className={cn("flo-nav-item", location.pathname === '/settings' && "flo-nav-item--active")}
-                  onClick={() => navigate('/settings')}
+                  onClick={() => handleTabClick('/settings')}
                 >
                   <UserCircle size={24} weight={location.pathname === '/settings' ? "fill" : "light"} />
                   <span className="flo-nav-label">Profile</span>

@@ -1398,8 +1398,7 @@
 
   .flo-nav-item:active {
     background: transparent !important;
-    opacity: 0.65 !important;
-    transform: scale(0.95) !important;
+    opacity: 0.7 !important;
   }
 
   .flo-nav-item.flo-nav-item--active {
@@ -1419,15 +1418,22 @@
     margin-top: 1px !important;
   }
 
+  /* Base transitions for smooth release animation */
+  button:not(.flo-nav-item),
+  .btn,
+  .filter-chip,
+  .active-squish {
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
   /* Tactile iOS Feedback for generic buttons */
   button:not(.flo-nav-item):active,
   .btn:active,
   .filter-chip:active,
-  .ios-settings-row:active,
   .active-squish:active {
     opacity: 0.75 !important;
     transform: scale(0.96) !important;
-    transition: transform 0.1s ease, opacity 0.1s ease !important;
+    transition: transform 0.05s ease, opacity 0.05s ease !important;
   }
 
   /* iOS Bottom Sheets */
@@ -1451,8 +1457,15 @@
     padding: 8px 16px 20px !important;
     max-height: 85vh !important;
     overflow-y: auto !important;
-    animation: ios-sheet-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  [data-slot="dialog-content"][data-state="open"] {
+    animation: ios-sheet-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  }
+
+  [data-slot="dialog-content"][data-state="closed"] {
+    animation: ios-sheet-down 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
   }
 
   [data-theme='dark'] [data-slot="dialog-content"] {
@@ -1477,12 +1490,47 @@
     -webkit-backdrop-filter: blur(4px) !important;
   }
 
+  [data-slot="dialog-overlay"][data-state="open"] {
+    animation: ios-fade-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  }
+
+  [data-slot="dialog-overlay"][data-state="closed"] {
+    animation: ios-fade-out 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  }
+
   @keyframes ios-sheet-up {
     from {
       transform: translateY(100%);
     }
     to {
       transform: translateY(0);
+    }
+  }
+
+  @keyframes ios-sheet-down {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(100%);
+    }
+  }
+
+  @keyframes ios-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes ios-fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
     }
   }
 }
@@ -1561,7 +1609,7 @@
 }
 
 .ios-settings-row:active {
-  background-color: var(--mf-hover);
+  background-color: var(--mf-active) !important;
 }
 
 .ios-settings-left {
