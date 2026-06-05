@@ -600,10 +600,6 @@ export function NotificationsView() {
                           <EnvelopeSimple size={18} />
                         )}
                       </button>
-
-                      {!readIds.has(notification.id) && (
-                        <div className="size-3 rounded-full bg-[var(--mf-accent)] shadow-[0_0_8px_var(--mf-accent)] shrink-0" />
-                      )}
                     </div>
                   </div>
                 </div>
