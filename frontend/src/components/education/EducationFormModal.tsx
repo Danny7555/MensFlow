@@ -1,6 +1,7 @@
 import { useReducer } from 'react'
 import { cn } from '../../lib/utils'
 import { toast } from 'sonner'
+import { resolveAssetUrl } from '../../lib/apiClient'
 import {
   Dialog,
   DialogContent,
@@ -284,7 +285,7 @@ export function EducationFormModal({ open, editingArticle, onClose, onSaved }: E
               <div className="flex gap-3 items-center">
                 {form.image && (
                   <div className="size-10 rounded-xl overflow-hidden border border-border shrink-0 bg-muted">
-                    <img src={form.image} alt="" className="size-full object-cover" />
+                    <img src={resolveAssetUrl(form.image)} alt="" className="size-full object-cover" />
                   </div>
                 )}
                 <input
