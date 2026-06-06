@@ -73,6 +73,7 @@ export function CalendarView() {
       .withDefault('month')
       .withOptions({ shallow: false })
   )
+  const [isDetailSheetOpen, setIsDetailSheetOpen] = React.useState(true)
   
   const [state, dispatch] = React.useReducer(calendarReducer, {
     viewDate: new Date(2026, 4, 1),
@@ -223,7 +224,10 @@ export function CalendarView() {
               isEditingPeriods={isEditingPeriods}
               periodDates={periodDates}
               data={data}
-              dispatch={dispatch}
+              onSelectDate={(date) => {
+                dispatch({ type: "SET_SELECTED_DATE", payload: date })
+                setIsDetailSheetOpen(true)
+              }}
               onTogglePeriod={handleTogglePeriod}
             />
           ) : (
@@ -258,7 +262,13 @@ export function CalendarView() {
         </div>
       </div>
 
-      <DetailSheet selectedDate={selectedDate} isAuthenticated={isAuthenticated} onOpenAuth={openAuthModal} />
+      <DetailSheet
+        selectedDate={selectedDate}
+        isAuthenticated={isAuthenticated}
+        isOpen={isDetailSheetOpen}
+        onClose={() => setIsDetailSheetOpen(false)}
+        onOpenAuth={openAuthModal}
+      />
     </div>
   )
 }
@@ -269,7 +279,7 @@ function MonthView({
   isEditingPeriods, 
   periodDates, 
   data,
-  dispatch,
+  onSelectDate,
   onTogglePeriod 
 }: { 
   viewDate: Date
@@ -277,7 +287,7 @@ function MonthView({
   isEditingPeriods: boolean
   periodDates: Set<string>
   data: { lastPeriodStart: string; typicalCycleDays: number }
-  dispatch: React.Dispatch<CalendarAction>
+  onSelectDate: (date: Date) => void
   onTogglePeriod: (dateKey: string) => void
 }) {
   const year = viewDate.getFullYear()
@@ -291,7 +301,7 @@ function MonthView({
     if (isEditingPeriods) {
       onTogglePeriod(dateToKey(d))
     } else {
-      dispatch({ type: "SET_SELECTED_DATE", payload: new Date(year, month, d) })
+      onSelectDate(new Date(year, month, d))
     }
   }
 
@@ -438,7 +448,19 @@ function computeCycleDayForDate(targetDate: Date, startIso: string, cycleLen: nu
   return m + 1
 }
 
-function DetailSheet({ selectedDate, isAuthenticated, onOpenAuth }: { selectedDate: Date, isAuthenticated: boolean, onOpenAuth: () => void }) {
+function DetailSheet({
+  selectedDate,
+  isAuthenticated,
+  isOpen,
+  onClose,
+  onOpenAuth
+}: {
+  selectedDate: Date
+  isAuthenticated: boolean
+  isOpen: boolean
+  onClose: () => void
+  onOpenAuth: () => void
+}) {
   const { dashboard: ownDashboard, user, partnerStatus } = useStore()
   const isPartner = user?.role === 'partner'
   const data = (isPartner && partnerStatus?.paired && partnerStatus?.cycle) ? partnerStatus.cycle : ownDashboard
@@ -447,6 +469,8 @@ function DetailSheet({ selectedDate, isAuthenticated, onOpenAuth }: { selectedDa
   const displayCycleDay = React.useMemo(() => {
     return computeCycleDayForDate(selectedDate, data.lastPeriodStart, data.typicalCycleDays)
   }, [selectedDate, data.lastPeriodStart, data.typicalCycleDays])
+
+  if (!isOpen) return null
 
   return (
     <div className="sticky bottom-0 z-20 w-full">
@@ -477,7 +501,12 @@ function DetailSheet({ selectedDate, isAuthenticated, onOpenAuth }: { selectedDa
               Cycle Day {displayCycleDay}
             </p>
           </div>
-          <button type="button" className="text-muted-foreground hover:text-foreground transition-colors p-2">
+          <button
+            type="button"
+            className="text-muted-foreground hover:text-foreground transition-colors p-2"
+            onClick={onClose}
+            aria-label="Close day details"
+          >
             <X size={20} />
           </button>
         </div>
