@@ -28,6 +28,7 @@ export type MensFlowSettings = {
   chatEnterToSend: boolean
   chatShowTimestamps: boolean
   cycleAvgLengthDays: number
+  cyclePeriodLengthDays: number
   cycleShowFertileWindow: boolean
   privacyShareCycleDetails: boolean
   privacyShareSymptomLogs: boolean
@@ -71,6 +72,7 @@ export const DEFAULT_SETTINGS: MensFlowSettings = {
   chatEnterToSend: true,
   chatShowTimestamps: false,
   cycleAvgLengthDays: 28,
+  cyclePeriodLengthDays: 5,
   cycleShowFertileWindow: true,
   privacyShareCycleDetails: false,
   privacyShareSymptomLogs: false,

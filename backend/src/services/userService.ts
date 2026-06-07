@@ -242,6 +242,7 @@ function toSettings(settings: SettingsDocument): ISettings {
     chatEnterToSend: settings.chatEnterToSend,
     chatShowTimestamps: settings.chatShowTimestamps,
     cycleAvgLengthDays: settings.cycleAvgLengthDays,
+    cyclePeriodLengthDays: settings.cyclePeriodLengthDays ?? 5,
     cycleShowFertileWindow: settings.cycleShowFertileWindow,
     privacyShareCycleDetails: settings.privacyShareCycleDetails,
     privacyShareSymptomLogs: settings.privacyShareSymptomLogs ?? false,

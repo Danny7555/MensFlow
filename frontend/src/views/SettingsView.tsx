@@ -693,6 +693,23 @@ function PersonalizationPanel({
           className="settings-range"
         />
       </div>
+      <div className="settings-slider-row">
+        <label htmlFor="period-duration" className="settings-field-label">
+          Period duration
+        </label>
+        <div className="settings-slider-val">{settings.cyclePeriodLengthDays} days</div>
+        <input
+          id="period-duration"
+          type="range"
+          min={1}
+          max={14}
+          value={settings.cyclePeriodLengthDays}
+          onChange={(e) =>
+            updateSettings({ cyclePeriodLengthDays: Number(e.target.value) })
+          }
+          className="settings-range"
+        />
+      </div>
       <ToggleRow
         label="Show fertile window hints"
         checked={settings.cycleShowFertileWindow}
@@ -1697,6 +1714,7 @@ export function SettingsView({
     notificationsEmail:          (v) => v ? 'Email digest on' : 'Email digest off',
     notificationsProduct:        (v) => v ? 'Product tips on' : 'Product tips off',
     cycleAvgLengthDays:          (v) => `Average cycle length set to ${v} days`,
+    cyclePeriodLengthDays:       (v) => `Period duration set to ${v} days`,
     cycleShowFertileWindow:      (v) => v ? 'Fertile window hints on' : 'Fertile window hints hidden',
     conditionOptimization:       (v) => {
       const map: Record<string, string> = {

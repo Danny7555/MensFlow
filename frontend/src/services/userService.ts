@@ -42,6 +42,7 @@ export type ApiSettings = {
   chatEnterToSend: boolean
   chatShowTimestamps: boolean
   cycleAvgLengthDays: number
+  cyclePeriodLengthDays: number
   cycleShowFertileWindow: boolean
   privacyShareCycleDetails: boolean
   privacyShareSymptomLogs: boolean
@@ -116,4 +117,3 @@ export const userApi = {
 export const userKeys = {
   profile: ['userProfile'] as const,
 }
-

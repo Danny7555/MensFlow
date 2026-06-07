@@ -62,7 +62,7 @@ import { useAuth } from "@/context/useAuth"
 
 export function CalendarView() {
   const { isAuthenticated, openAuthModal } = useAuth()
-  const { user, logs, fetchLogs, addLog, dashboard: ownDashboard, partnerStatus, fetchPartnerStatus, requestDetailedAccessAction, isSaving } = useStore()
+  const { user, logs, fetchLogs, addLog, dashboard: ownDashboard, settings, partnerStatus, fetchPartnerStatus, requestDetailedAccessAction, isSaving } = useStore()
   const [showAccessModal, setShowAccessModal] = React.useState(false)
   const [requestSent, setRequestSent] = React.useState(false)
   const isPartner = user?.role === 'partner'
@@ -93,6 +93,7 @@ export function CalendarView() {
     periodDates: new Set<string>(),
     today: new Date(2026, 4, 20)
   })
+  const { viewDate, selectedDate, isEditingPeriods, periodDates } = state
 
   React.useEffect(() => {
     const clientToday = new Date()
@@ -121,8 +122,20 @@ export function CalendarView() {
         dates.add(log.date)
       }
     })
+
+    const periodStart = data.lastPeriodStart || getLatestLoggedPeriodStart(logs)
+    if (periodStart) {
+      addPredictedPeriodDates({
+        dates,
+        periodStart,
+        cycleLength: data.typicalCycleDays || settings.cycleAvgLengthDays,
+        periodDuration: settings.cyclePeriodLengthDays,
+        viewYear: viewDate.getFullYear(),
+      })
+    }
+
     dispatch({ type: "SET_PERIOD_DATES", payload: dates })
-  }, [logs])
+  }, [data.lastPeriodStart, data.typicalCycleDays, logs, settings.cycleAvgLengthDays, settings.cyclePeriodLengthDays, viewDate])
 
   const handleTogglePeriod = async (dateKey: string) => {
     dispatch({ type: "TOGGLE_PERIOD_DATE", payload: dateKey })
@@ -140,8 +153,6 @@ export function CalendarView() {
 
     await addLog(dateKey, nextSymptoms)
   }
-
-  const { viewDate, selectedDate, isEditingPeriods, periodDates } = state
 
   const year = viewDate.getFullYear()
   const month = viewDate.getMonth()
@@ -492,6 +503,65 @@ function computeCycleDayForDate(targetDate: Date, startIso: string, cycleLen: nu
   const days = Math.floor((+target - +start) / 86400000)
   const m = ((days % cycleLen) + cycleLen) % cycleLen
   return m + 1
+}
+
+function getLatestLoggedPeriodStart(logs: Array<{ date: string; symptoms: string[] }>) {
+  const flowDates = logs
+    .filter((log) => log.symptoms.some((symptom) => symptom.startsWith('flow-')))
+    .map((log) => log.date)
+    .sort()
+
+  let latestStart = ''
+  let previousDate: Date | null = null
+
+  flowDates.forEach((date) => {
+    const current = new Date(`${date}T12:00:00`)
+    const isNewPeriod = !previousDate || Math.round((+current - +previousDate) / 86400000) > 1
+    if (isNewPeriod) latestStart = date
+    previousDate = current
+  })
+
+  return latestStart
+}
+
+function addPredictedPeriodDates({
+  dates,
+  periodStart,
+  cycleLength,
+  periodDuration,
+  viewYear,
+}: {
+  dates: Set<string>
+  periodStart: string
+  cycleLength: number
+  periodDuration: number
+  viewYear: number
+}) {
+  const safeCycleLength = Math.min(60, Math.max(15, Math.round(cycleLength || 28)))
+  const safePeriodDuration = Math.min(14, Math.max(1, Math.round(periodDuration || 5)))
+  const windowStart = new Date(viewYear - 1, 0, 1, 12)
+  const windowEnd = new Date(viewYear + 1, 11, 31, 12)
+  const start = new Date(`${periodStart}T12:00:00`)
+  if (Number.isNaN(+start)) return
+
+  while (start > windowStart) {
+    start.setDate(start.getDate() - safeCycleLength)
+  }
+
+  while (start <= windowEnd) {
+    for (let offset = 0; offset < safePeriodDuration; offset += 1) {
+      const periodDate = new Date(start)
+      periodDate.setDate(start.getDate() + offset)
+      if (periodDate >= windowStart && periodDate <= windowEnd) {
+        dates.add(toDateKey(periodDate))
+      }
+    }
+    start.setDate(start.getDate() + safeCycleLength)
+  }
+}
+
+function toDateKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
 function DetailSheet({
