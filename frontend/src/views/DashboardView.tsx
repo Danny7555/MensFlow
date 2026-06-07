@@ -708,7 +708,7 @@ export function DashboardView() {
 
           {isPartner ? (
             /* PARTNER PLAYBOOK LAYOUT */
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 md:gap-8 w-full min-w-0">
+            <div className="dashboard-responsive-grid">
               {/* Left Column: Primary Empathy & Playbook Tools */}
               <div className="flex flex-col gap-6 md:gap-8 min-w-0">
                 {!settings.hideDailyStoriesAndTips && (
@@ -825,7 +825,7 @@ export function DashboardView() {
             </div>
           ) : (
             /* LADY TRACKING LAYOUT */
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 md:gap-8 w-full min-w-0">
+            <div className="dashboard-responsive-grid">
               {/* Left Main Content */}
               <div className="flex flex-col gap-6 md:gap-8 min-w-0">
                 <section className="flo-hero-panel min-w-0" aria-label="Cycle overview">
