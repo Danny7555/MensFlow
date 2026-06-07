@@ -19,6 +19,11 @@ Express + TypeScript + MongoDB (Mongoose) API powering MensFlow. Deployed on Ver
     EMAIL_PASS=your_email_password
     FRONTEND_URL=http://localhost:5173
     ```
+    For production image uploads on Vercel, create a Vercel Blob store and add:
+    ```env
+    BLOB_READ_WRITE_TOKEN=vercel_blob_rw_...
+    ```
+    Without this token, uploads fall back to local `public/uploads`, which is only suitable for local development.
 
 3.  **Run in development mode (with hot reloading):**
     ```bash
