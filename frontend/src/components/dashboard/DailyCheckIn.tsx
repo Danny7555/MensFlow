@@ -47,7 +47,7 @@ function SymptomBubble({ sym, active, onClick }: SymptomBubbleProps) {
       type="button"
       onClick={onClick}
       className={cn(
-        "flex flex-col items-center gap-1 md:gap-2 p-2 md:p-3 min-w-[60px] md:min-w-[76px] transition-all duration-300 active:scale-95 outline-none group flex-1 max-w-[70px] md:max-w-none md:flex-none",
+        "flex w-full min-w-0 flex-col items-center gap-1 md:gap-2 p-2 md:p-3 transition-all duration-300 active:scale-95 outline-none group",
         active ? "scale-102" : ""
       )}
     >
@@ -70,8 +70,8 @@ function SymptomBubble({ sym, active, onClick }: SymptomBubbleProps) {
           </div>
         )}
       </div>
-      <span className={cn(
-        "text-[9px] md:text-[10px] font-normal text-center whitespace-normal text-balance leading-tight w-[60px] md:w-[76px] transition-colors",
+        <span className={cn(
+        "text-[9px] md:text-[10px] font-normal text-center whitespace-normal text-balance leading-tight w-full max-w-[76px] transition-colors",
         active ? "text-[var(--mf-accent)]" : "text-[var(--mf-text-strong)] group-hover:text-[var(--mf-accent)]"
       )}>
         {sym.label}
@@ -129,11 +129,11 @@ export function SymptomLogger() {
   const checkInSymptoms = [...SYMPTOM_DEFS, ...customSymptoms].filter(sym => sym.category !== 'Flow')
   const displayedSymptoms = (() => {
     if (showAll) return checkInSymptoms
-    // Always keep active/logged symptoms visible first, then pad with inactive ones up to a limit of 12
+    // Always keep active/logged symptoms visible first, then pad with inactive ones.
     const active = checkInSymptoms.filter(sym => currentSymptoms.includes(sym.id))
     const inactive = checkInSymptoms.filter(sym => !currentSymptoms.includes(sym.id))
     const combined = [...active, ...inactive]
-    return combined.slice(0, 12)
+    return combined.slice(0, 18)
   })()
 
   const toggleSymptom = async (id: string, label: string) => {
@@ -185,7 +185,7 @@ export function SymptomLogger() {
       <div>
         <div className="flex items-center justify-between gap-2 mb-2">
           <h3 className="text-base md:text-lg font-normal text-[var(--mf-text-strong)] tracking-tight leading-tight">How is your day going?</h3>
-          {checkInSymptoms.length > 12 && (
+          {checkInSymptoms.length > 18 && (
             <button 
               type="button"
               onClick={() => setShowAll(!showAll)}
@@ -230,7 +230,7 @@ export function SymptomLogger() {
         </div>
 
         <span className="text-[10px] font-normal text-muted-foreground uppercase tracking-wider block mb-2">Symptoms & Moods</span>
-        <div className="flex flex-wrap justify-start gap-2 md:gap-3 pb-4">
+        <div className="grid grid-cols-3 gap-2 md:gap-3 pb-4">
           {displayedSymptoms.map((sym) => (
             <SymptomBubble
               key={sym.id}

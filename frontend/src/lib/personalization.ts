@@ -45,7 +45,7 @@ export function buildPersonalizationProfile(answers: OnboardingAnswers): Persona
   return {
     role: answers.role === 'partner' ? 'partner' : 'lady',
     name: typeof answers.name === 'string' ? answers.name.trim() : undefined,
-    accessLevel: answers.access_level === 'educational' ? 'educational' : 'full',
+    accessLevel: answers.purpose === 'education' ? 'educational' : 'full',
     typicalCycleDays,
     cycleVariationDays,
     isAtypical: cycleVariationDays > 14 || typicalCycleDays < 24 || typicalCycleDays > 35,

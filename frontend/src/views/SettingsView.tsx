@@ -693,6 +693,23 @@ function PersonalizationPanel({
           className="settings-range"
         />
       </div>
+      <div className="settings-slider-row">
+        <label htmlFor="period-duration" className="settings-field-label">
+          Period duration
+        </label>
+        <div className="settings-slider-val">{settings.cyclePeriodLengthDays} days</div>
+        <input
+          id="period-duration"
+          type="range"
+          min={1}
+          max={14}
+          value={settings.cyclePeriodLengthDays}
+          onChange={(e) =>
+            updateSettings({ cyclePeriodLengthDays: Number(e.target.value) })
+          }
+          className="settings-range"
+        />
+      </div>
       <ToggleRow
         label="Show fertile window hints"
         checked={settings.cycleShowFertileWindow}
@@ -1587,32 +1604,6 @@ function AccountPanel({
                 </div>
                 <p className="settings-account-email ml-1">Email is locked for account security.</p>
               </div>
-              
-              <div className="mt-6 pt-4 border-t border-border/50">
-                <SelectRow
-                  label="Access Level"
-                  description="Choose whether you want full tracking features or just educational content."
-                  value={user?.accessLevel || 'full'}
-                  onChange={(v) => updateUser({ accessLevel: v as 'full' | 'educational' })}
-                  options={[
-                    { value: 'full', label: 'Full Access (All features)' },
-                    { value: 'educational', label: 'Educational Access (Learn & Chat only)' },
-                  ]}
-                />
-              </div>
-
-              <div className="mt-4 pt-4 border-t border-border/50">
-                <SelectRow
-                  label="Your App Role"
-                  description="Switch between Lady view (self-tracking) and Partner view (supporting partner)."
-                  value={user?.role || 'lady'}
-                  onChange={(v) => updateUser({ role: v as 'lady' | 'partner' })}
-                  options={[
-                    { value: 'lady', label: 'Lady (Self-Tracking)' },
-                    { value: 'partner', label: 'Partner (Supporting Partner)' },
-                  ]}
-                />
-              </div>
             </div>
           </div>
 
@@ -1680,10 +1671,28 @@ export function SettingsView({
       .withOptions({ shallow: false })
   )
   const isMobile = useMediaQuery('(max-width: 768px)')
-  const effectiveCat = cat || (isMobile ? null : 'general')
 
   const { settings, updateSettings: storeUpdateSettings, resetSettings, user, updateUser, resetStore, showConfirm } = useStore()
   const { user: authUser } = useAuth()
+  const isPartner = user?.role === 'partner'
+  const ageGroup = typeof user?.onboardingData?.age_group === 'string' ? user.onboardingData.age_group : ''
+  const isUnder18 = ageGroup === 'under_13' || ageGroup === '13_17'
+  const visibleNav = NAV.filter((item) => {
+    if (!isUnder18 && item.id === 'parental') return false
+    if (isPartner && item.id === 'personalization') return false
+    return true
+  })
+  const safeCat =
+    (!isUnder18 && cat === 'parental') || (isPartner && cat === 'personalization')
+      ? 'general'
+      : cat
+  const effectiveCat = safeCat || (isMobile ? null : 'general')
+
+  useEffect(() => {
+    if ((!isUnder18 && cat === 'parental') || (isPartner && cat === 'personalization')) {
+      void setCat('general')
+    }
+  }, [cat, isPartner, isUnder18, setCat])
 
   // ── Settings change labels map ─────────────────────────────────────────────
   const SETTING_LABELS: Partial<Record<keyof MensFlowSettings, (val: unknown) => string>> = {
@@ -1705,6 +1714,7 @@ export function SettingsView({
     notificationsEmail:          (v) => v ? 'Email digest on' : 'Email digest off',
     notificationsProduct:        (v) => v ? 'Product tips on' : 'Product tips off',
     cycleAvgLengthDays:          (v) => `Average cycle length set to ${v} days`,
+    cyclePeriodLengthDays:       (v) => `Period duration set to ${v} days`,
     cycleShowFertileWindow:      (v) => v ? 'Fertile window hints on' : 'Fertile window hints hidden',
     conditionOptimization:       (v) => {
       const map: Record<string, string> = {
@@ -1830,7 +1840,7 @@ export function SettingsView({
   }
 
   const panelTitle =
-    NAV.find((n) => n.id === effectiveCat)?.label ?? 'Settings'
+    visibleNav.find((n) => n.id === effectiveCat)?.label ?? 'Settings'
 
   let panel: ReactNode
 
@@ -1853,7 +1863,7 @@ export function SettingsView({
       )
       break
     case 'personalization':
-      panel = (
+      panel = isPartner ? null : (
         <PersonalizationPanel
           settings={settings}
           updateSettings={updateSettings}
@@ -1885,12 +1895,12 @@ export function SettingsView({
       )
       break
     case 'parental':
-      panel = (
-        <ParentalPanel
-          settings={settings}
-          updateSettings={updateSettings}
-        />
-      )
+      panel = isUnder18 ? (
+          <ParentalPanel
+            settings={settings}
+            updateSettings={updateSettings}
+          />
+        ) : null
       break
     case 'account':
       panel = (
@@ -1920,7 +1930,7 @@ export function SettingsView({
         <aside className="settings-shell-nav" aria-label="Settings sections">
           {isMobile ? (
             <div className="ios-settings-list">
-              {NAV.map(({ id, label, Icon }) => (
+              {visibleNav.map(({ id, label, Icon }) => (
                 <button
                   key={id}
                   type="button"
@@ -1938,7 +1948,7 @@ export function SettingsView({
               ))}
             </div>
           ) : (
-            NAV.map(({ id, label, Icon }) => (
+            visibleNav.map(({ id, label, Icon }) => (
               <button
                 key={id}
                 type="button"

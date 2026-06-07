@@ -29,16 +29,6 @@ export const ONBOARDING_QUESTIONS: OnboardingQuestion[] = [
     ],
   },
   {
-    id: 'role',
-    question: 'Choose your role',
-    description: 'Are you tracking your own cycle or supporting a partner?',
-    type: 'single-choice',
-    options: [
-      { label: "I'm tracking my own cycle", value: 'lady' },
-      { label: "I'm supporting my partner", value: 'partner' },
-    ],
-  },
-  {
     id: 'purpose',
     question: 'What do you need MensFlow for?',
     description: 'We will personalize your experience based on your needs.',
@@ -162,16 +152,6 @@ export const ONBOARDING_QUESTIONS: OnboardingQuestion[] = [
     description: 'To customize your dashboard.',
     type: 'input',
     placeholder: 'First name',
-  },
-  {
-    id: 'access_level',
-    question: 'Choose your access level',
-    description: 'Select how you want to use the platform.',
-    type: 'single-choice',
-    options: [
-      { label: 'Full Access (All features)', value: 'full' },
-      { label: 'Educational Access (Learn & Chat only)', value: 'educational' },
-    ],
   },
   {
     id: 'referral_source',

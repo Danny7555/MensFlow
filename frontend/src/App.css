@@ -1784,6 +1784,11 @@
   backdrop-filter: blur(4px);
 }
 
+.auth-modal-root--locked .auth-modal-backdrop {
+  background: hsl(var(--background) / 0.55);
+  backdrop-filter: blur(10px) saturate(1.1);
+}
+
 .auth-modal-card--gpt {
   position: relative;
   width: 100%;
@@ -4033,6 +4038,14 @@
   margin-bottom: 2rem;
 }
 
+.dashboard-responsive-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  width: 100%;
+  min-width: 0;
+}
+
 .flo-stories-section {
   padding-top: 0.5rem;
 }
@@ -4133,6 +4146,35 @@
   }
 }
 
+@media (min-width: 1360px) {
+  .dashboard-responsive-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 340px);
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .dashboard-responsive-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 380px);
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 1440px) {
+  .dashboard-flo-theme .flo-main-container {
+    padding-left: clamp(1rem, 2vw, 2rem);
+    padding-right: clamp(1rem, 2vw, 2rem);
+  }
+
+  .dashboard-flo-theme .flo-content-inner {
+    padding: 0 0.5rem;
+  }
+
+  .dashboard-flo-theme .flo-card {
+    border-radius: 24px;
+  }
+}
+
 @media (max-width: 768px) {
   .flo-main-container {
     padding-left: 1.25rem;
@@ -4140,6 +4182,15 @@
   }
 
   .flo-content-inner {
+    padding: 0;
+  }
+
+  .dashboard-flo-theme .flo-main-container {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+
+  .dashboard-flo-theme .flo-content-inner {
     padding: 0;
   }
 

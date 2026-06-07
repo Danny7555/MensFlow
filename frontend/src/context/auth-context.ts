@@ -10,7 +10,7 @@ export type AuthContextValue = {
   login: (username: string, password: string) => Promise<void>
   register: (username: string, email: string, password: string, name: string, role?: 'lady' | 'partner') => Promise<void>
   logout: () => void
-  openAuthModal: (initialMode?: 'login' | 'register') => void
+  openAuthModal: (initialMode?: 'login' | 'register', options?: { lockClose?: boolean }) => void
   completeOnboarding: () => void
   forgotPassword: (email: string) => Promise<void>
   verifyResetOtp: (code: string) => Promise<void>
@@ -18,4 +18,3 @@ export type AuthContextValue = {
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)
-

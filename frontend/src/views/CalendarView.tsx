@@ -1,13 +1,14 @@
 "use client"
 
 import * as React from "react"
-import { Plus, X, CaretLeft, CaretRight, Drop, PencilSimple, Check } from "@phosphor-icons/react"
+import { Plus, X, CaretLeft, CaretRight, Drop, PencilSimple, Check, CalendarBlank } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { useQueryState, parseAsStringLiteral } from 'nuqs'
 import { cn } from "@/lib/utils"
 import { useStore } from "@/store/useStore"
 import { LogSymptomsModal } from "@/components/tracker/LogSymptomsModal"
+import { RequestAccessModal } from "@/components/dashboard/RequestAccessModal"
 
 const DAYS_OF_WEEK = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
 
@@ -61,9 +62,19 @@ import { useAuth } from "@/context/useAuth"
 
 export function CalendarView() {
   const { isAuthenticated, openAuthModal } = useAuth()
-  const { user, logs, fetchLogs, addLog, dashboard: ownDashboard, partnerStatus } = useStore()
+  const { user, logs, fetchLogs, addLog, dashboard: ownDashboard, settings, partnerStatus, fetchPartnerStatus, requestDetailedAccessAction, isSaving } = useStore()
+  const [showAccessModal, setShowAccessModal] = React.useState(false)
+  const [requestSent, setRequestSent] = React.useState(false)
   const isPartner = user?.role === 'partner'
   const data = (isPartner && partnerStatus?.paired && partnerStatus?.cycle) ? partnerStatus.cycle : ownDashboard
+  const showRestrictedView = isPartner && partnerStatus?.paired && partnerStatus?.privacyShareCycleDetails === false
+
+  const handleConfirmAccessRequest = async (selectedFields: string[]) => {
+    setShowAccessModal(false)
+    setRequestSent(true)
+    await requestDetailedAccessAction(selectedFields)
+    await fetchPartnerStatus()
+  }
 
 
 
@@ -82,6 +93,7 @@ export function CalendarView() {
     periodDates: new Set<string>(),
     today: new Date(2026, 4, 20)
   })
+  const { viewDate, selectedDate, isEditingPeriods, periodDates } = state
 
   React.useEffect(() => {
     const clientToday = new Date()
@@ -98,7 +110,10 @@ export function CalendarView() {
     })
 
     void fetchLogs()
-  }, [fetchLogs])
+    if (isPartner) {
+      void fetchPartnerStatus()
+    }
+  }, [fetchLogs, fetchPartnerStatus, isPartner])
 
   React.useEffect(() => {
     const dates = new Set<string>()
@@ -107,8 +122,20 @@ export function CalendarView() {
         dates.add(log.date)
       }
     })
+
+    const periodStart = data.lastPeriodStart || getLatestLoggedPeriodStart(logs)
+    if (periodStart) {
+      addPredictedPeriodDates({
+        dates,
+        periodStart,
+        cycleLength: data.typicalCycleDays || settings.cycleAvgLengthDays,
+        periodDuration: settings.cyclePeriodLengthDays,
+        viewYear: viewDate.getFullYear(),
+      })
+    }
+
     dispatch({ type: "SET_PERIOD_DATES", payload: dates })
-  }, [logs])
+  }, [data.lastPeriodStart, data.typicalCycleDays, logs, settings.cycleAvgLengthDays, settings.cyclePeriodLengthDays, viewDate])
 
   const handleTogglePeriod = async (dateKey: string) => {
     dispatch({ type: "TOGGLE_PERIOD_DATE", payload: dateKey })
@@ -127,8 +154,6 @@ export function CalendarView() {
     await addLog(dateKey, nextSymptoms)
   }
 
-  const { viewDate, selectedDate, isEditingPeriods, periodDates } = state
-
   const year = viewDate.getFullYear()
   const month = viewDate.getMonth()
 
@@ -138,6 +163,38 @@ export function CalendarView() {
   const nextYear = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year + 1, month, 1) })
 
 
+
+  if (showRestrictedView) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-card border border-border rounded-3xl p-8 text-center space-y-5">
+          <div className="size-16 rounded-2xl bg-[var(--mf-accent)]/10 text-[var(--mf-accent)] flex items-center justify-center mx-auto">
+            <CalendarBlank size={32} weight="fill" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-normal text-foreground mb-2">Calendar access is private</h1>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Ask your partner to approve calendar and tracker access so you can see forecasts and cycle timing.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowAccessModal(true)}
+            disabled={requestSent || isSaving}
+            className="btn btn-primary px-6 py-3 rounded-full disabled:opacity-60"
+          >
+            {requestSent ? 'Request sent' : 'Request access'}
+          </button>
+        </div>
+        <RequestAccessModal
+          open={showAccessModal}
+          onClose={() => setShowAccessModal(false)}
+          onConfirm={handleConfirmAccessRequest}
+          isLoading={isSaving}
+        />
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col h-full bg-background overflow-auto relative" suppressHydrationWarning>
@@ -446,6 +503,65 @@ function computeCycleDayForDate(targetDate: Date, startIso: string, cycleLen: nu
   const days = Math.floor((+target - +start) / 86400000)
   const m = ((days % cycleLen) + cycleLen) % cycleLen
   return m + 1
+}
+
+function getLatestLoggedPeriodStart(logs: Array<{ date: string; symptoms: string[] }>) {
+  const flowDates = logs
+    .filter((log) => log.symptoms.some((symptom) => symptom.startsWith('flow-')))
+    .map((log) => log.date)
+    .sort()
+
+  let latestStart = ''
+  let previousDate: Date | null = null
+
+  flowDates.forEach((date) => {
+    const current = new Date(`${date}T12:00:00`)
+    const isNewPeriod = !previousDate || Math.round((+current - +previousDate) / 86400000) > 1
+    if (isNewPeriod) latestStart = date
+    previousDate = current
+  })
+
+  return latestStart
+}
+
+function addPredictedPeriodDates({
+  dates,
+  periodStart,
+  cycleLength,
+  periodDuration,
+  viewYear,
+}: {
+  dates: Set<string>
+  periodStart: string
+  cycleLength: number
+  periodDuration: number
+  viewYear: number
+}) {
+  const safeCycleLength = Math.min(60, Math.max(15, Math.round(cycleLength || 28)))
+  const safePeriodDuration = Math.min(14, Math.max(1, Math.round(periodDuration || 5)))
+  const windowStart = new Date(viewYear - 1, 0, 1, 12)
+  const windowEnd = new Date(viewYear + 1, 11, 31, 12)
+  const start = new Date(`${periodStart}T12:00:00`)
+  if (Number.isNaN(+start)) return
+
+  while (start > windowStart) {
+    start.setDate(start.getDate() - safeCycleLength)
+  }
+
+  while (start <= windowEnd) {
+    for (let offset = 0; offset < safePeriodDuration; offset += 1) {
+      const periodDate = new Date(start)
+      periodDate.setDate(start.getDate() + offset)
+      if (periodDate >= windowStart && periodDate <= windowEnd) {
+        dates.add(toDateKey(periodDate))
+      }
+    }
+    start.setDate(start.getDate() + safeCycleLength)
+  }
+}
+
+function toDateKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
 function DetailSheet({

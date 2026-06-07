@@ -23,6 +23,7 @@ export interface SettingsDocument extends Document {
   chatEnterToSend: boolean;
   chatShowTimestamps: boolean;
   cycleAvgLengthDays: number;
+  cyclePeriodLengthDays: number;
   cycleShowFertileWindow: boolean;
   privacyShareCycleDetails: boolean;
   privacyShareSymptomLogs: boolean;
@@ -65,10 +66,11 @@ const SettingsSchema = new Schema<SettingsDocument>({
   chatEnterToSend: { type: Boolean, default: true },
   chatShowTimestamps: { type: Boolean, default: false },
   cycleAvgLengthDays: { type: Number, default: 28, min: 15, max: 60 },
+  cyclePeriodLengthDays: { type: Number, default: 5, min: 1, max: 14 },
   cycleShowFertileWindow: { type: Boolean, default: true },
-  privacyShareCycleDetails: { type: Boolean, default: true },
-  privacyShareSymptomLogs: { type: Boolean, default: true },
-  privacyShareHealthCharts: { type: Boolean, default: true },
+  privacyShareCycleDetails: { type: Boolean, default: false },
+  privacyShareSymptomLogs: { type: Boolean, default: false },
+  privacyShareHealthCharts: { type: Boolean, default: false },
   privacyPendingAccessRequest: { type: Boolean, default: false },
   privacyRequestedFields: { type: [String], default: [] },
   privacyStrictLocalOnly: { type: Boolean, default: false },

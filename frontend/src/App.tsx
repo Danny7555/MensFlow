@@ -466,7 +466,14 @@ function MainShell() {
                     
                     {/* All other paths redirect to Landing Page */}
                     <Route path="/ask" element={<Navigate to="/" replace />} />
-                    <Route path="/dashboard" element={<Navigate to="/" replace />} />
+                    <Route
+                      path="/dashboard"
+                      element={
+                        onboardingCompleted
+                          ? <DashboardView />
+                          : <Navigate to="/" replace />
+                      }
+                    />
                     <Route path="/calendar" element={<Navigate to="/" replace />} />
                     <Route path="/tracker" element={<Navigate to="/" replace />} />
                     <Route path="/insights" element={<Navigate to="/" replace />} />

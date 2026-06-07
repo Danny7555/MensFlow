@@ -63,6 +63,7 @@ export async function updateSettings(req: AuthRequest, res: Response, next: Next
       chatEnterToSend: optionalBoolean(body, 'chatEnterToSend'),
       chatShowTimestamps: optionalBoolean(body, 'chatShowTimestamps'),
       cycleAvgLengthDays: optionalNumber(body, 'cycleAvgLengthDays', { min: 15, max: 60, integer: true }),
+      cyclePeriodLengthDays: optionalNumber(body, 'cyclePeriodLengthDays', { min: 1, max: 14, integer: true }),
       cycleShowFertileWindow: optionalBoolean(body, 'cycleShowFertileWindow'),
       privacyShareCycleDetails: optionalBoolean(body, 'privacyShareCycleDetails'),
       privacyShareSymptomLogs: optionalBoolean(body, 'privacyShareSymptomLogs'),

@@ -166,7 +166,7 @@ export function CycleTrackerHero({
 
   const cycleLength = data.typicalCycleDays || 28;
 
-  const periodLength = 5;
+  const periodLength = Math.min(14, Math.max(1, Math.round(settings.cyclePeriodLengthDays || 5)));
   const predictedPeriodLength = 2; 
 
   const standardOvulation = cycleLength - 14;
