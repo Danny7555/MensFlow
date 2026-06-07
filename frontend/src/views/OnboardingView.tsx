@@ -12,6 +12,13 @@ import { buildPersonalizationProfile, buildPersonalizedDashboard } from "../lib/
 
 import { type ApiUser } from "../services/userService";
 
+const hasPartnerInviteCode = () =>
+  typeof window !== "undefined" &&
+  !!(
+    new URLSearchParams(window.location.search).get("code") ||
+    sessionStorage.getItem("mf_partner_code")
+  );
+
 export function OnboardingView() {
   const [activeId, setActiveId] = useState<string>(() => {
     const first = ONBOARDING_QUESTIONS[0]?.id;
@@ -25,7 +32,7 @@ export function OnboardingView() {
   const navigate = useNavigate();
 
   const activeQuestions = useMemo(() => {
-    const selectedRole = (answers.role as string) || "";
+    const isPartnerInvite = hasPartnerInviteCode();
     const selectedPurpose = (answers.purpose as string) || "track_period";
     const trackPeriodIds = [
       "cycle_regularity",
@@ -41,9 +48,9 @@ export function OnboardingView() {
       "learning_preference",
     ];
     return ONBOARDING_QUESTIONS.filter((q) => {
-      if (["intro", "age_group", "role"].includes(q.id)) return true;
-      if (selectedRole === "partner") {
-        return ["referral_source", "name", "access_level"].includes(q.id);
+      if (["intro", "age_group"].includes(q.id)) return true;
+      if (isPartnerInvite) {
+        return q.id === "name";
       }
       if (q.id === "purpose") return true;
       if (!selectedPurpose) return false;
@@ -53,7 +60,7 @@ export function OnboardingView() {
       if (educationIds.includes(q.id)) return selectedPurpose === "education";
       return true;
     });
-  }, [answers.role, answers.purpose]);
+  }, [answers.purpose]);
 
   const question =
     activeQuestions.find((q) => q.id === activeId) ||
@@ -71,9 +78,13 @@ export function OnboardingView() {
   }, [currentActiveIndex, activeQuestions.length]);
 
   const finishOnboarding = useCallback(async () => {
-    const profile = buildPersonalizationProfile(answers);
+    const onboardingAnswers: Record<string, string | string[]> = {
+      ...answers,
+      role: hasPartnerInviteCode() ? "partner" : "lady",
+    };
+    const profile = buildPersonalizationProfile(onboardingAnswers);
     const patch: Partial<ApiUser> = {
-      onboardingData: answers as Record<string, unknown>,
+      onboardingData: onboardingAnswers as Record<string, unknown>,
       role: profile.role,
       accessLevel: profile.accessLevel,
     };
@@ -86,9 +97,9 @@ export function OnboardingView() {
     completeOnboarding();
 
     // Prepare dashboard/settings from onboarding answers first
-    const selectedPurpose = (answers.purpose as string) || "";
+    const selectedPurpose = (onboardingAnswers.purpose as string) || "";
     if (selectedPurpose !== "education") {
-      updateDashboard(buildPersonalizedDashboard(answers));
+      updateDashboard(buildPersonalizedDashboard(onboardingAnswers));
       updateSettings({ cycleAvgLengthDays: profile.typicalCycleDays });
     }
 
@@ -99,8 +110,8 @@ export function OnboardingView() {
         navigate("/dashboard");
       }
     } else {
-      openAuthModal("register");
-      navigate("/");
+      navigate(selectedPurpose === "education" ? "/education" : "/dashboard");
+      openAuthModal("register", { lockClose: true });
     }
   }, [
     answers,

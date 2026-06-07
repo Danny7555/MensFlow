@@ -182,9 +182,9 @@ export async function getPartnerStatus(userId: string): Promise<object> {
   ]);
 
   const symptoms = latestLog?.symptoms ?? [];
-  const shareDetails = partnerSettings ? partnerSettings.privacyShareCycleDetails !== false : true;
-  const shareSymptoms = partnerSettings ? partnerSettings.privacyShareSymptomLogs !== false : true;
-  const shareCharts = partnerSettings ? partnerSettings.privacyShareHealthCharts !== false : true;
+  const shareDetails = partnerSettings ? partnerSettings.privacyShareCycleDetails === true : false;
+  const shareSymptoms = partnerSettings ? partnerSettings.privacyShareSymptomLogs === true : false;
+  const shareCharts = partnerSettings ? partnerSettings.privacyShareHealthCharts === true : false;
   const requestedFields = partnerSettings?.privacyRequestedFields ?? [];
 
   const cycleModel = buildCycleModel({
@@ -406,7 +406,7 @@ function yesterdayString(): string {
 
 export async function requestDetailedAccess(
   userId: string,
-  requestedFields: string[] = ['cycle', 'symptoms', 'charts']
+  requestedFields: string[] = ['symptoms', 'insights', 'tracker', 'calendar']
 ): Promise<{ alreadyPending: boolean; emailQueued: boolean }> {
   const user = await User.findById(userId).lean();
   if (!user?.partnerId) {
@@ -425,21 +425,23 @@ export async function requestDetailedAccess(
   }
 
   const alreadyPending = previousSettings?.privacyPendingAccessRequest === true;
+  const normalizedFields = normalizeRequestedAccessFields(requestedFields);
 
   // Build human-readable list of what is being requested
   const fieldLabels: Record<string, string> = {
-    cycle: 'Cycle phase & predictions',
-    symptoms: 'Logged symptoms & flow',
-    charts: 'Health trends & charts',
+    symptoms: 'Symptoms',
+    insights: 'Health insights',
+    tracker: 'Tracker',
+    calendar: 'Calendar',
   };
-  const requestedLabels = requestedFields.map((f) => fieldLabels[f] || f).join(', ');
+  const requestedLabels = normalizedFields.map((f) => fieldLabels[f] || f).join(', ');
 
   await Settings.findOneAndUpdate(
     { userId: user.partnerId },
     {
       $set: {
         privacyPendingAccessRequest: true,
-        privacyRequestedFields: requestedFields,
+        privacyRequestedFields: normalizedFields,
       },
       $setOnInsert: { userId: user.partnerId },
     },
@@ -469,6 +471,17 @@ export async function requestDetailedAccess(
   }
 
   return { alreadyPending: false, emailQueued };
+}
+
+function normalizeRequestedAccessFields(fields: string[]): string[] {
+  const mapped = fields.flatMap((field) => {
+    if (field === 'cycle') return ['tracker', 'calendar'];
+    if (field === 'charts') return ['insights'];
+    return [field];
+  });
+  const allowed = new Set(['symptoms', 'insights', 'tracker', 'calendar']);
+  const normalized = mapped.filter((field) => allowed.has(field));
+  return Array.from(new Set(normalized.length ? normalized : ['symptoms', 'insights', 'tracker', 'calendar']));
 }
 
 // ─── Partner Direct Chat ──────────────────────────────────────────────────────

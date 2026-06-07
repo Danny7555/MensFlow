@@ -9,6 +9,7 @@ type Mode = 'login' | 'register' | 'otp' | 'forgot-password' | 'reset-otp' | 're
 type AuthModalProps = {
   open: boolean
   onClose: () => void
+  canClose?: boolean
   onLogin: (username: string, password: string) => Promise<void>
   onRegister: (username: string, email: string, password: string, name: string, role?: 'lady' | 'partner') => Promise<void>
   onVerifyOtp?: (code: string) => Promise<void>
@@ -32,6 +33,7 @@ const OTP_RESEND_SECONDS = 30
 export function AuthModal({
   open,
   onClose,
+  canClose = true,
   onLogin,
   onRegister,
   onVerifyOtp,
@@ -67,7 +69,7 @@ export function AuthModal({
 
   const [role] = useState<'lady' | 'partner'>(() => {
     const params = new URLSearchParams(window.location.search)
-    return params.get('code') ? 'partner' : 'lady'
+    return params.get('code') || sessionStorage.getItem('mf_partner_code') ? 'partner' : 'lady'
   })
 
   // ── Sync with external otpMode prop ─────────────────────────────────────────
@@ -286,12 +288,14 @@ export function AuthModal({
   // ── Step: Forgot Password (email entry) ────────────────────────────────────
   if (mode === 'forgot-password') {
     return (
-      <div className="auth-modal-root" role="dialog" aria-modal aria-labelledby="forgot-modal-title">
-        <button type="button" className="auth-modal-backdrop" aria-label="Close" onClick={onClose} />
+      <div className={`auth-modal-root ${!canClose ? 'auth-modal-root--locked' : ''}`} role="dialog" aria-modal aria-labelledby="forgot-modal-title">
+        <button type="button" className="auth-modal-backdrop" aria-label="Close" onClick={canClose ? onClose : undefined} />
         <div className="auth-modal-card auth-modal-card--gpt">
-          <button type="button" className="auth-modal-close auth-modal-close--gpt icon-btn" aria-label="Close" onClick={onClose}>
-            <X size={18} weight="bold" aria-hidden />
-          </button>
+          {canClose && (
+            <button type="button" className="auth-modal-close auth-modal-close--gpt icon-btn" aria-label="Close" onClick={onClose}>
+              <X size={18} weight="bold" aria-hidden />
+            </button>
+          )}
 
           <div className="flex flex-col items-center text-center mb-6">
             <div className="size-14 rounded-2xl bg-pink-500/10 flex items-center justify-center mb-4">
@@ -344,12 +348,14 @@ export function AuthModal({
   if (mode === 'reset-otp') {
     const code = otpDigits.join('')
     return (
-      <div className="auth-modal-root" role="dialog" aria-modal aria-labelledby="reset-otp-modal-title">
-        <button type="button" className="auth-modal-backdrop" aria-label="Close" onClick={onClose} />
+      <div className={`auth-modal-root ${!canClose ? 'auth-modal-root--locked' : ''}`} role="dialog" aria-modal aria-labelledby="reset-otp-modal-title">
+        <button type="button" className="auth-modal-backdrop" aria-label="Close" onClick={canClose ? onClose : undefined} />
         <div className="auth-modal-card auth-modal-card--gpt">
-          <button type="button" className="auth-modal-close auth-modal-close--gpt icon-btn" aria-label="Close" onClick={onClose}>
-            <X size={18} weight="bold" aria-hidden />
-          </button>
+          {canClose && (
+            <button type="button" className="auth-modal-close auth-modal-close--gpt icon-btn" aria-label="Close" onClick={onClose}>
+              <X size={18} weight="bold" aria-hidden />
+            </button>
+          )}
 
           <div className="flex flex-col items-center text-center mb-6">
             <div className="size-14 rounded-2xl bg-pink-500/10 flex items-center justify-center mb-4">
@@ -438,12 +444,14 @@ export function AuthModal({
     const passwordsMatch = newPassword === confirmPassword && confirmPassword.length > 0
 
     return (
-      <div className="auth-modal-root" role="dialog" aria-modal aria-labelledby="reset-password-modal-title">
-        <button type="button" className="auth-modal-backdrop" aria-label="Close" onClick={onClose} />
+      <div className={`auth-modal-root ${!canClose ? 'auth-modal-root--locked' : ''}`} role="dialog" aria-modal aria-labelledby="reset-password-modal-title">
+        <button type="button" className="auth-modal-backdrop" aria-label="Close" onClick={canClose ? onClose : undefined} />
         <div className="auth-modal-card auth-modal-card--gpt">
-          <button type="button" className="auth-modal-close auth-modal-close--gpt icon-btn" aria-label="Close" onClick={onClose}>
-            <X size={18} weight="bold" aria-hidden />
-          </button>
+          {canClose && (
+            <button type="button" className="auth-modal-close auth-modal-close--gpt icon-btn" aria-label="Close" onClick={onClose}>
+              <X size={18} weight="bold" aria-hidden />
+            </button>
+          )}
 
           <div className="flex flex-col items-center text-center mb-6">
             <div className="size-14 rounded-2xl bg-pink-500/10 flex items-center justify-center mb-4">
@@ -555,12 +563,14 @@ export function AuthModal({
   if (mode === 'otp') {
     const code = otpDigits.join('')
     return (
-      <div className="auth-modal-root" role="dialog" aria-modal aria-labelledby="otp-modal-title">
-        <button type="button" className="auth-modal-backdrop" aria-label="Close" onClick={onClose} />
+      <div className={`auth-modal-root ${!canClose ? 'auth-modal-root--locked' : ''}`} role="dialog" aria-modal aria-labelledby="otp-modal-title">
+        <button type="button" className="auth-modal-backdrop" aria-label="Close" onClick={canClose ? onClose : undefined} />
         <div className="auth-modal-card auth-modal-card--gpt">
-          <button type="button" className="auth-modal-close auth-modal-close--gpt icon-btn" aria-label="Close" onClick={onClose}>
-            <X size={18} weight="bold" aria-hidden />
-          </button>
+          {canClose && (
+            <button type="button" className="auth-modal-close auth-modal-close--gpt icon-btn" aria-label="Close" onClick={onClose}>
+              <X size={18} weight="bold" aria-hidden />
+            </button>
+          )}
 
           <div className="flex flex-col items-center text-center mb-6">
             <div className="size-14 rounded-2xl bg-pink-500/10 flex items-center justify-center mb-4 transition-all duration-300">
@@ -636,12 +646,14 @@ export function AuthModal({
 
   // ── Credentials UI (login / register) ─────────────────────────────────────
   return (
-    <div className="auth-modal-root" role="dialog" aria-modal aria-labelledby="auth-modal-title">
-      <button type="button" className="auth-modal-backdrop" aria-label="Close" onClick={onClose} />
+    <div className={`auth-modal-root ${!canClose ? 'auth-modal-root--locked' : ''}`} role="dialog" aria-modal aria-labelledby="auth-modal-title">
+      <button type="button" className="auth-modal-backdrop" aria-label="Close" onClick={canClose ? onClose : undefined} />
       <div className="auth-modal-card auth-modal-card--gpt">
-        <button type="button" className="auth-modal-close auth-modal-close--gpt icon-btn" aria-label="Close" onClick={onClose}>
-          <X size={18} weight="bold" aria-hidden />
-        </button>
+        {canClose && (
+          <button type="button" className="auth-modal-close auth-modal-close--gpt icon-btn" aria-label="Close" onClick={onClose}>
+            <X size={18} weight="bold" aria-hidden />
+          </button>
+        )}
 
         {mode === 'login' ? (
           <>

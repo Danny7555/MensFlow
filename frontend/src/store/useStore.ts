@@ -637,7 +637,7 @@ export const useStore = create<AppState>()((set, get) => ({
     }
   },
 
-  requestDetailedAccessAction: async (requestedFields: string[] = ['cycle', 'symptoms', 'charts']) => {
+  requestDetailedAccessAction: async (requestedFields: string[] = ['symptoms', 'insights', 'tracker', 'calendar']) => {
     if (isLoggedIn()) {
       set({ isSaving: true })
       try {

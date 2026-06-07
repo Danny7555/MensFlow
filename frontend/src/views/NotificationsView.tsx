@@ -75,7 +75,7 @@ export function NotificationsView() {
   const requestedFields = useMemo(() => {
     return settings?.privacyRequestedFields && settings.privacyRequestedFields.length > 0
       ? settings.privacyRequestedFields
-      : ['cycle', 'symptoms', 'charts']
+      : ['symptoms', 'insights', 'tracker', 'calendar']
   }, [settings?.privacyRequestedFields])
 
   const [approveCycle, setApproveCycle] = useState(true)
@@ -83,9 +83,9 @@ export function NotificationsView() {
   const [approveCharts, setApproveCharts] = useState(true)
 
   useEffect(() => {
-    setApproveCycle(requestedFields.includes('cycle'))
+    setApproveCycle(requestedFields.some((field) => ['cycle', 'tracker', 'calendar'].includes(field)))
     setApproveSymptoms(requestedFields.includes('symptoms'))
-    setApproveCharts(requestedFields.includes('charts'))
+    setApproveCharts(requestedFields.some((field) => ['charts', 'insights'].includes(field)))
   }, [requestedFields])
 
   useEffect(() => {
@@ -476,10 +476,10 @@ export function NotificationsView() {
                 />
                 <div className="space-y-0.5">
                   <span className="text-xs font-medium text-[var(--mf-text-strong)] block">
-                    Cycle Phase &amp; Predictions
+                    Tracker &amp; Calendar
                   </span>
                   <span className="text-[10px] text-[var(--mf-muted)] block leading-snug">
-                    Current phase, calendar forecasts, and tracker wheel.
+                    Current phase, tracker wheel, predictions, and calendar forecasts.
                   </span>
                 </div>
               </label>
@@ -510,7 +510,7 @@ export function NotificationsView() {
                 />
                 <div className="space-y-0.5">
                   <span className="text-xs font-medium text-[var(--mf-text-strong)] block">
-                    Health Trends &amp; Charts
+                    Health Insights
                   </span>
                   <span className="text-[10px] text-[var(--mf-muted)] block leading-snug">
                     Symptom analytics, monthly reviews, and cycle graphs.

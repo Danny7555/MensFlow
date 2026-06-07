@@ -74,7 +74,7 @@ export const partnerApi = {
   disconnect: () =>
     post<{ success: boolean }>('/partner/disconnect', {}),
 
-  requestAccess: (requestedFields: string[] = ['cycle', 'symptoms', 'charts']) =>
+  requestAccess: (requestedFields: string[] = ['symptoms', 'insights', 'tracker', 'calendar']) =>
     post<{ success: boolean; alreadyPending: boolean; emailQueued: boolean }>('/partner/request-access', { requestedFields }),
 
   sendPing: (pingId: string, label: string, message: string) =>

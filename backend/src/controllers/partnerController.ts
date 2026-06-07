@@ -85,7 +85,7 @@ export async function requestDetailedAccess(req: AuthRequest, res: Response, nex
     const body = objectRecord(req.body);
     const requestedFields = Array.isArray(body.requestedFields)
       ? (body.requestedFields as string[]).filter((f) => typeof f === 'string' && f.length <= 40)
-      : ['cycle', 'symptoms', 'charts'];
+      : ['symptoms', 'insights', 'tracker', 'calendar'];
     const result = await partnerService.requestDetailedAccess(req.user!.id, requestedFields);
     res.json({ success: true, ...result });
   } catch (err) {

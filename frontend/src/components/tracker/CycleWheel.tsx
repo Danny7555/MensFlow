@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 interface CycleWheelProps {
   cycleLength: number;
@@ -57,6 +57,8 @@ export function CycleWheel({
   onSelectDay,
   onHoverDay,
 }: CycleWheelProps) {
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const [isDraggingMarker, setIsDraggingMarker] = useState(false);
 
   const getAngle = useMemo(() => {
     return (day: number) => {
@@ -79,6 +81,49 @@ export function CycleWheel({
   }, [getAngle, upcomingStart, upcomingEnd]);
 
   const activeDay = hoveredDay ?? selectedDay;
+
+  const getDayFromPointer = useCallback((event: PointerEvent | React.PointerEvent) => {
+    const svg = svgRef.current;
+    if (!svg) return null;
+    const matrix = svg.getScreenCTM();
+    if (!matrix) return null;
+    const point = svg.createSVGPoint();
+    point.x = event.clientX;
+    point.y = event.clientY;
+    const local = point.matrixTransform(matrix.inverse());
+    const dx = local.x - center;
+    const dy = local.y - center;
+    let angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
+    if (angle < 0) angle += 360;
+    const day = Math.floor((angle / 360) * cycleLength) + 1;
+    return Math.min(cycleLength, Math.max(1, day));
+  }, [cycleLength]);
+
+  const selectDayFromPointer = useCallback((event: PointerEvent | React.PointerEvent) => {
+    const day = getDayFromPointer(event);
+    if (!day) return;
+    onHoverDay(null);
+    onSelectDay(day);
+  }, [getDayFromPointer, onHoverDay, onSelectDay]);
+
+  useEffect(() => {
+    if (!isDraggingMarker) return;
+
+    const handlePointerMove = (event: PointerEvent) => {
+      event.preventDefault();
+      selectDayFromPointer(event);
+    };
+    const handlePointerUp = () => {
+      setIsDraggingMarker(false);
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp, { once: true });
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+    };
+  }, [isDraggingMarker, selectDayFromPointer]);
 
   const dots = useMemo(() => {
     return Array.from({ length: cycleLength }).map((_, i) => {
@@ -134,6 +179,7 @@ export function CycleWheel({
 
   return (
     <svg
+      ref={svgRef}
       viewBox="0 0 100 100"
       className="viz-ring"
       style={{
@@ -185,10 +231,25 @@ export function CycleWheel({
       <circle
         cx={currentPos.x}
         cy={currentPos.y}
+        r="9"
+        fill="transparent"
+        style={{ cursor: isDraggingMarker ? 'grabbing' : 'grab', pointerEvents: dimmed ? 'none' : 'auto' }}
+        onPointerDown={(event) => {
+          if (dimmed) return;
+          event.preventDefault();
+          event.stopPropagation();
+          setIsDraggingMarker(true);
+          selectDayFromPointer(event);
+        }}
+      />
+      <circle
+        cx={currentPos.x}
+        cy={currentPos.y}
         r="4.5"
         fill="white"
         stroke="#1a4d57"
         strokeWidth="2"
+        style={{ pointerEvents: 'none' }}
       />
     </svg>
   );

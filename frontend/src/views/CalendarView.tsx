@@ -1,13 +1,14 @@
 "use client"
 
 import * as React from "react"
-import { Plus, X, CaretLeft, CaretRight, Drop, PencilSimple, Check } from "@phosphor-icons/react"
+import { Plus, X, CaretLeft, CaretRight, Drop, PencilSimple, Check, CalendarBlank } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { useQueryState, parseAsStringLiteral } from 'nuqs'
 import { cn } from "@/lib/utils"
 import { useStore } from "@/store/useStore"
 import { LogSymptomsModal } from "@/components/tracker/LogSymptomsModal"
+import { RequestAccessModal } from "@/components/dashboard/RequestAccessModal"
 
 const DAYS_OF_WEEK = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
 
@@ -61,9 +62,19 @@ import { useAuth } from "@/context/useAuth"
 
 export function CalendarView() {
   const { isAuthenticated, openAuthModal } = useAuth()
-  const { user, logs, fetchLogs, addLog, dashboard: ownDashboard, partnerStatus } = useStore()
+  const { user, logs, fetchLogs, addLog, dashboard: ownDashboard, partnerStatus, fetchPartnerStatus, requestDetailedAccessAction, isSaving } = useStore()
+  const [showAccessModal, setShowAccessModal] = React.useState(false)
+  const [requestSent, setRequestSent] = React.useState(false)
   const isPartner = user?.role === 'partner'
   const data = (isPartner && partnerStatus?.paired && partnerStatus?.cycle) ? partnerStatus.cycle : ownDashboard
+  const showRestrictedView = isPartner && partnerStatus?.paired && partnerStatus?.privacyShareCycleDetails === false
+
+  const handleConfirmAccessRequest = async (selectedFields: string[]) => {
+    setShowAccessModal(false)
+    setRequestSent(true)
+    await requestDetailedAccessAction(selectedFields)
+    await fetchPartnerStatus()
+  }
 
 
 
@@ -98,7 +109,10 @@ export function CalendarView() {
     })
 
     void fetchLogs()
-  }, [fetchLogs])
+    if (isPartner) {
+      void fetchPartnerStatus()
+    }
+  }, [fetchLogs, fetchPartnerStatus, isPartner])
 
   React.useEffect(() => {
     const dates = new Set<string>()
@@ -138,6 +152,38 @@ export function CalendarView() {
   const nextYear = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year + 1, month, 1) })
 
 
+
+  if (showRestrictedView) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-card border border-border rounded-3xl p-8 text-center space-y-5">
+          <div className="size-16 rounded-2xl bg-[var(--mf-accent)]/10 text-[var(--mf-accent)] flex items-center justify-center mx-auto">
+            <CalendarBlank size={32} weight="fill" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-normal text-foreground mb-2">Calendar access is private</h1>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Ask your partner to approve calendar and tracker access so you can see forecasts and cycle timing.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowAccessModal(true)}
+            disabled={requestSent || isSaving}
+            className="btn btn-primary px-6 py-3 rounded-full disabled:opacity-60"
+          >
+            {requestSent ? 'Request sent' : 'Request access'}
+          </button>
+        </div>
+        <RequestAccessModal
+          open={showAccessModal}
+          onClose={() => setShowAccessModal(false)}
+          onConfirm={handleConfirmAccessRequest}
+          isLoading={isSaving}
+        />
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col h-full bg-background overflow-auto relative" suppressHydrationWarning>

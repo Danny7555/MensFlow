@@ -1784,6 +1784,11 @@
   backdrop-filter: blur(4px);
 }
 
+.auth-modal-root--locked .auth-modal-backdrop {
+  background: hsl(var(--background) / 0.55);
+  backdrop-filter: blur(10px) saturate(1.1);
+}
+
 .auth-modal-card--gpt {
   position: relative;
   width: 100%;

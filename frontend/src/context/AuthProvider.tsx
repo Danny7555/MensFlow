@@ -44,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isRehydrating: isLoggedIn(),
   })
   const [authModalOpen, setAuthModalOpen] = useState(false)
+  const [authModalLocked, setAuthModalLocked] = useState(false)
   const [initialAuthMode, setInitialAuthMode] = useState<'login' | 'register'>('login')
   // OTP flow state
   const [otpPending, setOtpPending] = useState(false)
@@ -142,6 +143,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const isOnboarded = u.isOnboarded || localOnboarding
     setState(prev => ({ ...prev, user: u, onboardingCompleted: isOnboarded, isAuthenticated: true }))
     setAuthModalOpen(false)
+    setAuthModalLocked(false)
     setOtpPending(false)
     otpTokenRef.current = null
     setOtpEmail('')
@@ -314,6 +316,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setResetPending(false)
       // Close the modal and show the login step so the user can sign in
       setAuthModalOpen(false)
+      setAuthModalLocked(false)
       setModalKey(k => k + 1)
     } catch (err) {
       setState(prev => ({ ...prev, isLoading: false }))
@@ -352,9 +355,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const openAuthModal = useCallback((initialMode: 'login' | 'register' = 'login') => {
+  const openAuthModal = useCallback((initialMode: 'login' | 'register' = 'login', options?: { lockClose?: boolean }) => {
     const mode = initialMode === 'register' ? 'register' : 'login'
     setInitialAuthMode(mode)
+    setAuthModalLocked(Boolean(options?.lockClose))
     // Remember where the user is so we can return them after auth
     setReturnTo(window.location.pathname)
     // Reset any stale OTP/reset state from a previous abandoned flow
@@ -393,6 +397,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       <AuthModal
         key={modalKey}
         open={authModalOpen}
+        canClose={!authModalLocked}
         isLoading={state.isLoading}
         initialMode={initialAuthMode}
         preFillName={
@@ -404,7 +409,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             : ''
         }
         onClose={() => {
+          if (authModalLocked) return
           setAuthModalOpen(false)
+          setAuthModalLocked(false)
           setOtpPending(false)
           otpTokenRef.current = null
           setOtpEmail('')

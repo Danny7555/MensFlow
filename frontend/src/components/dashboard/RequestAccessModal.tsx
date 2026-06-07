@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { m, AnimatePresence } from 'framer-motion'
-import { X, ShieldCheck, ChartLineUp, Drop, Pulse } from '@phosphor-icons/react'
+import { X, ShieldCheck, ChartLineUp, Drop, Pulse, CalendarBlank } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 
 interface AccessOption {
@@ -13,25 +13,32 @@ interface AccessOption {
 
 const ACCESS_OPTIONS: AccessOption[] = [
   {
-    id: 'cycle',
-    icon: <Pulse size={20} weight="fill" />,
-    title: 'Cycle Phase & Predictions',
-    description: 'View current phase, day, tracker wheel, and upcoming cycle predictions.',
-    color: 'var(--mf-accent)',
-  },
-  {
     id: 'symptoms',
     icon: <Drop size={20} weight="fill" />,
-    title: 'Logged Symptoms & Flow',
-    description: "See today's logged symptoms, cervical mucus, LH results, water and weight tracking.",
+    title: 'Symptoms',
+    description: "Request access to logged symptoms, flow, mucus, LH tests, water, and weight.",
     color: '#14b8a6',
   },
   {
-    id: 'charts',
+    id: 'insights',
     icon: <ChartLineUp size={20} weight="fill" />,
-    title: 'Health Trends & Charts',
-    description: 'Access symptom correlation charts, cycle length trends, and analytics reports.',
+    title: 'Health Insights',
+    description: 'Request access to cycle trends, analytics, charts, and monthly insights.',
     color: '#8b5cf6',
+  },
+  {
+    id: 'tracker',
+    icon: <Pulse size={20} weight="fill" />,
+    title: 'Tracker',
+    description: 'Request access to the tracker wheel, current phase, cycle day, and predictions.',
+    color: 'var(--mf-accent)',
+  },
+  {
+    id: 'calendar',
+    icon: <CalendarBlank size={20} weight="fill" />,
+    title: 'Calendar',
+    description: 'Request access to calendar forecasts, period windows, and timeline context.',
+    color: '#f59e0b',
   },
 ]
 
@@ -43,19 +50,7 @@ interface RequestAccessModalProps {
 }
 
 export function RequestAccessModal({ open, onClose, onConfirm, isLoading }: RequestAccessModalProps) {
-  const [selected, setSelected] = useState<Set<string>>(new Set(['cycle', 'symptoms', 'charts']))
-
-  const toggleOption = (id: string) => {
-    setSelected((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) {
-        next.delete(id)
-      } else {
-        next.add(id)
-      }
-      return next
-    })
-  }
+  const [selected] = useState<Set<string>>(new Set(ACCESS_OPTIONS.map((option) => option.id)))
 
   const handleConfirm = () => {
     if (selected.size === 0) return
@@ -101,7 +96,7 @@ export function RequestAccessModal({ open, onClose, onConfirm, isLoading }: Requ
                 Request Detailed Access
               </h2>
               <p className="text-xs text-[var(--mf-muted)] leading-relaxed">
-                Select what you'd like to request access to. Your partner will review and choose exactly what to share with you.
+                This request includes the private areas partners need approved: symptoms, health insights, tracker, and calendar.
               </p>
             </div>
 
@@ -113,7 +108,7 @@ export function RequestAccessModal({ open, onClose, onConfirm, isLoading }: Requ
                   <button
                     key={opt.id}
                     type="button"
-                    onClick={() => toggleOption(opt.id)}
+                    onClick={() => undefined}
                     className={cn(
                       'w-full text-left p-4 rounded-xl border transition-all cursor-pointer flex items-start gap-3.5 group',
                       isChecked
@@ -146,7 +141,7 @@ export function RequestAccessModal({ open, onClose, onConfirm, isLoading }: Requ
                       </span>
                     </div>
 
-                    {/* Checkbox */}
+                    {/* Included marker */}
                     <div
                       className={cn(
                         'size-5 rounded-md border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all',

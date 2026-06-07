@@ -177,7 +177,15 @@ function generateAIResponse(
       : `Ask me about cramps, food cravings, fatigue, cycle phase, or what to log today.`
   }
 
-  return response
+  return makeFriendlyShortResponse(response)
+}
+
+function makeFriendlyShortResponse(response: string): string {
+  const cleaned = response.replace(/\s+/g, ' ').trim()
+  const sentences = cleaned.match(/[^.!?]+[.!?]+/g) ?? [cleaned]
+  const short = sentences.slice(0, 3).join(' ').trim()
+  const withEmoji = /[\u{1F300}-\u{1FAFF}]/u.test(short) ? short : `🌸 ${short}`
+  return withEmoji.length > 520 ? `${withEmoji.slice(0, 500).trim()}...` : withEmoji
 }
 
 
