@@ -431,8 +431,8 @@ export function SyncView() {
 
           {/* Invite Partner Dialog */}
           <Dialog open={isInviteModalOpen} onOpenChange={setIsInviteModalOpen}>
-            <DialogContent className="sm:max-w-[480px] w-[calc(100%-32px)] p-0 overflow-hidden border border-border rounded-2xl sm:rounded-3xl bg-background invite-partner-dialog-content max-h-[90vh] overflow-y-auto scrollbar-hide">
-              <div className="p-5 sm:p-6 md:p-8">
+            <DialogContent className="invite-partner-dialog-content sm:max-w-[480px] w-[calc(100%-32px)] p-0 overflow-hidden border border-border rounded-2xl sm:rounded-3xl bg-background">
+              <div className="invite-partner-dialog-body p-5 sm:p-6 md:p-8">
                 <DialogHeader className="mb-4">
                   <div className="size-12 rounded-xl bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-3">
                     <ShareNetwork size={24} weight="duotone" />
@@ -510,7 +510,7 @@ export function SyncView() {
                 </div>
               </div>
               
-              <div className="bg-muted/30 px-5 sm:px-6 py-4 flex items-center gap-3 border-t">
+              <div className="invite-partner-dialog-footer bg-muted/30 px-5 sm:px-6 py-4 flex items-center gap-3 border-t">
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   You can manage or revoke access anytime from <span className="text-foreground font-medium">Account Settings</span>.
                 </p>
@@ -696,8 +696,8 @@ export function SyncView() {
 
         {/* Invite Partner Dialog */}
         <Dialog open={isInviteModalOpen} onOpenChange={setIsInviteModalOpen}>
-          <DialogContent className="sm:max-w-[480px] w-[calc(100%-32px)] p-0 overflow-hidden border border-border rounded-2xl sm:rounded-3xl bg-background invite-partner-dialog-content max-h-[90vh] overflow-y-auto scrollbar-hide">
-            <div className="p-5 sm:p-6 md:p-8">
+          <DialogContent className="invite-partner-dialog-content sm:max-w-[480px] w-[calc(100%-32px)] p-0 overflow-hidden border border-border rounded-2xl sm:rounded-3xl bg-background">
+            <div className="invite-partner-dialog-body p-5 sm:p-6 md:p-8">
               <DialogHeader className="mb-4">
                 <div className="size-12 rounded-xl bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-3">
                   <ShareNetwork size={24} weight="duotone" />
@@ -775,7 +775,7 @@ export function SyncView() {
               </div>
             </div>
             
-            <div className="bg-muted/30 px-5 sm:px-6 py-4 flex items-center gap-3 border-t">
+            <div className="invite-partner-dialog-footer bg-muted/30 px-5 sm:px-6 py-4 flex items-center gap-3 border-t">
               <p className="text-xs text-muted-foreground leading-relaxed">
                 You can manage or revoke access anytime from <span className="text-foreground font-medium">Account Settings</span>.
               </p>
