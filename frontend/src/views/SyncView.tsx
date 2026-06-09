@@ -431,8 +431,8 @@ export function SyncView() {
 
           {/* Invite Partner Dialog */}
           <Dialog open={isInviteModalOpen} onOpenChange={setIsInviteModalOpen}>
-            <DialogContent className="invite-partner-dialog-content sm:max-w-[480px] w-[calc(100%-32px)] p-0 overflow-hidden border border-border rounded-2xl sm:rounded-3xl bg-background">
-              <div className="invite-partner-dialog-body p-5 sm:p-6 md:p-8">
+            <DialogContent className="invite-partner-dialog-content w-[calc(100vw-1rem)] max-w-[480px] sm:w-[calc(100vw-2rem)] max-h-[calc(100dvh-1rem)] sm:max-h-[calc(100dvh-2rem)] p-0 overflow-hidden border border-border rounded-2xl sm:rounded-3xl bg-background flex flex-col">
+              <div className="invite-partner-dialog-body p-4 sm:p-6 md:p-8 overflow-y-auto min-h-0">
                 <DialogHeader className="mb-4">
                   <div className="size-12 rounded-xl bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-3">
                     <ShareNetwork size={24} weight="duotone" />
@@ -482,13 +482,13 @@ export function SyncView() {
                   </div>
 
                   <div className="space-y-2.5">
-                    <div className="flex items-center gap-2 p-3 rounded-xl bg-muted/30 border transition-colors min-w-0 invite-link-box">
-                      <span className="flex-1 truncate text-xs sm:text-sm text-muted-foreground font-mono select-all">
+                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 p-2 sm:p-3 rounded-xl bg-muted/30 border min-w-0">
+                      <span className="w-full sm:flex-1 text-[11px] sm:text-xs text-muted-foreground font-mono select-all break-words overflow-wrap-anywhere">
                         {inviteUrl}
                       </span>
                       <button type="button" 
                         onClick={copyLink}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-background border rounded-lg text-xs font-medium hover:bg-muted transition-colors shrink-0"
+                        className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3 py-1.5 bg-background border rounded-lg text-xs font-medium hover:bg-muted transition-colors shrink-0"
                       >
                         {copied ? (
                           <>
@@ -510,7 +510,7 @@ export function SyncView() {
                 </div>
               </div>
               
-              <div className="invite-partner-dialog-footer bg-muted/30 px-5 sm:px-6 py-4 flex items-center gap-3 border-t">
+              <div className="invite-partner-dialog-footer bg-muted/30 px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-3 border-t shrink-0">
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   You can manage or revoke access anytime from <span className="text-foreground font-medium">Account Settings</span>.
                 </p>
@@ -696,8 +696,8 @@ export function SyncView() {
 
         {/* Invite Partner Dialog */}
         <Dialog open={isInviteModalOpen} onOpenChange={setIsInviteModalOpen}>
-          <DialogContent className="invite-partner-dialog-content sm:max-w-[480px] w-[calc(100%-32px)] p-0 overflow-hidden border border-border rounded-2xl sm:rounded-3xl bg-background">
-            <div className="invite-partner-dialog-body p-5 sm:p-6 md:p-8">
+          <DialogContent className="invite-partner-dialog-content w-[calc(100vw-1rem)] max-w-[480px] sm:w-[calc(100vw-2rem)] max-h-[calc(100dvh-1rem)] sm:max-h-[calc(100dvh-2rem)] p-0 overflow-hidden border border-border rounded-2xl sm:rounded-3xl bg-background flex flex-col">
+            <div className="invite-partner-dialog-body p-4 sm:p-6 md:p-8 overflow-y-auto min-h-0">
               <DialogHeader className="mb-4">
                 <div className="size-12 rounded-xl bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-3">
                   <ShareNetwork size={24} weight="duotone" />
@@ -747,13 +747,13 @@ export function SyncView() {
                 </div>
 
                 <div className="space-y-2.5">
-                  <div className="flex items-center gap-2 p-3 rounded-xl bg-muted/30 border transition-colors min-w-0 invite-link-box">
-                    <span className="flex-1 truncate text-xs sm:text-sm text-muted-foreground font-mono select-all">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 p-3 rounded-xl bg-muted/30 border transition-colors min-w-0 invite-link-box">
+                    <span className="w-full sm:flex-1 truncate text-xs sm:text-sm text-muted-foreground font-mono select-all">
                       {inviteUrl}
                     </span>
                     <button type="button" 
                       onClick={copyLink}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-background border rounded-lg text-xs font-medium hover:bg-muted transition-colors shrink-0"
+                      className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3 py-1.5 bg-background border rounded-lg text-xs font-medium hover:bg-muted transition-colors shrink-0"
                     >
                       {copied ? (
                         <>
@@ -775,7 +775,7 @@ export function SyncView() {
               </div>
             </div>
             
-            <div className="invite-partner-dialog-footer bg-muted/30 px-5 sm:px-6 py-4 flex items-center gap-3 border-t">
+            <div className="invite-partner-dialog-footer bg-muted/30 px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-3 border-t shrink-0">
               <p className="text-xs text-muted-foreground leading-relaxed">
                 You can manage or revoke access anytime from <span className="text-foreground font-medium">Account Settings</span>.
               </p>
