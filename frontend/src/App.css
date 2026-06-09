@@ -5982,9 +5982,46 @@
   }
 
   /* Responsive styling for Invite Partner Modal */
+  [data-slot="dialog-content"].invite-partner-dialog-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    width: min(480px, calc(100vw - 2rem));
+    max-height: min(720px, calc(100dvh - 2rem));
+    padding: 0 !important;
+  }
+
+  .invite-partner-dialog-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+  }
+
+  .invite-partner-dialog-body::-webkit-scrollbar {
+    display: none;
+  }
+
+  .invite-partner-dialog-footer {
+    flex: 0 0 auto;
+  }
+
   @media (max-width: 768px) {
     [data-slot="dialog-content"].invite-partner-dialog-content {
-      padding: 0 !important;
+      width: min(100vw - 1rem, 480px);
+      max-height: calc(100dvh - 1rem);
+      border-radius: 1.25rem !important;
+    }
+  }
+
+  @media (max-height: 640px) {
+    [data-slot="dialog-content"].invite-partner-dialog-content {
+      max-height: calc(100dvh - 0.75rem);
+    }
+
+    .invite-partner-dialog-body {
+      padding: 1rem !important;
     }
   }
 
