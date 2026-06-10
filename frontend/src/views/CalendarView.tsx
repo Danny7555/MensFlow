@@ -586,23 +586,27 @@ export function CalendarView() {
         {view === "month" && (
           <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 pt-6 border-t border-border/40 text-xs text-muted-foreground animate-in fade-in duration-500">
             <div className="flex items-center gap-2">
-              <div className="w-5 h-5 rounded-full bg-[#ff5a5f] shadow-[0_2px_8px_rgba(255,90,95,0.25)] flex items-center justify-center text-[10px] text-white font-semibold">
+              <div className="w-5 h-5 rounded-full bg-rose-100 dark:bg-rose-950/80 border border-rose-200 dark:border-rose-900/60 flex items-center justify-center text-[10px] text-rose-700 dark:text-rose-300 font-bold">
                 1
               </div>
               <span className="font-medium text-foreground/80">Logged Period</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-5 h-5 rounded-full border border-dashed border-rose-300 dark:border-rose-800 bg-rose-50/25 dark:bg-rose-950/10 flex items-center justify-center text-[10px] text-rose-500/80">
+              <div className="w-5 h-5 rounded-full border border-dashed border-rose-400 dark:border-rose-700/80 bg-rose-50/50 dark:bg-rose-950/20 flex items-center justify-center text-[10px] text-rose-500 font-semibold">
                 1
               </div>
               <span className="font-medium text-foreground/80">Predicted Period</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="size-5 rounded-full border-2 border-dotted border-muted-foreground opacity-60 flex items-center justify-center text-[10px]" />
+              <div className="w-5 h-5 rounded-full border-2 border-dashed border-teal-500/85 dark:border-teal-400/80 bg-teal-50/20 dark:bg-teal-950/15 flex items-center justify-center text-[10px] text-teal-600 dark:text-teal-400 font-semibold">
+                1
+              </div>
               <span className="font-medium text-foreground/80">Predicted Ovulation</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="size-5 rounded-full bg-[#e0e0e0] dark:bg-muted flex items-center justify-center text-[10px]" />
+              <div className="w-5 h-5 rounded-full bg-[#e0e0e0] dark:bg-muted flex items-center justify-center text-[10px] text-foreground font-semibold">
+                1
+              </div>
               <span className="font-medium text-foreground/80">Selected Day</span>
             </div>
           </div>
@@ -799,14 +803,14 @@ function MonthView({
                       "absolute h-10 sm:h-11 z-0",
                       isPredicted 
                         ? [
-                            "border-y border-dashed border-rose-300 dark:border-rose-800 bg-rose-50/25 dark:bg-rose-950/10",
+                            "border-y border-dashed border-rose-400/80 dark:border-rose-700/80 bg-rose-50/50 dark:bg-rose-950/20",
                             connectsLeft ? "left-0" : "left-[calc(50%-20px)] sm:left-[calc(50%-22px)] border-l rounded-l-full",
                             connectsRight ? "right-0" : "right-[calc(50%-20px)] sm:right-[calc(50%-22px)] border-r rounded-r-full",
                           ]
                         : [
-                            "bg-rose-100/70 dark:bg-rose-950/45",
-                            connectsLeft ? "left-0" : "left-[calc(50%-20px)] sm:left-[calc(50%-22px)] rounded-l-full",
-                            connectsRight ? "right-0" : "right-[calc(50%-20px)] sm:right-[calc(50%-22px)] rounded-r-full",
+                            "bg-rose-100/95 dark:bg-rose-950/65 border-y border-rose-200 dark:border-rose-900/60",
+                            connectsLeft ? "left-0" : "left-[calc(50%-20px)] sm:left-[calc(50%-22px)] border-l rounded-l-full",
+                            connectsRight ? "right-0" : "right-[calc(50%-20px)] sm:right-[calc(50%-22px)] border-r rounded-r-full",
                           ]
                     )} />
                   )}
@@ -829,7 +833,7 @@ function MonthView({
 
                   {/* Ovulation ring (non-edit mode only) */}
                   {isOvulation && !isEditingPeriods && (
-                    <div className="absolute inset-0 border-2 border-dotted border-muted-foreground rounded-full opacity-60 z-20 pointer-events-none" />
+                    <div className="absolute inset-0 border-2 border-dashed border-teal-500/80 dark:border-teal-400/80 rounded-full bg-teal-50/20 dark:bg-teal-950/10 z-20 pointer-events-none" />
                   )}
 
                   <div className={cn(
@@ -841,8 +845,9 @@ function MonthView({
                     ],
                     !isEditingPeriods && [
                       isSelected && "bg-[#e0e0e0] dark:bg-muted text-foreground",
-                      isPeriod && !isSelected && (isPredicted ? "text-rose-500/80 dark:text-rose-400/80" : "text-rose-600 dark:text-rose-400 font-semibold"),
-                      !isPeriod && !isSelected && "text-foreground"
+                      isPeriod && !isSelected && (isPredicted ? "text-rose-500 dark:text-rose-400/80" : "text-rose-700 dark:text-rose-300 font-bold"),
+                      isOvulation && !isPeriod && !isSelected && "text-teal-600 dark:text-teal-400 font-semibold",
+                      !isPeriod && !isOvulation && !isSelected && "text-foreground"
                     ]
                   )}>
                     <span className="relative z-0 text-base font-normal">
