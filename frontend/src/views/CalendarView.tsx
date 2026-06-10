@@ -62,7 +62,7 @@ import { useAuth } from "@/context/useAuth"
 
 export function CalendarView() {
   const { isAuthenticated, openAuthModal } = useAuth()
-  const { user, logs, fetchLogs, addLog, dashboard: ownDashboard, settings, partnerStatus, fetchPartnerStatus, requestDetailedAccessAction, isSaving } = useStore()
+  const { user, logs, fetchLogs, addLog, dashboard: ownDashboard, settings, partnerStatus, fetchPartnerStatus, requestDetailedAccessAction, isSaving, hydrate } = useStore()
   const [showAccessModal, setShowAccessModal] = React.useState(false)
   const [requestSent, setRequestSent] = React.useState(false)
   const isPartner = user?.role === 'partner'
@@ -101,6 +101,10 @@ export function CalendarView() {
   // Snapshot of what was committed before the user started editing (to compute the diff)
   const editBaseRef = React.useRef<Set<string>>(new Set())
   const [isSavingPeriods, setIsSavingPeriods] = React.useState(false)
+  // Persist which dates the user has explicitly unchecked, so predictions never re-add them
+  const userRemovedRef = React.useRef<Set<string>>(new Set())
+  // Bumped after save to force the periodDates effect to re-run with fresh data
+  const [refreshTrigger, setRefreshTrigger] = React.useState(0)
 
   React.useEffect(() => {
     const clientToday = new Date()
@@ -136,18 +140,25 @@ export function CalendarView() {
 
     const periodStart = getLatestLoggedPeriodStart(logs) || data.lastPeriodStart
     if (periodStart) {
+      const predictedOnly = new Set<string>()
       addPredictedPeriodDates({
-        dates,
+        dates: predictedOnly,
         periodStart,
         cycleLength: data.typicalCycleDays || settings.cycleAvgLengthDays,
         periodDuration: settings.cyclePeriodLengthDays,
         viewYear: viewDate.getFullYear(),
       })
+      // Only add predicted dates that the user has NOT explicitly removed
+      predictedOnly.forEach((d) => {
+        if (!userRemovedRef.current.has(d)) {
+          dates.add(d)
+        }
+      })
     }
 
     dispatch({ type: "SET_PERIOD_DATES", payload: dates })
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data.lastPeriodStart, data.typicalCycleDays, logs, settings.cycleAvgLengthDays, settings.cyclePeriodLengthDays, viewDate])
+  }, [data.lastPeriodStart, data.typicalCycleDays, logs, settings.cycleAvgLengthDays, settings.cyclePeriodLengthDays, viewDate, refreshTrigger])
 
   // Enter edit mode: snapshot committed state into the draft
   const enterEditMode = () => {
@@ -185,6 +196,11 @@ export function CalendarView() {
     // Dates that were removed
     const removed = [...base].filter((d) => !draft.has(d))
 
+    // Persist removed dates so predictions never re-add them
+    removed.forEach((d) => userRemovedRef.current.add(d))
+    // If the user re-adds a previously removed date, clear it from the removed set
+    added.forEach((d) => userRemovedRef.current.delete(d))
+
     try {
       await Promise.all([
         ...added.map(async (dateKey) => {
@@ -198,13 +214,26 @@ export function CalendarView() {
           await addLog(dateKey, symptoms)
         }),
       ])
-      // Refresh logs so the effect rebuilds periodDates cleanly
+      // 1. Refresh logs (updates the logs array in the store)
       await fetchLogs()
+      // 2. Re-hydrate dashboard so lastPeriodStart is fresh from the backend
+      //    (the backend runs recalculateCycleMetrics after each upsert)
+      try {
+        const { userApi } = await import('../services/userService')
+        const profile = await userApi.getProfile()
+        hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
+      } catch {
+        // non-critical — predictions will self-correct on next full page load
+      }
     } catch {
       // toast already shown by addLog
     } finally {
       setIsSavingPeriods(false)
       dispatch({ type: "SET_EDITING_PERIODS", payload: false })
+      // Bump refreshTrigger so the periodDates effect re-runs now that isEditingPeriods is false.
+      // This is necessary because the effect was gated (returned early) while editing was active,
+      // so even though logs/lastPeriodStart changed during save, periodDates was never rebuilt.
+      setRefreshTrigger((n) => n + 1)
     }
   }
 
