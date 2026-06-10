@@ -52,7 +52,7 @@ type SidebarProps = {
   /** Mobile drawer open */
   mobileOpen: boolean
   onCloseMobile: () => void
-  onLogin: () => void
+  onLogin: (initialMode?: 'login' | 'register') => void
   isMobile: boolean
   desktopCollapsed: boolean
   onToggleDesktopCollapse: () => void
@@ -223,7 +223,7 @@ export function Sidebar({
               type="button"
               className={cn("btn btn-primary w-full transition-transform active:scale-95", collapsed && "sidebar-login-icon")}
               title={collapsed ? 'Log in' : undefined}
-              onClick={onLogin}
+              onClick={() => onLogin('login')}
             >
               {!collapsed ? (
                 'Log in'

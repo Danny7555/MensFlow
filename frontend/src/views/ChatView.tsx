@@ -193,7 +193,7 @@ function makeFriendlyShortResponse(response: string): string {
 
 export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean }) {
   const { temporaryChat, setTemporaryChat } = useChatSession()
-  const { chatShowTimestamps } = useStore((state) => state.settings)
+  const { chatShowTimestamps, privacyLockChats } = useStore((state) => state.settings)
   const { dashboard: data, user, logs, customSymptoms, showConfirm, hydrate, fetchLogs } = useStore()
 
   const threadEndRef = useRef<HTMLDivElement>(null)
@@ -527,11 +527,11 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
     })
   }
 
-  // // Lock Actions
-  // const openLockModal = (sessionId: string, e: React.MouseEvent) => {
-  //   e.stopPropagation()
-  //   setLockModalSessionId(sessionId)
-  // }
+  // Lock Actions
+  const openLockModal = (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setLockModalSessionId(sessionId)
+  }
 
   const handleLockSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -664,7 +664,7 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
                 </div>
                 
                 <div className="chat-session-actions">
-                  {/* {!s.isLocked && (
+                  {privacyLockChats && !s.isLocked && (
                     <button
                       type="button"
                       className="chat-session-action-btn"
@@ -673,7 +673,7 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
                     >
                       <Lock size={14} />
                     </button>
-                  )} */}
+                  )}
                   <button
                     type="button"
                     className="chat-session-action-btn"
@@ -707,24 +707,26 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
             </span>
           </div>
 
-          {/* <div className="flex items-center gap-2">
-            {activeSessionId && !sessions.find((s) => s.sessionId === activeSessionId)?.isLocked && (
-              <button
-                type="button"
-                className="text-xs text-muted-foreground flex items-center gap-1 hover:text-[var(--mf-accent)] px-2 py-1.5 rounded-lg border border-border bg-card transition-colors cursor-pointer"
-                onClick={(e) => openLockModal(activeSessionId, e)}
-              >
-                <Lock size={14} />
-                <span>Lock Chat</span>
-              </button>
-            )}
-            {activeSessionId && sessions.find((s) => s.sessionId === activeSessionId)?.isLocked && (
-              <span className="text-[10px] bg-amber-500/10 text-amber-500 px-2.5 py-1 rounded-full font-medium flex items-center gap-1">
-                <Lock size={10} weight="fill" />
-                Locked
-              </span>
-            )}
-          </div> */}
+          {privacyLockChats && (
+            <div className="flex items-center gap-2">
+              {activeSessionId && !sessions.find((s) => s.sessionId === activeSessionId)?.isLocked && (
+                <button
+                  type="button"
+                  className="text-xs text-muted-foreground flex items-center gap-1 hover:text-[var(--mf-accent)] px-2 py-1.5 rounded-lg border border-border bg-card transition-colors cursor-pointer"
+                  onClick={(e) => openLockModal(activeSessionId, e)}
+                >
+                  <Lock size={14} />
+                  <span>Lock Chat</span>
+                </button>
+              )}
+              {activeSessionId && sessions.find((s) => s.sessionId === activeSessionId)?.isLocked && (
+                <span className="text-[10px] bg-amber-500/10 text-amber-500 px-2.5 py-1 rounded-full font-medium flex items-center gap-1">
+                  <Lock size={10} weight="fill" />
+                  Locked
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {temporaryChat && (

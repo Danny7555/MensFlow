@@ -15,7 +15,7 @@ type HeaderProps = {
   onToggleSidebar: () => void
   sidebarExpanded: boolean
   sidebarToggleLabel: string
-  onOpenAuth: () => void
+  onOpenAuth: (initialMode?: 'login' | 'register') => void
   temporaryChat?: boolean
   onToggleTemporaryChat?: () => void
   onLogout?: () => void
@@ -145,7 +145,7 @@ export function Header({
 
           <div className="top-header-actions">
             {!isAuthenticated ? (
-              <button type="button" className="btn btn-ghost text-xs px-2" onClick={onOpenAuth}>
+              <button type="button" className="btn btn-ghost text-xs px-2" onClick={() => onOpenAuth('login')}>
                 Login
               </button>
             ) : (
@@ -211,10 +211,10 @@ export function Header({
           <div className="top-header-actions">
             {!isAuthenticated ? (
               <>
-                <button type="button" className="btn btn-ghost" onClick={onOpenAuth}>
+                <button type="button" className="btn btn-ghost" onClick={() => onOpenAuth('login')}>
                   Login
                 </button>
-                <button type="button" className="btn btn-primary" onClick={onOpenAuth}>
+                <button type="button" className="btn btn-primary" onClick={() => onOpenAuth('register')}>
                   Sign up
                 </button>
               </>

@@ -67,7 +67,7 @@ export function AuthModal({
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showNewPassword, setShowNewPassword] = useState(false)
 
-  const [role] = useState<'lady' | 'partner'>(() => {
+  const [role, setRole] = useState<'lady' | 'partner'>(() => {
     const params = new URLSearchParams(window.location.search)
     return params.get('code') || sessionStorage.getItem('mf_partner_code') ? 'partner' : 'lady'
   })
@@ -687,6 +687,28 @@ export function AuthModal({
         <div className={`auth-modal-form ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}>
           {mode === 'register' && (
             <>
+              <div className="w-full flex flex-col gap-1.5 mb-3">
+                <span className="text-[10.5px] font-semibold text-muted-foreground uppercase tracking-wider pl-1 text-left">Account Type</span>
+                <div className="ios-segmented-control">
+                  <button
+                    type="button"
+                    className={`ios-segmented-control-item ${role === 'lady' ? 'active' : ''}`}
+                    onClick={() => setRole('lady')}
+                    disabled={isLoading}
+                  >
+                    Track My Cycle
+                  </button>
+                  <button
+                    type="button"
+                    className={`ios-segmented-control-item ${role === 'partner' ? 'active' : ''}`}
+                    onClick={() => setRole('partner')}
+                    disabled={isLoading}
+                  >
+                    Support Partner
+                  </button>
+                </div>
+              </div>
+
               {/* Only show name input if name wasn't already collected in onboarding */}
               {!preFillName && (
                 <input

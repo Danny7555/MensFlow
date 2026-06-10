@@ -2,12 +2,9 @@ import { useMemo, useReducer, useState, useEffect, useCallback } from 'react'
 import { useStore } from '../store/useStore'
 import { TipsSkeleton } from '../components/skeletons/TipsSkeleton'
 import { cn } from '@/lib/utils'
-import { useAuth } from '@/context/useAuth'
 import { tipsApi } from '../services/tipsService'
 import type { ApiWellnessTip } from '../services/tipsService'
 import { toast } from 'sonner'
-import { Plus, Trash, PencilSimple } from '@phosphor-icons/react'
-import { TipFormModal } from '../components/tips/TipFormModal'
 
 const CATS: { id: ApiWellnessTip['category'] | 'all'; label: string }[] = [
   { id: 'all', label: 'All' },
@@ -21,39 +18,14 @@ const CATS: { id: ApiWellnessTip['category'] | 'all'; label: string }[] = [
 interface TipCardProps {
   tip: ApiWellnessTip
   isSaved: boolean
-  isAuthenticated: boolean
   onToggleSave: (id: string) => void
-  onEdit: (tip: ApiWellnessTip) => void
-  onDelete: (tip: ApiWellnessTip) => void
 }
 
-function TipCard({ tip, isSaved, isAuthenticated, onToggleSave, onEdit, onDelete }: TipCardProps) {
-  const isDbTip = !tip.id?.startsWith('dash-')
+function TipCard({ tip, isSaved, onToggleSave }: TipCardProps) {
   const keyId = tip.id || tip._id || ''
 
   return (
     <li className="tip-card relative group/card">
-      {isAuthenticated && isDbTip && (
-        <div className="absolute top-4 right-12 flex items-center gap-1.5 opacity-0 group-hover/card:opacity-100 transition-opacity duration-200 z-20">
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); e.preventDefault(); onEdit(tip) }}
-            className="size-7 rounded-full bg-card hover:bg-[var(--mf-hover)] text-[var(--mf-text-strong)] flex items-center justify-center transition-all cursor-pointer border border-border active-squish shadow-xs"
-            aria-label="Edit tip"
-          >
-            <PencilSimple size={12} />
-          </button>
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); e.preventDefault(); onDelete(tip) }}
-            className="size-7 rounded-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 flex items-center justify-center transition-all cursor-pointer border border-rose-500/20 active-squish shadow-xs"
-            aria-label="Delete tip"
-          >
-            <Trash size={12} />
-          </button>
-        </div>
-      )}
-
       <div className="tip-card-top">
         <span className="tip-tag">{tip.phaseTag}</span>
         <button
@@ -100,27 +72,9 @@ function fetchReducer(state: FetchState, action: FetchAction): FetchState {
   }
 }
 
-// ─── Modal state reducer ──────────────────────────────────────────────────────
-interface ModalState {
-  isOpen: boolean
-  editingTip: ApiWellnessTip | null
-}
-type ModalAction =
-  | { type: 'open'; tip?: ApiWellnessTip }
-  | { type: 'close' }
-
-function modalReducer(_state: ModalState, action: ModalAction): ModalState {
-  switch (action.type) {
-    case 'open':  return { isOpen: true, editingTip: action.tip ?? null }
-    case 'close': return { isOpen: false, editingTip: null }
-    default:      return _state
-  }
-}
-
 // ─── Main View ───────────────────────────────────────────────────────────────
 export function TipsView() {
-  const { isAuthenticated } = useAuth()
-  const { dashboard: ownDashboard, partnerStatus, user } = useStore()
+  const { partnerStatus, user, dashboard: ownDashboard } = useStore()
 
   const data = (user?.role === 'partner' && partnerStatus?.paired && partnerStatus?.cycle)
     ? partnerStatus.cycle
@@ -132,9 +86,6 @@ export function TipsView() {
 
   // Grouped: data loading (tips + isLoading always transition together)
   const [fetch, dispatchFetch] = useReducer(fetchReducer, { tips: [], isLoading: true })
-
-  // Grouped: modal visibility + which tip is being edited (always transition together)
-  const [modal, dispatchModal] = useReducer(modalReducer, { isOpen: false, editingTip: null })
 
   const fetchTips = useCallback(async () => {
     try {
@@ -195,20 +146,6 @@ export function TipsView() {
     })
   }
 
-  const handleDeleteClick = async (tip: ApiWellnessTip) => {
-    const tipId = tip.id || tip._id
-    if (!tipId) return
-    if (!window.confirm(`Are you sure you want to delete the tip "${tip.title}"?`)) return
-    try {
-      await tipsApi.deleteTip(tipId)
-      toast.success('Tip deleted successfully.')
-      fetchTips()
-    } catch (err) {
-      console.error('Failed to delete tip:', err)
-      toast.error('Failed to delete tip.')
-    }
-  }
-
   if (fetch.isLoading) {
     return <TipsSkeleton />
   }
@@ -230,17 +167,6 @@ export function TipsView() {
             </button>
           ))}
         </div>
-
-        {isAuthenticated && (
-          <button
-            type="button"
-            onClick={() => dispatchModal({ type: 'open' })}
-            className="px-5 py-2 rounded-full text-sm font-medium bg-[var(--mf-accent)] text-white hover:bg-[var(--mf-accent-hover)] transition-all cursor-pointer flex items-center gap-1.5 shadow-sm active-squish"
-          >
-            <Plus size={16} weight="bold" />
-            <span>Add Tip</span>
-          </button>
-        )}
       </div>
 
       <ul className="tips-grid">
@@ -251,21 +177,11 @@ export function TipsView() {
               key={keyId}
               tip={t}
               isSaved={saved.has(keyId)}
-              isAuthenticated={isAuthenticated}
               onToggleSave={toggleSave}
-              onEdit={(tip) => dispatchModal({ type: 'open', tip })}
-              onDelete={handleDeleteClick}
             />
           )
         })}
       </ul>
-
-      <TipFormModal
-        open={modal.isOpen}
-        editingTip={modal.editingTip}
-        onClose={() => dispatchModal({ type: 'close' })}
-        onSaved={fetchTips}
-      />
     </div>
   )
 }

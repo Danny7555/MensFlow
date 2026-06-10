@@ -385,10 +385,9 @@ export async function recalculateCycleMetrics(userId: string): Promise<void> {
   const updates: any = {};
 
   // Auto-detect lastPeriodStart if there are any period starts logged
-  if (currentStartStr) {
-    if (dashboard.lastPeriodStart !== currentStartStr) {
-      updates.lastPeriodStart = currentStartStr;
-    }
+  const targetLastPeriodStart = currentStartStr || '';
+  if (dashboard.lastPeriodStart !== targetLastPeriodStart) {
+    updates.lastPeriodStart = targetLastPeriodStart;
   }
 
   // Auto-calculate typicalCycleDays and cycleVariationDays

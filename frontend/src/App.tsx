@@ -479,7 +479,7 @@ function MainShell() {
                     <Route path="/insights" element={<Navigate to="/" replace />} />
                     <Route path="/tips" element={<Navigate to="/" replace />} />
                     <Route path="/symptoms" element={<Navigate to="/" replace />} />
-                    <Route path="/sync" element={<Navigate to="/" replace />} />
+                    <Route path="/sync" element={<SyncView />} />
                     <Route path="/notifications" element={<Navigate to="/" replace />} />
                     <Route path="/history" element={<Navigate to="/" replace />} />
                     {/* locked-chats is available regardless of auth (LockedChatsView handles its own gating) */}
