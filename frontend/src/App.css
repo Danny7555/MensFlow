@@ -97,6 +97,8 @@
   transition:
     width 0.22s ease,
     transform 0.22s ease;
+  border-top-right-radius: 24px;
+  border-bottom-right-radius: 24px;
 }
 
 .sidebar.sidebar--collapsed {
@@ -109,7 +111,7 @@
   gap: 0.5rem;
   padding: 0 1rem;
   border-bottom: 1px solid var(--mf-border);
-  height: 60px;
+  height: 56px;
 }
 
 .sidebar.sidebar--collapsed .sidebar-brand {
