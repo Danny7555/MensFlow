@@ -6,7 +6,7 @@ const STORIES = [
   { label: 'Insights', image: '/images/brain.png', route: '/insights' },
   { label: 'Secret Chats', image: '/images/moon.png', route: '/ask' },
   { label: 'Wellness', image: '/images/heart.png', route: '/wellness-tips' },
-  { label: 'Partner', image: '/images/girl.png', route: '/tracker' },
+  { label: 'Partner', image: '/images/girl.png', route: '/sync' },
 ]
 
 export function StoriesSection() {

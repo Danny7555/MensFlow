@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Plus, X, CaretLeft, CaretRight, Drop, PencilSimple, Check, CalendarBlank } from "@phosphor-icons/react"
+import { Plus, X, CaretLeft, CaretRight, Drop, PencilSimple, Check, CalendarBlank, FloppyDisk, ArrowCounterClockwise } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { useQueryState, parseAsStringLiteral } from 'nuqs'
@@ -62,7 +62,7 @@ import { useAuth } from "@/context/useAuth"
 
 export function CalendarView() {
   const { isAuthenticated, openAuthModal } = useAuth()
-  const { user, logs, fetchLogs, addLog, dashboard: ownDashboard, settings, partnerStatus, fetchPartnerStatus, requestDetailedAccessAction, isSaving } = useStore()
+  const { user, logs, fetchLogs, addLog, dashboard: ownDashboard, settings, partnerStatus, fetchPartnerStatus, requestDetailedAccessAction, isSaving, hydrate } = useStore()
   const [showAccessModal, setShowAccessModal] = React.useState(false)
   const [requestSent, setRequestSent] = React.useState(false)
   const isPartner = user?.role === 'partner'
@@ -95,6 +95,17 @@ export function CalendarView() {
   })
   const { viewDate, selectedDate, isEditingPeriods, periodDates } = state
 
+  // ---------- Flo-style batch edit state ----------
+  // While editing, we keep a local draft set. We only call the API on Save.
+  const [editDraft, setEditDraft] = React.useState<Set<string>>(new Set())
+  // Snapshot of what was committed before the user started editing (to compute the diff)
+  const editBaseRef = React.useRef<Set<string>>(new Set())
+  const [isSavingPeriods, setIsSavingPeriods] = React.useState(false)
+  // Persist which dates the user has explicitly unchecked, so predictions never re-add them
+  const userRemovedRef = React.useRef<Set<string>>(new Set())
+  // Bumped after save to force the periodDates effect to re-run with fresh data
+  const [refreshTrigger, setRefreshTrigger] = React.useState(0)
+
   React.useEffect(() => {
     const clientToday = new Date()
     const y = clientToday.getFullYear()
@@ -115,7 +126,11 @@ export function CalendarView() {
     }
   }, [fetchLogs, fetchPartnerStatus, isPartner])
 
+  // Rebuild periodDates from logs + predictions, but ONLY when NOT editing.
+  // During editing, the user drives the display via editDraft.
   React.useEffect(() => {
+    if (isEditingPeriods) return // don't clobber in-progress edits
+
     const dates = new Set<string>()
     logs.forEach((log) => {
       if (log.symptoms.some((s) => s.startsWith("flow-"))) {
@@ -123,37 +138,108 @@ export function CalendarView() {
       }
     })
 
-    if (!isEditingPeriods) {
-      const periodStart = getLatestLoggedPeriodStart(logs) || data.lastPeriodStart
-      if (periodStart) {
-        addPredictedPeriodDates({
-          dates,
-          periodStart,
-          cycleLength: data.typicalCycleDays || settings.cycleAvgLengthDays,
-          periodDuration: settings.cyclePeriodLengthDays,
-          viewYear: viewDate.getFullYear(),
-        })
-      }
+    const periodStart = getLatestLoggedPeriodStart(logs) || data.lastPeriodStart
+    if (periodStart) {
+      const predictedOnly = new Set<string>()
+      addPredictedPeriodDates({
+        dates: predictedOnly,
+        periodStart,
+        cycleLength: data.typicalCycleDays || settings.cycleAvgLengthDays,
+        periodDuration: settings.cyclePeriodLengthDays,
+        viewYear: viewDate.getFullYear(),
+      })
+      // Only add predicted dates that the user has NOT explicitly removed
+      predictedOnly.forEach((d) => {
+        if (!userRemovedRef.current.has(d)) {
+          dates.add(d)
+        }
+      })
     }
 
     dispatch({ type: "SET_PERIOD_DATES", payload: dates })
-  }, [data.lastPeriodStart, data.typicalCycleDays, logs, settings.cycleAvgLengthDays, settings.cyclePeriodLengthDays, viewDate, isEditingPeriods])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.lastPeriodStart, data.typicalCycleDays, logs, settings.cycleAvgLengthDays, settings.cyclePeriodLengthDays, viewDate, refreshTrigger])
 
-  const handleTogglePeriod = async (dateKey: string) => {
-    dispatch({ type: "TOGGLE_PERIOD_DATE", payload: dateKey })
+  // Enter edit mode: snapshot committed state into the draft
+  const enterEditMode = () => {
+    if (!isAuthenticated) { openAuthModal(); return }
+    // Only include *real logged* flow dates in the draft (not predicted)
+    const loggedDates = new Set<string>()
+    logs.forEach((log) => {
+      if (log.symptoms.some((s) => s.startsWith("flow-"))) {
+        loggedDates.add(log.date)
+      }
+    })
+    editBaseRef.current = new Set(loggedDates)
+    setEditDraft(new Set(loggedDates))
+    dispatch({ type: "SET_EDITING_PERIODS", payload: true })
+  }
 
-    const existingLog = logs.find((l) => l.date === dateKey)
-    const existingSymptoms = existingLog?.symptoms ?? []
-    const isPeriod = existingSymptoms.some((s) => s.startsWith("flow-"))
+  // Pure local toggle during editing — no API calls
+  const handleTogglePeriod = (dateKey: string) => {
+    setEditDraft((prev) => {
+      const next = new Set(prev)
+      if (next.has(dateKey)) next.delete(dateKey)
+      else next.add(dateKey)
+      return next
+    })
+  }
 
-    let nextSymptoms: string[]
-    if (isPeriod) {
-      nextSymptoms = existingSymptoms.filter((s) => !s.startsWith("flow-"))
-    } else {
-      nextSymptoms = [...existingSymptoms, "flow-medium"]
+  // Batch save: compute diff and call API only for changed dates
+  const handleSavePeriods = async () => {
+    setIsSavingPeriods(true)
+    const base = editBaseRef.current
+    const draft = editDraft
+
+    // Dates that were added
+    const added = [...draft].filter((d) => !base.has(d))
+    // Dates that were removed
+    const removed = [...base].filter((d) => !draft.has(d))
+
+    // Persist removed dates so predictions never re-add them
+    removed.forEach((d) => userRemovedRef.current.add(d))
+    // If the user re-adds a previously removed date, clear it from the removed set
+    added.forEach((d) => userRemovedRef.current.delete(d))
+
+    try {
+      await Promise.all([
+        ...added.map(async (dateKey) => {
+          const existing = logs.find((l) => l.date === dateKey)
+          const symptoms = existing?.symptoms.filter((s) => !s.startsWith('flow-')) ?? []
+          await addLog(dateKey, [...symptoms, 'flow-medium'])
+        }),
+        ...removed.map(async (dateKey) => {
+          const existing = logs.find((l) => l.date === dateKey)
+          const symptoms = (existing?.symptoms ?? []).filter((s) => !s.startsWith('flow-'))
+          await addLog(dateKey, symptoms)
+        }),
+      ])
+      // 1. Refresh logs (updates the logs array in the store)
+      await fetchLogs()
+      // 2. Re-hydrate dashboard so lastPeriodStart is fresh from the backend
+      //    (the backend runs recalculateCycleMetrics after each upsert)
+      try {
+        const { userApi } = await import('../services/userService')
+        const profile = await userApi.getProfile()
+        hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
+      } catch {
+        // non-critical — predictions will self-correct on next full page load
+      }
+    } catch {
+      // toast already shown by addLog
+    } finally {
+      setIsSavingPeriods(false)
+      dispatch({ type: "SET_EDITING_PERIODS", payload: false })
+      // Bump refreshTrigger so the periodDates effect re-runs now that isEditingPeriods is false.
+      // This is necessary because the effect was gated (returned early) while editing was active,
+      // so even though logs/lastPeriodStart changed during save, periodDates was never rebuilt.
+      setRefreshTrigger((n) => n + 1)
     }
+  }
 
-    await addLog(dateKey, nextSymptoms)
+  // Cancel: just exit, the effect will re-derive from unchanged logs
+  const handleCancelEditing = () => {
+    dispatch({ type: "SET_EDITING_PERIODS", payload: false })
   }
 
   const year = viewDate.getFullYear()
@@ -246,26 +332,39 @@ export function CalendarView() {
 
           <div className="flex justify-center sm:justify-end order-3">
             {!isPartner && (
-              <Button 
-                variant={isEditingPeriods ? "default" : "outline"}
-                onClick={() => isAuthenticated ? dispatch({ type: "SET_EDITING_PERIODS", payload: !isEditingPeriods }) : openAuthModal()}
-                className={cn(
-                  "rounded-full text-xs font-normal gap-2",
-                  isEditingPeriods ? "bg-[var(--mf-danger)]/10 text-[var(--mf-danger)] border-[var(--mf-danger)]/30 hover:bg-[var(--mf-danger)]/20" : ""
-                )}
-              >
-                {isEditingPeriods ? (
-                  <>
-                    <Check size={14} weight="regular" />
-                    <span>Finish Editing</span>
-                  </>
-                ) : (
-                  <>
-                    <PencilSimple size={14} weight="bold" />
-                    <span>Edit Periods</span>
-                  </>
-                )}
-              </Button>
+              isEditingPeriods ? (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={handleCancelEditing}
+                    disabled={isSavingPeriods}
+                    className="rounded-full text-xs font-normal gap-2 border-border"
+                  >
+                    <ArrowCounterClockwise size={14} />
+                    <span>Cancel</span>
+                  </Button>
+                  <Button
+                    onClick={handleSavePeriods}
+                    disabled={isSavingPeriods}
+                    className="rounded-full text-xs font-normal gap-2 bg-[var(--mf-danger)]/10 text-[var(--mf-danger)] border border-[var(--mf-danger)]/30 hover:bg-[var(--mf-danger)]/20"
+                  >
+                    {isSavingPeriods ? (
+                      <><span className="animate-spin">⟳</span><span>Saving…</span></>
+                    ) : (
+                      <><FloppyDisk size={14} weight="bold" /><span>Save</span></>
+                    )}
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  variant="outline"
+                  onClick={enterEditMode}
+                  className="rounded-full text-xs font-normal gap-2"
+                >
+                  <PencilSimple size={14} weight="bold" />
+                  <span>Edit Periods</span>
+                </Button>
+              )
             )}
             {isPartner && (
               <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest bg-muted px-4 py-2 rounded-full border border-border/40">
@@ -277,17 +376,18 @@ export function CalendarView() {
 
         <div className="relative">
           {view === "month" ? (
-            <MonthView 
+          <MonthView 
               viewDate={viewDate} 
               selectedDate={selectedDate}
               isEditingPeriods={isEditingPeriods}
-              periodDates={periodDates}
+              periodDates={isEditingPeriods ? editDraft : periodDates}
               data={data}
               onSelectDate={(date) => {
                 dispatch({ type: "SET_SELECTED_DATE", payload: date })
                 setIsDetailSheetOpen(true)
               }}
               onTogglePeriod={handleTogglePeriod}
+              editCount={isEditingPeriods ? editDraft.size : undefined}
             />
           ) : (
             <YearView 
@@ -339,7 +439,8 @@ function MonthView({
   periodDates, 
   data,
   onSelectDate,
-  onTogglePeriod 
+  onTogglePeriod,
+  editCount,
 }: { 
   viewDate: Date
   selectedDate: Date
@@ -348,6 +449,7 @@ function MonthView({
   data: { lastPeriodStart: string; typicalCycleDays: number }
   onSelectDate: (date: Date) => void
   onTogglePeriod: (dateKey: string) => void
+  editCount?: number
 }) {
   const year = viewDate.getFullYear()
   const month = viewDate.getMonth()
@@ -372,6 +474,20 @@ function MonthView({
 
   return (
     <>
+      {/* Edit Mode Banner — Flo-style instruction strip */}
+      {isEditingPeriods && (
+        <div className="animate-in slide-in-from-top-2 fade-in duration-300 mx-4 mb-4 flex items-center justify-between gap-3 rounded-2xl border border-[#ff5a5f]/30 bg-[#ff5a5f]/5 px-4 py-3">
+          <div className="flex items-center gap-2">
+            <Drop size={14} weight="fill" className="text-[#ff5a5f]" />
+            <span className="text-xs font-medium text-[#ff5a5f]">
+              Tap days to mark or unmark your period
+            </span>
+          </div>
+          <span className="text-[10px] font-semibold tabular-nums text-[#ff5a5f] bg-[#ff5a5f]/10 rounded-full px-2.5 py-0.5">
+            {editCount ?? 0} {(editCount ?? 0) === 1 ? 'day' : 'days'} selected
+          </span>
+        </div>
+      )}
       <div className="grid grid-cols-7 px-4 mb-4">
         {DAYS_OF_WEEK.map((day) => (
           <div key={day} className="text-center text-[10px] font-normal text-muted-foreground tracking-wider">
@@ -404,33 +520,51 @@ function MonthView({
                 type="button"
                 onClick={() => handleDayClick(d)}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleDayClick(d) }}
-                className="relative flex flex-col items-center justify-center cursor-pointer group py-2 sm:py-0 w-full"
+                className={cn(
+                  "relative flex flex-col items-center justify-center cursor-pointer group py-2 sm:py-0 w-full transition-all",
+                  isEditingPeriods && "hover:scale-110 active:scale-95"
+                )}
               >
                 <span className="text-[10px] text-muted-foreground mb-1 font-normal group-hover:text-foreground transition-colors">
                   {cycleDay !== null ? cycleDay : "--"}
                 </span>
 
                 <div className="relative flex items-center justify-center size-10 sm:size-12 transition-transform group-active:scale-90">
-                  {isSelected && (
+                  {isSelected && !isEditingPeriods && (
                     <div className="absolute inset-0 bg-[#e0e0e0] dark:bg-muted rounded-full animate-in zoom-in-75 duration-200" />
                   )}
-                  {isOvulation && (
+                  {isOvulation && !isEditingPeriods && (
                     <div className="absolute inset-0 border-2 border-dotted border-muted-foreground rounded-full opacity-60" />
                   )}
+
+                  {/* Edit mode: ring on every cell */}
+                  {isEditingPeriods && (
+                    <div className={cn(
+                      "absolute inset-0 rounded-full border-2 transition-all duration-150",
+                      isPeriod
+                        ? "border-[#ff5a5f] bg-[#ff5a5f]/10"
+                        : "border-[#ff5a5f]/20 border-dashed group-hover:border-[#ff5a5f]/50 group-hover:bg-[#ff5a5f]/5"
+                    )} />
+                  )}
+
+                  {/* Period dot badge */}
                   {isPeriod && (
                     <div className="absolute top-1 right-1 bg-[#ff5a5f] text-white rounded-full size-4 flex items-center justify-center">
-                      <Drop weight="fill" className="size-2.5" />
+                      {isEditingPeriods
+                        ? <Check weight="bold" className="size-2.5" />
+                        : <Drop weight="fill" className="size-2.5" />
+                      }
                     </div>
                   )}
                   <span className={cn(
                     "relative z-0 text-lg font-normal transition-colors",
-                    isPeriod ? "text-[#ff5a5f]" : "text-foreground"
+                    isPeriod ? "text-[#ff5a5f] font-semibold" : "text-foreground"
                   )}>
                     {d}
                   </span>
                 </div>
 
-                {isPeriod && (
+                {isPeriod && !isEditingPeriods && (
                   <div className="absolute -bottom-1 sm:-bottom-2 w-full flex justify-center px-1">
                     <div className="w-full border-b-2 border-dotted border-[#ff5a5f]" />
                   </div>

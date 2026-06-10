@@ -97,6 +97,19 @@ export async function unlockSession(req: AuthRequest, res: Response, next: NextF
   }
 }
 
+export async function unlockSessionPermanent(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const sessionId = requiredString(req.params.sessionId, 'sessionId', { max: 120 });
+    const body = objectRecord(req.body);
+    const passcode = optionalString(body, 'passcode', { max: 80 });
+
+    await chatService.unlockSessionPermanent(req.user!.id, sessionId, passcode);
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function deleteSession(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   try {
     const sessionId = requiredString(req.params.sessionId, 'sessionId', { max: 120 });
