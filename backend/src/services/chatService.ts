@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import { Types } from 'mongoose';
 import { ChatMessage } from '../models/Chat';
 import { User } from '../models/User';
+import { Settings } from '../models/Settings';
 import { Dashboard } from '../models/Dashboard';
 import { SymptomLog, CustomSymptom } from '../models/Symptom';
 import { IChatMessage, ISessionSummary } from '../interfaces';
@@ -49,7 +50,13 @@ export async function getMessages(
   if (!meta) return [];
 
   if (meta.isLocked) {
-    const passcodeOk = passcode ? await bcrypt.compare(passcode, meta.passcode ?? '') : false;
+    let passcodeOk = passcode ? await bcrypt.compare(passcode, meta.passcode ?? '') : false;
+    if (!passcodeOk && passcode) {
+      const user = await User.findById(userId).lean();
+      if (user && user.passwordHash) {
+        passcodeOk = await bcrypt.compare(passcode, user.passwordHash);
+      }
+    }
     if (!passcodeOk) {
       throw httpError('Chat is locked — provide the correct passcode', 403, {
         securityQuestion: meta.securityQuestion,
@@ -94,7 +101,13 @@ export async function sendMessage(
   const securityAnswerHash = meta?.securityAnswerHash ?? null;
 
   if (isLocked) {
-    const passcodeOk = passcode ? await bcrypt.compare(passcode, passcodeHash ?? '') : false;
+    let passcodeOk = passcode ? await bcrypt.compare(passcode, passcodeHash ?? '') : false;
+    if (!passcodeOk && passcode) {
+      const user = await User.findById(userId).lean();
+      if (user && user.passwordHash) {
+        passcodeOk = await bcrypt.compare(passcode, user.passwordHash);
+      }
+    }
     if (!passcodeOk) {
       throw httpError('Chat is locked — passcode verification failed', 403, {
         securityQuestion,
@@ -148,23 +161,41 @@ export async function sendMessage(
 export async function lockSession(
   userId: string,
   sessionId: string,
-  passcode: string,
-  securityQuestion: string,
-  securityAnswer: string
+  passcode?: string,
+  securityQuestion?: string,
+  securityAnswer?: string
 ): Promise<void> {
   const exists = await ChatMessage.exists({ userId, sessionId });
   if (!exists) {
     throw httpError('Chat session not found', 404);
   }
 
+  let finalPasscode = passcode;
+  let finalQuestion = securityQuestion;
+  let finalAnswer = securityAnswer;
+
+  if (!finalPasscode || !finalQuestion || !finalAnswer) {
+    const settings = await Settings.findOne({ userId }).lean();
+    if (!settings || !settings.privacyLockChatsPassword) {
+      throw httpError('Locked chats feature is not set up or enabled in Settings', 400);
+    }
+    finalPasscode = finalPasscode || settings.privacyLockChatsPassword;
+    finalQuestion = finalQuestion || settings.privacyLockChatsSecurityQuestion || '';
+    finalAnswer = finalAnswer || settings.privacyLockChatsSecurityAnswer || '';
+  }
+
+  if (!finalPasscode || !finalQuestion || !finalAnswer) {
+    throw httpError('Passcode, security question, and answer must be configured', 400);
+  }
+
   const [passcodeHash, securityAnswerHash] = await Promise.all([
-    bcrypt.hash(passcode, 10),
-    bcrypt.hash(securityAnswer.toLowerCase().trim(), 10),
+    bcrypt.hash(finalPasscode, 10),
+    bcrypt.hash(finalAnswer.toLowerCase().trim(), 10),
   ]);
 
   await ChatMessage.updateMany(
     { userId, sessionId },
-    { $set: { isLocked: true, passcode: passcodeHash, securityQuestion, securityAnswerHash } }
+    { $set: { isLocked: true, passcode: passcodeHash, securityQuestion: finalQuestion, securityAnswerHash } }
   );
 }
 
@@ -180,7 +211,13 @@ export async function unlockSession(
   }
 
   if (passcode) {
-    const isMatch = await bcrypt.compare(passcode, meta.passcode ?? '');
+    let isMatch = await bcrypt.compare(passcode, meta.passcode ?? '');
+    if (!isMatch) {
+      const user = await User.findById(userId).lean();
+      if (user && user.passwordHash) {
+        isMatch = await bcrypt.compare(passcode, user.passwordHash);
+      }
+    }
     if (!isMatch) {
       throw httpError('Invalid passcode', 400);
     }
@@ -195,11 +232,49 @@ export async function unlockSession(
     if (!isMatch) {
       throw httpError('Security answer is incorrect', 400);
     }
-    // We no longer return the raw passcode — the session is considered unlocked
     return {};
   }
 
   throw httpError('Provide passcode or securityAnswer', 400);
+}
+
+export async function unlockSessionPermanent(
+  userId: string,
+  sessionId: string,
+  passcode?: string
+): Promise<void> {
+  const meta = await ChatMessage.findOne({ userId, sessionId }).lean();
+  if (!meta) {
+    throw httpError('Chat session not found', 404);
+  }
+
+  if (meta.isLocked) {
+    if (!passcode) {
+      throw httpError('Passcode/password is required to unlock permanently', 400);
+    }
+    let isMatch = await bcrypt.compare(passcode, meta.passcode ?? '');
+    if (!isMatch) {
+      const user = await User.findById(userId).lean();
+      if (user && user.passwordHash) {
+        isMatch = await bcrypt.compare(passcode, user.passwordHash);
+      }
+    }
+    if (!isMatch) {
+      throw httpError('Invalid passcode/password', 400);
+    }
+  }
+
+  await ChatMessage.updateMany(
+    { userId, sessionId },
+    {
+      $set: {
+        isLocked: false,
+        passcode: null,
+        securityQuestion: null,
+        securityAnswerHash: null,
+      },
+    }
+  );
 }
 
 export async function deleteSession(userId: string, sessionId: string): Promise<void> {

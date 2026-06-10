@@ -37,17 +37,22 @@ export const chatApi = {
       { sessionId, text, ...(passcode ? { passcode } : {}) }
     ),
 
-  lock: (sessionId: string, passcode: string, securityQuestion: string, securityAnswer: string) =>
+  lock: (sessionId: string, passcode?: string, securityQuestion?: string, securityAnswer?: string) =>
     put<{ success: boolean }>(`/chat/sessions/${encodeURIComponent(sessionId)}/lock`, {
-      passcode,
-      securityQuestion,
-      securityAnswer,
+      ...(passcode ? { passcode } : {}),
+      ...(securityQuestion ? { securityQuestion } : {}),
+      ...(securityAnswer ? { securityAnswer } : {}),
     }),
 
   unlock: (sessionId: string, passcode?: string, securityAnswer?: string) =>
     post<{ success: boolean; passcode?: string }>(`/chat/sessions/${encodeURIComponent(sessionId)}/unlock`, {
       ...(passcode ? { passcode } : {}),
       ...(securityAnswer ? { securityAnswer } : {}),
+    }),
+
+  unlockPermanent: (sessionId: string, passcode?: string) =>
+    put<{ success: boolean }>(`/chat/sessions/${encodeURIComponent(sessionId)}/unlock-permanent`, {
+      ...(passcode ? { passcode } : {}),
     }),
 
   deleteSession: (sessionId: string) =>

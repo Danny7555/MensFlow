@@ -5,13 +5,13 @@ import {
   Ghost, 
   Question, 
   Lock, 
+  LockOpen,
   Trash, 
   SidebarSimple, 
   X, 
   ChatCircle, 
   Plus,
   Sparkle,
-  CheckCircle,
   WarningCircle,
   CaretRight 
 } from '@phosphor-icons/react'
@@ -28,7 +28,7 @@ import { toast } from 'sonner'
 import { cn } from '../lib/utils'
 import { computeCycleDay } from '../lib/cycleUtils'
 import { MarkdownText } from '../components/MarkdownText'
-import { getPasswordStrength } from '../lib/passwordStrength'
+import { getPasswordStrength as _getPasswordStrength } from '../lib/passwordStrength'
 
 type Msg = {
   id: string
@@ -191,7 +191,7 @@ function makeFriendlyShortResponse(response: string): string {
 
 
 
-export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean }) {
+export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnlyLocked?: boolean; privacyPassword?: string }) {
   const { temporaryChat, setTemporaryChat } = useChatSession()
   const { chatShowTimestamps, privacyLockChats } = useStore((state) => state.settings)
   const { dashboard: data, user, logs, customSymptoms, showConfirm, hydrate, fetchLogs } = useStore()
@@ -209,7 +209,11 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
     : `Hi - I'm MensFlow, your cycle support companion. You are on Day ${currentDay} of your cycle (${data.phaseLabel}). Ask me about your active phase, symptoms, food, rest, what to log, or how to care for yourself today. `
 
   const [sessions, setSessions] = useState<ApiChatSession[]>([])
-  const filteredSessions = showOnlyLocked ? sessions.filter((s) => s.isLocked) : sessions
+  // In normal mode: hide locked chats (they live in the Locked Chats view).
+  // In locked mode: show only locked chats.
+  const filteredSessions = showOnlyLocked
+    ? sessions.filter((s) => s.isLocked)
+    : sessions.filter((s) => !s.isLocked)
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -235,10 +239,10 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
   const [unlockSecurityAnsVal, setUnlockSecurityAnsVal] = useState('')
   const [showSecurityQuestionReset, setShowSecurityQuestionReset] = useState(false)
 
-  const [lockModalSessionId, setLockModalSessionId] = useState<string | null>(null)
-  const [lockPasscodeVal, setLockPasscodeVal] = useState('')
-  const [lockSecurityQVal, setLockSecurityQVal] = useState('')
-  const [lockSecurityAVal, setLockSecurityAVal] = useState('')
+  // Permanent-unlock state
+  const [permanentUnlockSessionId, setPermanentUnlockSessionId] = useState<string | null>(null)
+  const [permanentUnlockPasscode, setPermanentUnlockPasscode] = useState('')
+  const [isLockingSession, setIsLockingSession] = useState(false)
 
   const generateNewSessionId = () => `chat-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
 
@@ -321,7 +325,8 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
 
     const timer = setTimeout(() => {
       setIsLoading(true)
-      const passcode = unlockedPasscodes[activeSessionId]
+      // Use per-session unlocked passcode, or fall back to the view-level privacyPassword (from LockedChatsView)
+      const passcode = unlockedPasscodes[activeSessionId] ?? privacyPassword
       chatApi.getMessages(activeSessionId, passcode)
         .then((history) => {
           if (history.length > 0) {
@@ -333,6 +338,10 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
               text: welcomeText,
               createdAt: Date.now(),
             }])
+          }
+          // If unlocked via privacyPassword, track that passcode
+          if (!unlockedPasscodes[activeSessionId] && privacyPassword) {
+            setUnlockedPasscodes((prev) => ({ ...prev, [activeSessionId]: privacyPassword }))
           }
           setLockedSessionToUnlock(null)
         })
@@ -527,41 +536,40 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
     })
   }
 
-  // Lock Actions
-  const openLockModal = (sessionId: string, e: React.MouseEvent) => {
+  // Lock Actions — one-click, uses settings credentials automatically
+  const openLockModal = async (sessionId: string, e: React.MouseEvent) => {
     e.stopPropagation()
-    setLockModalSessionId(sessionId)
-  }
-
-  const handleLockSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!lockModalSessionId) return
-    if (!lockPasscodeVal.trim() || !lockSecurityQVal.trim() || !lockSecurityAVal.trim()) {
-      toast.error('All fields are required')
-      return
-    }
-
-    const strength = getPasswordStrength(lockPasscodeVal)
-    if (!strength || !strength.isStrong) {
-      toast.error('Passcode is too weak. Please use a stronger passcode (at least Good).')
-      return
-    }
-
+    if (isLockingSession) return
+    setIsLockingSession(true)
     try {
-      await chatApi.lock(lockModalSessionId, lockPasscodeVal, lockSecurityQVal, lockSecurityAVal)
-      toast.success('Chat session locked!')
-      
-      // Store verified passcode locally
-      setUnlockedPasscodes((prev) => ({ ...prev, [lockModalSessionId]: lockPasscodeVal }))
-
-      setLockModalSessionId(null)
-      setLockPasscodeVal('')
-      setLockSecurityQVal('')
-      setLockSecurityAVal('')
-      
-      fetchSessions()
+      await chatApi.lock(sessionId) // backend reads settings credentials
+      toast.success('Chat locked!')
+      // Remove from visible list immediately (optimistic)
+      setSessions((prev) => prev.map((s) => s.sessionId === sessionId ? { ...s, isLocked: true } : s))
+      // If this was the active session, start a new one
+      if (activeSessionId === sessionId) {
+        setActiveSessionId(generateNewSessionId())
+        setMessages([{ id: 'welcome', role: 'assistant', text: welcomeText, createdAt: Date.now() }])
+      }
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Failed to lock session')
+    } finally {
+      setIsLockingSession(false)
+    }
+  }
+
+  // Permanent unlock — remove password protection entirely
+  const handlePermanentUnlock = async () => {
+    if (!permanentUnlockSessionId) return
+    try {
+      await chatApi.unlockPermanent(permanentUnlockSessionId, permanentUnlockPasscode || undefined)
+      toast.success('Chat is now public again!')
+      setSessions((prev) => prev.map((s) => s.sessionId === permanentUnlockSessionId ? { ...s, isLocked: false } : s))
+      setUnlockedPasscodes((prev) => { const next = { ...prev }; delete next[permanentUnlockSessionId]; return next })
+      setPermanentUnlockSessionId(null)
+      setPermanentUnlockPasscode('')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Incorrect passcode, try again.')
     }
   }
 
@@ -707,26 +715,39 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
             </span>
           </div>
 
-          {privacyLockChats && (
-            <div className="flex items-center gap-2">
-              {activeSessionId && !sessions.find((s) => s.sessionId === activeSessionId)?.isLocked && (
-                <button
-                  type="button"
-                  className="text-xs text-muted-foreground flex items-center gap-1 hover:text-[var(--mf-accent)] px-2 py-1.5 rounded-lg border border-border bg-card transition-colors cursor-pointer"
-                  onClick={(e) => openLockModal(activeSessionId, e)}
-                >
-                  <Lock size={14} />
-                  <span>Lock Chat</span>
-                </button>
-              )}
-              {activeSessionId && sessions.find((s) => s.sessionId === activeSessionId)?.isLocked && (
+          <div className="flex items-center gap-2">
+            {privacyLockChats && activeSessionId && !sessions.find((s) => s.sessionId === activeSessionId)?.isLocked && (
+              <button
+                type="button"
+                className="text-xs text-muted-foreground flex items-center gap-1 hover:text-[var(--mf-accent)] px-2 py-1.5 rounded-lg border border-border bg-card transition-colors cursor-pointer disabled:opacity-50"
+                onClick={(e) => openLockModal(activeSessionId, e)}
+                disabled={isLockingSession}
+              >
+                <Lock size={14} />
+                <span>{isLockingSession ? 'Locking…' : 'Lock Chat'}</span>
+              </button>
+            )}
+            {activeSessionId && sessions.find((s) => s.sessionId === activeSessionId)?.isLocked && (
+              <div className="flex items-center gap-1.5">
                 <span className="text-[10px] bg-amber-500/10 text-amber-500 px-2.5 py-1 rounded-full font-medium flex items-center gap-1">
                   <Lock size={10} weight="fill" />
                   Locked
                 </span>
-              )}
-            </div>
-          )}
+                <button
+                  type="button"
+                  title="Remove password protection and make this chat public"
+                  className="text-xs text-muted-foreground flex items-center gap-1 hover:text-emerald-500 px-2 py-1.5 rounded-lg border border-border bg-card transition-colors cursor-pointer"
+                  onClick={() => {
+                    setPermanentUnlockSessionId(activeSessionId)
+                    setPermanentUnlockPasscode('')
+                  }}
+                >
+                  <LockOpen size={14} />
+                  <span>Unlock Chat</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {temporaryChat && (
@@ -996,135 +1017,45 @@ export function ChatView({ showOnlyLocked = false }: { showOnlyLocked?: boolean 
         )}
       </div>
 
-      {/* Lock Setup Modal Overlay */}
-      {lockModalSessionId && (
+      {/* Permanent Unlock Modal Overlay */}
+      {permanentUnlockSessionId && (
         <div className="chat-modal-overlay">
-          <form className="chat-modal-card animate-in zoom-in-95 duration-200" onSubmit={handleLockSubmit}>
+          <div className="chat-modal-card animate-in zoom-in-95 duration-200">
             <div className="chat-modal-header">
-              <h3 className="chat-modal-title">Lock Chat Conversation</h3>
+              <h3 className="chat-modal-title">Make Chat Public?</h3>
               <button
                 type="button"
                 className="chat-modal-close"
-                onClick={() => setLockModalSessionId(null)}
+                onClick={() => { setPermanentUnlockSessionId(null); setPermanentUnlockPasscode('') }}
               >
                 <X size={18} />
               </button>
             </div>
-            
             <p className="text-xs text-muted-foreground">
-              Add passcode protection to this conversation. You will also need to configure a security question in case you forget the passcode.
+              This will permanently remove password protection and move the conversation back into your main chat history.
             </p>
-
-            <div className="flex flex-col gap-3 text-left">
+            <div className="flex flex-col gap-3 text-left mt-3">
               <div>
-                <label className="text-xs font-semibold text-[var(--mf-text)] mb-1 block">Passcode / Password</label>
+                <label className="text-xs font-semibold text-[var(--mf-text)] mb-1 block">Confirm with your passcode or login password</label>
                 <input
                   type="password"
-                  placeholder="Set passcode"
+                  placeholder="Enter passcode / account password"
                   className="chat-lock-input"
-                  value={lockPasscodeVal}
-                  onChange={(e) => setLockPasscodeVal(e.target.value)}
-                  required
-                />
-                {(() => {
-                  const strengthResult = getPasswordStrength(lockPasscodeVal)
-                  if (!lockPasscodeVal) return null
-                  return (
-                    <div className="w-full mt-2 space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-300">
-                      <div className="flex justify-between items-center text-[10px] font-medium tracking-wide">
-                        <span className="text-muted-foreground uppercase">Password Strength</span>
-                        {strengthResult && (
-                          <span className={strengthResult.textClass}>
-                            {strengthResult.label}
-                          </span>
-                        )}
-                      </div>
-                      <div className="h-1.5 w-full bg-muted/30 dark:bg-muted/10 rounded-full overflow-hidden flex gap-1">
-                        {strengthResult && (
-                          <>
-                            <div className={`h-full rounded-full transition-all duration-500 flex-1 ${
-                              strengthResult.percent >= 33 
-                                ? strengthResult.label === 'Bad' 
-                                  ? 'bg-rose-500' 
-                                  : strengthResult.label === 'Good' 
-                                    ? 'bg-amber-500' 
-                                    : 'bg-emerald-500'
-                                : 'bg-transparent'
-                            }`} />
-                            <div className={`h-full rounded-full transition-all duration-500 flex-1 ${
-                              strengthResult.percent >= 66 
-                                ? strengthResult.label === 'Good' 
-                                  ? 'bg-amber-500' 
-                                  : 'bg-emerald-500'
-                                : 'bg-muted/10'
-                            }`} />
-                            <div className={`h-full rounded-full transition-all duration-500 flex-1 ${
-                              strengthResult.percent >= 100 
-                                ? 'bg-emerald-500' 
-                                : 'bg-muted/10'
-                            }`} />
-                          </>
-                        )}
-                      </div>
-                      {strengthResult?.label === 'Bad' && (
-                        <p className="text-[9px] text-muted-foreground leading-normal text-left flex items-center gap-2">
-                          <WarningCircle size={14} aria-hidden="true" className="text-rose-500" />
-                          <span>Make it at least 8 characters with numbers or special symbols.</span>
-                        </p>
-                      )}
-                      {strengthResult?.label === 'Good' && (
-                        <p className="text-[9px] text-muted-foreground leading-normal text-left flex items-center gap-2">
-                          <CheckCircle size={14} aria-hidden="true" className="text-amber-500" />
-                          <span>Good! Add uppercase letters and symbols for maximum security.</span>
-                        </p>
-                      )}
-                      {strengthResult?.label === 'Excellent' && (
-                        <p className="text-[9px] leading-normal font-medium text-emerald-500 dark:text-emerald-400 text-left flex items-center gap-2">
-                          <Sparkle size={14} aria-hidden="true" className="text-emerald-500" />
-                          <span>Excellent! Your passcode is highly secure.</span>
-                        </p>
-                      )}
-                    </div>
-                  )
-                })()}
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-[var(--mf-text)] mb-1 block">Security Question</label>
-                <input
-                  type="text"
-                  placeholder="e.g., What was your first pet's name?"
-                  className="chat-lock-input"
-                  value={lockSecurityQVal}
-                  onChange={(e) => setLockSecurityQVal(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-[var(--mf-text)] mb-1 block">Security Answer</label>
-                <input
-                  type="text"
-                  placeholder="Enter answer"
-                  className="chat-lock-input"
-                  value={lockSecurityAVal}
-                  onChange={(e) => setLockSecurityAVal(e.target.value)}
-                  required
+                  value={permanentUnlockPasscode}
+                  onChange={(e) => setPermanentUnlockPasscode(e.target.value)}
+                  autoFocus
                 />
               </div>
             </div>
-
-            <button 
-              type="submit" 
-              className="chat-lock-btn mt-2"
-              disabled={(() => {
-                const strengthResult = getPasswordStrength(lockPasscodeVal)
-                return !strengthResult || !strengthResult.isStrong
-              })()}
-             >
-               Secure Chat
-             </button>
-          </form>
+            <button
+              type="button"
+              className="chat-lock-btn mt-4 bg-emerald-600 hover:bg-emerald-700 border-emerald-600"
+              onClick={handlePermanentUnlock}
+            >
+              <LockOpen size={16} weight="bold" />
+              Unlock & Make Public
+            </button>
+          </div>
         </div>
       )}
     </div>

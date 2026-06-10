@@ -15,6 +15,7 @@ router.get('/sessions/:sessionId', chatController.getMessages);
 router.post('/message', chatController.sendMessage);
 router.put('/sessions/:sessionId/lock', chatController.lockSession);
 router.post('/sessions/:sessionId/unlock', chatController.unlockSession);
+router.put('/sessions/:sessionId/unlock-permanent', chatController.unlockSessionPermanent);
 router.delete('/sessions/:sessionId', chatController.deleteSession);
 
 export default router;
