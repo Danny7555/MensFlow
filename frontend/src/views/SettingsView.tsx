@@ -1682,7 +1682,7 @@ function AccountPanel({
 
 type SettingsViewProps = {
   isGuest?: boolean
-  onLogin?: () => void
+  onLogin?: (initialMode?: 'login' | 'register') => void
   onLogout?: () => void
 }
 
