@@ -2967,14 +2967,14 @@
   font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;
-  background: var(--mf-main-bg);
+  background: transparent !important;
   color: var(--mf-text);
 }
 
 .filter-chip--on {
-  border-color: var(--mf-accent-border);
-  background: var(--mf-accent-soft);
-  color: var(--mf-text-strong);
+  border-color: var(--mf-accent-border) !important;
+  background: var(--mf-accent-soft) !important;
+  color: var(--mf-text-strong) !important;
 }
 
 .tips-grid {

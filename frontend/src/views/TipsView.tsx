@@ -152,7 +152,7 @@ export function TipsView() {
 
   return (
     <div className="tips-page">
-      <div className="flex flex-wrap gap-4 justify-between items-center mb-6 bg-card p-4 rounded-2xl border border-border/50">
+      <div className="flex flex-wrap gap-4 justify-between items-center mb-6">
         <div className="filter-chips mb-0" role="tablist" aria-label="Tip category">
           {CATS.map((c) => (
             <button
