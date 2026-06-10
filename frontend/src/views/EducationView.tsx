@@ -17,9 +17,6 @@ import {
   ShieldPlus,
   Sparkle,
   BookOpen,
-  Plus,
-  Trash,
-  PencilSimple,
 } from '@phosphor-icons/react'
 
 // Categories
@@ -35,12 +32,9 @@ const ICON_MAP: Record<string, React.ElementType> = {
 interface ArticleCardProps {
   article: ApiEducationArticle
   isFeatured: boolean
-  isAuthenticated: boolean
-  onEdit: (a: ApiEducationArticle) => void
-  onDelete: (a: ApiEducationArticle) => void
 }
 
-function ArticleCard({ article, isFeatured, isAuthenticated, onEdit, onDelete }: ArticleCardProps) {
+function ArticleCard({ article, isFeatured }: ArticleCardProps) {
   const IconComponent = ICON_MAP[article.iconName] || BookOpen
   const [imageError, setImageError] = useState(false)
 
@@ -52,26 +46,6 @@ function ArticleCard({ article, isFeatured, isAuthenticated, onEdit, onDelete }:
           isFeatured && 'md:col-span-2 lg:col-span-2 md:flex-row gap-8 items-center bg-gradient-to-br from-card via-card to-[var(--mf-accent-soft)]/30 min-h-[280px]',
         )}
       >
-        {isAuthenticated && (
-          <div className="absolute top-4 right-4 flex items-center gap-2 opacity-0 group-hover/card:opacity-100 transition-opacity duration-200 z-20">
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); e.preventDefault(); onEdit(article) }}
-              className="size-8 rounded-full bg-card hover:bg-[var(--mf-hover)] text-[var(--mf-text-strong)] flex items-center justify-center transition-all cursor-pointer border border-border active-squish shadow-xs"
-              aria-label="Edit guide"
-            >
-              <PencilSimple size={14} />
-            </button>
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); e.preventDefault(); onDelete(article) }}
-              className="size-8 rounded-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 flex items-center justify-center transition-all cursor-pointer border border-rose-500/20 active-squish shadow-xs"
-              aria-label="Delete guide"
-            >
-              <Trash size={14} />
-            </button>
-          </div>
-        )}
 
         {isFeatured ? (
           <div className="absolute -right-8 -bottom-8 opacity-[0.15] pointer-events-none rotate-6">
@@ -149,7 +123,7 @@ export function EducationView() {
 
   // Modal state — only open flag + which article is being edited
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingArticle, setEditingArticle] = useState<ApiEducationArticle | null>(null)
+  const editingArticle: ApiEducationArticle | null = null
 
   const fetchArticles = useCallback(async () => {
     try {
@@ -168,26 +142,13 @@ export function EducationView() {
     return () => clearTimeout(timer)
   }, [fetchArticles])
 
-  const [activeCategory, setActiveCategory] = useQueryState(
+  const [activeCategory] = useQueryState(
     'topic',
     parseAsStringEnum<EduCategory>(EDUCATION_CATEGORIES as unknown as EduCategory[])
       .withDefault('All')
       .withOptions({ shallow: false }),
   )
 
-  const handleDeleteClick = async (article: ApiEducationArticle) => {
-    const articleId = article.id || article._id
-    if (!articleId) return
-    if (!window.confirm(`Are you sure you want to delete the guide "${article.title}"?`)) return
-    try {
-      await educationApi.deleteArticle(articleId)
-      toast.success('Guide deleted successfully.')
-      fetchArticles()
-    } catch (err) {
-      console.error('Failed to delete article:', err)
-      toast.error('Failed to delete educational guide.')
-    }
-  }
 
   if (isLoading) {
     return <TipsSkeleton />
@@ -205,7 +166,7 @@ export function EducationView() {
       </section>
 
       {/* Category Filter & Add Button */}
-      <section aria-label="Filter guides by category" className="flex flex-wrap gap-4 justify-between items-center bg-card p-4 rounded-2xl border border-border/50">
+      {/* <section aria-label="Filter guides by category" className="flex flex-wrap gap-4 justify-between items-center bg-card p-4 rounded-2xl border border-border/50">
         <div className="flex flex-wrap gap-2">
           {EDUCATION_CATEGORIES.map((cat) => (
             <button
@@ -234,7 +195,7 @@ export function EducationView() {
             <span>Add Guide</span>
           </button>
         )}
-      </section>
+      </section> */}
 
       <div className="relative">
         <section aria-label="Educational Guides" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
@@ -245,9 +206,6 @@ export function EducationView() {
                 key={article.id || article._id}
                 article={article}
                 isFeatured={isFeatured}
-                isAuthenticated={isAuthenticated}
-                onEdit={(a) => { setEditingArticle(a); setIsModalOpen(true) }}
-                onDelete={handleDeleteClick}
               />
             )
           })}
