@@ -123,19 +123,21 @@ export function CalendarView() {
       }
     })
 
-    const periodStart = data.lastPeriodStart || getLatestLoggedPeriodStart(logs)
-    if (periodStart) {
-      addPredictedPeriodDates({
-        dates,
-        periodStart,
-        cycleLength: data.typicalCycleDays || settings.cycleAvgLengthDays,
-        periodDuration: settings.cyclePeriodLengthDays,
-        viewYear: viewDate.getFullYear(),
-      })
+    if (!isEditingPeriods) {
+      const periodStart = getLatestLoggedPeriodStart(logs) || data.lastPeriodStart
+      if (periodStart) {
+        addPredictedPeriodDates({
+          dates,
+          periodStart,
+          cycleLength: data.typicalCycleDays || settings.cycleAvgLengthDays,
+          periodDuration: settings.cyclePeriodLengthDays,
+          viewYear: viewDate.getFullYear(),
+        })
+      }
     }
 
     dispatch({ type: "SET_PERIOD_DATES", payload: dates })
-  }, [data.lastPeriodStart, data.typicalCycleDays, logs, settings.cycleAvgLengthDays, settings.cyclePeriodLengthDays, viewDate])
+  }, [data.lastPeriodStart, data.typicalCycleDays, logs, settings.cycleAvgLengthDays, settings.cyclePeriodLengthDays, viewDate, isEditingPeriods])
 
   const handleTogglePeriod = async (dateKey: string) => {
     dispatch({ type: "TOGGLE_PERIOD_DATE", payload: dateKey })

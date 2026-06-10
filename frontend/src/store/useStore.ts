@@ -404,16 +404,29 @@ export const useStore = create<AppState>()((set, get) => ({
       const isLocalOnly = get().settings.privacyStrictLocalOnly
 
       if (isLoggedIn() && !isLocalOnly) {
-        const log = await logsApi.upsert(date, symptoms, targetWater, targetWeight, targetLhLevel, targetMucus)
+        const previousLogs = get().logs
         set((state) => ({
           logs: [
             ...state.logs.filter((l) => l.date !== date),
-            { date: log.date, symptoms: log.symptoms, water: log.water, weight: log.weight, lhLevel: log.lhLevel, mucus: log.mucus },
+            { date, symptoms, water: targetWater ?? 1000, weight: targetWeight ?? 62.5, lhLevel: targetLhLevel ?? null, mucus: targetMucus ?? null },
           ],
         }))
-        queryClient.invalidateQueries({ queryKey: ['symptomLogs'] })
-        queryClient.invalidateQueries({ queryKey: ['monthInReview'] })
-        queryClient.invalidateQueries({ queryKey: userKeys.profile })
+
+        try {
+          const log = await logsApi.upsert(date, symptoms, targetWater, targetWeight, targetLhLevel, targetMucus)
+          set((state) => ({
+            logs: [
+              ...state.logs.filter((l) => l.date !== date),
+              { date: log.date, symptoms: log.symptoms, water: log.water, weight: log.weight, lhLevel: log.lhLevel, mucus: log.mucus },
+            ],
+          }))
+          queryClient.invalidateQueries({ queryKey: ['symptomLogs'] })
+          queryClient.invalidateQueries({ queryKey: ['monthInReview'] })
+          queryClient.invalidateQueries({ queryKey: userKeys.profile })
+        } catch (err) {
+          set({ logs: previousLogs })
+          throw err
+        }
       } else {
         set((state) => ({
           logs: [

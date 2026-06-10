@@ -412,12 +412,26 @@ function GeneralPanel({
       <SelectRow
         label="Language"
         value={settings.languageUi}
-        onChange={(v) =>
+        onChange={(v) => {
+          if (v.endsWith('_soon')) {
+            const langNames: Record<string, string> = {
+              es_soon: 'Spanish',
+              fr_soon: 'French',
+              de_soon: 'German',
+              pt_soon: 'Portuguese',
+            }
+            toast.info(`${langNames[v] || 'Language'} translation is coming soon!`)
+            return
+          }
           updateSettings({ languageUi: v as 'auto' | 'en' })
-        }
+        }}
         options={[
           { value: 'auto', label: 'Auto-detect' },
           { value: 'en', label: 'English' },
+          { value: 'es_soon', label: 'Español (Coming Soon)' },
+          { value: 'fr_soon', label: 'Français (Coming Soon)' },
+          { value: 'de_soon', label: 'Deutsch (Coming Soon)' },
+          { value: 'pt_soon', label: 'Português (Coming Soon)' },
         ]}
       />
       <ToggleRow
@@ -429,12 +443,24 @@ function GeneralPanel({
       <SelectRow
         label="Spoken language"
         value={settings.spokenLanguage}
-        onChange={(v) =>
+        onChange={(v) => {
+          if (v.endsWith('_soon')) {
+            const langNames: Record<string, string> = {
+              'es-ES_soon': 'Spanish',
+              'fr-FR_soon': 'French',
+              'de-DE_soon': 'German',
+            }
+            toast.info(`${langNames[v] || 'Language'} dictation support is coming soon!`)
+            return
+          }
           updateSettings({ spokenLanguage: v as 'auto' | 'en-US' })
-        }
+        }}
         options={[
           { value: 'auto', label: 'Auto-detect' },
           { value: 'en-US', label: 'English (US)' },
+          { value: 'es-ES_soon', label: 'Español (Coming Soon)' },
+          { value: 'fr-FR_soon', label: 'Français (Coming Soon)' },
+          { value: 'de-DE_soon', label: 'Deutsch (Coming Soon)' },
         ]}
       />
       <ToggleRow
