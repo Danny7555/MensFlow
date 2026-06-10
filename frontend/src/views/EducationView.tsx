@@ -17,7 +17,6 @@ import {
   ShieldPlus,
   Sparkle,
   BookOpen,
-  Plus,
   Trash,
   PencilSimple,
 } from '@phosphor-icons/react'
@@ -168,7 +167,7 @@ export function EducationView() {
     return () => clearTimeout(timer)
   }, [fetchArticles])
 
-  const [activeCategory, setActiveCategory] = useQueryState(
+  const [activeCategory] = useQueryState(
     'topic',
     parseAsStringEnum<EduCategory>(EDUCATION_CATEGORIES as unknown as EduCategory[])
       .withDefault('All')
@@ -205,7 +204,7 @@ export function EducationView() {
       </section>
 
       {/* Category Filter & Add Button */}
-      <section aria-label="Filter guides by category" className="flex flex-wrap gap-4 justify-between items-center bg-card p-4 rounded-2xl border border-border/50">
+      {/* <section aria-label="Filter guides by category" className="flex flex-wrap gap-4 justify-between items-center bg-card p-4 rounded-2xl border border-border/50">
         <div className="flex flex-wrap gap-2">
           {EDUCATION_CATEGORIES.map((cat) => (
             <button
@@ -234,7 +233,7 @@ export function EducationView() {
             <span>Add Guide</span>
           </button>
         )}
-      </section>
+      </section> */}
 
       <div className="relative">
         <section aria-label="Educational Guides" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
