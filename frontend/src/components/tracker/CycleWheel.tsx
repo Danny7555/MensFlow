@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, useEffectEvent } from 'react'
 
 interface CycleWheelProps {
   cycleLength: number;
@@ -106,12 +106,14 @@ export function CycleWheel({
     onSelectDay(day);
   }, [getDayFromPointer, onHoverDay, onSelectDay]);
 
+  const onSelectDayEvent = useEffectEvent(selectDayFromPointer);
+
   useEffect(() => {
     if (!isDraggingMarker) return;
 
     const handlePointerMove = (event: PointerEvent) => {
       event.preventDefault();
-      selectDayFromPointer(event);
+      onSelectDayEvent(event);
     };
     const handlePointerUp = () => {
       setIsDraggingMarker(false);
@@ -123,7 +125,7 @@ export function CycleWheel({
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('pointerup', handlePointerUp);
     };
-  }, [isDraggingMarker, selectDayFromPointer]);
+  }, [isDraggingMarker]);
 
   const dots = useMemo(() => {
     return Array.from({ length: cycleLength }).map((_, i) => {

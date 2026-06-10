@@ -509,8 +509,12 @@ function computeCycleDayForDate(targetDate: Date, startIso: string, cycleLen: nu
 
 function getLatestLoggedPeriodStart(logs: Array<{ date: string; symptoms: string[] }>) {
   const flowDates = logs
-    .filter((log) => log.symptoms.some((symptom) => symptom.startsWith('flow-')))
-    .map((log) => log.date)
+    .reduce<string[]>((acc, log) => {
+      if (log.symptoms.some((symptom) => symptom.startsWith('flow-'))) {
+        acc.push(log.date)
+      }
+      return acc
+    }, [])
     .sort()
 
   let latestStart = ''
