@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Plus, X, CaretLeft, CaretRight, Drop, PencilSimple, Check, CalendarBlank, FloppyDisk, ArrowCounterClockwise } from "@phosphor-icons/react"
+import { Plus, X, CaretLeft, CaretRight, Drop, PencilSimple, CalendarBlank } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { useQueryState, parseAsStringLiteral } from 'nuqs'
@@ -106,6 +106,12 @@ export function CalendarView() {
   // Bumped after save to force the periodDates effect to re-run with fresh data
   const [refreshTrigger, setRefreshTrigger] = React.useState(0)
 
+  // Range-select and Shift-click states
+  const [editMode, setEditMode] = React.useState<'single' | 'range'>('single')
+  const [rangeStart, setRangeStart] = React.useState<string | null>(null)
+  const [hoveredDateKey, setHoveredDateKey] = React.useState<string | null>(null)
+  const [lastClickedDateKey, setLastClickedDateKey] = React.useState<string | null>(null)
+
   React.useEffect(() => {
     const clientToday = new Date()
     const y = clientToday.getFullYear()
@@ -160,6 +166,31 @@ export function CalendarView() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data.lastPeriodStart, data.typicalCycleDays, logs, settings.cycleAvgLengthDays, settings.cyclePeriodLengthDays, viewDate, refreshTrigger])
 
+  // Separate set of predicted dates for visual styling
+  const predictedDates = React.useMemo(() => {
+    const dates = new Set<string>()
+    if (isEditingPeriods) return dates // no predictions in edit mode
+
+    const periodStart = getLatestLoggedPeriodStart(logs) || data.lastPeriodStart
+    if (periodStart) {
+      const predictedOnly = new Set<string>()
+      addPredictedPeriodDates({
+        dates: predictedOnly,
+        periodStart,
+        cycleLength: data.typicalCycleDays || settings.cycleAvgLengthDays,
+        periodDuration: settings.cyclePeriodLengthDays,
+        viewYear: viewDate.getFullYear(),
+      })
+      predictedOnly.forEach((d) => {
+        if (!userRemovedRef.current.has(d)) {
+          dates.add(d)
+        }
+      })
+      return dates
+    }
+    return dates
+  }, [data.lastPeriodStart, data.typicalCycleDays, logs, settings.cycleAvgLengthDays, settings.cyclePeriodLengthDays, viewDate, isEditingPeriods])
+
   // Enter edit mode: snapshot committed state into the draft
   const enterEditMode = () => {
     if (!isAuthenticated) { openAuthModal(); return }
@@ -172,17 +203,74 @@ export function CalendarView() {
     })
     editBaseRef.current = new Set(loggedDates)
     setEditDraft(new Set(loggedDates))
+    setEditMode('single')
+    setRangeStart(null)
+    setHoveredDateKey(null)
+    setLastClickedDateKey(null)
     dispatch({ type: "SET_EDITING_PERIODS", payload: true })
   }
 
-  // Pure local toggle during editing — no API calls
-  const handleTogglePeriod = (dateKey: string) => {
-    setEditDraft((prev) => {
-      const next = new Set(prev)
-      if (next.has(dateKey)) next.delete(dateKey)
-      else next.add(dateKey)
-      return next
-    })
+  // Pure local toggle during editing — no API calls, supports shift-click & range modes
+  const handleTogglePeriod = (dateKey: string, isShiftKey: boolean = false) => {
+    const parseDateKey = (k: string) => {
+      const [y, m, d] = k.split('-').map(Number)
+      return new Date(y, m - 1, d)
+    }
+
+    if (editMode === 'range') {
+      if (!rangeStart) {
+        setRangeStart(dateKey)
+      } else {
+        const start = parseDateKey(rangeStart)
+        const end = parseDateKey(dateKey)
+        const dStart = start < end ? start : end
+        const dEnd = start < end ? end : start
+        
+        setEditDraft((prev) => {
+          const next = new Set(prev)
+          const temp = new Date(dStart)
+          while (temp <= dEnd) {
+            const key = `${temp.getFullYear()}-${String(temp.getMonth() + 1).padStart(2, '0')}-${String(temp.getDate()).padStart(2, '0')}`
+            next.add(key)
+            temp.setDate(temp.getDate() + 1)
+          }
+          return next
+        })
+        setRangeStart(null)
+        setHoveredDateKey(null)
+      }
+    } else {
+      // Single/Shift-click mode
+      setEditDraft((prev) => {
+        const next = new Set(prev)
+        if (isShiftKey && lastClickedDateKey) {
+          const start = parseDateKey(lastClickedDateKey)
+          const end = parseDateKey(dateKey)
+          const dStart = start < end ? start : end
+          const dEnd = start < end ? end : start
+          const toAdd = !prev.has(dateKey)
+          
+          const temp = new Date(dStart)
+          while (temp <= dEnd) {
+            const key = `${temp.getFullYear()}-${String(temp.getMonth() + 1).padStart(2, '0')}-${String(temp.getDate()).padStart(2, '0')}`
+            if (toAdd) {
+              next.add(key)
+            } else {
+              next.delete(key)
+            }
+            temp.setDate(temp.getDate() + 1)
+          }
+        } else {
+          if (next.has(dateKey)) {
+            next.delete(dateKey)
+          } else {
+            next.add(dateKey)
+          }
+        }
+        return next
+      })
+      setLastClickedDateKey(dateKey)
+    }
   }
 
   // Batch save: compute diff and call API only for changed dates
@@ -229,16 +317,22 @@ export function CalendarView() {
       // toast already shown by addLog
     } finally {
       setIsSavingPeriods(false)
+      setEditMode('single')
+      setRangeStart(null)
+      setHoveredDateKey(null)
+      setLastClickedDateKey(null)
       dispatch({ type: "SET_EDITING_PERIODS", payload: false })
       // Bump refreshTrigger so the periodDates effect re-runs now that isEditingPeriods is false.
-      // This is necessary because the effect was gated (returned early) while editing was active,
-      // so even though logs/lastPeriodStart changed during save, periodDates was never rebuilt.
       setRefreshTrigger((n) => n + 1)
     }
   }
 
   // Cancel: just exit, the effect will re-derive from unchanged logs
   const handleCancelEditing = () => {
+    setEditMode('single')
+    setRangeStart(null)
+    setHoveredDateKey(null)
+    setLastClickedDateKey(null)
     dispatch({ type: "SET_EDITING_PERIODS", payload: false })
   }
 
@@ -333,37 +427,18 @@ export function CalendarView() {
           <div className="flex justify-center sm:justify-end order-3">
             {!isPartner && (
               isEditingPeriods ? (
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={handleCancelEditing}
-                    disabled={isSavingPeriods}
-                    className="rounded-full text-xs font-normal gap-2 border-border"
-                  >
-                    <ArrowCounterClockwise size={14} />
-                    <span>Cancel</span>
-                  </Button>
-                  <Button
-                    onClick={handleSavePeriods}
-                    disabled={isSavingPeriods}
-                    className="rounded-full text-xs font-normal gap-2 bg-[var(--mf-danger)]/10 text-[var(--mf-danger)] border border-[var(--mf-danger)]/30 hover:bg-[var(--mf-danger)]/20"
-                  >
-                    {isSavingPeriods ? (
-                      <><span className="animate-spin">⟳</span><span>Saving…</span></>
-                    ) : (
-                      <><FloppyDisk size={14} weight="bold" /><span>Save</span></>
-                    )}
-                  </Button>
-                </div>
+                <span className="text-xs text-muted-foreground italic animate-in fade-in duration-300">
+                  Tap days below to toggle
+                </span>
               ) : (
-                <Button
-                  variant="outline"
+                <button
+                  type="button"
                   onClick={enterEditMode}
-                  className="rounded-full text-xs font-normal gap-2"
+                  className="flex items-center gap-2 text-xs font-medium text-[#ff5a5f] bg-[#ff5a5f]/8 hover:bg-[#ff5a5f]/15 border border-[#ff5a5f]/25 px-4 py-2 rounded-full transition-all active:scale-95"
                 >
-                  <PencilSimple size={14} weight="bold" />
-                  <span>Edit Periods</span>
-                </Button>
+                  <PencilSimple size={13} weight="bold" />
+                  <span>Edit periods</span>
+                </button>
               )
             )}
             {isPartner && (
@@ -374,6 +449,89 @@ export function CalendarView() {
           </div>
         </div>
 
+        {/* ── Edit-Mode Action Bar ── */}
+        {isEditingPeriods && (
+          <div className="animate-in slide-in-from-top-4 fade-in duration-300 w-full max-w-xl mx-auto">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-3xl bg-white/95 dark:bg-[#1e1e1e]/95 border border-[#ff5a5f]/25 shadow-[0_4px_20px_rgba(255,90,95,0.08)] p-4">
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="size-9 rounded-full bg-[#ff5a5f]/10 flex items-center justify-center shrink-0">
+                  <Drop size={16} weight="fill" className="text-[#ff5a5f]" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs font-semibold text-foreground leading-tight">
+                    {editDraft.size} {editDraft.size === 1 ? 'day' : 'days'} selected
+                  </p>
+                  <p className="text-[10px] text-rose-500 font-medium leading-tight mt-0.5 animate-pulse">
+                    {editMode === 'single' 
+                      ? 'Tap days to toggle • Shift-click for range'
+                      : !rangeStart 
+                        ? 'Tap start date of period flow'
+                        : 'Tap end date of period flow'
+                    }
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                {/* Segmented Control */}
+                <div className="flex bg-muted dark:bg-muted/40 p-0.5 rounded-lg border border-border/40">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditMode('single')
+                      setRangeStart(null)
+                      setHoveredDateKey(null)
+                    }}
+                    className={cn(
+                      "text-[10px] font-medium px-3 py-1 rounded-md transition-all",
+                      editMode === 'single' ? "bg-white dark:bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    Single
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditMode('range')
+                      setRangeStart(null)
+                      setHoveredDateKey(null)
+                    }}
+                    className={cn(
+                      "text-[10px] font-medium px-3 py-1 rounded-md transition-all",
+                      editMode === 'range' ? "bg-white dark:bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    Range
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleCancelEditing}
+                    disabled={isSavingPeriods}
+                    className="text-xs font-medium text-muted-foreground hover:text-foreground px-3 py-1.5 rounded-xl hover:bg-muted transition-all disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSavePeriods}
+                    disabled={isSavingPeriods}
+                    className="text-xs font-semibold text-white bg-[#ff5a5f] hover:brightness-105 px-4 py-1.5 rounded-xl transition-all active:scale-95 disabled:opacity-60 flex items-center gap-1.5"
+                  >
+                    {isSavingPeriods ? (
+                      <><span className="animate-spin inline-block">⟳</span><span>Saving…</span></>
+                    ) : (
+                      <span>Save</span>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="relative">
           {view === "month" ? (
           <MonthView 
@@ -381,13 +539,17 @@ export function CalendarView() {
               selectedDate={selectedDate}
               isEditingPeriods={isEditingPeriods}
               periodDates={isEditingPeriods ? editDraft : periodDates}
+              predictedDates={predictedDates}
+              editMode={editMode}
+              rangeStart={rangeStart}
+              hoveredDateKey={hoveredDateKey}
+              onHoverDate={setHoveredDateKey}
               data={data}
               onSelectDate={(date) => {
                 dispatch({ type: "SET_SELECTED_DATE", payload: date })
                 setIsDetailSheetOpen(true)
               }}
               onTogglePeriod={handleTogglePeriod}
-              editCount={isEditingPeriods ? editDraft.size : undefined}
             />
           ) : (
             <YearView 
@@ -419,6 +581,32 @@ export function CalendarView() {
             </div>
           )}
         </div>
+
+        {/* ── Calendar Legend ── */}
+        {view === "month" && (
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 pt-6 border-t border-border/40 text-xs text-muted-foreground animate-in fade-in duration-500">
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-[#ff5a5f] shadow-[0_2px_8px_rgba(255,90,95,0.25)] flex items-center justify-center text-[10px] text-white font-semibold">
+                1
+              </div>
+              <span className="font-medium text-foreground/80">Logged Period</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full border border-dashed border-rose-300 dark:border-rose-800 bg-rose-50/25 dark:bg-rose-950/10 flex items-center justify-center text-[10px] text-rose-500/80">
+                1
+              </div>
+              <span className="font-medium text-foreground/80">Predicted Period</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="size-5 rounded-full border-2 border-dotted border-muted-foreground opacity-60 flex items-center justify-center text-[10px]" />
+              <span className="font-medium text-foreground/80">Predicted Ovulation</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="size-5 rounded-full bg-[#e0e0e0] dark:bg-muted flex items-center justify-center text-[10px]" />
+              <span className="font-medium text-foreground/80">Selected Day</span>
+            </div>
+          </div>
+        )}
       </div>
 
       <DetailSheet
@@ -437,19 +625,27 @@ function MonthView({
   selectedDate, 
   isEditingPeriods, 
   periodDates, 
+  predictedDates,
+  editMode,
+  rangeStart,
+  hoveredDateKey,
+  onHoverDate,
   data,
   onSelectDate,
   onTogglePeriod,
-  editCount,
 }: { 
   viewDate: Date
   selectedDate: Date
   isEditingPeriods: boolean
   periodDates: Set<string>
+  predictedDates: Set<string>
+  editMode: 'single' | 'range'
+  rangeStart: string | null
+  hoveredDateKey: string | null
+  onHoverDate: (key: string | null) => void
   data: { lastPeriodStart: string; typicalCycleDays: number }
   onSelectDate: (date: Date) => void
-  onTogglePeriod: (dateKey: string) => void
-  editCount?: number
+  onTogglePeriod: (dateKey: string, isShiftKey?: boolean) => void
 }) {
   const year = viewDate.getFullYear()
   const month = viewDate.getMonth()
@@ -458,13 +654,29 @@ function MonthView({
 
   const dateToKey = (d: number) => `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
 
-  const handleDayClick = (d: number) => {
-    if (isEditingPeriods) {
-      onTogglePeriod(dateToKey(d))
-    } else {
-      onSelectDate(new Date(year, month, d))
+  // Calculate tentative range for range-selection preview
+  const tentativeRange = React.useMemo(() => {
+    const set = new Set<string>()
+    if (!isEditingPeriods || editMode !== 'range' || !rangeStart || !hoveredDateKey) return set
+
+    const parseDateKey = (k: string) => {
+      const [y, m, dt] = k.split('-').map(Number)
+      return new Date(y, m - 1, dt)
     }
-  }
+
+    const start = parseDateKey(rangeStart)
+    const end = parseDateKey(hoveredDateKey)
+    const dStart = start < end ? start : end
+    const dEnd = start < end ? end : start
+    
+    const temp = new Date(dStart)
+    while (temp <= dEnd) {
+      const key = `${temp.getFullYear()}-${String(temp.getMonth() + 1).padStart(2, '0')}-${String(temp.getDate()).padStart(2, '0')}`
+      set.add(key)
+      temp.setDate(temp.getDate() + 1)
+    }
+    return set
+  }, [isEditingPeriods, editMode, rangeStart, hoveredDateKey])
 
   // Calculate ovulation day based on typical cycle length
   const cycleLen = data.typicalCycleDays || 28
@@ -474,20 +686,6 @@ function MonthView({
 
   return (
     <>
-      {/* Edit Mode Banner — Flo-style instruction strip */}
-      {isEditingPeriods && (
-        <div className="animate-in slide-in-from-top-2 fade-in duration-300 mx-4 mb-4 flex items-center justify-between gap-3 rounded-2xl border border-[#ff5a5f]/30 bg-[#ff5a5f]/5 px-4 py-3">
-          <div className="flex items-center gap-2">
-            <Drop size={14} weight="fill" className="text-[#ff5a5f]" />
-            <span className="text-xs font-medium text-[#ff5a5f]">
-              Tap days to mark or unmark your period
-            </span>
-          </div>
-          <span className="text-[10px] font-semibold tabular-nums text-[#ff5a5f] bg-[#ff5a5f]/10 rounded-full px-2.5 py-0.5">
-            {editCount ?? 0} {(editCount ?? 0) === 1 ? 'day' : 'days'} selected
-          </span>
-        </div>
-      )}
       <div className="grid grid-cols-7 px-4 mb-4">
         {DAYS_OF_WEEK.map((day) => (
           <div key={day} className="text-center text-[10px] font-normal text-muted-foreground tracking-wider">
@@ -506,6 +704,7 @@ function MonthView({
             const d = i + 1
             const key = dateToKey(d)
             const isPeriod = periodDates.has(key)
+            const isPredicted = !isEditingPeriods && predictedDates.has(key)
             const isSelected = selectedDate.getDate() === d && selectedDate.getMonth() === month && selectedDate.getFullYear() === year
             
             const targetDate = new Date(year, month, d)
@@ -513,62 +712,144 @@ function MonthView({
               ? computeCycleDayForDate(targetDate, data.lastPeriodStart, data.typicalCycleDays)
               : null
             const isOvulation = cycleDay === ovulationDay
-            
+
+            // Capsule connection checks
+            const getDateKeyOffset = (dayOffset: number) => {
+              const target = new Date(year, month, d + dayOffset)
+              const y = target.getFullYear()
+              const m = target.getMonth() + 1
+              const dt = target.getDate()
+              return `${y}-${String(m).padStart(2, '0')}-${String(dt).padStart(2, '0')}`
+            }
+
+            const prevKey = getDateKeyOffset(-1)
+            const nextKey = getDateKeyOffset(1)
+
+            const isPrevPeriod = periodDates.has(prevKey)
+            const isPrevPredicted = !isEditingPeriods && predictedDates.has(prevKey)
+            const isPrevLogged = isPrevPeriod && !isPrevPredicted
+
+            const isNextPeriod = periodDates.has(nextKey)
+            const isNextPredicted = !isEditingPeriods && predictedDates.has(nextKey)
+            const isNextLogged = isNextPeriod && !isNextPredicted
+
+            const isWeekStart = (offset + d - 1) % 7 === 0
+            const isWeekEnd = (offset + d - 1) % 7 === 6
+
+            const connectsLeft = isPeriod && (isPredicted ? isPrevPredicted : isPrevLogged) && !isWeekStart
+            const connectsRight = isPeriod && (isPredicted ? isNextPredicted : isNextLogged) && !isWeekEnd
+
+            // Tentative connection checks
+            const isTentative = tentativeRange.has(key)
+            const isTentativePrev = tentativeRange.has(prevKey)
+            const isTentativeNext = tentativeRange.has(nextKey)
+            const connectsTentativeLeft = isTentative && isTentativePrev && !isWeekStart
+            const connectsTentativeRight = isTentative && isTentativeNext && !isWeekEnd
+
+            const isRangeStartDay = isEditingPeriods && rangeStart === key
+
             return (
               <button 
                 key={d} 
                 type="button"
-                onClick={() => handleDayClick(d)}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleDayClick(d) }}
+                onClick={(e) => {
+                  if (isEditingPeriods) {
+                    onTogglePeriod(key, e.shiftKey)
+                  } else {
+                    onSelectDate(new Date(year, month, d))
+                  }
+                }}
+                onMouseEnter={() => {
+                  if (isEditingPeriods && editMode === 'range' && rangeStart) {
+                    onHoverDate(key)
+                  }
+                }}
+                onMouseLeave={() => {
+                  if (isEditingPeriods && editMode === 'range' && rangeStart) {
+                    onHoverDate(null)
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    if (isEditingPeriods) {
+                      onTogglePeriod(key, e.shiftKey)
+                    } else {
+                      onSelectDate(new Date(year, month, d))
+                    }
+                  }
+                }}
                 className={cn(
                   "relative flex flex-col items-center justify-center cursor-pointer group py-2 sm:py-0 w-full transition-all",
-                  isEditingPeriods && "hover:scale-110 active:scale-95"
                 )}
               >
-                <span className="text-[10px] text-muted-foreground mb-1 font-normal group-hover:text-foreground transition-colors">
-                  {cycleDay !== null ? cycleDay : "--"}
-                </span>
+                {/* Cycle day label */}
+                {!isEditingPeriods && (
+                  <span className="text-[10px] text-muted-foreground mb-1 font-normal group-hover:text-foreground transition-colors">
+                    {cycleDay !== null ? cycleDay : "--"}
+                  </span>
+                )}
+                {isEditingPeriods && (
+                  <span className="text-[10px] text-transparent mb-1 select-none">·</span>
+                )}
 
-                <div className="relative flex items-center justify-center size-10 sm:size-12 transition-transform group-active:scale-90">
-                  {isSelected && !isEditingPeriods && (
-                    <div className="absolute inset-0 bg-[#e0e0e0] dark:bg-muted rounded-full animate-in zoom-in-75 duration-200" />
-                  )}
-                  {isOvulation && !isEditingPeriods && (
-                    <div className="absolute inset-0 border-2 border-dotted border-muted-foreground rounded-full opacity-60" />
-                  )}
-
-                  {/* Edit mode: ring on every cell */}
-                  {isEditingPeriods && (
+                <div className="relative w-full flex items-center justify-center">
+                  {/* Period Capsule Background */}
+                  {isPeriod && (
                     <div className={cn(
-                      "absolute inset-0 rounded-full border-2 transition-all duration-150",
-                      isPeriod
-                        ? "border-[#ff5a5f] bg-[#ff5a5f]/10"
-                        : "border-[#ff5a5f]/20 border-dashed group-hover:border-[#ff5a5f]/50 group-hover:bg-[#ff5a5f]/5"
+                      "absolute h-10 sm:h-11 z-0",
+                      isPredicted 
+                        ? [
+                            "border-y border-dashed border-rose-300 dark:border-rose-800 bg-rose-50/25 dark:bg-rose-950/10",
+                            connectsLeft ? "left-0" : "left-[calc(50%-20px)] sm:left-[calc(50%-22px)] border-l rounded-l-full",
+                            connectsRight ? "right-0" : "right-[calc(50%-20px)] sm:right-[calc(50%-22px)] border-r rounded-r-full",
+                          ]
+                        : [
+                            "bg-rose-100/70 dark:bg-rose-950/45",
+                            connectsLeft ? "left-0" : "left-[calc(50%-20px)] sm:left-[calc(50%-22px)] rounded-l-full",
+                            connectsRight ? "right-0" : "right-[calc(50%-20px)] sm:right-[calc(50%-22px)] rounded-r-full",
+                          ]
                     )} />
                   )}
 
-                  {/* Period dot badge */}
-                  {isPeriod && (
-                    <div className="absolute top-1 right-1 bg-[#ff5a5f] text-white rounded-full size-4 flex items-center justify-center">
-                      {isEditingPeriods
-                        ? <Check weight="bold" className="size-2.5" />
-                        : <Drop weight="fill" className="size-2.5" />
-                      }
+                  {/* Tentative Range Capsule Background (Edit mode range preview) */}
+                  {isTentative && (
+                    <div className={cn(
+                      "absolute h-10 sm:h-11 bg-rose-200/50 dark:bg-rose-900/30 border-y border-dashed border-rose-400/50 z-0",
+                      connectsTentativeLeft ? "left-0" : "left-[calc(50%-20px)] sm:left-[calc(50%-22px)] border-l rounded-l-full",
+                      connectsTentativeRight ? "right-0" : "right-[calc(50%-20px)] sm:right-[calc(50%-22px)] border-r rounded-r-full",
+                    )} />
+                  )}
+
+                  {/* Pulsing selection border for range start day */}
+                  {isRangeStartDay && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                      <div className="size-10 sm:size-11 rounded-full border-2 border-rose-500 animate-pulse" />
                     </div>
                   )}
-                  <span className={cn(
-                    "relative z-0 text-lg font-normal transition-colors",
-                    isPeriod ? "text-[#ff5a5f] font-semibold" : "text-foreground"
-                  )}>
-                    {d}
-                  </span>
-                </div>
 
-                {isPeriod && !isEditingPeriods && (
-                  <div className="absolute -bottom-1 sm:-bottom-2 w-full flex justify-center px-1">
-                    <div className="w-full border-b-2 border-dotted border-[#ff5a5f]" />
+                  {/* Ovulation ring (non-edit mode only) */}
+                  {isOvulation && !isEditingPeriods && (
+                    <div className="absolute inset-0 border-2 border-dotted border-muted-foreground rounded-full opacity-60 z-20 pointer-events-none" />
+                  )}
+
+                  <div className={cn(
+                    "relative z-10 flex items-center justify-center size-10 sm:size-11 rounded-full transition-all duration-150",
+                    isEditingPeriods && [
+                      isPeriod
+                        ? "bg-[#ff5a5f] text-white shadow-[0_2px_12px_rgba(255,90,95,0.35)] scale-105 font-semibold"
+                        : "bg-transparent text-foreground/80 hover:bg-[#ff5a5f]/8 active:scale-90",
+                    ],
+                    !isEditingPeriods && [
+                      isSelected && "bg-[#e0e0e0] dark:bg-muted text-foreground",
+                      isPeriod && !isSelected && (isPredicted ? "text-rose-500/80 dark:text-rose-400/80" : "text-rose-600 dark:text-rose-400 font-semibold"),
+                      !isPeriod && !isSelected && "text-foreground"
+                    ]
+                  )}>
+                    <span className="relative z-0 text-base font-normal">
+                      {d}
+                    </span>
                   </div>
-                )}
+                </div>
               </button>
             )
           })}
