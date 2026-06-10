@@ -142,6 +142,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const localOnboarding = getLocalOnboarding()
     const isOnboarded = u.isOnboarded || localOnboarding
     setState(prev => ({ ...prev, user: u, onboardingCompleted: isOnboarded, isAuthenticated: true }))
+    
+    // Set the Zustand store user state immediately to avoid UI flickering/role lag
+    useStore.setState({
+      user: {
+        id: u.id,
+        email: u.email,
+        name: u.name,
+        avatar: u.avatar,
+        accessLevel: u.accessLevel,
+        isOnboarded: u.isOnboarded,
+        role: u.role,
+        onboardingData: u.onboardingData || {},
+        partnerCode: u.partnerCode,
+        partnerId: u.partnerId,
+        xp: u.xp || 0,
+        quizLastCompletedAt: u.quizLastCompletedAt || '',
+        quizCountToday: u.quizCountToday || 0,
+      }
+    })
+
     setAuthModalOpen(false)
     setAuthModalLocked(false)
     setOtpPending(false)
