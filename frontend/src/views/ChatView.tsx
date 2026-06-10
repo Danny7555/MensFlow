@@ -482,6 +482,9 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
     if (temporaryChat) {
       setTemporaryChat(false)
     }
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+      setIsSidebarOpen(false)
+    }
     if (activeSessionId === sessionId) return
     setActiveSessionId(sessionId)
     setLockedSessionToUnlock(null)
@@ -493,6 +496,9 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
   const startNewChat = () => {
     if (temporaryChat) {
       setTemporaryChat(false)
+    }
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+      setIsSidebarOpen(false)
     }
     const newId = generateNewSessionId()
     setActiveSessionId(newId)
@@ -627,17 +633,33 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
 
   return (
     <div className="chat-layout-container">
+      {/* Mobile Backdrop Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-40 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* 1. Left Sidebar for Chat History */}
       <aside className={cn("chat-sidebar-wrapper", !isSidebarOpen && "collapsed")}>
         {!showOnlyLocked && (
-          <div className="chat-sidebar-header">
+          <div className="chat-sidebar-header flex items-center justify-between gap-2">
             <button
               type="button"
-              className="chat-new-btn active-squish"
+              className="chat-new-btn active-squish flex-1"
               onClick={startNewChat}
             >
               <Plus size={16} weight="bold" />
               <span>New Chat</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsSidebarOpen(false)}
+              className="md:hidden p-2 text-muted-foreground hover:text-foreground hover:bg-muted/40 rounded-xl transition-all"
+              title="Close Menu"
+            >
+              <X size={18} weight="bold" />
             </button>
           </div>
         )}
@@ -975,13 +997,39 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
                   </div>
                 </div>
               )}
+
+              {/* Mobile-only suggested questions inside the scrollable thread */}
+              {!suggestionsLoading && suggestions && suggestions.length > 0 && !isTyping && !isLoading && (
+                <div className="chat-suggestions-container mobile-only-suggestions mt-2">
+                  <div className="chat-suggestions-label">
+                    <Sparkle size={14} weight="fill" className="text-[var(--mf-accent)]" />
+                    <span>Suggested Questions</span>
+                  </div>
+                  <div className="chat-suggestions-grid">
+                    {suggestions.map((s, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => send(s)}
+                        className="chat-suggestion-chip"
+                      >
+                        <span>{s}</span>
+                        <span className="chat-suggestion-icon">
+                          <CaretRight size={14} weight="bold" />
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div ref={threadEndRef} />
             </div>
 
             <div className="chat-composer-dock p-3 bg-background/80 backdrop-blur-md border-t border-border">
               <div className="max-w-[800px] mx-auto w-full">
+                {/* Desktop-only suggested questions inside the sticky dock */}
                 {!suggestionsLoading && suggestions && suggestions.length > 0 && !isTyping && !isLoading && (
-                  <div className="chat-suggestions-container">
+                  <div className="chat-suggestions-container desktop-only-suggestions">
                     <div className="chat-suggestions-label">
                       <Sparkle size={14} weight="fill" className="text-[var(--mf-accent)]" />
                       <span>Suggested Questions</span>
