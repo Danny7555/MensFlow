@@ -18,15 +18,27 @@ type CalendarState = {
   isEditingPeriods: boolean
   periodDates: Set<string>
   today: Date
+  editDraft: Set<string>
+  isSavingPeriods: boolean
+  editMode: 'single' | 'range'
+  rangeStart: string | null
+  hoveredDateKey: string | null
+  lastClickedDateKey: string | null
 }
 
 type CalendarAction =
   | { type: "SET_VIEW_DATE"; payload: Date }
   | { type: "SET_SELECTED_DATE"; payload: Date }
-  | { type: "SET_EDITING_PERIODS"; payload: boolean }
-  | { type: "TOGGLE_PERIOD_DATE"; payload: string }
   | { type: "SET_PERIOD_DATES"; payload: Set<string> }
   | { type: "INIT_CLIENT_DATE"; payload: { today: Date; periodDates: Set<string>; viewDate: Date } }
+  | { type: "ENTER_EDIT_MODE"; payload: { loggedDates: Set<string> } }
+  | { type: "CANCEL_EDITING" }
+  | { type: "SET_EDIT_DRAFT"; payload: Set<string> }
+  | { type: "SET_EDIT_MODE"; payload: 'single' | 'range' }
+  | { type: "SET_RANGE_START"; payload: string | null }
+  | { type: "SET_HOVERED_DATE_KEY"; payload: string | null }
+  | { type: "SET_LAST_CLICKED_DATE_KEY"; payload: string | null }
+  | { type: "SET_IS_SAVING_PERIODS"; payload: boolean }
 
 function calendarReducer(state: CalendarState, action: CalendarAction): CalendarState {
   switch (action.type) {
@@ -34,16 +46,8 @@ function calendarReducer(state: CalendarState, action: CalendarAction): Calendar
       return { ...state, viewDate: action.payload }
     case "SET_SELECTED_DATE":
       return { ...state, selectedDate: action.payload }
-    case "SET_EDITING_PERIODS":
-      return { ...state, isEditingPeriods: action.payload }
     case "SET_PERIOD_DATES":
       return { ...state, periodDates: action.payload }
-    case "TOGGLE_PERIOD_DATE": {
-      const next = new Set(state.periodDates)
-      if (next.has(action.payload)) next.delete(action.payload)
-      else next.add(action.payload)
-      return { ...state, periodDates: next }
-    }
     case "INIT_CLIENT_DATE":
       return {
         ...state,
@@ -52,6 +56,37 @@ function calendarReducer(state: CalendarState, action: CalendarAction): Calendar
         periodDates: action.payload.periodDates,
         today: action.payload.today,
       }
+    case "ENTER_EDIT_MODE":
+      return {
+        ...state,
+        isEditingPeriods: true,
+        editDraft: action.payload.loggedDates,
+        editMode: 'single',
+        rangeStart: null,
+        hoveredDateKey: null,
+        lastClickedDateKey: null
+      }
+    case "CANCEL_EDITING":
+      return {
+        ...state,
+        isEditingPeriods: false,
+        editMode: 'single',
+        rangeStart: null,
+        hoveredDateKey: null,
+        lastClickedDateKey: null
+      }
+    case "SET_EDIT_DRAFT":
+      return { ...state, editDraft: action.payload }
+    case "SET_EDIT_MODE":
+      return { ...state, editMode: action.payload }
+    case "SET_RANGE_START":
+      return { ...state, rangeStart: action.payload }
+    case "SET_HOVERED_DATE_KEY":
+      return { ...state, hoveredDateKey: action.payload }
+    case "SET_LAST_CLICKED_DATE_KEY":
+      return { ...state, lastClickedDateKey: action.payload }
+    case "SET_IS_SAVING_PERIODS":
+      return { ...state, isSavingPeriods: action.payload }
     default:
       return state
   }
@@ -59,8 +94,230 @@ function calendarReducer(state: CalendarState, action: CalendarAction): Calendar
 
 import { useAuth } from "@/context/useAuth"
 
+function RestrictedAccessView({
+  requestSent,
+  isSaving,
+  showAccessModal,
+  setShowAccessModal,
+  handleConfirmAccessRequest,
+}: {
+  requestSent: boolean
+  isSaving: boolean
+  showAccessModal: boolean
+  setShowAccessModal: (val: boolean) => void
+  handleConfirmAccessRequest: (selectedFields: string[]) => Promise<void>
+}) {
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center p-6">
+      <div className="max-w-md w-full bg-card border border-border rounded-3xl p-8 text-center space-y-5">
+        <div className="size-16 rounded-2xl bg-[var(--mf-accent)]/10 text-[var(--mf-accent)] flex items-center justify-center mx-auto">
+          <CalendarBlank size={32} weight="fill" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-normal text-foreground mb-2">Calendar access is private</h1>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Ask your partner to approve calendar and tracker access so you can see forecasts and cycle timing.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowAccessModal(true)}
+          disabled={requestSent || isSaving}
+          className="btn btn-primary px-6 py-3 rounded-full disabled:opacity-60"
+        >
+          {requestSent ? 'Request sent' : 'Request access'}
+        </button>
+      </div>
+      <RequestAccessModal
+        open={showAccessModal}
+        onClose={() => setShowAccessModal(false)}
+        onConfirm={handleConfirmAccessRequest}
+        isLoading={isSaving}
+      />
+    </div>
+  )
+}
 
-export function CalendarView() {
+function CalendarHeader({
+  view,
+  setView,
+  viewDate,
+  isEditingPeriods,
+  isPartner,
+  enterEditMode,
+  prevMonth,
+  nextMonth,
+  prevYear,
+  nextYear,
+}: {
+  view: 'month' | 'year'
+  setView: (view: 'month' | 'year') => void
+  viewDate: Date
+  isEditingPeriods: boolean
+  isPartner: boolean
+  enterEditMode: () => void
+  prevMonth: () => void
+  nextMonth: () => void
+  prevYear: () => void
+  nextYear: () => void
+}) {
+  const year = viewDate.getFullYear()
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-6 px-6 mb-8 text-center">
+      <div className="flex justify-center sm:justify-start order-2 sm:order-1">
+        <div className="ios-segmented-control max-w-[200px] mx-auto sm:mx-0">
+          <button type="button"
+            onClick={() => setView("month")}
+            className={cn(
+              "ios-segmented-control-item",
+              view === "month" && "active"
+            )}
+          >
+            Month
+          </button>
+          <button type="button"
+            onClick={() => setView("year")}
+            className={cn(
+              "ios-segmented-control-item",
+              view === "year" && "active"
+            )}
+          >
+            Year
+          </button>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-center gap-6 order-1 sm:order-2">
+        <Button variant="ghost" size="icon" onClick={view === "month" ? prevMonth : prevYear} className="rounded-full">
+          <CaretLeft className="size-5" />
+        </Button>
+        <h2 className="text-xl sm:text-2xl font-normal text-foreground min-w-[140px] text-center">
+          {view === "month" ? `${viewDate.toLocaleString("default", { month: "long" })} ${year}` : year}
+        </h2>
+        <Button variant="ghost" size="icon" onClick={view === "month" ? nextMonth : nextYear} className="rounded-full">
+          <CaretRight className="size-5" />
+        </Button>
+      </div>
+
+      <div className="flex justify-center sm:justify-end order-3">
+        {!isPartner && (
+          isEditingPeriods ? (
+            <span className="text-xs text-muted-foreground italic animate-in fade-in duration-300">
+              Tap days below to toggle
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={enterEditMode}
+              className="flex items-center gap-2 text-xs font-medium text-[#ff5a5f] bg-[#ff5a5f]/8 hover:bg-[#ff5a5f]/15 border border-[#ff5a5f]/25 px-4 py-2 rounded-full transition-all active:scale-95"
+            >
+              <PencilSimple size={13} weight="bold" />
+              <span>Edit periods</span>
+            </button>
+          )
+        )}
+        {isPartner && (
+          <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest bg-muted px-4 py-2 rounded-full border border-border/40">
+            View-Only Mode
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function EditActionBar({
+  editDraftSize,
+  editMode,
+  rangeStart,
+  isSavingPeriods,
+  setEditMode,
+  handleCancelEditing,
+  handleSavePeriods,
+}: {
+  editDraftSize: number
+  editMode: 'single' | 'range'
+  rangeStart: string | null
+  isSavingPeriods: boolean
+  setEditMode: (mode: 'single' | 'range') => void
+  handleCancelEditing: () => void
+  handleSavePeriods: () => void
+}) {
+  return (
+    <div className="animate-in slide-in-from-top-4 fade-in duration-300 w-full max-w-xl mx-auto">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-3xl bg-white/95 dark:bg-[#1e1e1e]/95 border border-[#ff5a5f]/25 shadow-[0_4px_20px_rgba(255,90,95,0.08)] p-4">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="size-9 rounded-full bg-[#ff5a5f]/10 flex items-center justify-center shrink-0">
+            <Drop size={16} weight="fill" className="text-[#ff5a5f]" />
+          </div>
+          <div className="flex-1">
+            <p className="text-xs font-semibold text-foreground leading-tight">
+              {editDraftSize} {editDraftSize === 1 ? 'day' : 'days'} selected
+            </p>
+            <p className="text-[10px] text-rose-500 font-medium leading-tight mt-0.5 animate-pulse">
+              {editMode === 'single' 
+                ? 'Tap days to toggle • Shift-click for range'
+                : !rangeStart 
+                  ? 'Tap start date of period flow'
+                  : 'Tap end date of period flow'
+              }
+            </p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+          <div className="flex bg-muted dark:bg-muted/40 p-0.5 rounded-lg border border-border/40">
+            <button
+              type="button"
+              onClick={() => setEditMode('single')}
+              className={cn(
+                "text-[10px] font-medium px-3 py-1 rounded-md transition-all",
+                editMode === 'single' ? "bg-white dark:bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Single
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditMode('range')}
+              className={cn(
+                "text-[10px] font-medium px-3 py-1 rounded-md transition-all",
+                editMode === 'range' ? "bg-white dark:bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Range
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleCancelEditing}
+              disabled={isSavingPeriods}
+              className="text-xs font-medium text-muted-foreground hover:text-foreground px-3 py-1.5 rounded-xl hover:bg-muted transition-all disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSavePeriods}
+              disabled={isSavingPeriods}
+              className="text-xs font-semibold text-white bg-[#ff5a5f] hover:brightness-105 px-4 py-1.5 rounded-xl transition-all active:scale-95 disabled:opacity-60 flex items-center gap-1.5"
+            >
+              {isSavingPeriods ? (
+                <><span className="animate-spin inline-block">⟳</span><span>Saving…</span></>
+              ) : (
+                <span>Save</span>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function useCalendarState() {
   const { isAuthenticated, openAuthModal } = useAuth()
   const { user, logs, fetchLogs, addLog, dashboard: ownDashboard, settings, partnerStatus, fetchPartnerStatus, requestDetailedAccessAction, isSaving, hydrate } = useStore()
   const [showAccessModal, setShowAccessModal] = React.useState(false)
@@ -76,8 +333,6 @@ export function CalendarView() {
     await fetchPartnerStatus()
   }
 
-
-
   const [view, setView] = useQueryState(
     'view',
     parseAsStringLiteral(['month', 'year'] as const)
@@ -91,26 +346,17 @@ export function CalendarView() {
     selectedDate: new Date(2026, 4, 20),
     isEditingPeriods: false,
     periodDates: new Set<string>(),
-    today: new Date(2026, 4, 20)
+    today: new Date(2026, 4, 20),
+    editDraft: new Set<string>(),
+    isSavingPeriods: false,
+    editMode: 'single',
+    rangeStart: null,
+    hoveredDateKey: null,
+    lastClickedDateKey: null
   })
-  const { viewDate, selectedDate, isEditingPeriods, periodDates } = state
-
-  // ---------- Flo-style batch edit state ----------
-  // While editing, we keep a local draft set. We only call the API on Save.
-  const [editDraft, setEditDraft] = React.useState<Set<string>>(new Set())
-  // Snapshot of what was committed before the user started editing (to compute the diff)
+  
   const editBaseRef = React.useRef<Set<string>>(new Set())
-  const [isSavingPeriods, setIsSavingPeriods] = React.useState(false)
-  // Persist which dates the user has explicitly unchecked, so predictions never re-add them
   const userRemovedRef = React.useRef<Set<string>>(new Set())
-  // Bumped after save to force the periodDates effect to re-run with fresh data
-  const [refreshTrigger, setRefreshTrigger] = React.useState(0)
-
-  // Range-select and Shift-click states
-  const [editMode, setEditMode] = React.useState<'single' | 'range'>('single')
-  const [rangeStart, setRangeStart] = React.useState<string | null>(null)
-  const [hoveredDateKey, setHoveredDateKey] = React.useState<string | null>(null)
-  const [lastClickedDateKey, setLastClickedDateKey] = React.useState<string | null>(null)
 
   React.useEffect(() => {
     const clientToday = new Date()
@@ -132,10 +378,8 @@ export function CalendarView() {
     }
   }, [fetchLogs, fetchPartnerStatus, isPartner])
 
-  // Rebuild periodDates from logs + predictions, but ONLY when NOT editing.
-  // During editing, the user drives the display via editDraft.
   React.useEffect(() => {
-    if (isEditingPeriods) return // don't clobber in-progress edits
+    if (state.isEditingPeriods) return
 
     const dates = new Set<string>()
     logs.forEach((log) => {
@@ -144,7 +388,7 @@ export function CalendarView() {
       }
     })
 
-    const periodStart = getLatestLoggedPeriodStart(logs) || data.lastPeriodStart
+    const periodStart = getLatestLoggedPeriodStart(logs, state.today) || data.lastPeriodStart
     if (periodStart) {
       const predictedOnly = new Set<string>()
       addPredictedPeriodDates({
@@ -152,9 +396,8 @@ export function CalendarView() {
         periodStart,
         cycleLength: data.typicalCycleDays || settings.cycleAvgLengthDays,
         periodDuration: settings.cyclePeriodLengthDays,
-        viewYear: viewDate.getFullYear(),
+        viewYear: state.viewDate.getFullYear(),
       })
-      // Only add predicted dates that the user has NOT explicitly removed
       predictedOnly.forEach((d) => {
         if (!userRemovedRef.current.has(d)) {
           dates.add(d)
@@ -164,14 +407,13 @@ export function CalendarView() {
 
     dispatch({ type: "SET_PERIOD_DATES", payload: dates })
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data.lastPeriodStart, data.typicalCycleDays, logs, settings.cycleAvgLengthDays, settings.cyclePeriodLengthDays, viewDate, refreshTrigger])
+  }, [data.lastPeriodStart, data.typicalCycleDays, logs, settings.cycleAvgLengthDays, settings.cyclePeriodLengthDays, state.viewDate, state.isEditingPeriods, state.today])
 
-  // Separate set of predicted dates for visual styling
   const predictedDates = React.useMemo(() => {
     const dates = new Set<string>()
-    if (isEditingPeriods) return dates // no predictions in edit mode
+    if (state.isEditingPeriods) return dates
 
-    const periodStart = getLatestLoggedPeriodStart(logs) || data.lastPeriodStart
+    const periodStart = getLatestLoggedPeriodStart(logs, state.today) || data.lastPeriodStart
     if (periodStart) {
       const predictedOnly = new Set<string>()
       addPredictedPeriodDates({
@@ -179,7 +421,7 @@ export function CalendarView() {
         periodStart,
         cycleLength: data.typicalCycleDays || settings.cycleAvgLengthDays,
         periodDuration: settings.cyclePeriodLengthDays,
-        viewYear: viewDate.getFullYear(),
+        viewYear: state.viewDate.getFullYear(),
       })
       predictedOnly.forEach((d) => {
         if (!userRemovedRef.current.has(d)) {
@@ -189,12 +431,10 @@ export function CalendarView() {
       return dates
     }
     return dates
-  }, [data.lastPeriodStart, data.typicalCycleDays, logs, settings.cycleAvgLengthDays, settings.cyclePeriodLengthDays, viewDate, isEditingPeriods])
+  }, [data.lastPeriodStart, data.typicalCycleDays, logs, settings.cycleAvgLengthDays, settings.cyclePeriodLengthDays, state.viewDate, state.isEditingPeriods, state.today])
 
-  // Enter edit mode: snapshot committed state into the draft
   const enterEditMode = () => {
     if (!isAuthenticated) { openAuthModal(); return }
-    // Only include *real logged* flow dates in the draft (not predicted)
     const loggedDates = new Set<string>()
     logs.forEach((log) => {
       if (log.symptoms.some((s) => s.startsWith("flow-"))) {
@@ -202,91 +442,75 @@ export function CalendarView() {
       }
     })
     editBaseRef.current = new Set(loggedDates)
-    setEditDraft(new Set(loggedDates))
-    setEditMode('single')
-    setRangeStart(null)
-    setHoveredDateKey(null)
-    setLastClickedDateKey(null)
-    dispatch({ type: "SET_EDITING_PERIODS", payload: true })
+    dispatch({ type: "ENTER_EDIT_MODE", payload: { loggedDates } })
   }
 
-  // Pure local toggle during editing — no API calls, supports shift-click & range modes
   const handleTogglePeriod = (dateKey: string, isShiftKey: boolean = false) => {
     const parseDateKey = (k: string) => {
       const [y, m, d] = k.split('-').map(Number)
       return new Date(y, m - 1, d)
     }
 
-    if (editMode === 'range') {
-      if (!rangeStart) {
-        setRangeStart(dateKey)
+    if (state.editMode === 'range') {
+      if (!state.rangeStart) {
+        dispatch({ type: "SET_RANGE_START", payload: dateKey })
       } else {
-        const start = parseDateKey(rangeStart)
+        const start = parseDateKey(state.rangeStart)
         const end = parseDateKey(dateKey)
         const dStart = start < end ? start : end
         const dEnd = start < end ? end : start
         
-        setEditDraft((prev) => {
-          const next = new Set(prev)
-          const temp = new Date(dStart)
-          while (temp <= dEnd) {
-            const key = `${temp.getFullYear()}-${String(temp.getMonth() + 1).padStart(2, '0')}-${String(temp.getDate()).padStart(2, '0')}`
-            next.add(key)
-            temp.setDate(temp.getDate() + 1)
-          }
-          return next
-        })
-        setRangeStart(null)
-        setHoveredDateKey(null)
+        const next = new Set(state.editDraft)
+        const temp = new Date(dStart)
+        while (temp <= dEnd) {
+          const key = `${temp.getFullYear()}-${String(temp.getMonth() + 1).padStart(2, '0')}-${String(temp.getDate()).padStart(2, '0')}`
+          next.add(key)
+          temp.setDate(temp.getDate() + 1)
+        }
+        dispatch({ type: "SET_EDIT_DRAFT", payload: next })
+        dispatch({ type: "SET_RANGE_START", payload: null })
+        dispatch({ type: "SET_HOVERED_DATE_KEY", payload: null })
       }
     } else {
-      // Single/Shift-click mode
-      setEditDraft((prev) => {
-        const next = new Set(prev)
-        if (isShiftKey && lastClickedDateKey) {
-          const start = parseDateKey(lastClickedDateKey)
-          const end = parseDateKey(dateKey)
-          const dStart = start < end ? start : end
-          const dEnd = start < end ? end : start
-          const toAdd = !prev.has(dateKey)
-          
-          const temp = new Date(dStart)
-          while (temp <= dEnd) {
-            const key = `${temp.getFullYear()}-${String(temp.getMonth() + 1).padStart(2, '0')}-${String(temp.getDate()).padStart(2, '0')}`
-            if (toAdd) {
-              next.add(key)
-            } else {
-              next.delete(key)
-            }
-            temp.setDate(temp.getDate() + 1)
-          }
-        } else {
-          if (next.has(dateKey)) {
-            next.delete(dateKey)
+      const next = new Set(state.editDraft)
+      if (isShiftKey && state.lastClickedDateKey) {
+        const start = parseDateKey(state.lastClickedDateKey)
+        const end = parseDateKey(dateKey)
+        const dStart = start < end ? start : end
+        const dEnd = start < end ? end : start
+        const toAdd = !state.editDraft.has(dateKey)
+        
+        const temp = new Date(dStart)
+        while (temp <= dEnd) {
+          const key = `${temp.getFullYear()}-${String(temp.getMonth() + 1).padStart(2, '0')}-${String(temp.getDate()).padStart(2, '0')}`
+          if (toAdd) {
+            next.add(key)
           } else {
-            next.add(dateKey)
+            next.delete(key)
           }
+          temp.setDate(temp.getDate() + 1)
         }
-        return next
-      })
-      setLastClickedDateKey(dateKey)
+      } else {
+        if (next.has(dateKey)) {
+          next.delete(dateKey)
+        } else {
+          next.add(dateKey)
+        }
+      }
+      dispatch({ type: "SET_EDIT_DRAFT", payload: next })
+      dispatch({ type: "SET_LAST_CLICKED_DATE_KEY", payload: dateKey })
     }
   }
 
-  // Batch save: compute diff and call API only for changed dates
   const handleSavePeriods = async () => {
-    setIsSavingPeriods(true)
+    dispatch({ type: "SET_IS_SAVING_PERIODS", payload: true })
     const base = editBaseRef.current
-    const draft = editDraft
+    const draft = state.editDraft
 
-    // Dates that were added
     const added = [...draft].filter((d) => !base.has(d))
-    // Dates that were removed
     const removed = [...base].filter((d) => !draft.has(d))
 
-    // Persist removed dates so predictions never re-add them
     removed.forEach((d) => userRemovedRef.current.add(d))
-    // If the user re-adds a previously removed date, clear it from the removed set
     added.forEach((d) => userRemovedRef.current.delete(d))
 
     try {
@@ -302,239 +526,153 @@ export function CalendarView() {
           await addLog(dateKey, symptoms)
         }),
       ])
-      // 1. Refresh logs (updates the logs array in the store)
       await fetchLogs()
-      // 2. Re-hydrate dashboard so lastPeriodStart is fresh from the backend
-      //    (the backend runs recalculateCycleMetrics after each upsert)
       try {
         const { userApi } = await import('../services/userService')
         const profile = await userApi.getProfile()
         hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
       } catch {
-        // non-critical — predictions will self-correct on next full page load
+        // non-critical
       }
     } catch {
-      // toast already shown by addLog
+      // toast shown by addLog
     } finally {
-      setIsSavingPeriods(false)
-      setEditMode('single')
-      setRangeStart(null)
-      setHoveredDateKey(null)
-      setLastClickedDateKey(null)
-      dispatch({ type: "SET_EDITING_PERIODS", payload: false })
-      // Bump refreshTrigger so the periodDates effect re-runs now that isEditingPeriods is false.
-      setRefreshTrigger((n) => n + 1)
+      dispatch({ type: "SET_IS_SAVING_PERIODS", payload: false })
+      dispatch({ type: "CANCEL_EDITING" })
     }
   }
 
-  // Cancel: just exit, the effect will re-derive from unchanged logs
   const handleCancelEditing = () => {
-    setEditMode('single')
-    setRangeStart(null)
-    setHoveredDateKey(null)
-    setLastClickedDateKey(null)
-    dispatch({ type: "SET_EDITING_PERIODS", payload: false })
+    dispatch({ type: "CANCEL_EDITING" })
   }
 
-  const year = viewDate.getFullYear()
-  const month = viewDate.getMonth()
+  const year = state.viewDate.getFullYear()
+  const month = state.viewDate.getMonth()
 
   const prevMonth = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year, month - 1, 1) })
   const nextMonth = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year, month + 1, 1) })
   const prevYear = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year - 1, month, 1) })
   const nextYear = () => dispatch({ type: "SET_VIEW_DATE", payload: new Date(year + 1, month, 1) })
 
+  return {
+    isAuthenticated,
+    openAuthModal,
+    user,
+    isSaving,
+    isPartner,
+    data,
+    showRestrictedView,
+    view,
+    setView,
+    isDetailSheetOpen,
+    setIsDetailSheetOpen,
+    state,
+    dispatch,
+    predictedDates,
+    enterEditMode,
+    handleTogglePeriod,
+    handleSavePeriods,
+    handleCancelEditing,
+    prevMonth,
+    nextMonth,
+    prevYear,
+    nextYear,
+    showAccessModal,
+    setShowAccessModal,
+    requestSent,
+    handleConfirmAccessRequest,
+  }
+}
 
+export function CalendarView() {
+  const {
+    isAuthenticated,
+    openAuthModal,
+    isSaving,
+    isPartner,
+    data,
+    showRestrictedView,
+    view,
+    setView,
+    isDetailSheetOpen,
+    setIsDetailSheetOpen,
+    state,
+    dispatch,
+    predictedDates,
+    enterEditMode,
+    handleTogglePeriod,
+    handleSavePeriods,
+    handleCancelEditing,
+    prevMonth,
+    nextMonth,
+    prevYear,
+    nextYear,
+    showAccessModal,
+    setShowAccessModal,
+    requestSent,
+    handleConfirmAccessRequest,
+  } = useCalendarState()
+
+  const {
+    viewDate,
+    selectedDate,
+    isEditingPeriods,
+    periodDates,
+    editDraft,
+    isSavingPeriods,
+    editMode,
+    rangeStart,
+    hoveredDateKey,
+  } = state
 
   if (showRestrictedView) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-6">
-        <div className="max-w-md w-full bg-card border border-border rounded-3xl p-8 text-center space-y-5">
-          <div className="size-16 rounded-2xl bg-[var(--mf-accent)]/10 text-[var(--mf-accent)] flex items-center justify-center mx-auto">
-            <CalendarBlank size={32} weight="fill" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-normal text-foreground mb-2">Calendar access is private</h1>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Ask your partner to approve calendar and tracker access so you can see forecasts and cycle timing.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setShowAccessModal(true)}
-            disabled={requestSent || isSaving}
-            className="btn btn-primary px-6 py-3 rounded-full disabled:opacity-60"
-          >
-            {requestSent ? 'Request sent' : 'Request access'}
-          </button>
-        </div>
-        <RequestAccessModal
-          open={showAccessModal}
-          onClose={() => setShowAccessModal(false)}
-          onConfirm={handleConfirmAccessRequest}
-          isLoading={isSaving}
-        />
-      </div>
+      <RestrictedAccessView
+        requestSent={requestSent}
+        isSaving={isSaving}
+        showAccessModal={showAccessModal}
+        setShowAccessModal={setShowAccessModal}
+        handleConfirmAccessRequest={handleConfirmAccessRequest}
+      />
     )
   }
 
   return (
     <div className="flex flex-col h-full bg-background overflow-auto relative" suppressHydrationWarning>
-      {/* Decorative background image - matching Symptoms (Tracker) view style */}
       <div className="absolute right-0 top-20 opacity-10 pointer-events-none z-0">
         <img src="/images/girl.png" alt="" className="size-[800px] object-contain" />
       </div>
 
       <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 relative z-10">
         
-        {/* Top Control Bar */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-6 px-6 mb-8 text-center">
-          <div className="flex justify-center sm:justify-start order-2 sm:order-1">
-            <div className="ios-segmented-control max-w-[200px] mx-auto sm:mx-0">
-              <button type="button"
-                onClick={() => setView("month")}
-                className={cn(
-                  "ios-segmented-control-item",
-                  view === "month" && "active"
-                )}
-              >
-                Month
-              </button>
-              <button type="button"
-                onClick={() => setView("year")}
-                className={cn(
-                  "ios-segmented-control-item",
-                  view === "year" && "active"
-                )}
-              >
-                Year
-              </button>
-            </div>
-          </div>
+        <CalendarHeader
+          view={view}
+          setView={setView}
+          viewDate={viewDate}
+          isEditingPeriods={isEditingPeriods}
+          isPartner={isPartner}
+          enterEditMode={enterEditMode}
+          prevMonth={prevMonth}
+          nextMonth={nextMonth}
+          prevYear={prevYear}
+          nextYear={nextYear}
+        />
 
-          <div className="flex items-center justify-center gap-6 order-1 sm:order-2">
-            <Button variant="ghost" size="icon" onClick={view === "month" ? prevMonth : prevYear} className="rounded-full">
-              <CaretLeft className="size-5" />
-            </Button>
-            <h2 className="text-xl sm:text-2xl font-normal text-foreground min-w-[140px] text-center">
-              {view === "month" ? `${viewDate.toLocaleString("default", { month: "long" })} ${year}` : year}
-            </h2>
-            <Button variant="ghost" size="icon" onClick={view === "month" ? nextMonth : nextYear} className="rounded-full">
-              <CaretRight className="size-5" />
-            </Button>
-          </div>
-
-          <div className="flex justify-center sm:justify-end order-3">
-            {!isPartner && (
-              isEditingPeriods ? (
-                <span className="text-xs text-muted-foreground italic animate-in fade-in duration-300">
-                  Tap days below to toggle
-                </span>
-              ) : (
-                <button
-                  type="button"
-                  onClick={enterEditMode}
-                  className="flex items-center gap-2 text-xs font-medium text-[#ff5a5f] bg-[#ff5a5f]/8 hover:bg-[#ff5a5f]/15 border border-[#ff5a5f]/25 px-4 py-2 rounded-full transition-all active:scale-95"
-                >
-                  <PencilSimple size={13} weight="bold" />
-                  <span>Edit periods</span>
-                </button>
-              )
-            )}
-            {isPartner && (
-              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest bg-muted px-4 py-2 rounded-full border border-border/40">
-                View-Only Mode
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ── Edit-Mode Action Bar ── */}
         {isEditingPeriods && (
-          <div className="animate-in slide-in-from-top-4 fade-in duration-300 w-full max-w-xl mx-auto">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-3xl bg-white/95 dark:bg-[#1e1e1e]/95 border border-[#ff5a5f]/25 shadow-[0_4px_20px_rgba(255,90,95,0.08)] p-4">
-              <div className="flex items-center gap-3 w-full sm:w-auto">
-                <div className="size-9 rounded-full bg-[#ff5a5f]/10 flex items-center justify-center shrink-0">
-                  <Drop size={16} weight="fill" className="text-[#ff5a5f]" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs font-semibold text-foreground leading-tight">
-                    {editDraft.size} {editDraft.size === 1 ? 'day' : 'days'} selected
-                  </p>
-                  <p className="text-[10px] text-rose-500 font-medium leading-tight mt-0.5 animate-pulse">
-                    {editMode === 'single' 
-                      ? 'Tap days to toggle • Shift-click for range'
-                      : !rangeStart 
-                        ? 'Tap start date of period flow'
-                        : 'Tap end date of period flow'
-                    }
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-                {/* Segmented Control */}
-                <div className="flex bg-muted dark:bg-muted/40 p-0.5 rounded-lg border border-border/40">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditMode('single')
-                      setRangeStart(null)
-                      setHoveredDateKey(null)
-                    }}
-                    className={cn(
-                      "text-[10px] font-medium px-3 py-1 rounded-md transition-all",
-                      editMode === 'single' ? "bg-white dark:bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    Single
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditMode('range')
-                      setRangeStart(null)
-                      setHoveredDateKey(null)
-                    }}
-                    className={cn(
-                      "text-[10px] font-medium px-3 py-1 rounded-md transition-all",
-                      editMode === 'range' ? "bg-white dark:bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    Range
-                  </button>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleCancelEditing}
-                    disabled={isSavingPeriods}
-                    className="text-xs font-medium text-muted-foreground hover:text-foreground px-3 py-1.5 rounded-xl hover:bg-muted transition-all disabled:opacity-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSavePeriods}
-                    disabled={isSavingPeriods}
-                    className="text-xs font-semibold text-white bg-[#ff5a5f] hover:brightness-105 px-4 py-1.5 rounded-xl transition-all active:scale-95 disabled:opacity-60 flex items-center gap-1.5"
-                  >
-                    {isSavingPeriods ? (
-                      <><span className="animate-spin inline-block">⟳</span><span>Saving…</span></>
-                    ) : (
-                      <span>Save</span>
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <EditActionBar
+            editDraftSize={editDraft.size}
+            editMode={editMode}
+            rangeStart={rangeStart}
+            isSavingPeriods={isSavingPeriods}
+            setEditMode={(mode) => dispatch({ type: "SET_EDIT_MODE", payload: mode })}
+            handleCancelEditing={handleCancelEditing}
+            handleSavePeriods={handleSavePeriods}
+          />
         )}
 
         <div className="relative">
           {view === "month" ? (
-          <MonthView 
+            <MonthView 
               viewDate={viewDate} 
               selectedDate={selectedDate}
               isEditingPeriods={isEditingPeriods}
@@ -543,7 +681,7 @@ export function CalendarView() {
               editMode={editMode}
               rangeStart={rangeStart}
               hoveredDateKey={hoveredDateKey}
-              onHoverDate={setHoveredDateKey}
+              onHoverDate={(hovered) => dispatch({ type: "SET_HOVERED_DATE_KEY", payload: hovered })}
               data={data}
               onSelectDate={(date) => {
                 dispatch({ type: "SET_SELECTED_DATE", payload: date })
@@ -555,6 +693,7 @@ export function CalendarView() {
             <YearView 
               viewDate={viewDate} 
               periodDates={periodDates}
+              predictedDates={predictedDates}
               today={state.today}
               onMonthClick={(d) => {
                 dispatch({ type: "SET_VIEW_DATE", payload: d })
@@ -582,11 +721,10 @@ export function CalendarView() {
           )}
         </div>
 
-        {/* ── Calendar Legend ── */}
         {view === "month" && (
           <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 pt-6 border-t border-border/40 text-xs text-muted-foreground animate-in fade-in duration-500">
             <div className="flex items-center gap-2">
-              <div className="w-5 h-5 rounded-full bg-rose-100 dark:bg-rose-950/80 border border-rose-200 dark:border-rose-900/60 flex items-center justify-center text-[10px] text-rose-700 dark:text-rose-300 font-bold">
+              <div className="w-5 h-5 rounded-full bg-violet-100 dark:bg-violet-950/80 border border-violet-200 dark:border-violet-900/60 flex items-center justify-center text-[10px] text-violet-700 dark:text-violet-300 font-bold">
                 1
               </div>
               <span className="font-medium text-foreground/80">Logged Period</span>
@@ -808,7 +946,7 @@ function MonthView({
                             connectsRight ? "right-0" : "right-[calc(50%-20px)] sm:right-[calc(50%-22px)] border-r rounded-r-full",
                           ]
                         : [
-                            "bg-rose-100/95 dark:bg-rose-950/65 border-y border-rose-200 dark:border-rose-900/60",
+                            "bg-violet-100/95 dark:bg-violet-950/65 border-y border-violet-200 dark:border-violet-900/60",
                             connectsLeft ? "left-0" : "left-[calc(50%-20px)] sm:left-[calc(50%-22px)] border-l rounded-l-full",
                             connectsRight ? "right-0" : "right-[calc(50%-20px)] sm:right-[calc(50%-22px)] border-r rounded-r-full",
                           ]
@@ -818,7 +956,7 @@ function MonthView({
                   {/* Tentative Range Capsule Background (Edit mode range preview) */}
                   {isTentative && (
                     <div className={cn(
-                      "absolute h-10 sm:h-11 bg-rose-200/50 dark:bg-rose-900/30 border-y border-dashed border-rose-400/50 z-0",
+                      "absolute h-10 sm:h-11 bg-violet-200/50 dark:bg-violet-900/30 border-y border-dashed border-violet-400/50 z-0",
                       connectsTentativeLeft ? "left-0" : "left-[calc(50%-20px)] sm:left-[calc(50%-22px)] border-l rounded-l-full",
                       connectsTentativeRight ? "right-0" : "right-[calc(50%-20px)] sm:right-[calc(50%-22px)] border-r rounded-r-full",
                     )} />
@@ -827,7 +965,7 @@ function MonthView({
                   {/* Pulsing selection border for range start day */}
                   {isRangeStartDay && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-                      <div className="size-10 sm:size-11 rounded-full border-2 border-rose-500 animate-pulse" />
+                      <div className="size-10 sm:size-11 rounded-full border-2 border-violet-500 animate-pulse" />
                     </div>
                   )}
 
@@ -840,12 +978,12 @@ function MonthView({
                     "relative z-10 flex items-center justify-center size-10 sm:size-11 rounded-full transition-all duration-150",
                     isEditingPeriods && [
                       isPeriod
-                        ? "bg-[#ff5a5f] text-white shadow-[0_2px_12px_rgba(255,90,95,0.35)] scale-105 font-semibold"
-                        : "bg-transparent text-foreground/80 hover:bg-[#ff5a5f]/8 active:scale-90",
+                        ? "bg-violet-600 text-white shadow-[0_2px_12px_rgba(124,58,237,0.35)] scale-105 font-semibold"
+                        : "bg-transparent text-foreground/80 hover:bg-violet-500/8 active:scale-90",
                     ],
                     !isEditingPeriods && [
                       isSelected && "bg-[#e0e0e0] dark:bg-muted text-foreground",
-                      isPeriod && !isSelected && (isPredicted ? "text-rose-500 dark:text-rose-400/80" : "text-rose-700 dark:text-rose-300 font-bold"),
+                      isPeriod && !isSelected && (isPredicted ? "text-rose-500 dark:text-rose-400/80" : "text-violet-700 dark:text-violet-300 font-bold"),
                       isOvulation && !isPeriod && !isSelected && "text-teal-600 dark:text-teal-400 font-semibold",
                       !isPeriod && !isOvulation && !isSelected && "text-foreground"
                     ]
@@ -864,7 +1002,19 @@ function MonthView({
   )
 }
 
-const YearView = ({ viewDate, periodDates, today, onMonthClick }: { viewDate: Date, periodDates: Set<string>, today: Date, onMonthClick: (d: Date) => void }) => {
+const YearView = ({ 
+  viewDate, 
+  periodDates, 
+  predictedDates,
+  today, 
+  onMonthClick 
+}: { 
+  viewDate: Date
+  periodDates: Set<string>
+  predictedDates: Set<string>
+  today: Date
+  onMonthClick: (d: Date) => void 
+}) => {
   const year = viewDate.getFullYear()
   const months = Array.from({ length: 12 }, (_, i) => new Date(year, i, 1))
 
@@ -896,6 +1046,7 @@ const YearView = ({ viewDate, periodDates, today, onMonthClick }: { viewDate: Da
                 const d = i + 1
                 const key = `${year}-${String(idx + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
                 const isPeriod = periodDates.has(key)
+                const isPredicted = predictedDates.has(key)
                 const isToday = d === today.getDate() && idx === today.getMonth() && year === today.getFullYear()
                 
                 return (
@@ -903,7 +1054,11 @@ const YearView = ({ viewDate, periodDates, today, onMonthClick }: { viewDate: Da
                     key={d} 
                     className={cn(
                       "size-2 rounded-full",
-                      isPeriod ? "bg-[#ff5a5f]" : isToday ? "bg-[var(--mf-accent)]" : "bg-muted/40"
+                      isPeriod 
+                        ? (isPredicted ? "bg-rose-400" : "bg-violet-500")
+                        : isToday 
+                          ? "bg-[var(--mf-accent)]" 
+                          : "bg-muted/40"
                     )} 
                     suppressHydrationWarning
                   />
@@ -927,10 +1082,11 @@ function computeCycleDayForDate(targetDate: Date, startIso: string, cycleLen: nu
   return m + 1
 }
 
-function getLatestLoggedPeriodStart(logs: Array<{ date: string; symptoms: string[] }>) {
+function getLatestLoggedPeriodStart(logs: Array<{ date: string; symptoms: string[] }>, today: Date) {
+  const todayStr = toDateKey(today)
   const flowDates = logs
     .reduce<string[]>((acc, log) => {
-      if (log.symptoms.some((symptom) => symptom.startsWith('flow-'))) {
+      if (log.date <= todayStr && log.symptoms.some((symptom) => symptom.startsWith('flow-'))) {
         acc.push(log.date)
       }
       return acc
@@ -942,7 +1098,7 @@ function getLatestLoggedPeriodStart(logs: Array<{ date: string; symptoms: string
 
   flowDates.forEach((date) => {
     const current = new Date(`${date}T12:00:00`)
-    const isNewPeriod = !previousDate || Math.round((+current - +previousDate) / 86400000) > 1
+    const isNewPeriod = !previousDate || Math.round((+current - +previousDate) / 86400000) > 4
     if (isNewPeriod) latestStart = date
     previousDate = current
   })

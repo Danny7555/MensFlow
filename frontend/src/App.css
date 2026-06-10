@@ -6067,4 +6067,22 @@
       gap: 0.2rem !important;
     }
   }
+
+  .mobile-only-suggestions {
+    display: none !important;
+  }
+
+  .desktop-only-suggestions {
+    display: flex !important;
+  }
+
+  @media (max-width: 768px) {
+    .mobile-only-suggestions {
+      display: flex !important;
+    }
+
+    .desktop-only-suggestions {
+      display: none !important;
+    }
+  }
 }

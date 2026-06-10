@@ -11,7 +11,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { AuthContext } from './auth-context'
 import { AuthModal } from '../components/AuthModal'
 import { authApi } from '../services/authService'
-import { userApi, type ApiUser, userKeys } from '../services/userService'
+import { userApi, type ApiUser, type ApiSettings, type ApiDashboard, userKeys } from '../services/userService'
 import { chatKeys } from '../services/chatService'
 import { setToken, clearToken, isLoggedIn } from '../lib/auth-token'
 import { useStore } from '../store/useStore'
@@ -137,11 +137,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Background synchronization is now managed reactively by the useReactQuerySync hook.
 
   // ── Post-auth hydration helper ─────────────────────────────────────────────
-  const completeAuthFlow = useCallback(async (token: string, u: ApiUser) => {
+  // ── Post-auth hydration helper ─────────────────────────────────────────────
+  const completeAuthFlow = useCallback(async (token: string, u: ApiUser, settings?: ApiSettings, dashboard?: ApiDashboard) => {
     setToken(token)
     const localOnboarding = getLocalOnboarding()
     const isOnboarded = u.isOnboarded || localOnboarding
     setState(prev => ({ ...prev, user: u, onboardingCompleted: isOnboarded, isAuthenticated: true }))
+    
+    // Set the Zustand store user state immediately to avoid UI flickering/role lag
+    useStore.setState({
+      user: {
+        id: u.id,
+        email: u.email,
+        name: u.name,
+        avatar: u.avatar,
+        accessLevel: u.accessLevel,
+        isOnboarded: u.isOnboarded,
+        role: u.role,
+        onboardingData: u.onboardingData || {},
+        partnerCode: u.partnerCode,
+        partnerId: u.partnerId,
+        xp: u.xp || 0,
+        quizLastCompletedAt: u.quizLastCompletedAt || '',
+        quizCountToday: u.quizCountToday || 0,
+      }
+    })
+ 
+    if (settings && dashboard) {
+      hydrate({
+        user: u,
+        settings,
+        dashboard,
+      })
+    }
+
     setAuthModalOpen(false)
     setAuthModalLocked(false)
     setOtpPending(false)
@@ -178,9 +207,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }).catch(err => console.error('Failed to sync guest settings', err))
     }
 
-    const profile = await userApi.getProfile()
-    setState(prev => ({ ...prev, onboardingCompleted: profile.user.isOnboarded }))
-    hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
+    // Only load profile from API if settings/dashboard were not already received in login response
+    let userIsOnboarded = u.isOnboarded
+    if (!settings || !dashboard) {
+      const fetched = await userApi.getProfile()
+      userIsOnboarded = fetched.user.isOnboarded
+      setState(prev => ({ ...prev, onboardingCompleted: fetched.user.isOnboarded }))
+      hydrate({ user: fetched.user, settings: fetched.settings, dashboard: fetched.dashboard })
+    } else {
+      setState(prev => ({ ...prev, onboardingCompleted: u.isOnboarded }))
+    }
 
     const localPartnerCode = getLocalPartnerCode()
     if (localPartnerCode) {
@@ -201,10 +237,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // If user opened auth from a specific page (e.g. /sync), return there.
     // Otherwise default to the standard post-auth landing.
-    if (profile.user.isOnboarded) {
+    const storeUser = useStore.getState().user
+    if (userIsOnboarded) {
       const target = returnTo && returnTo !== '/' && returnTo !== '/onboarding' 
         ? returnTo 
-        : (profile.user.accessLevel === 'educational' ? '/education' : '/dashboard')
+        : (storeUser.accessLevel === 'educational' ? '/education' : '/dashboard')
       setReturnTo(null)
       navigate(target)
     } else {
@@ -226,7 +263,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return
       }
       if (!result.token) throw new Error('No token received')
-      await completeAuthFlow(result.token, result.user)
+      await completeAuthFlow(result.token, result.user, result.settings, result.dashboard)
     } catch (err) {
       setState(prev => ({ ...prev, isLoading: false }))
       throw err
@@ -247,7 +284,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return
       }
       if (!result.token) throw new Error('No token received')
-      await completeAuthFlow(result.token, result.user)
+      await completeAuthFlow(result.token, result.user, result.settings, result.dashboard)
     } catch (err) {
       setState(prev => ({ ...prev, isLoading: false }))
       throw err
@@ -261,8 +298,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!otpTokenRef.current) return
     setState(prev => ({ ...prev, isLoading: true }))
     try {
-      const { token, user: u } = await authApi.verifyOtp(otpTokenRef.current, code)
-      await completeAuthFlow(token, u)
+      const result = await authApi.verifyOtp(otpTokenRef.current, code)
+      await completeAuthFlow(result.token!, result.user, result.settings, result.dashboard)
     } catch (err) {
       setState(prev => ({ ...prev, isLoading: false }))
       throw err

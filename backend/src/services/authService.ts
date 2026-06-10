@@ -9,6 +9,7 @@ import { IUser, AuthResponse } from '../interfaces';
 import { getJwtSecret } from '../config/env';
 import { httpError } from '../utils/http';
 import { createOtpSession } from './otpService';
+import { getUserProfile } from './userService';
 
 export async function generateUniquePartnerCode(): Promise<string> {
   for (let attempt = 0; attempt < 100; attempt++) {
@@ -105,7 +106,14 @@ export async function loginUser(
 
   // OTP disabled — issue JWT immediately
   const token = signToken(String(user._id), user.username);
-  return { token, user: userToResponse(user) };
+  const profileData = await getUserProfile(String(user._id));
+
+  return { 
+    token, 
+    user: profileData.user,
+    settings: profileData.settings,
+    dashboard: profileData.dashboard,
+  };
 }
 
 function signToken(id: string, username: string): string {

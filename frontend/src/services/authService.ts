@@ -1,11 +1,13 @@
 import { request } from '../lib/apiClient'
-import type { ApiUser } from './userService'
+import type { ApiUser, ApiSettings, ApiDashboard } from './userService'
 
 export interface AuthResponse {
   token?: string
   requiresOtp?: boolean
   otpToken?: string
   user: ApiUser
+  settings?: ApiSettings
+  dashboard?: ApiDashboard
 }
 
 export const authApi = {
@@ -16,7 +18,7 @@ export const authApi = {
     request<AuthResponse>('POST', '/auth/login', { username, password }, false),
 
   verifyOtp: (otpToken: string, code: string) =>
-    request<{ token: string; user: ApiUser }>('POST', '/auth/verify-otp', { otpToken, code }, false),
+    request<AuthResponse>('POST', '/auth/verify-otp', { otpToken, code }, false),
 
   resendOtp: (otpToken: string) =>
     request<{ otpToken: string; message: string }>('POST', '/auth/resend-otp', { otpToken }, false),
