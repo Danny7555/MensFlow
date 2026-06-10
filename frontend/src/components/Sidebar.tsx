@@ -17,7 +17,6 @@ import {
   SidebarIcon,
   SignOut,
   Users,
-  Lock,
 } from '@phosphor-icons/react'
 import type { SectionId } from '../types/nav'
 import { cn } from '../lib/utils'
@@ -71,12 +70,9 @@ export function Sidebar({
 }: SidebarProps) {
   const { logout, onboardingCompleted } = useAuth()
 
-  const { dashboard: data, settings, user, partnerStatus } = useStore()
+  const { dashboard: data, user, partnerStatus } = useStore()
 
   const rawItems = isAuthenticated ? [...authItems] : [...guestItems]
-  if (isAuthenticated && settings.privacyLockChats) {
-    rawItems.splice(rawItems.length - 1, 0, { id: 'locked-chats', label: 'Locked Chats', Icon: Lock })
-  }
 
 
   const items = rawItems.filter(item => {
@@ -85,7 +81,7 @@ export function Sidebar({
     // If user has educational access, restrict dashboard, symptoms, insights, calendar, tracker, tips, sync.
     // So only keep ask, education, settings, and locked-chats.
     if (isAuthenticated && user?.accessLevel === 'educational') {
-      const allowedEducationalIds = ['ask', 'education', 'settings', 'locked-chats']
+      const allowedEducationalIds = ['ask', 'education', 'settings']
       if (!allowedEducationalIds.includes(item.id)) return false
     }
     return true
