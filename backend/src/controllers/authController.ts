@@ -4,6 +4,7 @@ import { verifyOtpCode, createOtpSession } from '../services/otpService';
 import { User } from '../models/User';
 import { LoginHistory } from '../models/LoginHistory';
 import { objectRecord, requiredString } from '../utils/validation';
+import { getUserProfile } from '../services/userService';
 
 function signFullToken(userId: string, username: string): string {
   const jwt = require('jsonwebtoken');
@@ -20,13 +21,7 @@ export async function register(req: Request, res: Response, next: NextFunction):
     const email = requiredString(body.email, 'email', { max: 254 }).toLowerCase();
     const password = requiredString(body.password, 'password', { min: 8, max: 128 });
     const name = requiredString(body.name, 'name', { max: 80 });
-    const role = body.role === 'partner' ? 'partner' : 'lady';
-
-    // Basic email format check
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      res.status(400).json({ error: 'Please enter a valid email address' });
-      return;
-    }
+    const role = body.role as 'lady' | 'partner' | undefined;
 
     const result = await authService.registerUser(username, email, password, name, role);
     res.status(201).json(result);
@@ -70,22 +65,13 @@ export async function verifyOtp(req: Request, res: Response, next: NextFunction)
       userAgent: req.headers['user-agent'] || 'Unknown',
     });
 
+    const profileData = await getUserProfile(String(user._id));
+
     res.json({
       token,
-      user: {
-        id: String(user._id),
-        username: user.username,
-        name: user.name,
-        avatar: user.avatar,
-        accessLevel: user.accessLevel,
-        isOnboarded: user.isOnboarded,
-        partnerCode: user.partnerCode,
-        partnerId: user.partnerId ? String(user.partnerId) : null,
-        role: user.role,
-        xp: user.xp || 0,
-        quizLastCompletedAt: user.quizLastCompletedAt || '',
-        quizCountToday: user.quizCountToday || 0,
-      },
+      user: profileData.user,
+      settings: profileData.settings,
+      dashboard: profileData.dashboard,
     });
   } catch (err) {
     next(err);

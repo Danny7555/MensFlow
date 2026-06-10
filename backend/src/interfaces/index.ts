@@ -37,6 +37,8 @@ export interface AuthResponse {
   requiresOtp?: boolean;
   otpToken?: string;
   user: Partial<IUser>;
+  settings?: ISettings;
+  dashboard?: IDashboard;
 }
 
 // ─── Settings ────────────────────────────────────────────────────────────────
