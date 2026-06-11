@@ -77,8 +77,8 @@ function CycleChronologyTable({ historicalPeriods }: CycleChronologyTableProps) 
     <div className="space-y-4">
       <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--mf-text-strong)] border-b border-[var(--mf-border)] pb-2">2. Cycle Chronology (Last 6 Periods)</h3>
       {historicalPeriods.length > 0 ? (
-        <div className="overflow-hidden border border-[var(--mf-border)] rounded-xl">
-          <table className="w-full text-left border-collapse text-xs">
+        <div className="overflow-x-auto border border-[var(--mf-border)] rounded-xl">
+          <table className="w-full min-w-[500px] text-left border-collapse text-xs">
             <thead>
               <tr className="bg-[var(--mf-composer-bg)]/40 border-b border-[var(--mf-border)] text-[var(--mf-muted)] font-medium uppercase tracking-wider">
                 <th className="p-4">Period Start Date</th>
@@ -309,9 +309,9 @@ export function DoctorReportModal({ isOpen, onClose }: DoctorReportModalProps) {
         }
       `}</style>
 
-      <div className="printable-report-container w-full max-w-4xl bg-[var(--mf-card)] border border-[var(--mf-border)] shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col max-h-[90vh] md:max-h-[85vh]">
+      <div className="printable-report-container w-full max-w-4xl bg-[var(--mf-card)] border border-[var(--mf-border)] shadow-2xl rounded-3xl sm:rounded-[2.5rem] overflow-hidden flex flex-col max-h-[90vh] md:max-h-[85vh]">
         {/* Modal Header Actions */}
-        <div className="no-print flex items-center justify-between px-8 py-5 border-b border-[var(--mf-border)] bg-[var(--mf-composer-bg)]/40">
+        <div className="no-print flex items-center justify-between px-4 sm:px-8 py-4 sm:py-5 border-b border-[var(--mf-border)] bg-[var(--mf-composer-bg)]/40">
           <div className="flex items-center gap-2 text-[var(--mf-accent)]">
             <FileText size={22} weight="duotone" />
             <span className="text-sm font-semibold tracking-wide uppercase">Doctor Report Preview</span>
@@ -337,11 +337,11 @@ export function DoctorReportModal({ isOpen, onClose }: DoctorReportModalProps) {
         </div>
 
         {/* Scrollable Report Body */}
-        <div className="flex-1 overflow-y-auto p-8 md:p-12 space-y-8 bg-[var(--mf-card)] text-[var(--mf-text-strong)]">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-8 md:p-12 space-y-8 bg-[var(--mf-card)] text-[var(--mf-text-strong)]">
           {/* Clinical Header */}
           <div className="flex flex-col md:flex-row justify-between items-start border-b-2 border-[var(--mf-border-strong)] pb-6 gap-6">
             <div>
-              <h1 className="text-3xl font-normal tracking-tight text-[var(--mf-text-strong)] uppercase">MensFlow Cycle Health Report</h1>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-normal tracking-tight text-[var(--mf-text-strong)] uppercase">MensFlow Cycle Health Report</h1>
               <p className="text-xs text-[var(--mf-muted)] mt-1.5 font-mono" suppressHydrationWarning>Generated on {format(new Date(), 'PPpp')}</p>
             </div>
             <div className="text-left md:text-right text-xs space-y-1 font-mono text-[var(--mf-text)]">
@@ -392,12 +392,12 @@ export function DoctorReportModal({ isOpen, onClose }: DoctorReportModalProps) {
             </div>
 
             {/* Signature Area */}
-            <div className="flex justify-between items-end pt-8 gap-8">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-end pt-8 gap-6 sm:gap-8">
               <div className="space-y-1 text-xs text-[var(--mf-text)] font-mono">
                 <p><strong>Device Data Integrity:</strong> Validated ✔</p>
                 <p><strong>Patient Authorization:</strong> Approved ✔</p>
               </div>
-              <div className="w-56 space-y-1 text-center font-mono">
+              <div className="w-full sm:w-56 space-y-1 text-center font-mono">
                 <div className="border-b border-[var(--mf-text-strong)] h-8" />
                 <p className="text-[10px] text-[var(--mf-muted)] uppercase tracking-widest pt-1">Clinician Signature & Date</p>
               </div>
