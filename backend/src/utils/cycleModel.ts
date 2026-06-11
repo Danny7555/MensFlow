@@ -6,6 +6,8 @@ export type CycleModelInput = {
   symptoms?: string[];
   flowIntensity?: string;
   cycleVariationDays?: number;
+  lhPeakDay?: number | null;
+  eggWhiteMucusDay?: number | null;
 };
 
 export type CycleModel = {
@@ -21,7 +23,12 @@ export type CycleModel = {
 export function buildCycleModel(input: CycleModelInput): CycleModel {
   const typicalCycleDays = clampNumber(input.typicalCycleDays, 15, 60, 28);
   const cycleDay = computeCycleDay(input.lastPeriodStart, typicalCycleDays);
-  const phaseLabel = getPhaseFromDay(cycleDay, typicalCycleDays);
+  const phaseLabel = getPhaseFromDay(
+    cycleDay,
+    typicalCycleDays,
+    input.lhPeakDay,
+    input.eggWhiteMucusDay
+  );
   const symptoms = input.symptoms ?? [];
   const flowIntensity = normalizeFlow(input.flowIntensity, symptoms);
   const cycleVariationDays = clampNumber(input.cycleVariationDays, 0, 120, typicalCycleDays > 35 || typicalCycleDays < 24 ? 18 : 8);
@@ -47,10 +54,25 @@ export function computeCycleDay(startIso?: string, cycleLen = 28): number {
   return normalized + 1;
 }
 
-export function getPhaseFromDay(cycleDay: number, cycleLen = 28): CyclePhase {
+export function getPhaseFromDay(
+  cycleDay: number,
+  cycleLen = 28,
+  lhPeakDay?: number | null,
+  eggWhiteMucusDay?: number | null
+): CyclePhase {
   const safeCycleLen = clampNumber(cycleLen, 15, 60, 28);
   const periodLength = safeCycleLen <= 24 ? 4 : safeCycleLen >= 36 ? 6 : 5;
-  const ovulationDay = Math.max(periodLength + 5, safeCycleLen - 14);
+  
+  // Calculate standard ovulation day
+  let ovulationDay = Math.max(periodLength + 5, safeCycleLen - 14);
+  
+  // Shift ovulation based on biological evidence if within safe cycle boundaries
+  if (lhPeakDay && lhPeakDay >= periodLength + 1 && lhPeakDay <= safeCycleLen) {
+    ovulationDay = lhPeakDay + 1; // Ovulation typically occurs 24-48 hours after LH peak surge
+  } else if (eggWhiteMucusDay && eggWhiteMucusDay >= periodLength + 1 && eggWhiteMucusDay <= safeCycleLen) {
+    ovulationDay = eggWhiteMucusDay; // Egg-white mucus peak indicates peak fertility/ovulation
+  }
+
   const fertileStart = Math.max(periodLength + 1, ovulationDay - 4);
   const fertileEnd = Math.min(safeCycleLen, ovulationDay + 2);
   const lateLutealStart = fertileEnd + 1;

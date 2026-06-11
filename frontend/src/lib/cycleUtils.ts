@@ -16,10 +16,25 @@ export type CyclePhase = 'menstrual' | 'follicular' | 'fertile' | 'luteal'
  * - PMS / late luteal: last 5 days of the cycle
  * - Period: days 1-5, light trailing: days 6-7, then follicular until fertile window
  */
-export function getPhaseFromDay(cycleDay: number, cycleLen = 28): CyclePhase {
+export function getPhaseFromDay(
+  cycleDay: number,
+  cycleLen = 28,
+  lhPeakDay?: number | null,
+  eggWhiteMucusDay?: number | null
+): CyclePhase {
   const safeCycleLen = Math.min(60, Math.max(15, Math.round(cycleLen || 28)))
   const periodLength = safeCycleLen <= 24 ? 4 : safeCycleLen >= 36 ? 6 : 5
-  const ovulationDay = Math.max(periodLength + 5, safeCycleLen - 14)
+  
+  // Calculate standard ovulation day
+  let ovulationDay = Math.max(periodLength + 5, safeCycleLen - 14)
+
+  // Shift ovulation based on biological evidence if within safe cycle boundaries
+  if (lhPeakDay && lhPeakDay >= periodLength + 1 && lhPeakDay <= safeCycleLen) {
+    ovulationDay = lhPeakDay + 1 // Ovulation is ~24-48 hours after LH surge
+  } else if (eggWhiteMucusDay && eggWhiteMucusDay >= periodLength + 1 && eggWhiteMucusDay <= safeCycleLen) {
+    ovulationDay = eggWhiteMucusDay // Cervical mucus peak indicates ovulation
+  }
+
   const fertileStart = Math.max(periodLength + 1, ovulationDay - 4)
   const fertileEnd = Math.min(safeCycleLen, ovulationDay + 2)
   const lutealStart = fertileEnd + 1
@@ -118,4 +133,59 @@ export const getPhaseTasks = (phase: string): SupportTask[] => {
     { id: 'l-heavy-discussions', label: 'Hold off on heavy/stressful debates' },
     { id: 'l-foot-massage', label: 'Run a soothing foot or back massage' }
   ]
+}
+
+export interface PeriodInfo {
+  startDate: string;
+  duration: number;
+  cycleLength?: number;
+}
+
+export function calculatePeriodsFromLogs(
+  logs: Array<{ date: string; symptoms: string[] }>
+): PeriodInfo[] {
+  const flowLogs = logs
+    .filter(l => l.symptoms.some(s => s.startsWith('flow-')))
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  const periods: PeriodInfo[] = [];
+  if (flowLogs.length === 0) return [];
+
+  let currentStartStr = flowLogs[0].date;
+  let prevDate = new Date(flowLogs[0].date + 'T12:00:00');
+  let currentDuration = 1;
+
+  for (let i = 1; i < flowLogs.length; i++) {
+    const log = flowLogs[i];
+    const d = new Date(log.date + 'T12:00:00');
+    const diff = Math.round((d.getTime() - prevDate.getTime()) / (1000 * 3600 * 24));
+    
+    if (diff > 4) {
+      // gap > 4 days starts a new period
+      periods.push({
+        startDate: currentStartStr,
+        duration: currentDuration,
+      });
+      currentStartStr = log.date;
+      currentDuration = 1;
+    } else {
+      currentDuration++;
+    }
+    prevDate = d;
+  }
+  periods.push({
+    startDate: currentStartStr,
+    duration: currentDuration,
+  });
+
+  // Calculate cycle lengths (days between consecutive period starts)
+  for (let i = 0; i < periods.length - 1; i++) {
+    const d1 = new Date(periods[i].startDate + 'T12:00:00');
+    const d2 = new Date(periods[i + 1].startDate + 'T12:00:00');
+    const len = Math.round((d2.getTime() - d1.getTime()) / (1000 * 3600 * 24));
+    periods[i].cycleLength = len;
+  }
+
+  // Reverse so the most recent is at the top
+  return periods.reverse();
 }

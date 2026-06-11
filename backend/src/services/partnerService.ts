@@ -187,11 +187,35 @@ export async function getPartnerStatus(userId: string): Promise<object> {
   const shareCharts = partnerSettings ? partnerSettings.privacyShareHealthCharts === true : false;
   const requestedFields = partnerSettings?.privacyRequestedFields ?? [];
 
+  let lhPeakDay: number | null = null;
+  let eggWhiteMucusDay: number | null = null;
+
+  if (partnerDash?.lastPeriodStart) {
+    const cycleLogs = await SymptomLog.find({
+      userId: partner._id,
+      date: { $gte: partnerDash.lastPeriodStart }
+    }).lean();
+
+    const start = new Date(partnerDash.lastPeriodStart + 'T12:00:00');
+    for (const log of cycleLogs) {
+      const logDate = new Date(log.date + 'T12:00:00');
+      const day = Math.round((logDate.getTime() - start.getTime()) / (1000 * 3600 * 24)) + 1;
+      if (log.lhLevel === 'positive') {
+        if (lhPeakDay === null || day < lhPeakDay) lhPeakDay = day;
+      }
+      if (log.mucus === 'egg-white') {
+        if (eggWhiteMucusDay === null || day < eggWhiteMucusDay) eggWhiteMucusDay = day;
+      }
+    }
+  }
+
   const cycleModel = buildCycleModel({
     lastPeriodStart: partnerDash?.lastPeriodStart,
     typicalCycleDays: partnerDash?.typicalCycleDays,
     cycleVariationDays: partnerDash?.cycleVariationDays,
     symptoms,
+    lhPeakDay,
+    eggWhiteMucusDay,
   });
 
   let streakDoc = initialStreakDoc;

@@ -3,7 +3,8 @@ import { use, useReducer, useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Joyride, STATUS, type EventData, type TooltipRenderProps } from 'react-joyride'
 import { m } from 'framer-motion'
-import { Plus, LinkSimple, Users, ArrowRight, Sparkle, Check, Cookie, CookingPot, Heart, Moon, LockSimple, PersonIcon } from '@phosphor-icons/react'
+import { Plus, LinkSimple, Users, ArrowRight, Sparkle, Check, Cookie, CookingPot, Heart, Moon, LockSimple, PersonIcon, FileText } from '@phosphor-icons/react'
+import { DoctorReportModal } from '../components/dashboard/DoctorReportModal'
 import { toast } from 'sonner'
 import { useStore } from '../store/useStore'
 import { useAuth } from '../context/useAuth'
@@ -252,6 +253,7 @@ export function DashboardView() {
   const [isDashboardPairing, setIsDashboardPairing] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [requestSent, setRequestSent] = useState(false)
+  const [isReportOpen, setIsReportOpen] = useState(false)
 
   const handleOpenModal = () => setShowModal(true)
 
@@ -833,7 +835,7 @@ export function DashboardView() {
                 </section>
 
                 {data.isAtypical && (
-                  <div className="p-5 rounded-3xl bg-amber-500/10 dark:bg-amber-950/20 border border-amber-500/20 text-[var(--mf-text-strong)] flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-left animate-in fade-in duration-500">
+                  <div className="p-5 rounded-3xl bg-background border border-amber-500/20 text-[var(--mf-text-strong)] flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-left animate-in fade-in duration-500">
                     <div className="space-y-1">
                       <h4 className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
                         ⚠️ Irregular Cycle Warning
@@ -842,13 +844,22 @@ export function DashboardView() {
                         Your typical cycle length ({data.typicalCycleDays} days) or cycle variation ({data.cycleVariationDays} days) is atypical. This could be due to hormonal changes, stress, or underlying conditions like PCOS.
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => navigate('/education?topic=Care')}
-                      className="px-4 py-2 rounded-xl text-[11px] font-semibold bg-amber-500 hover:bg-amber-600 text-white transition-all cursor-pointer shrink-0 text-center border-none shadow-sm active-squish"
-                    >
-                      Read Care Guides
-                    </button>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setIsReportOpen(true)}
+                        className="px-4 py-2 rounded-xl text-[11px] font-semibold bg-white text-amber-700 border border-amber-200 hover:bg-amber-50 transition-all cursor-pointer text-center shadow-sm active-squish"
+                      >
+                        Print Doctor Report
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => navigate('/education?topic=Care')}
+                        className="px-4 py-2 rounded-xl text-[11px] font-semibold bg-amber-500 hover:bg-amber-600 text-white transition-all cursor-pointer text-center border-none shadow-sm active-squish"
+                      >
+                        Read Care Guides
+                      </button>
+                    </div>
                   </div>
                 )}
 
@@ -889,6 +900,28 @@ export function DashboardView() {
 
               {/* Right Sidebar Stack */}
               <div className="flex flex-col gap-6 md:gap-8 min-w-0">
+                <div className="p-6 rounded-[2rem] bg-gradient-to-br from-indigo-500/5 via-[var(--mf-card)] to-[var(--mf-card)] border border-[var(--mf-border)] text-left space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="size-10 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500">
+                      <FileText size={20} weight="bold" />
+                    </div>
+                    <span className="text-[9px] uppercase font-bold tracking-widest text-muted-foreground">Clinical Export</span>
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="text-xs font-semibold text-[var(--mf-text-strong)]">Share with your Doctor</h4>
+                    <p className="text-[10px] text-muted-foreground leading-relaxed">
+                      Generate a print-ready PDF containing your historical averages, symptom trends, and biological NFP evidence to share with your healthcare provider.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsReportOpen(true)}
+                    className="w-full py-2.5 rounded-xl text-[11px] font-semibold bg-[var(--mf-accent)] text-white hover:brightness-105 active:scale-95 transition-all text-center border-none cursor-pointer"
+                  >
+                    Generate Doctor Report
+                  </button>
+                </div>
+
                 <div className="min-w-0">
                   <WellnessScoreCard />
                 </div>
@@ -956,6 +989,11 @@ export function DashboardView() {
         onClose={() => setShowModal(false)}
         onConfirm={handleConfirmRequest}
         isLoading={isSaving}
+      />
+
+      <DoctorReportModal 
+        isOpen={isReportOpen}
+        onClose={() => setIsReportOpen(false)}
       />
     </div>
   )

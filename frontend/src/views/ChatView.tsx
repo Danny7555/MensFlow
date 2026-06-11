@@ -858,7 +858,7 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
               </div>
               <h1 className="landing-title">Ask MensFlow about your cycle?</h1>
               <div className="landing-sub flex items-center gap-1 justify-center max-w-[500px] mx-auto text-center leading-relaxed">
-                Education, tracking context, and supportive guidance; not a substitute for medical care.
+                Education, tracking context, and supportive guidance; <strong className="font-semibold text-rose-600 dark:text-rose-400">not a substitute for medical care.</strong>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button type="button" className="p-1 hover:bg-black/5 rounded-full transition-colors inline-flex items-center justify-center cursor-help" aria-label="Medical disclaimer information">
