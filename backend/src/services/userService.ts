@@ -192,10 +192,38 @@ export async function updateDashboard(
   patch: Partial<IDashboard>
 ): Promise<IDashboard> {
   const current = await Dashboard.findOne({ userId }).lean();
+  const lastPeriodStart = patch.lastPeriodStart ?? current?.lastPeriodStart ?? defaultLastPeriodStart();
+  const typicalCycleDays = patch.typicalCycleDays ?? current?.typicalCycleDays ?? 28;
+  const cycleVariationDays = patch.cycleVariationDays ?? current?.cycleVariationDays;
+
+  let lhPeakDay: number | null = null;
+  let eggWhiteMucusDay: number | null = null;
+
+  if (lastPeriodStart) {
+    const cycleLogs = await SymptomLog.find({
+      userId,
+      date: { $gte: lastPeriodStart }
+    }).lean();
+
+    const start = new Date(lastPeriodStart + 'T12:00:00');
+    for (const log of cycleLogs) {
+      const logDate = new Date(log.date + 'T12:00:00');
+      const day = Math.round((logDate.getTime() - start.getTime()) / (1000 * 3600 * 24)) + 1;
+      if (log.lhLevel === 'positive') {
+        if (lhPeakDay === null || day < lhPeakDay) lhPeakDay = day;
+      }
+      if (log.mucus === 'egg-white') {
+        if (eggWhiteMucusDay === null || day < eggWhiteMucusDay) eggWhiteMucusDay = day;
+      }
+    }
+  }
+
   const model = buildCycleModel({
-    lastPeriodStart: patch.lastPeriodStart ?? current?.lastPeriodStart ?? defaultLastPeriodStart(),
-    typicalCycleDays: patch.typicalCycleDays ?? current?.typicalCycleDays ?? 28,
-    cycleVariationDays: patch.cycleVariationDays ?? current?.cycleVariationDays,
+    lastPeriodStart,
+    typicalCycleDays,
+    cycleVariationDays,
+    lhPeakDay,
+    eggWhiteMucusDay,
   });
   const calculatedPatch = {
     ...patch,
@@ -267,11 +295,35 @@ async function toDashboard(dashboard: DashboardDocument): Promise<IDashboard> {
   const todayStr = new Date().toISOString().split('T')[0];
   const todayLog = await SymptomLog.findOne({ userId: dashboard.userId, date: todayStr }).lean();
 
+  let lhPeakDay: number | null = null;
+  let eggWhiteMucusDay: number | null = null;
+
+  if (dashboard.lastPeriodStart) {
+    const cycleLogs = await SymptomLog.find({
+      userId: dashboard.userId,
+      date: { $gte: dashboard.lastPeriodStart }
+    }).lean();
+
+    const start = new Date(dashboard.lastPeriodStart + 'T12:00:00');
+    for (const log of cycleLogs) {
+      const logDate = new Date(log.date + 'T12:00:00');
+      const day = Math.round((logDate.getTime() - start.getTime()) / (1000 * 3600 * 24)) + 1;
+      if (log.lhLevel === 'positive') {
+        if (lhPeakDay === null || day < lhPeakDay) lhPeakDay = day;
+      }
+      if (log.mucus === 'egg-white') {
+        if (eggWhiteMucusDay === null || day < eggWhiteMucusDay) eggWhiteMucusDay = day;
+      }
+    }
+  }
+
   const model = buildCycleModel({
     lastPeriodStart: dashboard.lastPeriodStart,
     typicalCycleDays: dashboard.typicalCycleDays,
     cycleVariationDays: dashboard.cycleVariationDays,
     symptoms: todayLog?.symptoms || [],
+    lhPeakDay,
+    eggWhiteMucusDay,
   });
   return {
     userId: String(dashboard.userId),

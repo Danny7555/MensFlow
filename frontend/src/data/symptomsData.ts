@@ -46,11 +46,4 @@ export const SYMPTOM_DEFS: SymptomDef[] = [
   { id: 'life-pill', label: 'Pill Taken', category: 'Lifestyle' },
 ]
 
-export const CYCLE_LENGTH_HISTORY_6M = [
-  { month: 'Jan', length: 28, average: 29 },
-  { month: 'Feb', length: 27, average: 29 },
-  { month: 'Mar', length: 29, average: 29 },
-  { month: 'Apr', length: 31, average: 29 },
-  { month: 'May', length: 28, average: 29 },
-  { month: 'Jun', length: 30, average: 29 },
-]
+

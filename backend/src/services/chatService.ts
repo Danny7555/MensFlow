@@ -694,28 +694,17 @@ Instructions:
 }
 
 export async function getSuggestions(userId?: string): Promise<string[]> {
-  const groqApiKey = process.env.GROQ_API_KEY;
-  
-  const defaultSuggestions = [
-    "Why am I cramping today?",
-    "What should I log today?",
-    "How can I support my energy?"
-  ];
-
-  if (!groqApiKey) {
-    return defaultSuggestions;
-  }
-
   let phaseLabel = 'Menstrual';
   let currentDay = 1;
   let symptomsText = 'No symptoms logged today';
+  let symptomsList: string[] = [];
   let targetName = 'the user';
   let isPartnerUser = false;
+  let targetId = userId;
 
   if (userId) {
     try {
       const user = await User.findById(userId).lean();
-      let targetId = userId;
       isPartnerUser = user?.role === 'partner';
       targetName = user?.name || targetName;
       if (isPartnerUser && user?.partnerId) {
@@ -728,10 +717,32 @@ export async function getSuggestions(userId?: string): Promise<string[]> {
       
       const dashboard = await Dashboard.findOne({ userId: targetId }).lean();
       if (dashboard?.lastPeriodStart) {
+        // Find overrides for dynamic ovulation
+        let lhPeakDay: number | null = null;
+        let eggWhiteMucusDay: number | null = null;
+        const cycleLogs = await SymptomLog.find({
+          userId: targetId,
+          date: { $gte: dashboard.lastPeriodStart }
+        }).lean();
+
+        const start = new Date(dashboard.lastPeriodStart + 'T12:00:00');
+        for (const log of cycleLogs) {
+          const logDate = new Date(log.date + 'T12:00:00');
+          const day = Math.round((logDate.getTime() - start.getTime()) / (1000 * 3600 * 24)) + 1;
+          if (log.lhLevel === 'positive') {
+            if (lhPeakDay === null || day < lhPeakDay) lhPeakDay = day;
+          }
+          if (log.mucus === 'egg-white') {
+            if (eggWhiteMucusDay === null || day < eggWhiteMucusDay) eggWhiteMucusDay = day;
+          }
+        }
+
         const model = buildCycleModel({
           lastPeriodStart: dashboard.lastPeriodStart,
           typicalCycleDays: dashboard.typicalCycleDays,
           cycleVariationDays: dashboard.cycleVariationDays,
+          lhPeakDay,
+          eggWhiteMucusDay,
         });
         currentDay = model.cycleDay;
         phaseLabel = model.phaseLabel;
@@ -739,13 +750,112 @@ export async function getSuggestions(userId?: string): Promise<string[]> {
       
       const today = new Date().toISOString().split('T')[0];
       const logDoc = await SymptomLog.findOne({ userId: targetId, date: today }).lean();
-      const symptomsList = logDoc?.symptoms ?? [];
+      symptomsList = logDoc?.symptoms ?? [];
       if (symptomsList.length > 0) {
         symptomsText = `symptoms logged today: ${symptomsList.join(', ')}`;
       }
     } catch (err) {
       console.error('[Groq Suggestions Data Fetch Error]', err);
     }
+  }
+
+  // Generate local context-aware suggestions
+  const localSuggestions: string[] = [];
+  const normalizedPhase = phaseLabel.toLowerCase();
+
+  const hasCramps = symptomsList.some(s => s === 'phys-cramps' || s === 'endo-pelvicpain' || s === 'endo-backache');
+  const hasFatigue = symptomsList.some(s => s === 'phys-fatigue' || s === 'peri-brainfog');
+  const hasMoodSwings = symptomsList.some(s => s === 'mood-anxious' || s === 'mood-sad' || s === 'mood-irritable');
+
+  if (isPartnerUser) {
+    if (hasCramps) {
+      localSuggestions.push(`How to support her cramps on Day ${currentDay}?`);
+      localSuggestions.push("What foods relieve period cramps?");
+    }
+    if (hasFatigue) {
+      localSuggestions.push("How to support her fatigue today?");
+      localSuggestions.push("What triggers period exhaustion?");
+    }
+    if (hasMoodSwings) {
+      localSuggestions.push("How to respond to her luteal mood changes?");
+      localSuggestions.push("Empathy translations for PMS irritability");
+    }
+
+    if (normalizedPhase.includes('menstru')) {
+      if (localSuggestions.length < 3) localSuggestions.push("What should I cook for her Menstrual phase?");
+      if (localSuggestions.length < 3) localSuggestions.push("How can I make her period comfortable?");
+      if (localSuggestions.length < 3) localSuggestions.push("Should she exercise during bleeding?");
+    } else if (normalizedPhase.includes('follicul')) {
+      if (localSuggestions.length < 3) localSuggestions.push("Follicular phase date ideas");
+      if (localSuggestions.length < 3) localSuggestions.push("How does estrogen affect her energy?");
+      if (localSuggestions.length < 3) localSuggestions.push("Best communication strategies for early follicular");
+    } else if (normalizedPhase.includes('fertile') || normalizedPhase.includes('ovulat')) {
+      if (localSuggestions.length < 3) localSuggestions.push(`What is her fertile window on Day ${currentDay}?`);
+      if (localSuggestions.length < 3) localSuggestions.push("How to support her during ovulation?");
+      if (localSuggestions.length < 3) localSuggestions.push("Social activities for high energy phases");
+    } else {
+      // Luteal
+      if (localSuggestions.length < 3) localSuggestions.push("How to handle Luteal PMS mood swings?");
+      if (localSuggestions.length < 3) localSuggestions.push("Why does she crave chocolate now?");
+      if (localSuggestions.length < 3) localSuggestions.push("Comfort actions for Luteal phase");
+    }
+  } else {
+    if (hasCramps) {
+      localSuggestions.push(`Why am I cramping on Day ${currentDay}?`);
+      localSuggestions.push("Natural remedies for menstrual cramps");
+    }
+    if (hasFatigue) {
+      localSuggestions.push("Why am I so tired today?");
+      localSuggestions.push("How to naturally boost my energy");
+    }
+    if (hasMoodSwings) {
+      localSuggestions.push("How to manage PMS mood swings?");
+      localSuggestions.push("Why do I feel anxious in luteal?");
+    }
+
+    if (normalizedPhase.includes('menstru')) {
+      if (localSuggestions.length < 3) localSuggestions.push("What should I eat during my period?");
+      if (localSuggestions.length < 3) localSuggestions.push("Gentle stretches for period relief");
+      if (localSuggestions.length < 3) localSuggestions.push("Is light bleeding normal?");
+    } else if (normalizedPhase.includes('follicul')) {
+      if (localSuggestions.length < 3) localSuggestions.push("Leveraging follicular energy");
+      if (localSuggestions.length < 3) localSuggestions.push("Best workouts for follicular phase");
+      if (localSuggestions.length < 3) localSuggestions.push("Planning tasks around follicular focus");
+    } else if (normalizedPhase.includes('fertile') || normalizedPhase.includes('ovulat')) {
+      if (localSuggestions.length < 3) localSuggestions.push(`Signs of ovulation on Day ${currentDay}`);
+      if (localSuggestions.length < 3) localSuggestions.push("Am I in my fertile window?");
+      if (localSuggestions.length < 3) localSuggestions.push("Ovulation pain and high libido");
+    } else {
+      // Luteal
+      if (localSuggestions.length < 3) localSuggestions.push("Self-care for my Luteal phase");
+      if (localSuggestions.length < 3) localSuggestions.push("Managing sweet cravings in luteal");
+      if (localSuggestions.length < 3) localSuggestions.push("Why am I bloating before my period?");
+    }
+  }
+
+  // Ensure we always have exactly 3 suggestions
+  const defaults = isPartnerUser ? [
+    "How can I help with her cramps?",
+    "What should I cook for dinner?",
+    "How to make her Luteal phase easier?"
+  ] : [
+    "Why am I cramping today?",
+    "What should I log today?",
+    "How can I support my energy?"
+  ];
+
+  while (localSuggestions.length < 3) {
+    const nextDefault = defaults.find(d => !localSuggestions.includes(d));
+    if (nextDefault) {
+      localSuggestions.push(nextDefault);
+    } else {
+      localSuggestions.push(defaults[0]);
+    }
+  }
+
+  const groqApiKey = process.env.GROQ_API_KEY;
+  if (!groqApiKey) {
+    return localSuggestions.slice(0, 3);
   }
 
   const prompt = isPartnerUser
@@ -755,7 +865,7 @@ Given a relationship context where a partner wants to support their loved one (n
 - Cycle Day: Day ${currentDay}
 - Status: ${symptomsText}
 
-Generate 3 short, relevant, and highly actionable question prompts (maximum 8 words each) that the partner can ask the AI to get support advice.
+Generate 3 short, relevant, and highly actionable question prompts (maximum 8 words each) that the partner can ask the AI to get support advice. Focus specifically on supporting the symptoms logged today if any are present (e.g. cramps, fatigue, mood changes).
 Return ONLY a valid JSON array of strings. Do not include markdown, bullet points, or explanation.
 Example format:
 ["How can I help with her cramps?", "What should I cook for dinner?", "How to make her Luteal phase easier?"]`
@@ -765,7 +875,7 @@ Given this user's own cycle context:
 - Cycle Day: Day ${currentDay}
 - Status: ${symptomsText}
 
-Generate 3 short, relevant, and highly actionable question prompts (maximum 8 words each) that the user can ask about their own cycle, symptoms, self-care, or tracking.
+Generate 3 short, relevant, and highly actionable question prompts (maximum 8 words each) that the user can ask about their own cycle, symptoms, self-care, or tracking. Focus specifically on addressing the symptoms logged today if any are present (e.g. cramps, fatigue, mood changes).
 Return ONLY a valid JSON array of strings. Do not include markdown, bullet points, or explanation.
 Example format:
 ["Why am I cramping today?", "What should I log today?", "How can I support my energy?"]`;
@@ -787,7 +897,7 @@ Example format:
     });
 
     if (!response.ok) {
-      return defaultSuggestions;
+      return localSuggestions.slice(0, 3);
     }
 
     const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
@@ -801,10 +911,10 @@ Example format:
       }
     }
     
-    return defaultSuggestions;
+    return localSuggestions.slice(0, 3);
   } catch (error) {
     console.error('[Groq Suggestions Exception]', error);
-    return defaultSuggestions;
+    return localSuggestions.slice(0, 3);
   }
 }
 

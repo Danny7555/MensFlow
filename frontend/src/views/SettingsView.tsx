@@ -23,8 +23,10 @@ import {
   UserCircle,
   CaretRight,
   Lock,
-  LockKey
+  LockKey,
+  FileText
 } from '@phosphor-icons/react'
+import { DoctorReportModal } from '../components/dashboard/DoctorReportModal'
 import { toast } from 'sonner'
 import {
   Dialog,
@@ -777,6 +779,7 @@ function DataControlsPanel({
   confirmResetSettings,
   confirmResetApp,
   confirmWipeLocalData,
+  openDoctorReport,
 }: {
   settings: MensFlowSettings
   updateSettings: (patch: Partial<MensFlowSettings>) => void
@@ -785,6 +788,7 @@ function DataControlsPanel({
   confirmResetSettings: () => void
   confirmResetApp: () => void
   confirmWipeLocalData: () => void
+  openDoctorReport: () => void
 }) {
   return (
     <>
@@ -817,6 +821,14 @@ function DataControlsPanel({
         Export or delete data stored locally in this browser.
       </p>
       <div className="settings-actions settings-actions--stack">
+        <button
+          type="button"
+          className="btn btn-secondary text-[var(--mf-accent)] border-[var(--mf-accent-border)] hover:bg-[var(--mf-accent-soft)]/20"
+          onClick={openDoctorReport}
+        >
+          <FileText size={18} aria-hidden />
+          Generate Doctor Report
+        </button>
         <button type="button" className="btn btn-secondary" onClick={exportBundle}>
           <DownloadSimple size={18} aria-hidden />
           Export JSON
@@ -1697,6 +1709,7 @@ export function SettingsView({
       .withOptions({ shallow: false })
   )
   const isMobile = useMediaQuery('(max-width: 768px)')
+  const [isReportOpen, setIsReportOpen] = useState(false)
 
   const { settings, updateSettings: storeUpdateSettings, resetSettings, user, updateUser, resetStore, showConfirm } = useStore()
   const { user: authUser } = useAuth()
@@ -1909,6 +1922,7 @@ export function SettingsView({
           confirmResetSettings={confirmResetSettings}
           confirmResetApp={confirmResetApp}
           confirmWipeLocalData={confirmWipeLocalData}
+          openDoctorReport={() => setIsReportOpen(true)}
         />
       )
       break
@@ -1995,6 +2009,7 @@ export function SettingsView({
           <div className="settings-panel-body">{panel}</div>
         </div>
       )}
+      <DoctorReportModal isOpen={isReportOpen} onClose={() => setIsReportOpen(false)} />
     </div>
   )
 }

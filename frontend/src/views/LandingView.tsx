@@ -78,8 +78,7 @@ export function LandingView() {
             </div>
             <h1 className="landing-title">Ask MensFlow about your cycle?</h1>
             <p className="landing-sub">
-              Education, tracking context, and supportive guidance; not a substitute
-              for medical care.
+              Education, tracking context, and supportive guidance; <strong className="font-semibold text-rose-600 dark:text-rose-400">not a substitute for medical care.</strong>
             </p>
           </>
         ) : (

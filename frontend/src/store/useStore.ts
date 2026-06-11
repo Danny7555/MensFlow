@@ -109,7 +109,21 @@ interface AppState {
   submitQuizAttemptAction: (date: string, correct: boolean) => Promise<void>
 }
 
-const DEFAULT_USER = { id: undefined, email: null, name: '', avatar: null, accessLevel: 'full' as const, isOnboarded: false, role: 'lady' as const, onboardingData: {}, partnerCode: '', partnerId: null, xp: 0, quizLastCompletedAt: '', quizCountToday: 0 }
+const getDefaultUser = () => ({
+  id: undefined,
+  email: null,
+  name: '',
+  avatar: null,
+  accessLevel: 'full' as const,
+  isOnboarded: false,
+  role: (typeof window !== 'undefined' ? localStorage.getItem('mensflow_user_role') as 'lady' | 'partner' : null) || 'lady' as const,
+  onboardingData: {},
+  partnerCode: '',
+  partnerId: null,
+  xp: 0,
+  quizLastCompletedAt: '',
+  quizCountToday: 0
+})
 
 export const useStore = create<AppState>()((set, get) => ({
   dashboard: DEFAULT_DASHBOARD,
@@ -117,7 +131,7 @@ export const useStore = create<AppState>()((set, get) => ({
   logs: [],
   monthInReview: null,
   loginHistory: [],
-  user: DEFAULT_USER,
+  user: getDefaultUser(),
   customSymptoms: [],
   isSaving: false,
   completedActions: [],
@@ -229,7 +243,7 @@ export const useStore = create<AppState>()((set, get) => ({
       logs: [],
       monthInReview: null,
       loginHistory: [],
-      user: DEFAULT_USER,
+      user: getDefaultUser(),
       customSymptoms: [],
       isSaving: false,
       completedActions: [],
@@ -317,13 +331,20 @@ export const useStore = create<AppState>()((set, get) => ({
             quizCountToday: updated.quizCountToday || 0,
           },
         }))
+        if (updated.role && typeof window !== 'undefined') {
+          localStorage.setItem('mensflow_user_role', updated.role)
+        }
       } else {
-        set((state) => ({
-          user: {
+        set((state) => {
+          const nextUser = {
             ...state.user,
             ...patch,
-          },
-        }))
+          }
+          if (patch.role && typeof window !== 'undefined') {
+            localStorage.setItem('mensflow_user_role', patch.role)
+          }
+          return { user: nextUser }
+        })
       }
     } finally {
       set({ isSaving: false })
