@@ -183,24 +183,24 @@ export function DoctorReportModal({ isOpen, onClose }: DoctorReportModalProps) {
           {/* Demographic Box */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-[var(--mf-composer-bg)]/30 p-6 rounded-2xl border border-[var(--mf-border)]">
             <div className="space-y-1">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-[var(--mf-muted)]">Patient Name</span>
-              <p className="text-base font-semibold text-[var(--mf-text-strong)]">{user?.name || "Patient Account"}</p>
+              <span className="text-[10px] uppercase font-medium tracking-wider text-[var(--mf-muted)]">Patient Name</span>
+              <p className="text-base font-medium text-[var(--mf-text-strong)]">{user?.name || "Patient Account"}</p>
             </div>
             <div className="space-y-1">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-[var(--mf-muted)]">Biological Target Condition</span>
-              <p className="text-base font-semibold text-[var(--mf-text-strong)] capitalize font-normal">
+              <span className="text-[10px] uppercase font-medium tracking-wider text-[var(--mf-muted)]">Biological Target Condition</span>
+              <p className="text-base font-medium text-[var(--mf-text-strong)] capitalize font-normal">
                 {settings.conditionOptimization === 'none' ? 'Standard Track' : settings.conditionOptimization}
               </p>
             </div>
             <div className="space-y-1 font-mono text-xs">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-[var(--mf-muted)]">Clinical Data Range</span>
-              <p className="text-[var(--mf-text-strong)] font-semibold">{logs.length > 0 ? `${logs[logs.length-1].date} to ${logs[0].date}` : 'No logs recorded'}</p>
+              <span className="text-[10px] uppercase font-medium tracking-wider text-[var(--mf-muted)]">Clinical Data Range</span>
+              <p className="text-[var(--mf-text-strong)] font-medium">{logs.length > 0 ? `${logs[logs.length-1].date} to ${logs[0].date}` : 'No logs recorded'}</p>
             </div>
           </div>
 
           {/* Core Cycle Stats */}
           <div className="space-y-4">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--mf-text-strong)] border-b border-[var(--mf-border)] pb-2">1. Menstrual Cycle Metrics</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--mf-text-strong)] border-b border-[var(--mf-border)] pb-2">1. Menstrual Cycle Metrics</h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="p-5 border border-[var(--mf-border)] bg-[var(--mf-composer-bg)]/20 rounded-xl flex flex-col justify-between">
                 <span className="text-xs font-semibold text-[var(--mf-muted)]">Historical Typical Length</span>
@@ -212,8 +212,8 @@ export function DoctorReportModal({ isOpen, onClose }: DoctorReportModalProps) {
               </div>
               <div className={`p-5 rounded-xl border flex items-start gap-3 justify-between ${isAtypical ? 'bg-amber-500/10 dark:bg-amber-950/20 border-amber-500/20 text-amber-600 dark:text-amber-400' : 'bg-emerald-500/10 dark:bg-emerald-950/20 border-emerald-500/20 text-emerald-600 dark:text-emerald-400'}`}>
                 <div className="space-y-1">
-                  <span className="text-xs font-semibold opacity-80">ACOG Cycle Pattern</span>
-                  <p className="text-base font-bold mt-2">{isAtypical ? 'Atypical / Irregular' : 'Normal / Typical'}</p>
+                  <span className="text-xs font-medium opacity-80">ACOG Cycle Pattern</span>
+                  <p className="text-base font-semibold mt-2">{isAtypical ? 'Atypical / Irregular' : 'Normal / Typical'}</p>
                 </div>
                 {isAtypical ? <Warning size={24} className="text-amber-600 dark:text-amber-400" /> : <SealCheck size={24} className="text-emerald-600 dark:text-emerald-400" />}
               </div>
@@ -222,12 +222,12 @@ export function DoctorReportModal({ isOpen, onClose }: DoctorReportModalProps) {
 
           {/* Past Cycles Table */}
           <div className="space-y-4">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--mf-text-strong)] border-b border-[var(--mf-border)] pb-2">2. Cycle Chronology (Last 6 Periods)</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--mf-text-strong)] border-b border-[var(--mf-border)] pb-2">2. Cycle Chronology (Last 6 Periods)</h3>
             {historicalPeriods.length > 0 ? (
               <div className="overflow-hidden border border-[var(--mf-border)] rounded-xl">
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
-                    <tr className="bg-[var(--mf-composer-bg)]/40 border-b border-[var(--mf-border)] text-[var(--mf-muted)] font-bold uppercase tracking-wider">
+                    <tr className="bg-[var(--mf-composer-bg)]/40 border-b border-[var(--mf-border)] text-[var(--mf-muted)] font-medium uppercase tracking-wider">
                       <th className="p-4">Period Start Date</th>
                       <th className="p-4">Bleeding Duration</th>
                       <th className="p-4">Calculated Cycle Length</th>
@@ -268,14 +268,14 @@ export function DoctorReportModal({ isOpen, onClose }: DoctorReportModalProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Symptom Frequency */}
             <div className="space-y-4">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--mf-text-strong)] border-b border-[var(--mf-border)] pb-2">3. Symptom Prevalence (Last 90 Days)</h3>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--mf-text-strong)] border-b border-[var(--mf-border)] pb-2">3. Symptom Prevalence (Last 90 Days)</h3>
               {symptomCounts.length > 0 ? (
                 <div className="space-y-2">
                   {symptomCounts.slice(0, 6).map((sym, idx) => (
                     <div key={idx} className="flex justify-between items-center text-xs p-2.5 bg-[var(--mf-composer-bg)]/30 rounded-lg border border-[var(--mf-border)]">
                       <span className="font-medium capitalize text-[var(--mf-text-strong)]">{sym.label}</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] uppercase font-bold text-[var(--mf-muted)] tracking-widest">{sym.category}</span>
+                        <span className="text-[9px] uppercase font-medium text-[var(--mf-muted)] tracking-widest">{sym.category}</span>
                         <span className="font-mono bg-[var(--mf-card)] border border-[var(--mf-border)] text-[var(--mf-text-strong)] px-2.5 py-0.5 rounded font-semibold">{sym.count} logs</span>
                       </div>
                     </div>
@@ -288,10 +288,10 @@ export function DoctorReportModal({ isOpen, onClose }: DoctorReportModalProps) {
 
             {/* Biological NFP Indicators */}
             <div className="space-y-4">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--mf-text-strong)] border-b border-[var(--mf-border)] pb-2">4. Biological Ovulation Evidence</h3>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--mf-text-strong)] border-b border-[var(--mf-border)] pb-2">4. Biological Ovulation Evidence</h3>
               <div className="space-y-3 text-xs">
                 <div className="p-4 border border-[var(--mf-border)] rounded-xl bg-[var(--mf-composer-bg)]/20 space-y-1">
-                  <div className="flex justify-between font-bold text-[var(--mf-text-strong)]">
+                  <div className="flex justify-between font-semibold text-[var(--mf-text-strong)]">
                     <span>Positive LH Surge Tests</span>
                     <span className="font-mono text-[var(--mf-text-strong)]">{nfpLogs.positiveLhCount} instances</span>
                   </div>
@@ -301,7 +301,7 @@ export function DoctorReportModal({ isOpen, onClose }: DoctorReportModalProps) {
                 </div>
 
                 <div className="p-4 border border-[var(--mf-border)] rounded-xl bg-[var(--mf-composer-bg)]/20 space-y-1">
-                  <div className="flex justify-between font-bold text-[var(--mf-text-strong)]">
+                  <div className="flex justify-between font-semibold text-[var(--mf-text-strong)]">
                     <span>Egg-White Cervical Mucus Logs</span>
                     <span className="font-mono text-[var(--mf-text-strong)]">{nfpLogs.eggWhiteMucusCount} instances</span>
                   </div>
@@ -316,7 +316,7 @@ export function DoctorReportModal({ isOpen, onClose }: DoctorReportModalProps) {
           {/* Doctor Notes & Signature (Writeable prior to printing!) */}
           <div className="pt-6 border-t-2 border-dashed border-[var(--mf-border)] space-y-6">
             <div className="space-y-2">
-              <label htmlFor="doctor-notes" className="text-sm font-bold uppercase tracking-wider text-[var(--mf-text-strong)] block font-semibold">5. Clinician Consultation & Recommendations</label>
+              <label htmlFor="doctor-notes" className="text-xs font-semibold uppercase tracking-wider text-[var(--mf-text-strong)] block">5. Clinician Consultation & Recommendations</label>
               <p className="text-[10px] text-[var(--mf-muted)] no-print">Type clinical feedback or recommendations below before printing the report.</p>
               <textarea
                 id="doctor-notes"
