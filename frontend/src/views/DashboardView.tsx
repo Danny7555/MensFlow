@@ -832,6 +832,26 @@ export function DashboardView() {
                   <CycleTrackerHero showCheckIn={true} data={data} />
                 </section>
 
+                {data.isAtypical && (
+                  <div className="p-5 rounded-3xl bg-amber-500/10 dark:bg-amber-950/20 border border-amber-500/20 text-[var(--mf-text-strong)] flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-left animate-in fade-in duration-500">
+                    <div className="space-y-1">
+                      <h4 className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
+                        ⚠️ Irregular Cycle Warning
+                      </h4>
+                      <p className="text-[11px] text-muted-foreground leading-relaxed">
+                        Your typical cycle length ({data.typicalCycleDays} days) or cycle variation ({data.cycleVariationDays} days) is atypical. This could be due to hormonal changes, stress, or underlying conditions like PCOS.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/education?topic=Care')}
+                      className="px-4 py-2 rounded-xl text-[11px] font-semibold bg-amber-500 hover:bg-amber-600 text-white transition-all cursor-pointer shrink-0 text-center border-none shadow-sm active-squish"
+                    >
+                      Read Care Guides
+                    </button>
+                  </div>
+                )}
+
                 <div className="flo-today-plan flex flex-col gap-6 md:gap-8 w-full min-w-0">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 min-w-0">
                     <MonthInReview />
