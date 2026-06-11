@@ -75,6 +75,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { user: u, settings, dashboard } = await userApi.getProfile()
         if (cancelled) return
 
+        if (u.role && typeof window !== 'undefined') {
+          localStorage.setItem('mensflow_user_role', u.role)
+        }
         setState(prev => ({
           ...prev,
           user: u,
@@ -125,6 +128,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.warn('[AuthProvider] Session expired — logging out')
       clearToken()
       sessionStorage.removeItem('mf_onboarding')
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('mensflow_user_role')
+      }
       setState(prev => ({ ...prev, isAuthenticated: false, user: null, onboardingCompleted: false }))
       resetStore()
       queryClient.clear()
@@ -140,6 +146,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ── Post-auth hydration helper ─────────────────────────────────────────────
   const completeAuthFlow = useCallback(async (token: string, u: ApiUser, settings?: ApiSettings, dashboard?: ApiDashboard) => {
     setToken(token)
+    if (u.role && typeof window !== 'undefined') {
+      localStorage.setItem('mensflow_user_role', u.role)
+    }
     const localOnboarding = getLocalOnboarding()
     const isOnboarded = u.isOnboarded || localOnboarding
     setState(prev => ({ ...prev, user: u, onboardingCompleted: isOnboarded, isAuthenticated: true }))
@@ -367,6 +376,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     clearToken()
     sessionStorage.removeItem('mf_onboarding')
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('mensflow_user_role')
+    }
     setState(prev => ({
       ...prev,
       onboardingCompleted: false,
