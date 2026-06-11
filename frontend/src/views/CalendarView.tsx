@@ -355,8 +355,14 @@ function useCalendarState() {
     lastClickedDateKey: null
   })
   
-  const editBaseRef = React.useRef<Set<string>>(new Set())
-  const userRemovedRef = React.useRef<Set<string>>(new Set())
+  const editBaseRef = React.useRef<Set<string>>(null as unknown as Set<string>)
+  if (editBaseRef.current === null) {
+    editBaseRef.current = new Set()
+  }
+  const userRemovedRef = React.useRef<Set<string>>(null as unknown as Set<string>)
+  if (userRemovedRef.current === null) {
+    userRemovedRef.current = new Set()
+  }
 
   React.useEffect(() => {
     const clientToday = new Date()
@@ -514,18 +520,17 @@ function useCalendarState() {
     added.forEach((d) => userRemovedRef.current.delete(d))
 
     try {
-      await Promise.all([
-        ...added.map(async (dateKey) => {
-          const existing = logs.find((l) => l.date === dateKey)
-          const symptoms = existing?.symptoms.filter((s) => !s.startsWith('flow-')) ?? []
-          await addLog(dateKey, [...symptoms, 'flow-medium'])
-        }),
-        ...removed.map(async (dateKey) => {
-          const existing = logs.find((l) => l.date === dateKey)
-          const symptoms = (existing?.symptoms ?? []).filter((s) => !s.startsWith('flow-'))
-          await addLog(dateKey, symptoms)
-        }),
-      ])
+      const addedPromises = added.map((dateKey) => {
+        const existing = logs.find((l) => l.date === dateKey)
+        const symptoms = existing?.symptoms.filter((s) => !s.startsWith('flow-')) ?? []
+        return addLog(dateKey, [...symptoms, 'flow-medium'])
+      })
+      const removedPromises = removed.map((dateKey) => {
+        const existing = logs.find((l) => l.date === dateKey)
+        const symptoms = (existing?.symptoms ?? []).filter((s) => !s.startsWith('flow-'))
+        return addLog(dateKey, symptoms)
+      })
+      await Promise.all([...addedPromises, ...removedPromises])
       await fetchLogs()
       try {
         const { userApi } = await import('../services/userService')
