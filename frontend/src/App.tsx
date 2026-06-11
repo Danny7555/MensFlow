@@ -25,7 +25,6 @@ import { getPasswordStrength } from './lib/passwordStrength'
 import { EducationView } from './views/EducationView'
 import './App.css'
 
-// Asynchronously Lazy Loaded Page Components
 const ChatView = lazy(() => import('./views/ChatView').then(m => ({ default: m.ChatView })))
 const DashboardView = lazy(() => import('./views/DashboardView').then(m => ({ default: m.DashboardView })))
 const InsightsView = lazy(() => import('./views/InsightsView').then(m => ({ default: m.InsightsView })))
@@ -57,12 +56,9 @@ function ChatLockGate({ children }: { children: React.ReactNode }) {
   const strengthResult = getPasswordStrength(newPassword)
   const isStrong = strengthResult ? strengthResult.isStrong : false
 
-  // If privacy lock is off, or already on the locked-chats dedicated page, render children normally
   if (!settings.privacyLockChats || location.pathname === '/locked-chats') {
     return <>{children}</>
   }
-
-  // Privacy lock is on — show the passcode gate
   if (!isUnlocked) {
     if (mode === 'reset-security') {
       return (
@@ -230,7 +226,6 @@ function ChatLockGate({ children }: { children: React.ReactNode }) {
       )
     }
 
-    // Default: passcode entry
     return (
       <div className="flex flex-col items-center justify-center min-h-[70vh] p-6 text-center">
         <div className="size-20 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-6 shadow-sm">
