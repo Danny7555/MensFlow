@@ -837,10 +837,10 @@ export function DashboardView() {
                 {data.isAtypical && (
                   <div className="p-5 rounded-3xl bg-background border border-amber-500/20 text-[var(--mf-text-strong)] flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-left animate-in fade-in duration-500">
                     <div className="space-y-1">
-                      <h4 className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
+                      <h4 className="text-xs font-normal uppercase tracking-wider flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
                         ⚠️ Irregular Cycle Warning
                       </h4>
-                      <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      <p className="text-[11px] text-foreground leading-relaxed">
                         Your typical cycle length ({data.typicalCycleDays} days) or cycle variation ({data.cycleVariationDays} days) is atypical. This could be due to hormonal changes, stress, or underlying conditions like PCOS.
                       </p>
                     </div>
@@ -848,14 +848,14 @@ export function DashboardView() {
                       <button
                         type="button"
                         onClick={() => setIsReportOpen(true)}
-                        className="px-4 py-2 rounded-xl text-[11px] font-semibold bg-white text-amber-700 border border-amber-200 hover:bg-amber-50 transition-all cursor-pointer text-center active:scale-95"
+                        className="px-4 py-2 rounded-xl text-[11px] font-normal bg-white text-amber-700 border border-amber-200 hover:bg-amber-50 transition-all cursor-pointer text-center active:scale-95"
                       >
                         Print Doctor Report
                       </button>
                       <button
                         type="button"
                         onClick={() => navigate('/education?topic=Care')}
-                        className="px-4 py-2 rounded-xl text-[11px] font-semibold bg-amber-500 hover:bg-amber-600 text-white transition-all cursor-pointer text-center border-none active:scale-95"
+                        className="px-4 py-2 rounded-xl text-[11px] font-normal bg-amber-500 hover:bg-amber-600 text-white transition-all cursor-pointer text-center border-none active:scale-95"
                       >
                         Read Care Guides
                       </button>
@@ -903,14 +903,14 @@ export function DashboardView() {
                 <div className="flo-card flo-card--prominent overflow-hidden text-left">
                   <div className="flo-card-top relative z-10">
                     <div className="flo-card-icon flo-card-icon--purple">
-                      <FileText size={20} weight="bold" />
+                      <FileText size={20} weight="light" />
                     </div>
                     <span className="flo-card-title">Clinical Export</span>
                   </div>
                   <div className="mt-2 relative z-10 flex flex-col flex-1 space-y-3">
                     <div className="space-y-1">
                       <h4 className="text-xs font-semibold text-[var(--mf-text-strong)]">Share with your Doctor</h4>
-                      <p className="text-[10px] text-muted-foreground leading-relaxed">
+                      <p className="text-[10px] text-foreground leading-relaxed">
                         Generate a print-ready PDF containing your historical averages, symptom trends, and biological NFP evidence to share with your healthcare provider.
                       </p>
                     </div>

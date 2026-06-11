@@ -10,6 +10,177 @@ interface DoctorReportModalProps {
   onClose: () => void
 }
 
+interface DemographicBoxProps {
+  patientName: string
+  condition: string
+  dataRange: string
+}
+
+function DemographicBox({ patientName, condition, dataRange }: DemographicBoxProps) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-[var(--mf-composer-bg)]/30 p-6 rounded-2xl border border-[var(--mf-border)]">
+      <div className="space-y-1">
+        <span className="text-[10px] uppercase font-medium tracking-wider text-[var(--mf-muted)]">Patient Name</span>
+        <p className="text-base font-medium text-[var(--mf-text-strong)]">{patientName}</p>
+      </div>
+      <div className="space-y-1">
+        <span className="text-[10px] uppercase font-medium tracking-wider text-[var(--mf-muted)]">Biological Target Condition</span>
+        <p className="text-base font-medium text-[var(--mf-text-strong)] capitalize font-normal">
+          {condition === 'none' ? 'Standard Track' : condition}
+        </p>
+      </div>
+      <div className="space-y-1 font-mono text-xs">
+        <span className="text-[10px] uppercase font-medium tracking-wider text-[var(--mf-muted)]">Clinical Data Range</span>
+        <p className="text-[var(--mf-text-strong)] font-medium">{dataRange}</p>
+      </div>
+    </div>
+  )
+}
+
+interface CycleMetricsBoxProps {
+  historicalAvg: number
+  cycleVariation: number
+  isAtypical: boolean
+}
+
+function CycleMetricsBox({ historicalAvg, cycleVariation, isAtypical }: CycleMetricsBoxProps) {
+  return (
+    <div className="space-y-4">
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--mf-text-strong)] border-b border-[var(--mf-border)] pb-2">1. Menstrual Cycle Metrics</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="p-5 border border-[var(--mf-border)] bg-[var(--mf-composer-bg)]/20 rounded-xl flex flex-col justify-between">
+          <span className="text-xs font-semibold text-[var(--mf-muted)]">Historical Typical Length</span>
+          <p className="text-3xl font-light text-[var(--mf-text-strong)] mt-2">{historicalAvg} <span className="text-sm font-normal text-[var(--mf-muted)]">days</span></p>
+        </div>
+        <div className="p-5 border border-[var(--mf-border)] bg-[var(--mf-composer-bg)]/20 rounded-xl flex flex-col justify-between">
+          <span className="text-xs font-semibold text-[var(--mf-muted)]">Cycle Variation Range</span>
+          <p className="text-3xl font-light text-[var(--mf-text-strong)] mt-2">±{cycleVariation} <span className="text-sm font-normal text-[var(--mf-muted)]">days</span></p>
+        </div>
+        <div className={`p-5 rounded-xl border flex items-start gap-3 justify-between ${isAtypical ? 'bg-amber-500/10 dark:bg-amber-950/20 border-amber-500/20 text-amber-600 dark:text-amber-400' : 'bg-emerald-500/10 dark:bg-emerald-950/20 border-emerald-500/20 text-emerald-600 dark:text-emerald-400'}`}>
+          <div className="space-y-1">
+            <span className="text-xs font-medium opacity-80">ACOG Cycle Pattern</span>
+            <p className="text-base font-semibold mt-2">{isAtypical ? 'Atypical / Irregular' : 'Normal / Typical'}</p>
+          </div>
+          {isAtypical ? <Warning size={24} className="text-amber-600 dark:text-amber-400" /> : <SealCheck size={24} className="text-emerald-600 dark:text-emerald-400" />}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+interface CycleChronologyTableProps {
+  historicalPeriods: PeriodInfo[]
+}
+
+function CycleChronologyTable({ historicalPeriods }: CycleChronologyTableProps) {
+  return (
+    <div className="space-y-4">
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--mf-text-strong)] border-b border-[var(--mf-border)] pb-2">2. Cycle Chronology (Last 6 Periods)</h3>
+      {historicalPeriods.length > 0 ? (
+        <div className="overflow-hidden border border-[var(--mf-border)] rounded-xl">
+          <table className="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr className="bg-[var(--mf-composer-bg)]/40 border-b border-[var(--mf-border)] text-[var(--mf-muted)] font-medium uppercase tracking-wider">
+                <th className="p-4">Period Start Date</th>
+                <th className="p-4">Bleeding Duration</th>
+                <th className="p-4">Calculated Cycle Length</th>
+                <th className="p-4">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {historicalPeriods.slice(0, 6).map((period: PeriodInfo) => {
+                const isAtypicalCycle = period.cycleLength ? (period.cycleLength < 24 || period.cycleLength > 35) : false
+                return (
+                  <tr key={period.startDate} className="border-b border-[var(--mf-border)] last:border-0 hover:bg-[var(--mf-composer-bg)]/30">
+                    <td className="p-4 font-mono font-medium text-[var(--mf-text-strong)]">{period.startDate}</td>
+                    <td className="p-4 text-[var(--mf-text)]">{period.duration} days</td>
+                    <td className="p-4 font-mono text-[var(--mf-text-strong)]">{period.cycleLength ? `${period.cycleLength} days` : 'Ongoing / Current'}</td>
+                    <td className="p-4">
+                      {period.cycleLength ? (
+                        isAtypicalCycle ? (
+                          <span className="text-amber-600 dark:text-amber-400 font-medium bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">Irregular</span>
+                        ) : (
+                          <span className="text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Regular</span>
+                        )
+                      ) : (
+                        <span className="text-sky-600 dark:text-sky-400 font-medium bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/20">Active Cycle</span>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <p className="text-xs text-[var(--mf-muted)] italic">No cycle bleeding history logged.</p>
+      )}
+    </div>
+  )
+}
+
+interface SymptomPrevalenceAndEvidenceProps {
+  symptomCounts: Array<{ id: string; label: string; category: string; count: number }>
+  positiveLhCount: number
+  eggWhiteMucusCount: number
+}
+
+function SymptomPrevalenceAndEvidence({ symptomCounts, positiveLhCount, eggWhiteMucusCount }: SymptomPrevalenceAndEvidenceProps) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      {/* Symptom Frequency */}
+      <div className="space-y-4">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--mf-text-strong)] border-b border-[var(--mf-border)] pb-2">3. Symptom Prevalence (Last 90 Days)</h3>
+        {symptomCounts.length > 0 ? (
+          <div className="space-y-2">
+            {symptomCounts.slice(0, 6).map((sym) => (
+              <div key={sym.id} className="flex justify-between items-center text-xs p-2.5 bg-[var(--mf-composer-bg)]/30 rounded-lg border border-[var(--mf-border)]">
+                <span className="font-medium capitalize text-[var(--mf-text-strong)]">{sym.label}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] uppercase font-medium text-[var(--mf-muted)] tracking-widest">{sym.category}</span>
+                  <span className="font-mono bg-[var(--mf-card)] border border-[var(--mf-border)] text-[var(--mf-text-strong)] px-2.5 py-0.5 rounded font-semibold">{sym.count} logs</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-[var(--mf-muted)] italic">No symptoms logged in the last 90 days.</p>
+        )}
+      </div>
+
+      {/* Biological NFP Indicators */}
+      <div className="space-y-4">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--mf-text-strong)] border-b border-[var(--mf-border)] pb-2">4. Biological Ovulation Evidence</h3>
+        <div className="space-y-3 text-xs">
+          <div className="p-4 border border-[var(--mf-border)] rounded-xl bg-[var(--mf-composer-bg)]/20 space-y-1">
+            <div className="flex justify-between font-semibold text-[var(--mf-text-strong)]">
+              <span>Positive LH Surge Tests</span>
+              <span className="font-mono text-[var(--mf-text-strong)]">{positiveLhCount} instances</span>
+            </div>
+            <p className="text-[10px] text-[var(--mf-muted)] leading-relaxed">
+              Indicates biological confirmation of the luteinizing hormone surge, which usually occurs 24 to 48 hours prior to ovulation.
+            </p>
+          </div>
+
+          <div className="p-4 border border-[var(--mf-border)] rounded-xl bg-[var(--mf-composer-bg)]/20 space-y-1">
+            <div className="flex justify-between font-semibold text-[var(--mf-text-strong)]">
+              <span>Egg-White Cervical Mucus Logs</span>
+              <span className="font-mono text-[var(--mf-text-strong)]">{eggWhiteMucusCount} instances</span>
+            </div>
+            <p className="text-[10px] text-[var(--mf-muted)] leading-relaxed">
+              Estrogen-driven highly fertile cervical mucus tracking. Corresponds to the peak fertile window.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const handlePrint = () => {
+  window.print()
+}
+
 export function DoctorReportModal({ isOpen, onClose }: DoctorReportModalProps) {
   const { logs, dashboard, settings, user } = useStore()
   const [doctorNotes, setDoctorNotes] = useState("")
@@ -76,11 +247,9 @@ export function DoctorReportModal({ isOpen, onClose }: DoctorReportModalProps) {
     return { positiveLhCount, eggWhiteMucusCount }
   }, [logs])
 
-  const handlePrint = () => {
-    window.print()
-  }
-
   if (!isOpen) return null
+
+  const dataRangeStr = logs.length > 0 ? `${logs[logs.length-1].date} to ${logs[0].date}` : 'No logs recorded'
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto no-print-backdrop">
@@ -149,6 +318,7 @@ export function DoctorReportModal({ isOpen, onClose }: DoctorReportModalProps) {
           </div>
           <div className="flex items-center gap-3">
             <button
+              type="button"
               onClick={handlePrint}
               className="flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold bg-[var(--mf-accent)] text-white hover:brightness-110 transition-all cursor-pointer active:scale-95 shadow-md border-0"
             >
@@ -156,6 +326,7 @@ export function DoctorReportModal({ isOpen, onClose }: DoctorReportModalProps) {
               <span>Print Report</span>
             </button>
             <button
+              type="button"
               onClick={onClose}
               className="p-2.5 rounded-full hover:bg-[var(--mf-composer-bg)] text-[var(--mf-text-strong)] transition-colors cursor-pointer border-0"
               aria-label="Close modal"
@@ -171,7 +342,7 @@ export function DoctorReportModal({ isOpen, onClose }: DoctorReportModalProps) {
           <div className="flex flex-col md:flex-row justify-between items-start border-b-2 border-[var(--mf-border-strong)] pb-6 gap-6">
             <div>
               <h1 className="text-3xl font-normal tracking-tight text-[var(--mf-text-strong)] uppercase">MensFlow Cycle Health Report</h1>
-              <p className="text-xs text-[var(--mf-muted)] mt-1.5 font-mono">Generated on {format(new Date(), 'PPpp')}</p>
+              <p className="text-xs text-[var(--mf-muted)] mt-1.5 font-mono" suppressHydrationWarning>Generated on {format(new Date(), 'PPpp')}</p>
             </div>
             <div className="text-left md:text-right text-xs space-y-1 font-mono text-[var(--mf-text)]">
               <p><strong>Clinical Tool:</strong> MensFlow App</p>
@@ -181,137 +352,30 @@ export function DoctorReportModal({ isOpen, onClose }: DoctorReportModalProps) {
           </div>
 
           {/* Demographic Box */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-[var(--mf-composer-bg)]/30 p-6 rounded-2xl border border-[var(--mf-border)]">
-            <div className="space-y-1">
-              <span className="text-[10px] uppercase font-medium tracking-wider text-[var(--mf-muted)]">Patient Name</span>
-              <p className="text-base font-medium text-[var(--mf-text-strong)]">{user?.name || "Patient Account"}</p>
-            </div>
-            <div className="space-y-1">
-              <span className="text-[10px] uppercase font-medium tracking-wider text-[var(--mf-muted)]">Biological Target Condition</span>
-              <p className="text-base font-medium text-[var(--mf-text-strong)] capitalize font-normal">
-                {settings.conditionOptimization === 'none' ? 'Standard Track' : settings.conditionOptimization}
-              </p>
-            </div>
-            <div className="space-y-1 font-mono text-xs">
-              <span className="text-[10px] uppercase font-medium tracking-wider text-[var(--mf-muted)]">Clinical Data Range</span>
-              <p className="text-[var(--mf-text-strong)] font-medium">{logs.length > 0 ? `${logs[logs.length-1].date} to ${logs[0].date}` : 'No logs recorded'}</p>
-            </div>
-          </div>
+          <DemographicBox 
+            patientName={user?.name || "Patient Account"} 
+            condition={settings.conditionOptimization} 
+            dataRange={dataRangeStr} 
+          />
 
           {/* Core Cycle Stats */}
-          <div className="space-y-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--mf-text-strong)] border-b border-[var(--mf-border)] pb-2">1. Menstrual Cycle Metrics</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div className="p-5 border border-[var(--mf-border)] bg-[var(--mf-composer-bg)]/20 rounded-xl flex flex-col justify-between">
-                <span className="text-xs font-semibold text-[var(--mf-muted)]">Historical Typical Length</span>
-                <p className="text-3xl font-light text-[var(--mf-text-strong)] mt-2">{historicalAvg} <span className="text-sm font-normal text-[var(--mf-muted)]">days</span></p>
-              </div>
-              <div className="p-5 border border-[var(--mf-border)] bg-[var(--mf-composer-bg)]/20 rounded-xl flex flex-col justify-between">
-                <span className="text-xs font-semibold text-[var(--mf-muted)]">Cycle Variation Range</span>
-                <p className="text-3xl font-light text-[var(--mf-text-strong)] mt-2">±{cycleVariation} <span className="text-sm font-normal text-[var(--mf-muted)]">days</span></p>
-              </div>
-              <div className={`p-5 rounded-xl border flex items-start gap-3 justify-between ${isAtypical ? 'bg-amber-500/10 dark:bg-amber-950/20 border-amber-500/20 text-amber-600 dark:text-amber-400' : 'bg-emerald-500/10 dark:bg-emerald-950/20 border-emerald-500/20 text-emerald-600 dark:text-emerald-400'}`}>
-                <div className="space-y-1">
-                  <span className="text-xs font-medium opacity-80">ACOG Cycle Pattern</span>
-                  <p className="text-base font-semibold mt-2">{isAtypical ? 'Atypical / Irregular' : 'Normal / Typical'}</p>
-                </div>
-                {isAtypical ? <Warning size={24} className="text-amber-600 dark:text-amber-400" /> : <SealCheck size={24} className="text-emerald-600 dark:text-emerald-400" />}
-              </div>
-            </div>
-          </div>
+          <CycleMetricsBox 
+            historicalAvg={historicalAvg} 
+            cycleVariation={cycleVariation} 
+            isAtypical={isAtypical} 
+          />
 
           {/* Past Cycles Table */}
-          <div className="space-y-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--mf-text-strong)] border-b border-[var(--mf-border)] pb-2">2. Cycle Chronology (Last 6 Periods)</h3>
-            {historicalPeriods.length > 0 ? (
-              <div className="overflow-hidden border border-[var(--mf-border)] rounded-xl">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-[var(--mf-composer-bg)]/40 border-b border-[var(--mf-border)] text-[var(--mf-muted)] font-medium uppercase tracking-wider">
-                      <th className="p-4">Period Start Date</th>
-                      <th className="p-4">Bleeding Duration</th>
-                      <th className="p-4">Calculated Cycle Length</th>
-                      <th className="p-4">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {historicalPeriods.slice(0, 6).map((period: PeriodInfo, idx: number) => {
-                      const isAtypicalCycle = period.cycleLength ? (period.cycleLength < 24 || period.cycleLength > 35) : false
-                      return (
-                        <tr key={idx} className="border-b border-[var(--mf-border)] last:border-0 hover:bg-[var(--mf-composer-bg)]/30">
-                          <td className="p-4 font-mono font-medium text-[var(--mf-text-strong)]">{period.startDate}</td>
-                          <td className="p-4 text-[var(--mf-text)]">{period.duration} days</td>
-                          <td className="p-4 font-mono text-[var(--mf-text-strong)]">{period.cycleLength ? `${period.cycleLength} days` : 'Ongoing / Current'}</td>
-                          <td className="p-4">
-                            {period.cycleLength ? (
-                              isAtypicalCycle ? (
-                                <span className="text-amber-600 dark:text-amber-400 font-medium bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">Irregular</span>
-                              ) : (
-                                <span className="text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Regular</span>
-                              )
-                            ) : (
-                              <span className="text-sky-600 dark:text-sky-400 font-medium bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/20">Active Cycle</span>
-                            )}
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p className="text-xs text-[var(--mf-muted)] italic">No cycle bleeding history logged.</p>
-            )}
-          </div>
+          <CycleChronologyTable 
+            historicalPeriods={historicalPeriods} 
+          />
 
           {/* Symptom Trends and Biological Evidence */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Symptom Frequency */}
-            <div className="space-y-4">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--mf-text-strong)] border-b border-[var(--mf-border)] pb-2">3. Symptom Prevalence (Last 90 Days)</h3>
-              {symptomCounts.length > 0 ? (
-                <div className="space-y-2">
-                  {symptomCounts.slice(0, 6).map((sym, idx) => (
-                    <div key={idx} className="flex justify-between items-center text-xs p-2.5 bg-[var(--mf-composer-bg)]/30 rounded-lg border border-[var(--mf-border)]">
-                      <span className="font-medium capitalize text-[var(--mf-text-strong)]">{sym.label}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[9px] uppercase font-medium text-[var(--mf-muted)] tracking-widest">{sym.category}</span>
-                        <span className="font-mono bg-[var(--mf-card)] border border-[var(--mf-border)] text-[var(--mf-text-strong)] px-2.5 py-0.5 rounded font-semibold">{sym.count} logs</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-[var(--mf-muted)] italic">No symptoms logged in the last 90 days.</p>
-              )}
-            </div>
-
-            {/* Biological NFP Indicators */}
-            <div className="space-y-4">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--mf-text-strong)] border-b border-[var(--mf-border)] pb-2">4. Biological Ovulation Evidence</h3>
-              <div className="space-y-3 text-xs">
-                <div className="p-4 border border-[var(--mf-border)] rounded-xl bg-[var(--mf-composer-bg)]/20 space-y-1">
-                  <div className="flex justify-between font-semibold text-[var(--mf-text-strong)]">
-                    <span>Positive LH Surge Tests</span>
-                    <span className="font-mono text-[var(--mf-text-strong)]">{nfpLogs.positiveLhCount} instances</span>
-                  </div>
-                  <p className="text-[10px] text-[var(--mf-muted)] leading-relaxed">
-                    Indicates biological confirmation of the luteinizing hormone surge, which usually occurs 24 to 48 hours prior to ovulation.
-                  </p>
-                </div>
-
-                <div className="p-4 border border-[var(--mf-border)] rounded-xl bg-[var(--mf-composer-bg)]/20 space-y-1">
-                  <div className="flex justify-between font-semibold text-[var(--mf-text-strong)]">
-                    <span>Egg-White Cervical Mucus Logs</span>
-                    <span className="font-mono text-[var(--mf-text-strong)]">{nfpLogs.eggWhiteMucusCount} instances</span>
-                  </div>
-                  <p className="text-[10px] text-[var(--mf-muted)] leading-relaxed">
-                    Estrogen-driven highly fertile cervical mucus tracking. Corresponds to the peak fertile window.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <SymptomPrevalenceAndEvidence 
+            symptomCounts={symptomCounts} 
+            positiveLhCount={nfpLogs.positiveLhCount} 
+            eggWhiteMucusCount={nfpLogs.eggWhiteMucusCount} 
+          />
 
           {/* Doctor Notes & Signature (Writeable prior to printing!) */}
           <div className="pt-6 border-t-2 border-dashed border-[var(--mf-border)] space-y-6">
