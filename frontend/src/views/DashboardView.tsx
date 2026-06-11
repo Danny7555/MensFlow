@@ -848,14 +848,14 @@ export function DashboardView() {
                       <button
                         type="button"
                         onClick={() => setIsReportOpen(true)}
-                        className="px-4 py-2 rounded-xl text-[11px] font-semibold bg-white text-amber-700 border border-amber-200 hover:bg-amber-50 transition-all cursor-pointer text-center shadow-sm active-squish"
+                        className="px-4 py-2 rounded-xl text-[11px] font-semibold bg-white text-amber-700 border border-amber-200 hover:bg-amber-50 transition-all cursor-pointer text-center active:scale-95"
                       >
                         Print Doctor Report
                       </button>
                       <button
                         type="button"
                         onClick={() => navigate('/education?topic=Care')}
-                        className="px-4 py-2 rounded-xl text-[11px] font-semibold bg-amber-500 hover:bg-amber-600 text-white transition-all cursor-pointer text-center border-none shadow-sm active-squish"
+                        className="px-4 py-2 rounded-xl text-[11px] font-semibold bg-amber-500 hover:bg-amber-600 text-white transition-all cursor-pointer text-center border-none active:scale-95"
                       >
                         Read Care Guides
                       </button>
@@ -900,26 +900,28 @@ export function DashboardView() {
 
               {/* Right Sidebar Stack */}
               <div className="flex flex-col gap-6 md:gap-8 min-w-0">
-                <div className="p-6 rounded-[2rem] bg-gradient-to-br from-indigo-500/5 via-[var(--mf-card)] to-[var(--mf-card)] border border-[var(--mf-border)] text-left space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="size-10 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500">
+                <div className="flo-card flo-card--prominent overflow-hidden text-left">
+                  <div className="flo-card-top relative z-10">
+                    <div className="flo-card-icon flo-card-icon--purple">
                       <FileText size={20} weight="bold" />
                     </div>
-                    <span className="text-[9px] uppercase font-bold tracking-widest text-muted-foreground">Clinical Export</span>
+                    <span className="flo-card-title">Clinical Export</span>
                   </div>
-                  <div className="space-y-1">
-                    <h4 className="text-xs font-semibold text-[var(--mf-text-strong)]">Share with your Doctor</h4>
-                    <p className="text-[10px] text-muted-foreground leading-relaxed">
-                      Generate a print-ready PDF containing your historical averages, symptom trends, and biological NFP evidence to share with your healthcare provider.
-                    </p>
+                  <div className="mt-2 relative z-10 flex flex-col flex-1 space-y-3">
+                    <div className="space-y-1">
+                      <h4 className="text-xs font-semibold text-[var(--mf-text-strong)]">Share with your Doctor</h4>
+                      <p className="text-[10px] text-muted-foreground leading-relaxed">
+                        Generate a print-ready PDF containing your historical averages, symptom trends, and biological NFP evidence to share with your healthcare provider.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsReportOpen(true)}
+                      className="w-full py-2.5 rounded-xl text-[11px] font-semibold bg-[var(--mf-accent)] text-white hover:brightness-105 active:scale-95 transition-all text-center border-none cursor-pointer"
+                    >
+                      Generate Doctor Report
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsReportOpen(true)}
-                    className="w-full py-2.5 rounded-xl text-[11px] font-semibold bg-[var(--mf-accent)] text-white hover:brightness-105 active:scale-95 transition-all text-center border-none cursor-pointer"
-                  >
-                    Generate Doctor Report
-                  </button>
                 </div>
 
                 <div className="min-w-0">
