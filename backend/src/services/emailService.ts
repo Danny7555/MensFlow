@@ -177,8 +177,9 @@ export async function sendInviteEmail(opts: SendInviteEmailOptions): Promise<{ s
     });
   }
 
+  const fromField = fromEmail.includes('<') && fromEmail.includes('>') ? fromEmail : `"${fromName}" <${fromEmail}>`;
   const info = await transporter.sendMail({
-    from: `"${fromName}" <${fromEmail}>`,
+    from: fromField,
     to: toEmail,
     subject: `${inviterName} invited you to MensFlow`,
     html,
@@ -227,8 +228,9 @@ export async function sendReminderEmail(opts: SendEmailOptions): Promise<{ succe
     });
   }
 
+  const fromField = fromEmail.includes('<') && fromEmail.includes('>') ? fromEmail : `"${fromName}" <${fromEmail}>`;
   const info = await transporter.sendMail({
-    from: `"${fromName}" <${fromEmail}>`,
+    from: fromField,
     to: `"${toName}" <${toEmail}>`,
     subject: `MensFlow: ${reminderTitle}`,
     html,
@@ -338,8 +340,9 @@ export async function sendGuardianEmail(opts: SendGuardianEmailOptions): Promise
     });
   }
 
+  const fromField = fromEmail.includes('<') && fromEmail.includes('>') ? fromEmail : `"${fromName}" <${fromEmail}>`;
   const info = await transporter.sendMail({
-    from: `"${fromName}" <${fromEmail}>`,
+    from: fromField,
     to: toEmail,
     subject: `MensFlow: Guardian Supervision Enabled`,
     html,

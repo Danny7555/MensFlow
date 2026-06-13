@@ -210,8 +210,9 @@ export async function createResetSession(email: string): Promise<string | null> 
     const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'no-reply@mensflow.app';
     const transporter = await getTransporter();
 
+    const fromField = fromEmail.includes('<') && fromEmail.includes('>') ? fromEmail : `"${fromName}" <${fromEmail}>`;
     const info = await transporter.sendMail({
-      from: `"${fromName}" <${fromEmail}>`,
+      from: fromField,
       to: `"${user.name}" <${recipientEmail}>`,
       subject: 'MensFlow — Reset your password',
       html: buildOtpEmailHtml(user.name, code, OTP_EXPIRY_MINUTES),
@@ -257,8 +258,9 @@ export async function createOtpSession(userId: string): Promise<string> {
     const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'no-reply@mensflow.app';
     const transporter = await getTransporter();
 
+    const fromField = fromEmail.includes('<') && fromEmail.includes('>') ? fromEmail : `"${fromName}" <${fromEmail}>`;
     const info = await transporter.sendMail({
-      from: `"${fromName}" <${fromEmail}>`,
+      from: fromField,
       to: `"${user.name}" <${recipientEmail}>`,
       subject: 'MensFlow — Your verification code',
       html: buildOtpEmailHtml(user.name, code, OTP_EXPIRY_MINUTES),
