@@ -433,13 +433,13 @@ function GeneralPanel({
         options={[
           { value: 'auto', label: 'Auto-detect' },
           { value: 'en', label: 'English' },
+          { value: 'twi_soon', label: 'Twi (Coming Soon)' },
+          { value: 'ewe_soon', label: 'Ewe (Coming Soon)' },
+          { value: 'ga_soon', label: 'Ga (Coming Soon)' },
           { value: 'es_soon', label: 'Español (Coming Soon)' },
           { value: 'fr_soon', label: 'Français (Coming Soon)' },
           { value: 'de_soon', label: 'Deutsch (Coming Soon)' },
           { value: 'pt_soon', label: 'Português (Coming Soon)' },
-          { value: 'twi_soon', label: 'Twi (Coming Soon)' },
-          { value: 'ewe_soon', label: 'Ewe (Coming Soon)' },
-          { value: 'ga_soon', label: 'Ga (Coming Soon)' },
         ]}
       />
       <ToggleRow
@@ -469,12 +469,12 @@ function GeneralPanel({
         options={[
           { value: 'auto', label: 'Auto-detect' },
           { value: 'en-US', label: 'English (US)' },
-          { value: 'es-ES_soon', label: 'Español (Coming Soon)' },
-          { value: 'fr-FR_soon', label: 'Français (Coming Soon)' },
-          { value: 'de-DE_soon', label: 'Deutsch (Coming Soon)' },
           { value: 'twi-GH_soon', label: 'Twi (Coming Soon)' },
           { value: 'ewe-GH_soon', label: 'Ewe (Coming Soon)' },
           { value: 'ga-GH_soon', label: 'Ga (Coming Soon)' },
+          { value: 'es-ES_soon', label: 'Español (Coming Soon)' },
+          { value: 'fr-FR_soon', label: 'Français (Coming Soon)' },
+          { value: 'de-DE_soon', label: 'Deutsch (Coming Soon)' },
         ]}
       />
       <ToggleRow
