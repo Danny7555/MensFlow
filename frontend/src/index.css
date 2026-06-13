@@ -1211,13 +1211,7 @@
   animation: mf-toast-in 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.mf-toast--error {
-  border-left: 3px solid var(--mf-danger, #f97066);
-}
 
-.mf-toast--warning {
-  border-left: 3px solid var(--mf-warning, #fec84b);
-}
 
 .mf-toast-icon {
   font-size: 1.125rem;

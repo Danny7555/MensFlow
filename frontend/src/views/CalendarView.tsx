@@ -429,6 +429,7 @@ function useCalendarState() {
         periodDuration: settings.cyclePeriodLengthDays,
         viewYear: state.viewDate.getFullYear(),
       })
+      // eslint-disable-next-line react-hooks/refs
       predictedOnly.forEach((d) => {
         if (!userRemovedRef.current.has(d)) {
           dates.add(d)

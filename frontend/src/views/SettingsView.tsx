@@ -421,6 +421,9 @@ function GeneralPanel({
               fr_soon: 'French',
               de_soon: 'German',
               pt_soon: 'Portuguese',
+              twi_soon: 'Twi',
+              ewe_soon: 'Ewe',
+              ga_soon: 'Ga',
             }
             toast.info(`${langNames[v] || 'Language'} translation is coming soon!`)
             return
@@ -434,6 +437,9 @@ function GeneralPanel({
           { value: 'fr_soon', label: 'Français (Coming Soon)' },
           { value: 'de_soon', label: 'Deutsch (Coming Soon)' },
           { value: 'pt_soon', label: 'Português (Coming Soon)' },
+          { value: 'twi_soon', label: 'Twi (Coming Soon)' },
+          { value: 'ewe_soon', label: 'Ewe (Coming Soon)' },
+          { value: 'ga_soon', label: 'Ga (Coming Soon)' },
         ]}
       />
       <ToggleRow
@@ -451,6 +457,9 @@ function GeneralPanel({
               'es-ES_soon': 'Spanish',
               'fr-FR_soon': 'French',
               'de-DE_soon': 'German',
+              'twi-GH_soon': 'Twi',
+              'ewe-GH_soon': 'Ewe',
+              'ga-GH_soon': 'Ga',
             }
             toast.info(`${langNames[v] || 'Language'} dictation support is coming soon!`)
             return
@@ -463,6 +472,9 @@ function GeneralPanel({
           { value: 'es-ES_soon', label: 'Español (Coming Soon)' },
           { value: 'fr-FR_soon', label: 'Français (Coming Soon)' },
           { value: 'de-DE_soon', label: 'Deutsch (Coming Soon)' },
+          { value: 'twi-GH_soon', label: 'Twi (Coming Soon)' },
+          { value: 'ewe-GH_soon', label: 'Ewe (Coming Soon)' },
+          { value: 'ga-GH_soon', label: 'Ga (Coming Soon)' },
         ]}
       />
       <ToggleRow
