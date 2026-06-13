@@ -57,7 +57,7 @@ function buildEmailHtml(toName: string, reminderTitle: string, reminderMessage: 
               <p style="margin:0 0 8px;font-size:14px;color:#9b6b86;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;">Hello, ${toName}</p>
               <h1 style="margin:0 0 20px;font-size:22px;font-weight:700;color:#1a0a14;line-height:1.3;">${reminderTitle}</h1>
               <p style="margin:0 0 28px;font-size:15px;color:#5c3d52;line-height:1.65;">${reminderMessage}</p>
-              <a href="https://mensflow.app" style="display:inline-block;background:linear-gradient(135deg,#e84393,#f472b6);color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;padding:14px 28px;border-radius:50px;letter-spacing:0.02em;">
+              <a href="https://mens-flow-f7jm.vercel.app" style="display:inline-block;background:linear-gradient(135deg,#e84393,#f472b6);color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;padding:14px 28px;border-radius:50px;letter-spacing:0.02em;">
                 Open MensFlow →
               </a>
             </td>
@@ -67,7 +67,7 @@ function buildEmailHtml(toName: string, reminderTitle: string, reminderMessage: 
             <td style="padding:20px 40px 28px;border-top:1px solid #f3e4ed;">
               <p style="margin:0;font-size:12px;color:#b09ba8;line-height:1.5;">
                 You received this because email reminders are enabled in your MensFlow account.<br/>
-                <a href="https://mensflow.app/settings" style="color:#e84393;text-decoration:none;">Manage notification preferences</a>
+                <a href="https://mens-flow-f7jm.vercel.app/settings" style="color:#e84393;text-decoration:none;">Manage notification preferences</a>
               </p>
             </td>
           </tr>
@@ -177,8 +177,9 @@ export async function sendInviteEmail(opts: SendInviteEmailOptions): Promise<{ s
     });
   }
 
+  const fromField = fromEmail.includes('<') && fromEmail.includes('>') ? fromEmail : `"${fromName}" <${fromEmail}>`;
   const info = await transporter.sendMail({
-    from: `"${fromName}" <${fromEmail}>`,
+    from: fromField,
     to: toEmail,
     subject: `${inviterName} invited you to MensFlow`,
     html,
@@ -227,12 +228,13 @@ export async function sendReminderEmail(opts: SendEmailOptions): Promise<{ succe
     });
   }
 
+  const fromField = fromEmail.includes('<') && fromEmail.includes('>') ? fromEmail : `"${fromName}" <${fromEmail}>`;
   const info = await transporter.sendMail({
-    from: `"${fromName}" <${fromEmail}>`,
+    from: fromField,
     to: `"${toName}" <${toEmail}>`,
     subject: `MensFlow: ${reminderTitle}`,
     html,
-    text: `${reminderTitle}\n\n${reminderMessage}\n\nOpen MensFlow at https://mensflow.app`,
+    text: `${reminderTitle}\n\n${reminderMessage}\n\nOpen MensFlow at https://mens-flow-f7jm.vercel.app`,
   });
 
   const rawPreview = nodemailer.getTestMessageUrl(info);
@@ -338,8 +340,9 @@ export async function sendGuardianEmail(opts: SendGuardianEmailOptions): Promise
     });
   }
 
+  const fromField = fromEmail.includes('<') && fromEmail.includes('>') ? fromEmail : `"${fromName}" <${fromEmail}>`;
   const info = await transporter.sendMail({
-    from: `"${fromName}" <${fromEmail}>`,
+    from: fromField,
     to: toEmail,
     subject: `MensFlow: Guardian Supervision Enabled`,
     html,

@@ -86,7 +86,7 @@ function buildOtpEmailHtml(name: string, code: string, expiryMins: number): stri
         </tr>
         <tr>
           <td class="footer-td" style="padding:16px 36px 24px;border-top:1px solid #f3e4ed;">
-            <p style="margin:0;font-size:11px;color:#b09ba8;">© MensFlow — <a href="https://mensflow.app/settings" style="color:#e84393;text-decoration:none;">Manage security settings</a></p>
+            <p style="margin:0;font-size:11px;color:#b09ba8;">© MensFlow — <a href="https://mens-flow-f7jm.vercel.app/settings" style="color:#e84393;text-decoration:none;">Manage security settings</a></p>
           </td>
         </tr>
       </table>
@@ -210,8 +210,9 @@ export async function createResetSession(email: string): Promise<string | null> 
     const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'no-reply@mensflow.app';
     const transporter = await getTransporter();
 
+    const fromField = fromEmail.includes('<') && fromEmail.includes('>') ? fromEmail : `"${fromName}" <${fromEmail}>`;
     const info = await transporter.sendMail({
-      from: `"${fromName}" <${fromEmail}>`,
+      from: fromField,
       to: `"${user.name}" <${recipientEmail}>`,
       subject: 'MensFlow — Reset your password',
       html: buildOtpEmailHtml(user.name, code, OTP_EXPIRY_MINUTES),
@@ -257,8 +258,9 @@ export async function createOtpSession(userId: string): Promise<string> {
     const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'no-reply@mensflow.app';
     const transporter = await getTransporter();
 
+    const fromField = fromEmail.includes('<') && fromEmail.includes('>') ? fromEmail : `"${fromName}" <${fromEmail}>`;
     const info = await transporter.sendMail({
-      from: `"${fromName}" <${fromEmail}>`,
+      from: fromField,
       to: `"${user.name}" <${recipientEmail}>`,
       subject: 'MensFlow — Your verification code',
       html: buildOtpEmailHtml(user.name, code, OTP_EXPIRY_MINUTES),
