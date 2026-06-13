@@ -43,6 +43,7 @@ const NotFoundView = lazy(() => import('./views/NotFoundView').then(m => ({ defa
 
 function ChatLockGate({ children }: { children: React.ReactNode }) {
   const settings = useStore((s) => s.settings)
+  const user = useStore((s) => s.user)
   const location = useLocation()
   const [isUnlocked, setIsUnlocked] = useState(false)
   const [password, setPassword] = useState('')
@@ -56,7 +57,7 @@ function ChatLockGate({ children }: { children: React.ReactNode }) {
   const strengthResult = getPasswordStrength(newPassword)
   const isStrong = strengthResult ? strengthResult.isStrong : false
 
-  if (!settings.privacyLockChats || location.pathname === '/locked-chats') {
+  if (user?.role === 'partner' || !settings.privacyLockChats || location.pathname === '/locked-chats') {
     return <>{children}</>
   }
   if (!isUnlocked) {

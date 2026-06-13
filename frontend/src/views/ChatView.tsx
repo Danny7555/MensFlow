@@ -193,8 +193,9 @@ function makeFriendlyShortResponse(response: string): string {
 
 export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnlyLocked?: boolean; privacyPassword?: string }) {
   const { temporaryChat, setTemporaryChat } = useChatSession()
-  const { chatShowTimestamps, privacyLockChats } = useStore((state) => state.settings)
+  const { chatShowTimestamps, privacyLockChats: rawPrivacyLockChats } = useStore((state) => state.settings)
   const { dashboard: data, user, logs, customSymptoms, showConfirm, hydrate, fetchLogs } = useStore()
+  const privacyLockChats = rawPrivacyLockChats && user?.role !== 'partner'
 
   const threadEndRef = useRef<HTMLDivElement>(null)
   // Capture the static prop in a ref so the initial-load effect doesn't

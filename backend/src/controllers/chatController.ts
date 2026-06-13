@@ -72,9 +72,9 @@ export async function lockSession(req: AuthRequest, res: Response, next: NextFun
   try {
     const sessionId = requiredString(req.params.sessionId, 'sessionId', { max: 120 });
     const body = objectRecord(req.body);
-    const passcode = requiredString(body.passcode, 'passcode', { min: 4, max: 80 });
-    const securityQuestion = requiredString(body.securityQuestion, 'securityQuestion', { max: 200 });
-    const securityAnswer = requiredString(body.securityAnswer, 'securityAnswer', { max: 200 });
+    const passcode = optionalString(body, 'passcode', { min: 4, max: 80 });
+    const securityQuestion = optionalString(body, 'securityQuestion', { max: 200 });
+    const securityAnswer = optionalString(body, 'securityAnswer', { max: 200 });
 
     await chatService.lockSession(req.user!.id, sessionId, passcode, securityQuestion, securityAnswer);
     res.json({ success: true });
