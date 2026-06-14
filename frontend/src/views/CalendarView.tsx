@@ -429,9 +429,17 @@ function useCalendarState() {
         periodDuration: settings.cyclePeriodLengthDays,
         viewYear: state.viewDate.getFullYear(),
       })
+
+      const loggedDates = new Set<string>()
+      logs.forEach((log) => {
+        if (log.symptoms.some((s) => s.startsWith("flow-"))) {
+          loggedDates.add(log.date)
+        }
+      })
+
       // eslint-disable-next-line react-hooks/refs
       predictedOnly.forEach((d) => {
-        if (!userRemovedRef.current.has(d)) {
+        if (!userRemovedRef.current.has(d) && !loggedDates.has(d)) {
           dates.add(d)
         }
       })
@@ -1134,8 +1142,9 @@ function addPredictedPeriodDates({
   const start = new Date(`${periodStart}T12:00:00`)
   if (Number.isNaN(+start)) return
 
-  while (start > windowStart) {
-    start.setDate(start.getDate() - safeCycleLength)
+  // Fast-forward if start is way before our render window, to save iterations
+  while (start < windowStart) {
+    start.setDate(start.getDate() + safeCycleLength)
   }
 
   while (start <= windowEnd) {
