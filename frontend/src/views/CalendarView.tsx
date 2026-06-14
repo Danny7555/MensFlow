@@ -429,9 +429,17 @@ function useCalendarState() {
         periodDuration: settings.cyclePeriodLengthDays,
         viewYear: state.viewDate.getFullYear(),
       })
+
+      const loggedDates = new Set<string>()
+      logs.forEach((log) => {
+        if (log.symptoms.some((s) => s.startsWith("flow-"))) {
+          loggedDates.add(log.date)
+        }
+      })
+
       // eslint-disable-next-line react-hooks/refs
       predictedOnly.forEach((d) => {
-        if (!userRemovedRef.current.has(d)) {
+        if (!userRemovedRef.current.has(d) && !loggedDates.has(d)) {
           dates.add(d)
         }
       })
@@ -745,7 +753,7 @@ export function CalendarView() {
               <div className="w-5 h-5 rounded-full border-2 border-dashed border-teal-500/85 dark:border-teal-400/80 bg-teal-50/20 dark:bg-teal-950/15 flex items-center justify-center text-[10px] text-teal-600 dark:text-teal-400 font-semibold">
                 1
               </div>
-              <span className="font-medium text-foreground/80">Predicted Ovulation</span>
+              <span className="font-medium text-foreground/80">Fertile Window</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-5 h-5 rounded-full bg-[#e0e0e0] dark:bg-muted flex items-center justify-center text-[10px] text-foreground font-semibold">
@@ -826,11 +834,13 @@ function MonthView({
     return set
   }, [isEditingPeriods, editMode, rangeStart, hoveredDateKey])
 
-  // Calculate ovulation day based on typical cycle length
+  // Calculate fertile window based on typical cycle length
   const cycleLen = data.typicalCycleDays || 28
   const safeCycleLen = Math.min(60, Math.max(15, Math.round(cycleLen)))
   const periodLength = safeCycleLen <= 24 ? 4 : safeCycleLen >= 36 ? 6 : 5
   const ovulationDay = Math.max(periodLength + 5, safeCycleLen - 14)
+  const fertileStart = Math.max(periodLength + 1, ovulationDay - 4)
+  const fertileEnd = Math.min(safeCycleLen, ovulationDay + 2)
 
   return (
     <>
@@ -859,7 +869,7 @@ function MonthView({
             const cycleDay = data.lastPeriodStart 
               ? computeCycleDayForDate(targetDate, data.lastPeriodStart, data.typicalCycleDays)
               : null
-            const isOvulation = cycleDay === ovulationDay
+            const isFertile = cycleDay !== null && cycleDay >= fertileStart && cycleDay <= fertileEnd
 
             // Capsule connection checks
             const getDateKeyOffset = (dayOffset: number) => {
@@ -975,8 +985,8 @@ function MonthView({
                     </div>
                   )}
 
-                  {/* Ovulation ring (non-edit mode only) */}
-                  {isOvulation && !isEditingPeriods && (
+                  {/* Fertile window ring (non-edit mode only) */}
+                  {isFertile && !isEditingPeriods && (
                     <div className="absolute inset-0 border-2 border-dashed border-teal-500/80 dark:border-teal-400/80 rounded-full bg-teal-50/20 dark:bg-teal-950/10 z-20 pointer-events-none" />
                   )}
 
@@ -990,8 +1000,8 @@ function MonthView({
                     !isEditingPeriods && [
                       isSelected && "bg-[#e0e0e0] dark:bg-muted text-foreground",
                       isPeriod && !isSelected && (isPredicted ? "text-rose-500 dark:text-rose-400/80" : "text-violet-700 dark:text-violet-300 font-bold"),
-                      isOvulation && !isPeriod && !isSelected && "text-teal-600 dark:text-teal-400 font-semibold",
-                      !isPeriod && !isOvulation && !isSelected && "text-foreground"
+                      isFertile && !isPeriod && !isSelected && "text-teal-600 dark:text-teal-400 font-semibold",
+                      !isPeriod && !isFertile && !isSelected && "text-foreground"
                     ]
                   )}>
                     <span className="relative z-0 text-base font-normal">
@@ -1132,8 +1142,9 @@ function addPredictedPeriodDates({
   const start = new Date(`${periodStart}T12:00:00`)
   if (Number.isNaN(+start)) return
 
-  while (start > windowStart) {
-    start.setDate(start.getDate() - safeCycleLength)
+  // Fast-forward if start is way before our render window, to save iterations
+  while (start < windowStart) {
+    start.setDate(start.getDate() + safeCycleLength)
   }
 
   while (start <= windowEnd) {
