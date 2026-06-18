@@ -73,6 +73,28 @@ export const chatApi = {
         phaseTag: string;
       }[];
     }>('/chat/daily-guidance'),
+
+  getAIUsageStats: (days = 30) =>
+    get<{
+      totalTokens: number;
+      promptTokens: number;
+      completionTokens: number;
+      totalRequests: number;
+      successfulRequests: number;
+      failedRequests: number;
+      avgLatencyMs: number;
+      byFeature: Record<string, {
+        requests: number;
+        tokens: number;
+        avgLatencyMs: number;
+        successRate: number;
+      }>;
+      dailyBreakdown: Array<{
+        date: string;
+        tokens: number;
+        requests: number;
+      }>;
+    }>(`/chat/ai-usage?days=${days}`),
 }
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────
@@ -82,6 +104,7 @@ export const chatKeys = {
   messages: (sessionId: string) => ['chatMessages', sessionId] as const,
   suggestions: ['chatSuggestions'] as const,
   dailyGuidance: ['dailyGuidance'] as const,
+  aiUsageStats: (days: number) => ['aiUsageStats', days] as const,
 }
 
 export function useDailyGuidance() {
@@ -97,5 +120,14 @@ export function useChatSuggestions() {
   return useQuery({
     queryKey: chatKeys.suggestions,
     queryFn: () => chatApi.getSuggestions(),
+  })
+}
+
+export function useAIUsageStats(days = 30) {
+  return useQuery({
+    queryKey: chatKeys.aiUsageStats(days),
+    queryFn: () => chatApi.getAIUsageStats(days),
+    enabled: isLoggedIn(),
+    staleTime: 1000 * 60 * 15, // 15 minutes cache
   })
 }

@@ -4,6 +4,7 @@ import { User } from '../models/User';
 import { Dashboard } from '../models/Dashboard';
 import { SupportAction } from '../models/Partner';
 import { Settings } from '../models/Settings';
+import { buildCycleModel, computeNextPeriodStart, computeConfidence } from '../utils/cycleModel';
 
 export async function getSymptomLogs(userId: string): Promise<ISymptomLog[]> {
   const user = await User.findById(userId).lean();
@@ -87,7 +88,7 @@ export async function clearAllLogs(userId: string): Promise<void> {
   // Reset dashboard cycle variation to defaults when clearing all logs
   await Dashboard.updateOne(
     { userId: targetId },
-    { $set: { cycleVariationDays: 8, isAtypical: false } }
+    {     $set: { cycleVariationDays: 8, isAtypical: false, nextPeriodStart: '', historicalCycleCount: 0, cycleConfidence: 'low' } }
   );
 }
 
@@ -407,18 +408,22 @@ export async function recalculateCycleMetrics(userId: string): Promise<void> {
     }
   }
 
-  if (Object.keys(updates).length > 0) {
-    const finalTypical = updates.typicalCycleDays ?? dashboard.typicalCycleDays;
-    const finalVariation = updates.cycleVariationDays ?? dashboard.cycleVariationDays;
-    updates.isAtypical = finalTypical < 24 || finalTypical > 35 || finalVariation > 14;
+  const finalTypical = updates.typicalCycleDays ?? dashboard.typicalCycleDays;
+  const finalVariation = updates.cycleVariationDays ?? dashboard.cycleVariationDays;
+  updates.isAtypical = finalTypical < 24 || finalTypical > 35 || finalVariation > 14;
+  updates.historicalCycleCount = cycleLengths.length;
+  updates.nextPeriodStart = computeNextPeriodStart(
+    updates.lastPeriodStart ?? dashboard.lastPeriodStart,
+    finalTypical
+  );
+  updates.cycleConfidence = computeConfidence(cycleLengths.length);
 
-    await Dashboard.updateOne({ userId: targetId }, { $set: updates });
+  await Dashboard.updateOne({ userId: targetId }, { $set: updates });
 
-    if (updates.typicalCycleDays !== undefined) {
-      await Settings.updateOne(
-        { userId: targetId },
-        { $set: { cycleAvgLengthDays: updates.typicalCycleDays } }
-      );
-    }
+  if (updates.typicalCycleDays !== undefined) {
+    await Settings.updateOne(
+      { userId: targetId },
+      { $set: { cycleAvgLengthDays: updates.typicalCycleDays } }
+    );
   }
 }

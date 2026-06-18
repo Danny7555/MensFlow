@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import crypto from 'crypto';
 import http from 'http';
+import helmet from 'helmet';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
@@ -36,6 +37,7 @@ if (isVercel || isProduction) {
 
 // ─── Global Middleware ────────────────────────────────────────────────────────
 
+app.use(helmet());
 app.disable('x-powered-by');
 
 // Attach a unique request ID to every request for log correlation

@@ -8,6 +8,7 @@ import { httpError } from '../utils/http';
 import { generateUniquePartnerCode } from './authService';
 import { sendInviteEmail, sendReminderEmail } from './emailService';
 import { buildCycleModel } from '../utils/cycleModel';
+import { callGroqWithLogging } from '../utils/groqClient';
 
 
 // ─── Pairing ─────────────────────────────────────────────────────────────────
@@ -593,8 +594,6 @@ export async function suggestReplies(userId: string): Promise<string[]> {
   const mucusText = logDoc?.mucus || 'Not logged';
   const lhText = logDoc?.lhLevel || 'Not logged';
 
-  const groqApiKey = process.env.GROQ_API_KEY;
-
   // Local fallback templates
   const fallbackSuggestions: string[] = [];
 
@@ -667,10 +666,6 @@ export async function suggestReplies(userId: string): Promise<string[]> {
     }
   }
 
-  if (!groqApiKey) {
-    return fallbackSuggestions.slice(0, 3);
-  }
-
   const prompt = `You are an expert menstrual cycle empathy translator. Your job is to suggest exactly 3 short, comforting, warm, and highly empathetic chat replies (maximum 12 words each) that a partner can type to send to their lady (named ${ladyName}).
 The lady's current cycle context:
 - Cycle Phase: ${phaseLabel}
@@ -684,43 +679,29 @@ Return ONLY a valid JSON array of strings. Do not include markdown, code tags, o
 Example format:
 ["I'm heading home, would you like me to pick up some chocolate?", "I've got dinner covered tonight so you can rest.", "I'm here for you. Do you want a warm water bottle?"]`;
 
-  try {
-    const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${groqApiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model,
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.7,
-        max_tokens: 150
-      })
-    });
+  const result = await callGroqWithLogging('partner-empathy', userId, {
+    messages: [{ role: 'user', content: prompt }],
+    temperature: 0.7,
+    maxTokens: 150,
+  });
 
-    if (!response.ok) {
-      return fallbackSuggestions.slice(0, 3);
-    }
+  if (!result.success || !result.content) {
+    return fallbackSuggestions.slice(0, 3);
+  }
 
-    const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
-    let content = data?.choices?.[0]?.message?.content?.trim() || '';
+  let content = result.content.replace(/^```json\s*/i, '').replace(/```$/, '').trim();
 
-    // Strip out triple backticks if present
-    content = content.replace(/^```json\s*/i, '').replace(/```$/, '').trim();
-
-    const match = content.match(/\[\s*".*?"\s*(,\s*".*?"\s*)*\]/);
-    if (match) {
+  const match = content.match(/\[\s*".*?"\s*(,\s*".*?"\s*)*\]/);
+  if (match) {
+    try {
       const parsed = JSON.parse(match[0]);
       if (Array.isArray(parsed) && parsed.length > 0) {
         return parsed.slice(0, 3);
       }
+    } catch {
+      return fallbackSuggestions.slice(0, 3);
     }
-
-    return fallbackSuggestions.slice(0, 3);
-  } catch (error) {
-    console.error('[Groq Partner Suggestions Exception]', error);
-    return fallbackSuggestions.slice(0, 3);
   }
+
+  return fallbackSuggestions.slice(0, 3);
 }

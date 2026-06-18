@@ -3,7 +3,7 @@ import * as authService from '../services/authService';
 import { verifyOtpCode, createOtpSession } from '../services/otpService';
 import { User } from '../models/User';
 import { LoginHistory } from '../models/LoginHistory';
-import { objectRecord, requiredString } from '../utils/validation';
+import { objectRecord, requiredString, validatePasswordStrength } from '../utils/validation';
 import { getUserProfile } from '../services/userService';
 
 function signFullToken(userId: string, username: string): string {
@@ -20,6 +20,7 @@ export async function register(req: Request, res: Response, next: NextFunction):
     const username = requiredString(body.username, 'username', { max: 120 }).toLowerCase();
     const email = requiredString(body.email, 'email', { max: 254 }).toLowerCase();
     const password = requiredString(body.password, 'password', { min: 8, max: 128 });
+    validatePasswordStrength(password);
     const name = requiredString(body.name, 'name', { max: 80 });
     const role = body.role as 'lady' | 'partner' | undefined;
 
@@ -146,6 +147,7 @@ export async function resetPassword(req: Request, res: Response, next: NextFunct
     const body = objectRecord(req.body);
     const passwordResetToken = requiredString(body.passwordResetToken, 'passwordResetToken');
     const newPassword = requiredString(body.newPassword, 'newPassword', { min: 8, max: 128 });
+    validatePasswordStrength(newPassword);
 
     const result = await authService.resetPassword(passwordResetToken, newPassword);
     res.json(result);

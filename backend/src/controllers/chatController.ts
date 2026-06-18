@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken';
 import { getJwtSecret } from '../config/env';
 import { type HttpError } from '../utils/http';
 
+
 function isLockedError(err: unknown): err is HttpError & { locked: true } {
   return (
     typeof err === 'object' &&
@@ -169,6 +170,17 @@ export async function getDailyGuidance(req: AuthRequest, res: Response, next: Ne
   try {
     const guidance = await chatService.getDailyGuidance(req.user!.id);
     res.json(guidance);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getAIUsageStats(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const daysParam = req.query.days;
+    const days = typeof daysParam === 'string' ? Math.min(365, Math.max(1, parseInt(daysParam, 10) || 30)) : 30;
+    const stats = await chatService.getAIUsageStats(req.user!.id, days);
+    res.json(stats);
   } catch (err) {
     next(err);
   }

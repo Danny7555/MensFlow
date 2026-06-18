@@ -937,7 +937,7 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
                 <div className="flex items-center gap-2">
                   <WarningCircle size={18} className="text-amber-500 shrink-0" />
                   <span className="text-[11.5px] font-normal">
-                    Free Tier Chat Limit: Reach 500 XP via daily quizzes to unlock unlimited AI translation. (Current XP: {user.xp || 0}/500)
+                    Free Tier Chat Limit: Reach 100 XP via daily quizzes to unlock unlimited AI translation. (Current XP: {user.xp || 0}/100)
                   </span>
                 </div>
                 <div className="w-24 bg-muted/40 h-1.5 rounded-full overflow-hidden border border-border/20 relative shrink-0">

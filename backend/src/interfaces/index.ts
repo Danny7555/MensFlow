@@ -99,6 +99,9 @@ export interface IDashboard {
   cycleNotes: string;
   cycleVariationDays: number;
   isAtypical: boolean;
+  nextPeriodStart?: string;
+  historicalCycleCount?: number;
+  cycleConfidence?: 'low' | 'medium' | 'high';
   scientificInsight: string;
   dailyTip: {
     title: string;

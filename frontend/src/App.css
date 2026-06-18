@@ -4148,6 +4148,13 @@
   }
 }
 
+@media (min-width: 1024px) {
+  .dashboard-responsive-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
+    gap: 1.5rem;
+  }
+}
+
 @media (min-width: 1360px) {
   .dashboard-responsive-grid {
     grid-template-columns: minmax(0, 1fr) minmax(300px, 340px);

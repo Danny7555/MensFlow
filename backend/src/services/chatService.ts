@@ -8,6 +8,8 @@ import { SymptomLog, CustomSymptom } from '../models/Symptom';
 import { IChatMessage, ISessionSummary } from '../interfaces';
 import { httpError } from '../utils/http';
 import { buildCycleModel } from '../utils/cycleModel';
+import { callGroqWithLogging } from '../utils/groqClient';
+import { AILog } from '../utils/aiLogger';
 
 // ─── Session List ─────────────────────────────────────────────────────────────
 
@@ -82,12 +84,12 @@ export async function sendMessage(
     throw httpError('User not found', 404);
   }
 
-  // Enforce message limit for users with < 500 XP
-  if ((user.xp || 0) < 500) {
+  // Enforce message limit for users with < 100 XP
+  if ((user.xp || 0) < 100) {
     const userMsgCount = await ChatMessage.countDocuments({ userId, role: 'user' });
-    if (userMsgCount >= 5) {
+    if (userMsgCount >= 25) {
       throw httpError(
-        `Chat limit reached. You have used your 5 free messages. Complete daily quizzes to reach 500 XP and unlock unlimited AI assistant access! (Current XP: ${user.xp || 0}/500)`,
+        `Free chat limit used (25/25). Complete quizzes to earn 100 XP and unlock unlimited access. (${user.xp || 0}/100 XP)`,
         403
       );
     }
@@ -288,13 +290,9 @@ async function buildAIResponse(
   promptText: string,
   history: IChatMessage[]
 ): Promise<string> {
-  const groqApiKey = process.env.GROQ_API_KEY;
-
-  if (!groqApiKey) {
-    return "MensFlow AI requires the Groq API key to be set. Please add `GROQ_API_KEY` to the `.env` file on the backend and restart the server to enable chat.";
-  }
-
   const user = await User.findById(userId).lean();
+  if (!user) return "User not found.";
+
   let targetId: string = userId;
   let targetName: string = user?.name ?? 'you';
   const isPartnerUser = user?.role === 'partner';
@@ -316,6 +314,7 @@ async function buildAIResponse(
       lastPeriodStart: dashboard.lastPeriodStart,
       typicalCycleDays: dashboard.typicalCycleDays,
       cycleVariationDays: dashboard.cycleVariationDays,
+      historicalCycleCount: dashboard.historicalCycleCount,
     });
     currentDay = model.cycleDay;
     phaseLabel = model.phaseLabel;
@@ -373,48 +372,31 @@ Instructions:
     { role: 'user', content: promptText }
   ];
 
-  const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
-  try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${groqApiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model,
-        messages: apiMessages,
-        temperature: 0.75,
-        max_tokens: 180
-      })
-    });
+  const result = await callGroqWithLogging('chat', userId, {
+    messages: apiMessages,
+    temperature: 0.75,
+    maxTokens: 180,
+  });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[Groq API Error] Status: ${response.status} - ${errorText}`);
-      return "An error occurred while connecting to the Groq API. Please make sure your API key is valid and has sufficient credits.";
+  if (!result.success) {
+    console.error('[Groq Chat Error]', result.error);
+    if (result.error?.includes('GROQ_API_KEY not configured')) {
+      return "MensFlow AI requires the Groq API key to be set. Please add `GROQ_API_KEY` to the `.env` file on the backend and restart the server to enable chat.";
     }
-
-    const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
-    const content = data?.choices?.[0]?.message?.content;
-    if (!content) {
-      console.warn('[Groq API Warning] Empty response choices');
-      return "Received empty response from the Groq AI service. Please try asking again.";
-    }
-
-    return content.trim();
-  } catch (error) {
-    console.error('[Groq API Exception]', error);
-    return "Failed to connect to the Groq AI model. Please check the backend server logs for more details.";
+    return "An error occurred while connecting to the Groq API. Please make sure your API key is valid and has sufficient credits.";
   }
+
+  if (!result.content) {
+    console.warn('[Groq Chat Warning] Empty response');
+    return "Received empty response from the Groq AI service. Please try asking again.";
+  }
+
+  return result.content;
 }
 
 // ─── Data Extraction from Chat ────────────────────────────────────────────────
 
 async function extractAndSaveCycleData(userId: string, text: string): Promise<void> {
-  const groqApiKey = process.env.GROQ_API_KEY;
-  if (!groqApiKey) return;
-
   try {
     const user = await User.findById(userId).lean();
     if (!user) return;
@@ -455,31 +437,17 @@ Example Output:
   "symptoms": ["phys-cramps", "flow-heavy"]
 }`;
 
-    const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${groqApiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model,
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.1,
-        max_tokens: 150
-      })
+    const result = await callGroqWithLogging('extraction', userId, {
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.1,
+      maxTokens: 150,
     });
 
-    if (!response.ok) {
-      console.error('[Groq Extraction Error] API returned status:', response.status);
+    if (!result.success || !result.content) {
       return;
     }
 
-    const responseData = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
-    let content = responseData?.choices?.[0]?.message?.content?.trim() || '';
-    
-    // Clean JSON formatting
-    content = content.replace(/^```json\s*/i, '').replace(/```$/, '').trim();
+    let content = result.content.replace(/^```json\s*/i, '').replace(/```$/, '').trim();
 
     if (!content.startsWith('{') || !content.endsWith('}')) {
       const match = content.match(/\{[\s\S]*?\}/);
@@ -631,13 +599,6 @@ export async function sendGuestMessage(
   text: string,
   history: { role: 'user' | 'assistant'; text: string }[]
 ): Promise<{ text: string }> {
-  const groqApiKey = process.env.GROQ_API_KEY;
-  if (!groqApiKey) {
-    return {
-      text: "MensFlow AI requires the Groq API key to be set. Please add `GROQ_API_KEY` to the `.env` file on the backend and restart the server to enable chat."
-    };
-  }
-
   const systemMessage = `You are MensFlow, a warm, highly empathetic menstrual cycle, self-care, and partner-support assistant.
 Since this is a guest preview session, you do not have custom cycle data yet.
 Default to helping the user understand their own cycle using "you" and "your". If they clearly ask as a partner, switch to partner-support advice.
@@ -658,39 +619,25 @@ Instructions:
     { role: 'user', content: text }
   ];
 
-  const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
-  try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${groqApiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model,
-        messages: apiMessages,
-        temperature: 0.75,
-        max_tokens: 180
-      })
-    });
+  const result = await callGroqWithLogging('guest-chat', undefined, {
+    messages: apiMessages,
+    temperature: 0.75,
+    maxTokens: 180,
+  });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[Groq Guest API Error] Status: ${response.status} - ${errorText}`);
-      return { text: "An error occurred while connecting to the Groq API. Please make sure your API key is valid." };
+  if (!result.success) {
+    console.error('[Groq Guest Chat Error]', result.error);
+    if (result.error?.includes('GROQ_API_KEY not configured')) {
+      return { text: "MensFlow AI requires the Groq API key to be set. Please add `GROQ_API_KEY` to the `.env` file on the backend and restart the server to enable chat." };
     }
-
-    const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
-    const content = data?.choices?.[0]?.message?.content;
-    if (!content) {
-      return { text: "Received empty response from the Groq AI service. Please try asking again." };
-    }
-
-    return { text: content.trim() };
-  } catch (error) {
-    console.error('[Groq Guest API Exception]', error);
-    return { text: "Failed to connect to the Groq AI model. Please check the backend server logs for more details." };
+    return { text: "An error occurred while connecting to the Groq API. Please make sure your API key is valid." };
   }
+
+  if (!result.content) {
+    return { text: "Received empty response from the Groq AI service. Please try asking again." };
+  }
+
+  return { text: result.content };
 }
 
 export async function getSuggestions(userId?: string): Promise<string[]> {
@@ -853,11 +800,6 @@ export async function getSuggestions(userId?: string): Promise<string[]> {
     }
   }
 
-  const groqApiKey = process.env.GROQ_API_KEY;
-  if (!groqApiKey) {
-    return localSuggestions.slice(0, 3);
-  }
-
   const prompt = isPartnerUser
     ? `You are a helpful assistant.
 Given a relationship context where a partner wants to support their loved one (named ${targetName}):
@@ -880,47 +822,32 @@ Return ONLY a valid JSON array of strings. Do not include markdown, bullet point
 Example format:
 ["Why am I cramping today?", "What should I log today?", "How can I support my energy?"]`;
 
-  try {
-    const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${groqApiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model,
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.7,
-        max_tokens: 150
-      })
-    });
+  const result = await callGroqWithLogging('suggestions', userId, {
+    messages: [{ role: 'user', content: prompt }],
+    temperature: 0.7,
+    maxTokens: 150,
+  });
 
-    if (!response.ok) {
-      return localSuggestions.slice(0, 3);
-    }
+  if (!result.success || !result.content) {
+    return localSuggestions.slice(0, 3);
+  }
 
-    const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
-    const content = data?.choices?.[0]?.message?.content?.trim() || '';
-    
-    const match = content.match(/\[\s*".*?"\s*(,\s*".*?"\s*)*\]/);
-    if (match) {
+  const match = result.content.match(/\[\s*".*?"\s*(,\s*".*?"\s*)*\]/);
+  if (match) {
+    try {
       const parsed = JSON.parse(match[0]);
       if (Array.isArray(parsed) && parsed.length > 0) {
         return parsed.slice(0, 3);
       }
+    } catch {
+      return localSuggestions.slice(0, 3);
     }
-    
-    return localSuggestions.slice(0, 3);
-  } catch (error) {
-    console.error('[Groq Suggestions Exception]', error);
-    return localSuggestions.slice(0, 3);
   }
+
+  return localSuggestions.slice(0, 3);
 }
 
 export async function getDailyGuidance(userId: string): Promise<any> {
-  const groqApiKey = process.env.GROQ_API_KEY;
-
   const defaultGuidance = {
     scientificInsight: "Did you know? Estrogen levels rise, which stimulates the growth of follicles in your ovaries and can increase your cognitive clarity, mood, and physical stamina.",
     dailyTip: {
@@ -1002,24 +929,6 @@ export async function getDailyGuidance(userId: string): Promise<any> {
     }
   } catch (err) {
     console.error('[Groq Guidance Data Fetch Error]', err);
-  }
-
-  if (!groqApiKey) {
-    try {
-      await Dashboard.findOneAndUpdate(
-        { userId: targetId },
-        { 
-          scientificInsight: defaultGuidance.scientificInsight,
-          dailyTip: defaultGuidance.dailyTip,
-          guidanceGeneratedDate: today,
-          wellnessTips: defaultGuidance.wellnessTips
-        },
-        { upsert: true }
-      );
-    } catch (dbErr) {
-      console.error('[Groq Guidance DB Save Error - fallback]', dbErr);
-    }
-    return defaultGuidance;
   }
 
   const prompt = isPartnerUser
@@ -1113,96 +1022,133 @@ Make sure to generate:
 4. Don't answer questions outside menstrual health related questions.
 Return ONLY valid JSON. No markdown backticks, no wrapping other than the JSON object itself, no comments.`;
 
-  try {
-    const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${groqApiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model,
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.7,
-        max_tokens: 800
-      })
-    });
+  const result = await callGroqWithLogging('daily-guidance', userId, {
+    messages: [{ role: 'user', content: prompt }],
+    temperature: 0.7,
+    maxTokens: 800,
+  });
 
-    if (!response.ok) {
-      try {
-        await Dashboard.findOneAndUpdate(
-          { userId: targetId },
-          { 
-            scientificInsight: defaultGuidance.scientificInsight,
-            dailyTip: defaultGuidance.dailyTip,
-            guidanceGeneratedDate: today,
-            wellnessTips: defaultGuidance.wellnessTips
-          },
-          { upsert: true }
-        );
-      } catch (dbErr) {
-        console.error('[Groq Guidance DB Save Error - bad API response]', dbErr);
-      }
-      return defaultGuidance;
-    }
-
-    const responseData = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
-    let content = responseData?.choices?.[0]?.message?.content?.trim() || '';
-
-    // Strip out triple backticks if present
-    content = content.replace(/^```json\s*/i, '').replace(/```$/, '').trim();
-    
-    const parsed = JSON.parse(content);
-    if (parsed && typeof parsed === 'object' && parsed.scientificInsight && parsed.dailyTip && Array.isArray(parsed.wellnessTips)) {
-      try {
-        await Dashboard.findOneAndUpdate(
-          { userId: targetId },
-          { 
-            scientificInsight: parsed.scientificInsight,
-            dailyTip: parsed.dailyTip,
-            guidanceGeneratedDate: today,
-            wellnessTips: parsed.wellnessTips
-          },
-          { upsert: true }
-        );
-      } catch (dbErr) {
-        console.error('[Groq Guidance DB Save Error - success route]', dbErr);
-      }
-      return parsed;
-    }
-
-    try {
-      await Dashboard.findOneAndUpdate(
-        { userId: targetId },
-        { 
-          scientificInsight: defaultGuidance.scientificInsight,
-          dailyTip: defaultGuidance.dailyTip,
-          guidanceGeneratedDate: today,
-          wellnessTips: defaultGuidance.wellnessTips
-        },
-        { upsert: true }
-      );
-    } catch (dbErr) {
-      console.error('[Groq Guidance DB Save Error - invalid JSON payload]', dbErr);
-    }
-    return defaultGuidance;
-  } catch (error) {
-    console.error('[Groq Guidance Exception]', error);
-    try {
-      await Dashboard.findOneAndUpdate(
-        { userId: targetId },
-        { 
-          scientificInsight: defaultGuidance.scientificInsight,
-          dailyTip: defaultGuidance.dailyTip,
-          guidanceGeneratedDate: today,
-          wellnessTips: defaultGuidance.wellnessTips
-        },
-        { upsert: true }
-      );
-    } catch (dbErr) {
-      console.error('[Groq Guidance DB Save Error - catch block]', dbErr);
-    }
+  if (!result.success || !result.content) {
+    saveDefaultGuidance(targetId, today, defaultGuidance);
     return defaultGuidance;
   }
+
+  let content = result.content.replace(/^```json\s*/i, '').replace(/```$/, '').trim();
+
+  try {
+    const parsed = JSON.parse(content);
+    if (parsed && typeof parsed === 'object' && parsed.scientificInsight && parsed.dailyTip && Array.isArray(parsed.wellnessTips)) {
+      await Dashboard.findOneAndUpdate(
+        { userId: targetId },
+        {
+          scientificInsight: parsed.scientificInsight,
+          dailyTip: parsed.dailyTip,
+          guidanceGeneratedDate: today,
+          wellnessTips: parsed.wellnessTips,
+        },
+        { upsert: true }
+      );
+      return parsed;
+    }
+  } catch {
+    // JSON parse failed
+  }
+
+  saveDefaultGuidance(targetId, today, defaultGuidance);
+  return defaultGuidance;
+}
+
+async function saveDefaultGuidance(targetId: string, today: string, guidance: any): Promise<void> {
+  try {
+    await Dashboard.findOneAndUpdate(
+      { userId: targetId },
+      {
+        scientificInsight: guidance.scientificInsight,
+        dailyTip: guidance.dailyTip,
+        guidanceGeneratedDate: today,
+        wellnessTips: guidance.wellnessTips,
+      },
+      { upsert: true }
+    );
+  } catch (dbErr) {
+    console.error('[Groq Guidance DB Save Error]', dbErr);
+  }
+}
+
+export interface AIUsageStats {
+  totalTokens: number;
+  promptTokens: number;
+  completionTokens: number;
+  totalRequests: number;
+  successfulRequests: number;
+  failedRequests: number;
+  avgLatencyMs: number;
+  byFeature: Record<string, {
+    requests: number;
+    tokens: number;
+    avgLatencyMs: number;
+    successRate: number;
+  }>;
+  dailyBreakdown: Array<{
+    date: string;
+    tokens: number;
+    requests: number;
+  }>;
+}
+
+export async function getAIUsageStats(userId: string, days = 30): Promise<AIUsageStats> {
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - days);
+
+  const logs = await AILog.find({ userId, timestamp: { $gte: cutoff } }).lean();
+
+  const totalTokens = logs.reduce((sum, l) => sum + l.totalTokens, 0);
+  const promptTokens = logs.reduce((sum, l) => sum + l.promptTokens, 0);
+  const completionTokens = logs.reduce((sum, l) => sum + l.completionTokens, 0);
+  const totalRequests = logs.length;
+  const successfulRequests = logs.filter(l => l.success).length;
+  const failedRequests = totalRequests - successfulRequests;
+  const avgLatencyMs = totalRequests > 0
+    ? logs.reduce((sum, l) => sum + l.latencyMs, 0) / totalRequests
+    : 0;
+
+  const byFeature: Record<string, { requests: number; tokens: number; avgLatencyMs: number; successRate: number }> = {};
+  for (const log of logs) {
+    if (!byFeature[log.feature]) {
+      byFeature[log.feature] = { requests: 0, tokens: 0, avgLatencyMs: 0, successRate: 0 };
+    }
+    byFeature[log.feature].requests++;
+    byFeature[log.feature].tokens += log.totalTokens;
+    byFeature[log.feature].avgLatencyMs += log.latencyMs;
+    if (log.success) byFeature[log.feature].successRate++;
+  }
+  for (const key of Object.keys(byFeature)) {
+    const f = byFeature[key];
+    f.avgLatencyMs = f.requests > 0 ? f.avgLatencyMs / f.requests : 0;
+    f.successRate = f.requests > 0 ? f.successRate / f.requests : 0;
+  }
+
+  const dailyMap = new Map<string, { tokens: number; requests: number }>();
+  for (const log of logs) {
+    const date = log.timestamp.toISOString().split('T')[0];
+    const existing = dailyMap.get(date) || { tokens: 0, requests: 0 };
+    existing.tokens += log.totalTokens;
+    existing.requests += 1;
+    dailyMap.set(date, existing);
+  }
+  const dailyBreakdown = Array.from(dailyMap.entries())
+    .map(([date, data]) => ({ date, ...data }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  return {
+    totalTokens,
+    promptTokens,
+    completionTokens,
+    totalRequests,
+    successfulRequests,
+    failedRequests,
+    avgLatencyMs: Math.round(avgLatencyMs),
+    byFeature,
+    dailyBreakdown,
+  };
 }
