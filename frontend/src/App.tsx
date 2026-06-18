@@ -503,7 +503,7 @@ function MainShell() {
                       } 
                     />
                     <Route path="/dashboard" element={<ErrorBoundary><AccessGate><DashboardView /></AccessGate></ErrorBoundary>} />
-                    <Route path="/ask" element={<ErrorBoundary><ChatLockGate><Suspense fallback={<PageLoader />}><ChatView /></Suspense></ChatLockGate></ErrorBoundary>} />
+                    <Route path="/ask" element={<ErrorBoundary><ChatLockGate><ChatView /></ChatLockGate></ErrorBoundary>} />
                     <Route path="/settings" element={<ErrorBoundary><SettingsView onLogout={handleLogout} /></ErrorBoundary>} />
                     <Route path="/insights" element={<ErrorBoundary><AccessGate><InsightsView /></AccessGate></ErrorBoundary>} />
                     <Route path="/health-insights" element={<Navigate to="/insights" replace />} />
