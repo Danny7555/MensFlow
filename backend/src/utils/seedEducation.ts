@@ -2,71 +2,80 @@ import { EducationArticle } from '../models/EducationArticle';
 
 const DEFAULT_ARTICLES = [
   {
-    title: "Understanding Estrogen",
-    description: "Learn how estrogen fluctuates and affects your energy, mood, and skin throughout your cycle.",
-    category: "Hormones",
-    readTime: "4 min read",
-    iconName: "Sparkle",
-    image: "/images/star.png",
-    url: "https://www.healthline.com/health/high-estrogen",
-  },
-  {
-    title: "The Luteal Phase Deep Dive",
-    description: "Why you might feel more tired and introverted during the two weeks before your period.",
-    category: "Phases",
-    readTime: "6 min read",
-    iconName: "Moon",
-    image: "/images/moon.png",
-    url: "https://helloclue.com/articles/cycle-a-z/the-luteal-phase-pms-progesterone-and-the-corpus-luteum",
-  },
-  {
-    title: "When to Seek Care for Cramps",
-    description: "Pain is common, but extreme pain isn’t normal. Learn the signs of endometriosis and when to see a doctor.",
+    title: "PCOS",
+    description: "Learn about the symptoms of polycystic ovary syndrome and how it affects your menstrual cycle.",
     category: "Care",
     readTime: "5 min read",
+    iconName: "Sparkle",
+    image: "/images/star.png",
+    url: "https://www.nhs.uk/conditions/polycystic-ovary-syndrome-pcos/symptoms/",
+  },
+  {
+    title: "Stress",
+    description: "How stress can affect your period and what you can do to manage it.",
+    category: "Hormones",
+    readTime: "4 min read",
+    iconName: "Moon",
+    image: "/images/moon.png",
+    url: "https://homehealth-uk.com/how-stress-can-affect-your-period/",
+  },
+  {
+    title: "Diet and Nutrition",
+    description: "How your diet and nutrition habits influence your menstrual cycle and hormonal balance.",
+    category: "Care",
+    readTime: "6 min read",
     iconName: "ShieldPlus",
     image: "/images/medicine.png",
-    url: "https://www.mayoclinic.org/diseases-conditions/menstrual-cramps/symptoms-causes/syc-20374919",
+    url: "https://www.medparkhospital.com/en-US/lifestyles/diet-and-menstruation",
   },
   {
-    title: "Progesterone & Sleep",
-    description: "How the calming hormone progesterone impacts your sleep architecture and resting heart rate.",
+    title: "Irregular Sleep",
+    description: "The connection between sleep quality and your menstrual cycle, and tips for better rest.",
     category: "Hormones",
-    readTime: "3 min read",
+    readTime: "4 min read",
     iconName: "Brain",
     image: "/images/brain.png",
-    url: "https://www.sleepfoundation.org/how-sleep-works/hormones-and-sleep",
+    url: "https://www.samphireneuro.com/en-us/blog/sleep-and-menstrual-cycle",
   },
   {
-    title: "Navigating the Follicular Phase",
-    description: "Capitalize on rising energy levels. Best exercises and nutrition for the days right after your period.",
-    category: "Phases",
-    readTime: "7 min read",
+    title: "Hormonal Imbalance",
+    description: "Understanding the connection between hormonal imbalances and irregular periods.",
+    category: "Hormones",
+    readTime: "5 min read",
     iconName: "Drop",
     image: "/images/water.png",
-    url: "https://helloclue.com/articles/cycle-a-z/the-follicular-phase-prolonged-short-and-average",
+    url: "https://unifiedpremierwomenscare.com/the-connection-between-hormonal-imbalances-and-irregular-periods/",
   },
   {
-    title: "Tracking Your Basal Body Temp",
-    description: "A beginner’s guide to using BBT for understanding ovulation and metabolic health.",
+    title: "Weight Changes",
+    description: "How changes in your weight can affect your menstrual cycle and what to watch for.",
     category: "Care",
     readTime: "4 min read",
     iconName: "Heartbeat",
     image: "/images/heart.png",
-    url: "https://www.mayoclinic.org/tests-procedures/basal-body-temperature/about/pac-20393026",
+    url: "https://www.verywellhealth.com/changes-in-your-weight-and-missing-your-period-4105209",
+  },
+  {
+    title: "Medication",
+    description: "Learn about medications that can affect your period and why you should pay attention.",
+    category: "Care",
+    readTime: "5 min read",
+    iconName: "Heartbeat",
+    image: "/images/heart.png",
+    url: "https://nuawoman.com/blog/meds-that-can-affect-your-period-and-why-you-should-pay-attention/",
   },
 ];
 
 export async function seedEducation(): Promise<void> {
   try {
     const count = await EducationArticle.countDocuments();
-    if (count === 0) {
-      console.log('[DB] Seeding default educational articles...');
-      await EducationArticle.insertMany(DEFAULT_ARTICLES);
-      console.log(`[DB] Successfully seeded ${DEFAULT_ARTICLES.length} educational articles.`);
-    } else {
-      console.log(`[DB] Educational articles already present (${count} items). Skipping seed.`);
+    if (count > 0) {
+      console.log(`[DB] Removing ${count} existing educational articles...`);
+      await EducationArticle.deleteMany({});
     }
+    console.log('[DB] Seeding default educational articles...');
+    await EducationArticle.insertMany(DEFAULT_ARTICLES);
+    console.log(`[DB] Successfully seeded ${DEFAULT_ARTICLES.length} educational articles.`);
   } catch (err) {
     console.error('[DB] Error seeding educational articles:', err);
   }
