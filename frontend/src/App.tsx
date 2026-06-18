@@ -374,11 +374,28 @@ function MainShell() {
   if (isRehydrating) {
     return (
       <div className={cn("app-shell", user?.role === 'partner' && "partner-theme")}>
-        <div className="app-main app-main--full">
+        <LazyMotion features={domAnimation}>
+          {!location.pathname.startsWith('/onboarding') && (
+            <Sidebar
+              isAuthenticated={true}
+              mobileOpen={false}
+              onCloseMobile={() => {}}
+              onLogin={() => {}}
+              isMobile={false}
+              desktopCollapsed={false}
+              onToggleDesktopCollapse={() => {}}
+              onToggleSidebar={() => {}}
+            />
+          )}
           <main className="app-canvas">
-            <PageLoader />
+            <div className="flex items-center justify-center min-h-screen">
+              <div className="flex flex-col items-center gap-3">
+                <div className="size-8 rounded-full border-2 border-[var(--mf-border)] border-t-[var(--mf-accent)] animate-spin" />
+                <span className="text-xs text-muted-foreground">Loading your account...</span>
+              </div>
+            </div>
           </main>
-        </div>
+        </LazyMotion>
       </div>
     )
   }
