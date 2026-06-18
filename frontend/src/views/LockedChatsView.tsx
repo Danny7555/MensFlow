@@ -1,7 +1,7 @@
 /* eslint-disable */
 import { useState } from 'react'
 import { useStore } from '../store/useStore'
-import { Lock, LockKey, ShieldCheck, WarningCircle, CheckCircle, Sparkle } from '@phosphor-icons/react'
+import { Lock, LockKey, ShieldCheck, WarningCircle, CheckCircle, Sparkle, Eye, EyeSlash } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import { ChatView } from './ChatView'
 import { SECURITY_QUESTIONS } from '../lib/constants'
@@ -17,6 +17,7 @@ export function LockedChatsView() {
   const [mode, setMode] = useState<'unlock' | 'reset-security' | 'reset-password'>('unlock')
   const [securityAnswer, setSecurityAnswer] = useState('')
   const [newPassword, setNewPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
 
   const activeQuestion = SECURITY_QUESTIONS.find(q => q.id === settings.privacyLockChatsSecurityQuestion)
 
@@ -231,16 +232,24 @@ export function LockedChatsView() {
           <div className="relative">
             <LockKey size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input 
-              type="password" 
+              type={showPassword ? 'text' : 'password'}
               placeholder="Enter password"
               value={password}
               onChange={(e) => {
                 setPassword(e.target.value)
                 setError(false)
               }}
-              className={`w-full h-12 pl-10 pr-4 rounded-xl bg-muted border ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-border focus:border-[var(--mf-accent-border)] focus:ring-[var(--mf-accent)]'} focus:ring-1 transition-all outline-none text-base`}
-              aria-label="Passcode"
+              className={`w-full h-12 pl-10 pr-12 rounded-xl bg-muted border ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-border focus:border-[var(--mf-accent-border)] focus:ring-[var(--mf-accent)]'} focus:ring-1 transition-all outline-none text-base`}
+              aria-label="Privacy password"
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-[var(--mf-text-strong)] transition-colors cursor-pointer"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeSlash size={20} /> : <Eye size={20} />}
+            </button>
           </div>
           {error && <p className="text-xs text-red-500 text-left px-1 animate-in slide-in-from-top-1">Incorrect password. Please try again.</p>}
           <Button type="submit" className="w-full rounded-xl h-12 font-medium">

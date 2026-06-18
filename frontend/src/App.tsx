@@ -12,7 +12,7 @@ import { useStore } from './store/useStore'
 import { useReactQuerySync } from './hooks/useReactQuerySync'
 import { Header } from './components/Header'
 import { Sidebar } from './components/Sidebar'
-import { House, Target, Heartbeat, Bell, UserCircle, BookOpen, ChatCircle, Lock, LockKey, ShieldCheck, WarningCircle, CheckCircle, Sparkle } from '@phosphor-icons/react'
+import { House, Target, Heartbeat, Bell, UserCircle, BookOpen, ChatCircle, Lock, LockKey, ShieldCheck, WarningCircle, CheckCircle, Sparkle, Eye, EyeSlash } from '@phosphor-icons/react'
 import { useMediaQuery } from './hooks/useMediaQuery'
 import { useSmartPushNotifications } from './hooks/useSmartPushNotifications'
 import { useNotificationsListener } from './hooks/useNotificationsListener'
@@ -53,6 +53,7 @@ function ChatLockGate({ children }: { children: React.ReactNode }) {
   const [mode, setMode] = useState<'unlock' | 'reset-security' | 'reset-password'>('unlock')
   const [securityAnswer, setSecurityAnswer] = useState('')
   const [newPassword, setNewPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
 
   const activeQuestion = SECURITY_QUESTIONS.find(q => q.id === settings.privacyLockChatsSecurityQuestion)
   const strengthResult = getPasswordStrength(newPassword)
@@ -255,16 +256,24 @@ function ChatLockGate({ children }: { children: React.ReactNode }) {
           <div className="relative">
             <LockKey size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input 
-              type="password" 
+              type={showPassword ? 'text' : 'password'}
               placeholder="Enter password"
               value={password}
               onChange={(e) => {
                 setPassword(e.target.value)
                 setError(false)
               }}
-              className={`w-full h-12 pl-10 pr-4 rounded-xl bg-muted border ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-border focus:border-[var(--mf-accent-border)] focus:ring-[var(--mf-accent)]'} focus:ring-1 transition-all outline-none text-base`}
+              className={`w-full h-12 pl-10 pr-12 rounded-xl bg-muted border ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-border focus:border-[var(--mf-accent-border)] focus:ring-[var(--mf-accent)]'} focus:ring-1 transition-all outline-none text-base`}
               aria-label="Privacy password"
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-[var(--mf-text-strong)] transition-colors cursor-pointer"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeSlash size={20} /> : <Eye size={20} />}
+            </button>
           </div>
           {error && <p className="text-xs text-red-500 text-left px-1 animate-in slide-in-from-top-1">Incorrect password. Please try again.</p>}
           <Button type="submit" className="w-full rounded-xl h-12 font-medium">
