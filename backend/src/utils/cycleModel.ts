@@ -1,3 +1,5 @@
+import { predictWithML, type MLPrediction } from './cyclePredictor';
+
 export type CyclePhase = 'Menstrual' | 'Follicular' | 'Ovulatory' | 'Luteal';
 
 export type CycleModelInput = {
@@ -9,6 +11,7 @@ export type CycleModelInput = {
   lhPeakDay?: number | null;
   eggWhiteMucusDay?: number | null;
   historicalCycleCount?: number;
+  historicalCycleLengths?: number[];
 };
 
 export type CycleModel = {
@@ -22,6 +25,7 @@ export type CycleModel = {
   nextPeriodStart: string | null;
   ovulationDay: number | null;
   cycleConfidence: 'low' | 'medium' | 'high';
+  mlPrediction: MLPrediction | null;
 };
 
 export function buildCycleModel(input: CycleModelInput): CycleModel {
@@ -42,6 +46,11 @@ export function buildCycleModel(input: CycleModelInput): CycleModel {
   const ovulationDay = computeOvulationDay(typicalCycleDays, input.lhPeakDay, input.eggWhiteMucusDay);
   const cycleConfidence = computeConfidence(input.historicalCycleCount);
 
+  const mlPrediction = predictWithML(
+    input.historicalCycleLengths ?? [],
+    input.lastPeriodStart,
+  );
+
   return {
     cycleDay,
     phaseLabel,
@@ -53,6 +62,7 @@ export function buildCycleModel(input: CycleModelInput): CycleModel {
     nextPeriodStart,
     ovulationDay,
     cycleConfidence,
+    mlPrediction,
   };
 }
 

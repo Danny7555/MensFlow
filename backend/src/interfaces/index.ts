@@ -102,6 +102,12 @@ export interface IDashboard {
   nextPeriodStart?: string;
   historicalCycleCount?: number;
   cycleConfidence?: 'low' | 'medium' | 'high';
+  mlPredictedCycleDays?: number;
+  mlTrend?: string;
+  mlPredictionWindow?: number;
+  mlNextPeriodEarliest?: string;
+  mlNextPeriodLatest?: string;
+  mlNextPeriodConfidence?: number;
   scientificInsight: string;
   dailyTip: {
     title: string;

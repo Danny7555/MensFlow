@@ -5,6 +5,7 @@ import { Dashboard } from '../models/Dashboard';
 import { SupportAction } from '../models/Partner';
 import { Settings } from '../models/Settings';
 import { buildCycleModel, computeNextPeriodStart, computeConfidence } from '../utils/cycleModel';
+import { predictWithML } from '../utils/cyclePredictor';
 
 export async function getSymptomLogs(userId: string): Promise<ISymptomLog[]> {
   const user = await User.findById(userId).lean();
@@ -88,7 +89,7 @@ export async function clearAllLogs(userId: string): Promise<void> {
   // Reset dashboard cycle variation to defaults when clearing all logs
   await Dashboard.updateOne(
     { userId: targetId },
-    {     $set: { cycleVariationDays: 8, isAtypical: false, nextPeriodStart: '', historicalCycleCount: 0, cycleConfidence: 'low' } }
+    {     $set: { cycleVariationDays: 8, isAtypical: false, nextPeriodStart: '', historicalCycleCount: 0, cycleConfidence: 'low', mlPredictedCycleDays: null, mlTrend: null, mlPredictionWindow: null, mlNextPeriodEarliest: '', mlNextPeriodLatest: '', mlNextPeriodConfidence: null } }
   );
 }
 
@@ -417,6 +418,19 @@ export async function recalculateCycleMetrics(userId: string): Promise<void> {
     finalTypical
   );
   updates.cycleConfidence = computeConfidence(cycleLengths.length);
+
+  const mlResult = predictWithML(
+    cycleLengths,
+    updates.lastPeriodStart ?? dashboard.lastPeriodStart,
+  );
+  if (mlResult) {
+    updates.mlPredictedCycleDays = mlResult.predictedCycleDays;
+    updates.mlTrend = mlResult.trend;
+    updates.mlPredictionWindow = mlResult.predictionWindowDays;
+    updates.mlNextPeriodEarliest = mlResult.nextPeriodEarliest;
+    updates.mlNextPeriodLatest = mlResult.nextPeriodLatest;
+    updates.mlNextPeriodConfidence = mlResult.nextPeriodConfidence;
+  }
 
   await Dashboard.updateOne({ userId: targetId }, { $set: updates });
 
