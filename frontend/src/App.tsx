@@ -12,11 +12,12 @@ import { useStore } from './store/useStore'
 import { useReactQuerySync } from './hooks/useReactQuerySync'
 import { Header } from './components/Header'
 import { Sidebar } from './components/Sidebar'
-import { House, Target, Heartbeat, Bell, UserCircle, BookOpen, ChatCircle, Lock, LockKey, ShieldCheck, WarningCircle, CheckCircle, Sparkle } from '@phosphor-icons/react'
+import { House, Target, Heartbeat, Bell, UserCircle, BookOpen, ChatCircle, Lock, LockKey, ShieldCheck, WarningCircle, CheckCircle, Sparkle, Eye, EyeSlash } from '@phosphor-icons/react'
 import { useMediaQuery } from './hooks/useMediaQuery'
 import { useSmartPushNotifications } from './hooks/useSmartPushNotifications'
 import { useNotificationsListener } from './hooks/useNotificationsListener'
 import { PageLoader } from './components/skeletons/PageLoader'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { ScrollToTop } from './components/ScrollToTop'
 import { AccessGate } from './components/AccessGate'
 import { Button } from './components/ui/button'
@@ -52,6 +53,7 @@ function ChatLockGate({ children }: { children: React.ReactNode }) {
   const [mode, setMode] = useState<'unlock' | 'reset-security' | 'reset-password'>('unlock')
   const [securityAnswer, setSecurityAnswer] = useState('')
   const [newPassword, setNewPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
 
   const activeQuestion = SECURITY_QUESTIONS.find(q => q.id === settings.privacyLockChatsSecurityQuestion)
   const strengthResult = getPasswordStrength(newPassword)
@@ -254,16 +256,24 @@ function ChatLockGate({ children }: { children: React.ReactNode }) {
           <div className="relative">
             <LockKey size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input 
-              type="password" 
+              type={showPassword ? 'text' : 'password'}
               placeholder="Enter password"
               value={password}
               onChange={(e) => {
                 setPassword(e.target.value)
                 setError(false)
               }}
-              className={`w-full h-12 pl-10 pr-4 rounded-xl bg-muted border ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-border focus:border-[var(--mf-accent-border)] focus:ring-[var(--mf-accent)]'} focus:ring-1 transition-all outline-none text-base`}
+              className={`w-full h-12 pl-10 pr-12 rounded-xl bg-muted border ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-border focus:border-[var(--mf-accent-border)] focus:ring-[var(--mf-accent)]'} focus:ring-1 transition-all outline-none text-base`}
               aria-label="Privacy password"
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-[var(--mf-text-strong)] transition-colors cursor-pointer"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeSlash size={20} /> : <Eye size={20} />}
+            </button>
           </div>
           {error && <p className="text-xs text-red-500 text-left px-1 animate-in slide-in-from-top-1">Incorrect password. Please try again.</p>}
           <Button type="submit" className="w-full rounded-xl h-12 font-medium">
@@ -364,11 +374,28 @@ function MainShell() {
   if (isRehydrating) {
     return (
       <div className={cn("app-shell", user?.role === 'partner' && "partner-theme")}>
-        <div className="app-main app-main--full">
+        <LazyMotion features={domAnimation}>
+          {!location.pathname.startsWith('/onboarding') && (
+            <Sidebar
+              isAuthenticated={true}
+              mobileOpen={false}
+              onCloseMobile={() => {}}
+              onLogin={() => {}}
+              isMobile={false}
+              desktopCollapsed={false}
+              onToggleDesktopCollapse={() => {}}
+              onToggleSidebar={() => {}}
+            />
+          )}
           <main className="app-canvas">
-            <PageLoader />
+            <div className="flex items-center justify-center min-h-screen">
+              <div className="flex flex-col items-center gap-3">
+                <div className="size-8 rounded-full border-2 border-[var(--mf-border)] border-t-[var(--mf-accent)] animate-spin" />
+                <span className="text-xs text-muted-foreground">Loading your account...</span>
+              </div>
+            </div>
           </main>
-        </div>
+        </LazyMotion>
       </div>
     )
   }
@@ -448,25 +475,27 @@ function MainShell() {
                 <Routes location={location} key={location.pathname}>
                 {!isAuthenticated ? (
                   <>
-                    <Route path="/" element={<LandingView />} />
+                    <Route path="/" element={<ErrorBoundary><LandingView /></ErrorBoundary>} />
                     <Route 
                       path="/onboarding" 
                       element={
                         onboardingCompleted 
                           ? <Navigate to="/" replace /> 
-                          : <OnboardingView />
+                          : <ErrorBoundary><OnboardingView /></ErrorBoundary>
                       } 
                     />
-                    <Route path="/settings" element={<SettingsView isGuest onLogin={openAuthModal} />} />
-                    <Route path="/education" element={<EducationView />} />
+                    <Route path="/settings" element={<ErrorBoundary><SettingsView isGuest onLogin={openAuthModal} /></ErrorBoundary>} />
+                    <Route path="/education" element={<ErrorBoundary><EducationView /></ErrorBoundary>} />
+                    <Route path="/sync" element={<ErrorBoundary><SyncView /></ErrorBoundary>} />
+                    <Route path="/locked-chats" element={<ErrorBoundary><LockedChatsView /></ErrorBoundary>} />
                     
-                    {/* All other paths redirect to Landing Page */}
+                    {/* Unauthenticated redirects */}
                     <Route path="/ask" element={<Navigate to="/" replace />} />
                     <Route
                       path="/dashboard"
                       element={
                         onboardingCompleted
-                          ? <DashboardView />
+                          ? <ErrorBoundary><DashboardView /></ErrorBoundary>
                           : <Navigate to="/" replace />
                       }
                     />
@@ -475,12 +504,9 @@ function MainShell() {
                     <Route path="/insights" element={<Navigate to="/" replace />} />
                     <Route path="/tips" element={<Navigate to="/" replace />} />
                     <Route path="/symptoms" element={<Navigate to="/" replace />} />
-                    <Route path="/sync" element={<SyncView />} />
                     <Route path="/notifications" element={<Navigate to="/" replace />} />
                     <Route path="/history" element={<Navigate to="/" replace />} />
-                    {/* locked-chats is available regardless of auth (LockedChatsView handles its own gating) */}
-                    <Route path="/locked-chats" element={<LockedChatsView />} />
-                    <Route path="*" element={<NotFoundView />} />
+                    <Route path="*" element={<ErrorBoundary><NotFoundView /></ErrorBoundary>} />
                   </>
                 ) : (
                   <>
@@ -502,21 +528,21 @@ function MainShell() {
                           : <OnboardingView />
                       } 
                     />
-                    <Route path="/dashboard" element={<AccessGate><DashboardView /></AccessGate>} />
-                    <Route path="/ask" element={<ChatLockGate><Suspense fallback={<PageLoader />}><ChatView /></Suspense></ChatLockGate>} />
-                    <Route path="/settings" element={<SettingsView onLogout={handleLogout} />} />
-                    <Route path="/insights" element={<AccessGate><InsightsView /></AccessGate>} />
+                    <Route path="/dashboard" element={<ErrorBoundary><AccessGate><DashboardView /></AccessGate></ErrorBoundary>} />
+                    <Route path="/ask" element={<ErrorBoundary><ChatLockGate><ChatView /></ChatLockGate></ErrorBoundary>} />
+                    <Route path="/settings" element={<ErrorBoundary><SettingsView onLogout={handleLogout} /></ErrorBoundary>} />
+                    <Route path="/insights" element={<ErrorBoundary><AccessGate><InsightsView /></AccessGate></ErrorBoundary>} />
                     <Route path="/health-insights" element={<Navigate to="/insights" replace />} />
-                    <Route path="/tips" element={<AccessGate><TipsView /></AccessGate>} />
+                    <Route path="/tips" element={<ErrorBoundary><AccessGate><TipsView /></AccessGate></ErrorBoundary>} />
                     <Route path="/wellness-tips" element={<Navigate to="/tips" replace />} />
-                    <Route path="/calendar" element={<AccessGate><CalendarView /></AccessGate>} />
-                    <Route path="/notifications" element={<AccessGate><NotificationsView /></AccessGate>} />
-                    <Route path="/tracker" element={<AccessGate><TrackerView /></AccessGate>} />
-                    <Route path="/symptoms" element={<AccessGate><SymptomsView /></AccessGate>} />
-                    <Route path="/education" element={<EducationView />} />
-                    <Route path="/sync" element={<AccessGate><SyncView /></AccessGate>} />
-                    <Route path="/locked-chats" element={<LockedChatsView />} />
-                    <Route path="*" element={<NotFoundView />} />
+                    <Route path="/calendar" element={<ErrorBoundary><AccessGate><CalendarView /></AccessGate></ErrorBoundary>} />
+                    <Route path="/notifications" element={<ErrorBoundary><AccessGate><NotificationsView /></AccessGate></ErrorBoundary>} />
+                    <Route path="/tracker" element={<ErrorBoundary><AccessGate><TrackerView /></AccessGate></ErrorBoundary>} />
+                    <Route path="/symptoms" element={<ErrorBoundary><AccessGate><SymptomsView /></AccessGate></ErrorBoundary>} />
+                    <Route path="/education" element={<ErrorBoundary><EducationView /></ErrorBoundary>} />
+                    <Route path="/sync" element={<ErrorBoundary><AccessGate><SyncView /></AccessGate></ErrorBoundary>} />
+                    <Route path="/locked-chats" element={<ErrorBoundary><LockedChatsView /></ErrorBoundary>} />
+                    <Route path="*" element={<ErrorBoundary><NotFoundView /></ErrorBoundary>} />
                   </>
                 )}
                 </Routes>

@@ -454,6 +454,10 @@ export function DashboardView() {
   }
 
   // While partner status is still loading (null = API in-flight), show skeleton to avoid flash of unpaired screen
+  if (isAuthenticated && !user?.role) {
+    return <DashboardSkeleton />
+  }
+
   if (user?.role === 'partner' && isAuthenticated && partnerStatus === null) {
     return <DashboardSkeleton />
   }

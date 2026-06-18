@@ -12,7 +12,6 @@ import type { SymptomCategory, SymptomDef } from '../data/symptomsData'
 import { SymptomsChart } from '../components/SymptomsChart'
 import { CycleLengthChart } from '../components/tracker/CycleLengthChart'
 import { useStore } from '../store/useStore'
-import { TrackerSkeleton } from '../components/skeletons/TrackerSkeleton'
 import { RequestAccessModal } from "@/components/dashboard/RequestAccessModal"
 import {
   Select,
@@ -151,7 +150,6 @@ function SymptomCategoryList({
 
 export function SymptomsView() {
   const { addLog, getLogForDate, isSaving, user, partnerStatus, fetchPartnerStatus, requestDetailedAccessAction, customSymptoms, settings } = useStore()
-  const [isLoading] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [requestSent, setRequestSent] = useState(false)
 
@@ -197,10 +195,6 @@ export function SymptomsView() {
   const todayStr = useMemo(() => {
     return new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric' })
   }, [])
-
-  if (isLoading) {
-    return <TrackerSkeleton />
-  }
 
   const toggleSymptom = async (id: string) => {
     if (isSaving) return

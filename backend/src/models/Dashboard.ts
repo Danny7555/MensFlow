@@ -11,6 +11,15 @@ export interface DashboardDocument extends Document {
   cycleNotes: string;
   cycleVariationDays: number;
   isAtypical: boolean;
+  nextPeriodStart?: string;
+  historicalCycleCount?: number;
+  cycleConfidence?: 'low' | 'medium' | 'high';
+  mlPredictedCycleDays?: number;
+  mlTrend?: string;
+  mlPredictionWindow?: number;
+  mlNextPeriodEarliest?: string;
+  mlNextPeriodLatest?: string;
+  mlNextPeriodConfidence?: number;
   scientificInsight?: string;
   dailyTip?: {
     title: string;
@@ -37,6 +46,15 @@ const DashboardSchema = new Schema<DashboardDocument>({
   cycleNotes: { type: String, default: '', maxlength: 2000 },
   cycleVariationDays: { type: Number, default: 36, min: 0, max: 120 },
   isAtypical: { type: Boolean, default: true },
+  nextPeriodStart: { type: String, default: '' },
+  historicalCycleCount: { type: Number, default: 0 },
+  cycleConfidence: { type: String, default: 'low', enum: ['low', 'medium', 'high'] },
+  mlPredictedCycleDays: { type: Number, default: null },
+  mlTrend: { type: String, default: null },
+  mlPredictionWindow: { type: Number, default: null },
+  mlNextPeriodEarliest: { type: String, default: '' },
+  mlNextPeriodLatest: { type: String, default: '' },
+  mlNextPeriodConfidence: { type: Number, default: null },
   scientificInsight: { type: String, default: '' },
   dailyTip: {
     type: {

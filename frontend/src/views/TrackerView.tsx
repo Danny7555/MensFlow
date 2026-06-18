@@ -105,8 +105,7 @@ export function TrackerView() {
   }, [initialDay])
 
   useEffect(() => {
-    const timer = setTimeout(() => dispatch({ type: 'SET_LOADING', payload: false }), 500)
-    return () => clearTimeout(timer)
+    dispatch({ type: 'SET_LOADING', payload: false })
   }, [])
   if (state.isLoading) {
     return <TrackerSkeleton />

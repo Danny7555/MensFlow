@@ -148,3 +148,25 @@ export function assertObjectId(value: string, field = 'id'): void {
 export function compact<T extends Record<string, unknown>>(value: T): Partial<T> {
   return Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined)) as Partial<T>;
 }
+
+export function validatePasswordStrength(password: string): void {
+  const checks = {
+    length: password.length >= 8,
+    uppercase: /[A-Z]/.test(password),
+    lowercase: /[a-z]/.test(password),
+    digit: /\d/.test(password),
+    special: /[^A-Za-z0-9]/.test(password),
+  };
+
+  const passed = Object.values(checks).filter(Boolean).length;
+
+  if (passed < 3) {
+    const tips: string[] = [];
+    if (!checks.length) tips.push('at least 8 characters');
+    if (!checks.uppercase) tips.push('an uppercase letter');
+    if (!checks.lowercase) tips.push('a lowercase letter');
+    if (!checks.digit) tips.push('a number');
+    if (!checks.special) tips.push('a special character');
+    throw httpError(`Password must include ${tips.join(', ')}`);
+  }
+}

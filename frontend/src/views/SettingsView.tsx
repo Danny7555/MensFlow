@@ -24,10 +24,12 @@ import {
   CaretRight,
   Lock,
   LockKey,
-  FileText
+  FileText,
+  Brain,
 } from '@phosphor-icons/react'
 import { DoctorReportModal } from '../components/dashboard/DoctorReportModal'
 import { toast } from 'sonner'
+import { useAIUsageStats } from '../services/chatService'
 import {
   Dialog,
   DialogContent,
@@ -802,6 +804,9 @@ function DataControlsPanel({
   confirmWipeLocalData: () => void
   openDoctorReport: () => void
 }) {
+  const [aiUsageDays, setAIUsageDays] = useState(30)
+  const { data: aiStats, isLoading, refetch } = useAIUsageStats(aiUsageDays)
+
   return (
     <>
       <ToggleRow
@@ -810,25 +815,145 @@ function DataControlsPanel({
         checked={settings.privacyShareAnalytics}
         onChange={(v) => updateSettings({ privacyShareAnalytics: v })}
       />
-      <ToggleRow
-        label="Strict Local-Only Storage (Offline Mode)"
-        description="Disable all cloud database synchronizations. Your cycle metrics, daily logs, and preferences will remain strictly inside this browser/device."
-        checked={settings.privacyStrictLocalOnly}
-        onChange={(v) => {
-          updateSettings({ privacyStrictLocalOnly: v })
-          if (v) {
-            toast.warning("Local-Only Mode Enabled", {
-              description: "Your health records are now saved strictly on this device and won't sync to the cloud database.",
-              duration: 5000,
-            })
-          } else {
-            toast.success("Database Sync Restored", {
-              description: "Future updates will sync with your account cloud profile.",
-              duration: 4000,
-            })
-          }
-        }}
-      />
+       <ToggleRow
+         label="Strict Local-Only Storage (Offline Mode)"
+         description="Disable all cloud database synchronizations. Your cycle metrics, daily logs, and preferences will remain strictly inside this browser/device."
+         checked={settings.privacyStrictLocalOnly}
+         onChange={(v) => {
+           updateSettings({ privacyStrictLocalOnly: v })
+           if (v) {
+             toast.warning("Local-Only Mode Enabled", {
+               description: "Your health records are now saved strictly on this device and won't sync to the cloud database.",
+               duration: 5000,
+             })
+           } else {
+             toast.success("Database Sync Restored", {
+               description: "Future updates will sync with your account cloud profile.",
+               duration: 4000,
+             })
+           }
+         }}
+       />
+
+      <p className="settings-panel-intro">
+        Monitor your AI token usage and request performance across all MensFlow features.
+      </p>
+
+      {isLoading ? (
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--mf-accent)]" />
+        </div>
+      ) : aiStats ? (
+        <div className="flo-card flo-card--prominent p-5 border-[var(--mf-border)] bg-white dark:bg-[var(--mf-card)] rounded-2xl space-y-4 mb-6">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-[var(--mf-text-strong)] flex items-center gap-2">
+              <Brain size={16} className="text-[var(--mf-accent)]" />
+              AI Usage
+            </span>
+            <Select
+              value={aiUsageDays.toString()}
+              onValueChange={(v) => setAIUsageDays(Number(v))}
+            >
+              <SelectTrigger className="h-8 text-xs min-w-[100px] rounded-xl border border-[var(--mf-border)] bg-[var(--mf-elevated)]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border border-border bg-card">
+                <SelectItem value="7">Last 7 days</SelectItem>
+                <SelectItem value="30">Last 30 days</SelectItem>
+                <SelectItem value="90">Last 90 days</SelectItem>
+                <SelectItem value="365">Last year</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2.5">
+            <div className="p-3 rounded-xl bg-[var(--mf-accent-soft)]/20 border border-[var(--mf-accent-border)]">
+              <span className="text-[10px] tracking-wider text-[var(--mf-muted)] block">Tokens Used</span>
+              <p className="text-lg text-[var(--mf-text-strong)] mt-0.5">{(aiStats.totalTokens / 1000).toFixed(1)}k</p>
+              <span className="text-[10px] text-muted-foreground">{aiStats.promptTokens} prompt + {aiStats.completionTokens} reply</span>
+            </div>
+
+            <div className="p-3 rounded-xl bg-[var(--mf-accent-soft)]/20 border border-[var(--mf-accent-border)]">
+              <span className="text-[10px] tracking-wider text-[var(--mf-muted)] block">Questions Asked</span>
+              <p className="text-lg text-[var(--mf-text-strong)] mt-0.5">{aiStats.totalRequests}</p>
+              <span className="text-[10px] text-[var(--mf-success)]">{aiStats.successfulRequests} answered {aiStats.failedRequests > 0 ? `· ${aiStats.failedRequests} skipped` : ''}</span>
+            </div>
+
+            <div className="p-3 rounded-xl bg-[var(--mf-accent-soft)]/20 border border-[var(--mf-accent-border)]">
+              <span className="text-[10px] tracking-wider text-[var(--mf-muted)] block">Response Time</span>
+              <p className="text-lg text-[var(--mf-text-strong)] mt-0.5">{aiStats.avgLatencyMs}ms</p>
+              <span className="text-[10px] text-muted-foreground">per question</span>
+            </div>
+
+            <div className="p-3 rounded-xl bg-[var(--mf-accent-soft)]/20 border border-[var(--mf-accent-border)]">
+              <span className="text-[10px] tracking-wider text-[var(--mf-muted)] block">Answered</span>
+              <p className="text-lg text-[var(--mf-text-strong)] mt-0.5">
+                {aiStats.totalRequests > 0 ? ((aiStats.successfulRequests / aiStats.totalRequests) * 100).toFixed(0) : 0}%
+              </p>
+              <span className="text-[10px] text-muted-foreground">{aiStats.successfulRequests} of {aiStats.totalRequests} requests</span>
+            </div>
+          </div>
+
+          {Object.keys(aiStats.byFeature).length > 0 && (
+            <div className="space-y-1.5">
+              <span className="text-[10px] tracking-wider text-[var(--mf-muted)] block">What You Used</span>
+              {Object.entries(aiStats.byFeature).map(([feature, data]: [string, any]) => (
+                <div key={feature} className="flex items-center justify-between py-1.5 text-xs">
+                  <span className="text-[var(--mf-text-strong)] capitalize">{feature === 'extraction' ? 'Data from Chat' : feature === 'partner-empathy' ? 'Partner Replies' : feature === 'daily-guidance' ? 'Daily Tips' : feature}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-muted-foreground">{data.requests}x</span>
+                    <span className="text-muted-foreground">{(data.tokens / 1000).toFixed(1)}k</span>
+                    <span className="text-[var(--mf-accent)] w-8 text-right">{data.successRate.toFixed(0)}%</span>
+                    <span className="text-muted-foreground w-10 text-right">{data.avgLatencyMs.toFixed(0)}ms</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {aiStats.dailyBreakdown.length > 0 && (
+            <div className="space-y-1.5">
+              <span className="text-[10px] tracking-wider text-[var(--mf-muted)] block">By Day</span>
+              <div className="max-h-28 overflow-y-auto space-y-0.5">
+                {aiStats.dailyBreakdown.slice(0, 7).map((day: { date: string; tokens: number; requests: number }) => (
+                  <div key={day.date} className="flex items-center justify-between py-1 text-xs">
+                    <span className="text-muted-foreground">{day.date}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-muted-foreground">{day.requests} questions</span>
+                      <span className="w-14 text-right text-muted-foreground">{(day.tokens / 1000).toFixed(1)}k</span>
+                    </div>
+                  </div>
+                ))}
+                {aiStats.dailyBreakdown.length > 7 && (
+                  <div className="text-[10px] text-muted-foreground text-center py-1">
+                    + {aiStats.dailyBreakdown.length - 7} more days
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="settings-actions settings-actions--stack">
+            <button type="button" className="btn btn-secondary" onClick={() => refetch()}>
+              <Brain size={14} />
+              Refresh
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="flo-card flo-card--prominent p-6 border-[var(--mf-border)] bg-white dark:bg-[var(--mf-card)] rounded-2xl mb-6">
+          <div className="flex flex-col items-center text-center py-4 gap-3">
+            <div className="size-10 rounded-2xl bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] flex items-center justify-center">
+              <Brain size={20} />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-[var(--mf-text-strong)]">No AI Usage Data</p>
+              <p className="text-xs text-[var(--mf-muted)]">Use MensFlow AI features — stats will appear here.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <p className="settings-panel-intro">
         Export or delete data stored locally in this browser.
       </p>

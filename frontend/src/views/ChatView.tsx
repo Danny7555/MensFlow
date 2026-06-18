@@ -362,7 +362,7 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
         })
     }, 0)
     return () => clearTimeout(timer)
-  }, [activeSessionId, temporaryChat, welcomeText, sessions, unlockedPasscodes])
+  }, [activeSessionId, temporaryChat, welcomeText, unlockedPasscodes])
 
   const todayStr = new Date().toISOString().split('T')[0]
   const todayLog = logs.find(l => l.date === todayStr)
@@ -447,15 +447,17 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
         setIsTyping(false)
       }, 1500)
     } else {
-      let sid = activeSessionId
-      if (!sid) {
-        sid = generateNewSessionId()
-        setActiveSessionId(sid)
-      }
+      const isNew = !activeSessionId
+      const sid = activeSessionId || generateNewSessionId()
 
       try {
         const passcode = unlockedPasscodes[sid]
         const result = await chatApi.send(sid, text, passcode)
+
+        if (isNew) {
+          setActiveSessionId(sid)
+        }
+
         setMessages((m) => [
           ...m,
           {
@@ -468,7 +470,6 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
         const profile = await userApi.getProfile()
         hydrate({ user: profile.user, settings: profile.settings, dashboard: profile.dashboard })
         await fetchLogs()
-        // Refresh recent session list
         fetchSessions()
       } catch (err: unknown) {
         toast.error(err instanceof Error ? err.message : 'Failed to send message')
@@ -937,7 +938,7 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
                 <div className="flex items-center gap-2">
                   <WarningCircle size={18} className="text-amber-500 shrink-0" />
                   <span className="text-[11.5px] font-normal">
-                    Free Tier Chat Limit: Reach 500 XP via daily quizzes to unlock unlimited AI translation. (Current XP: {user.xp || 0}/500)
+                    Free Tier Chat Limit: Reach 100 XP via daily quizzes to unlock unlimited AI translation. (Current XP: {user.xp || 0}/100)
                   </span>
                 </div>
                 <div className="w-24 bg-muted/40 h-1.5 rounded-full overflow-hidden border border-border/20 relative shrink-0">

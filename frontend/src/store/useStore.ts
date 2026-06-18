@@ -109,6 +109,18 @@ interface AppState {
   submitQuizAttemptAction: (date: string, correct: boolean) => Promise<void>
 }
 
+function loadSavedSettings(): MensFlowSettings {
+  if (typeof window === 'undefined') return DEFAULT_SETTINGS
+  try {
+    const raw = localStorage.getItem('mensflow-settings-v1')
+    if (!raw) return DEFAULT_SETTINGS
+    const saved = JSON.parse(raw)
+    return { ...DEFAULT_SETTINGS, ...saved, version: 1 }
+  } catch {
+    return DEFAULT_SETTINGS
+  }
+}
+
 const getDefaultUser = () => ({
   id: undefined,
   email: null,
@@ -127,7 +139,7 @@ const getDefaultUser = () => ({
 
 export const useStore = create<AppState>()((set, get) => ({
   dashboard: DEFAULT_DASHBOARD,
-  settings: DEFAULT_SETTINGS,
+  settings: loadSavedSettings(),
   logs: [],
   monthInReview: null,
   loginHistory: [],

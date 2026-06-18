@@ -1,3 +1,5 @@
+import { predictWithML, type MLPrediction } from './cyclePredictor';
+
 export type CyclePhase = 'Menstrual' | 'Follicular' | 'Ovulatory' | 'Luteal';
 
 export type CycleModelInput = {
@@ -8,6 +10,8 @@ export type CycleModelInput = {
   cycleVariationDays?: number;
   lhPeakDay?: number | null;
   eggWhiteMucusDay?: number | null;
+  historicalCycleCount?: number;
+  historicalCycleLengths?: number[];
 };
 
 export type CycleModel = {
@@ -18,6 +22,10 @@ export type CycleModel = {
   guidanceLines: string[];
   isAtypical: boolean;
   cycleVariationDays: number;
+  nextPeriodStart: string | null;
+  ovulationDay: number | null;
+  cycleConfidence: 'low' | 'medium' | 'high';
+  mlPrediction: MLPrediction | null;
 };
 
 export function buildCycleModel(input: CycleModelInput): CycleModel {
@@ -34,6 +42,15 @@ export function buildCycleModel(input: CycleModelInput): CycleModel {
   const cycleVariationDays = clampNumber(input.cycleVariationDays, 0, 120, typicalCycleDays > 35 || typicalCycleDays < 24 ? 18 : 8);
   const isAtypical = typicalCycleDays < 24 || typicalCycleDays > 35 || cycleVariationDays > 14;
 
+  const nextPeriodStart = computeNextPeriodStart(input.lastPeriodStart, typicalCycleDays);
+  const ovulationDay = computeOvulationDay(typicalCycleDays, input.lhPeakDay, input.eggWhiteMucusDay);
+  const cycleConfidence = computeConfidence(input.historicalCycleCount);
+
+  const mlPrediction = predictWithML(
+    input.historicalCycleLengths ?? [],
+    input.lastPeriodStart,
+  );
+
   return {
     cycleDay,
     phaseLabel,
@@ -42,6 +59,10 @@ export function buildCycleModel(input: CycleModelInput): CycleModel {
     guidanceLines: buildGuidanceLines(phaseLabel, flowIntensity, isAtypical),
     isAtypical,
     cycleVariationDays,
+    nextPeriodStart,
+    ovulationDay,
+    cycleConfidence,
+    mlPrediction,
   };
 }
 
@@ -62,15 +83,13 @@ export function getPhaseFromDay(
 ): CyclePhase {
   const safeCycleLen = clampNumber(cycleLen, 15, 60, 28);
   const periodLength = safeCycleLen <= 24 ? 4 : safeCycleLen >= 36 ? 6 : 5;
-  
-  // Calculate standard ovulation day
+
   let ovulationDay = Math.max(periodLength + 5, safeCycleLen - 14);
-  
-  // Shift ovulation based on biological evidence if within safe cycle boundaries
+
   if (lhPeakDay && lhPeakDay >= periodLength + 1 && lhPeakDay <= safeCycleLen) {
-    ovulationDay = lhPeakDay + 1; // Ovulation typically occurs 24-48 hours after LH peak surge
+    ovulationDay = lhPeakDay + 1;
   } else if (eggWhiteMucusDay && eggWhiteMucusDay >= periodLength + 1 && eggWhiteMucusDay <= safeCycleLen) {
-    ovulationDay = eggWhiteMucusDay; // Egg-white mucus peak indicates peak fertility/ovulation
+    ovulationDay = eggWhiteMucusDay;
   }
 
   const fertileStart = Math.max(periodLength + 1, ovulationDay - 4);
@@ -81,6 +100,39 @@ export function getPhaseFromDay(
   if (cycleDay >= fertileStart && cycleDay <= fertileEnd) return 'Ovulatory';
   if (cycleDay >= lateLutealStart) return 'Luteal';
   return 'Follicular';
+}
+
+export function computeNextPeriodStart(lastPeriodStart?: string, cycleLen?: number): string | null {
+  if (!lastPeriodStart) return null;
+  const safeCycleLen = clampNumber(cycleLen, 15, 60, 28);
+  const start = new Date(`${lastPeriodStart}T12:00:00`);
+  if (Number.isNaN(start.getTime())) return null;
+  const next = new Date(start.getTime() + safeCycleLen * 86_400_000);
+  return next.toISOString().split('T')[0];
+}
+
+export function computeOvulationDay(
+  cycleLen: number,
+  lhPeakDay?: number | null,
+  eggWhiteMucusDay?: number | null
+): number | null {
+  const safeCycleLen = clampNumber(cycleLen, 15, 60, 28);
+  const periodLength = safeCycleLen <= 24 ? 4 : safeCycleLen >= 36 ? 6 : 5;
+  let ovulationDay = Math.max(periodLength + 5, safeCycleLen - 14);
+
+  if (lhPeakDay && lhPeakDay >= periodLength + 1 && lhPeakDay <= safeCycleLen) {
+    ovulationDay = lhPeakDay + 1;
+  } else if (eggWhiteMucusDay && eggWhiteMucusDay >= periodLength + 1 && eggWhiteMucusDay <= safeCycleLen) {
+    ovulationDay = eggWhiteMucusDay;
+  }
+
+  return ovulationDay;
+}
+
+export function computeConfidence(historicalCycleCount?: number): 'low' | 'medium' | 'high' {
+  if (!historicalCycleCount || historicalCycleCount < 2) return 'low';
+  if (historicalCycleCount < 4) return 'medium';
+  return 'high';
 }
 
 function clampNumber(value: unknown, min: number, max: number, fallback: number): number {

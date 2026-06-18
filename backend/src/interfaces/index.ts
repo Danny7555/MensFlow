@@ -99,6 +99,15 @@ export interface IDashboard {
   cycleNotes: string;
   cycleVariationDays: number;
   isAtypical: boolean;
+  nextPeriodStart?: string;
+  historicalCycleCount?: number;
+  cycleConfidence?: 'low' | 'medium' | 'high';
+  mlPredictedCycleDays?: number;
+  mlTrend?: string;
+  mlPredictionWindow?: number;
+  mlNextPeriodEarliest?: string;
+  mlNextPeriodLatest?: string;
+  mlNextPeriodConfidence?: number;
   scientificInsight: string;
   dailyTip: {
     title: string;
