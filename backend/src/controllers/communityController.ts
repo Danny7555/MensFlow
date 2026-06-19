@@ -59,6 +59,34 @@ export async function listPosts(req: AuthRequest, res: Response, next: NextFunct
   }
 }
 
+export async function searchUsers(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+    if (!q || q.length < 1) {
+      res.json({ users: [] });
+      return;
+    }
+
+    const users = await User.find({
+      name: { $regex: q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' },
+      _id: { $ne: req.user!.id },
+    })
+      .select('name role')
+      .limit(8)
+      .lean();
+
+    res.json({
+      users: users.map(u => ({
+        id: String(u._id),
+        name: u.name || 'Unknown',
+        role: u.role || 'lady',
+      })),
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function getPost(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   try {
     const postId = requiredString(req.params.postId, 'postId');

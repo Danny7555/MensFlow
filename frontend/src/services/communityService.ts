@@ -50,6 +50,9 @@ export const communityApi = {
   listPosts: (category?: string, page = 1) =>
     get<ApiPostList>(`/community?${category && category !== 'all' ? `category=${category}&` : ''}page=${page}`),
 
+  searchUsers: (q: string) =>
+    get<{ users: Array<{ id: string; name: string; role: string }> }>(`/community/search-users?q=${encodeURIComponent(q)}`),
+
   getPost: (id: string) =>
     get<ApiPostDetail>(`/community/${id}`),
 

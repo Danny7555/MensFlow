@@ -1,5 +1,5 @@
 /* eslint-disable */
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { m, AnimatePresence } from 'framer-motion'
 import {
   Plus, ArrowLeft, Trash,
@@ -275,6 +275,38 @@ export function CommunityView() {
   const [commentText, setCommentText] = useState('')
   const [commentAnonymous, setCommentAnonymous] = useState(false)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [mentionQuery, setMentionQuery] = useState('')
+  const [mentionResults, setMentionResults] = useState<Array<{ id: string; name: string; role: string }>>([])
+  const [showMentions, setShowMentions] = useState(false)
+  const mentionRef = useRef<HTMLDivElement>(null)
+
+  // Debounced mention search
+  useEffect(() => {
+    if (!showMentions || !mentionQuery) {
+      setMentionResults([])
+      return
+    }
+    const t = setTimeout(async () => {
+      try {
+        const data = await communityApi.searchUsers(mentionQuery)
+        setMentionResults(data.users)
+      } catch {
+        setMentionResults([])
+      }
+    }, 200)
+    return () => clearTimeout(t)
+  }, [mentionQuery, showMentions])
+
+  // Close mentions on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (mentionRef.current && !mentionRef.current.contains(e.target as Node)) {
+        setShowMentions(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
 
   const { data: list, isLoading } = useCommunityPosts(category === 'all' ? undefined : category, page)
   const { data: detail } = useCommunityPost(selectedPostId || '')
@@ -397,13 +429,50 @@ export function CommunityView() {
                 <div className="relative">
                   <textarea
                     value={commentText}
-                    onChange={e => setCommentText(e.target.value)}
+                    onChange={e => {
+                      const val = e.target.value
+                      setCommentText(val)
+                      // Detect @mention being typed
+                      const cursorPos = e.target.selectionStart
+                      const textBefore = val.slice(0, cursorPos)
+                      const atMatch = textBefore.match(/@(\w*)$/)
+                      if (atMatch) {
+                        setMentionQuery(atMatch[1])
+                        setShowMentions(true)
+                      } else {
+                        setShowMentions(false)
+                      }
+                    }}
                     placeholder="Write a reply..."
                     className="w-full min-h-[80px] px-4 py-3 rounded-2xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm text-[var(--mf-text-strong)] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[var(--mf-ring)] resize-none transition-all"
                     maxLength={5000}
                   />
+                  {showMentions && mentionResults.length > 0 && (
+                    <div ref={mentionRef} className="absolute bottom-full left-0 right-0 mb-1 bg-white dark:bg-gray-800 border border-[var(--mf-border)] rounded-xl shadow-lg overflow-hidden z-20 max-h-36 overflow-y-auto">
+                      {mentionResults.map(u => (
+                        <button
+                          key={u.id}
+                          type="button"
+                          onMouseDown={e => {
+                            e.preventDefault()
+                            const before = commentText.replace(/@\w*$/, `@${u.name} `)
+                            setCommentText(before)
+                            setShowMentions(false)
+                            setMentionQuery('')
+                          }}
+                          className="w-full text-left px-3 py-2 text-xs hover:bg-[var(--mf-accent-soft)] transition-colors flex items-center gap-2 cursor-pointer"
+                        >
+                          <div className="size-6 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[10px] font-semibold text-[var(--mf-accent)]">
+                            {u.name[0]?.toUpperCase() || '?'}
+                          </div>
+                          <span className="font-medium text-[var(--mf-text-strong)]">{u.name}</span>
+                          <span className="text-muted-foreground ml-auto">{u.role === 'partner' ? 'Partner' : 'Member'}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   {commentText.toLowerCase().includes('@men') && !commentText.toLowerCase().includes('@mensflow') && (
-                    <div className="absolute -bottom-2 left-3 translate-y-full bg-white dark:bg-gray-800 border border-[var(--mf-border)] rounded-xl px-3 py-2 text-xs text-muted-foreground flex items-center gap-2 z-10 animate-in fade-in slide-in-from-top-1">
+                    <div className="absolute -bottom-2 left-3 translate-y-full bg-white dark:bg-gray-800 border border-[var(--mf-border)] rounded-xl shadow-lg px-3 py-2 text-xs text-muted-foreground flex items-center gap-2 z-10 animate-in fade-in slide-in-from-top-1">
                       <span className="text-purple-500 font-semibold">@mensflow</span>
                       <span>— Ask MensFlow AI to answer</span>
                     </div>

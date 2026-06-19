@@ -8,6 +8,7 @@ router.use(authenticate);
 
 router.get('/', communityController.listPosts);
 router.post('/', communityController.createPost);
+router.get('/search-users', communityController.searchUsers);
 router.get('/:postId', communityController.getPost);
 router.post('/:postId/comments', communityController.addComment);
 router.delete('/:postId', communityController.deletePost);
