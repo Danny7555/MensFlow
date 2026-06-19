@@ -41,7 +41,7 @@ export type ApiPostDetail = {
   comments: ApiCommunityComment[]
 }
 
-export const communityKeys = {
+const communityKeys = {
   posts: (category?: string, page?: number) => ['community', 'posts', category, page] as const,
   post: (id: string) => ['community', 'post', id] as const,
 }
