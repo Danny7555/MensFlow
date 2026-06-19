@@ -264,16 +264,6 @@ function CreatePostModal({ open, onClose }: { open: boolean; onClose: () => void
   )
 }
 
-const container = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.06 } },
-}
-
-const item = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0 },
-}
-
 export function CommunityView() {
   const { user } = useStore()
   const [category, setCategory] = useState('all')
@@ -377,10 +367,8 @@ export function CommunityView() {
 
               <div className="space-y-3">
                 {detail.comments.map(c => (
-                  <m.div
+                  <div
                     key={c._id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
                     className="bg-white dark:bg-[var(--mf-card)] rounded-2xl border border-[var(--mf-border)] p-4 space-y-2"
                   >
                     <div className="flex items-center gap-2.5">
@@ -394,7 +382,7 @@ export function CommunityView() {
                       <span className="text-xs text-muted-foreground ml-auto">{timeAgo(c.createdAt)}</span>
                     </div>
                     <p className="text-sm text-[var(--mf-text)] leading-relaxed pl-9">{c.body}</p>
-                  </m.div>
+                  </div>
                 ))}
               </div>
 
@@ -497,11 +485,10 @@ export function CommunityView() {
                 <div className="size-10 rounded-full border-3 border-[var(--mf-border)] border-t-[var(--mf-accent)] animate-spin" />
               </div>
             ) : list && list.posts.length > 0 ? (
-              <m.div variants={container} initial="hidden" animate="show" className="space-y-3 pb-4">
+              <div className="space-y-3 pb-4">
                 {list.posts.map(post => (
-                  <m.button
+                  <button
                     key={post._id}
-                    variants={item}
                     type="button"
                     onClick={() => handlePostClick(post._id)}
                     className="w-full text-left bg-white dark:bg-[var(--mf-card)] rounded-2xl border border-[var(--mf-border)] p-4 md:p-5 space-y-3 cursor-pointer hover:border-[var(--mf-accent-border)] transition-all active:scale-[0.99]"
@@ -537,9 +524,9 @@ export function CommunityView() {
                         </div>
                       </div>
                     </div>
-                  </m.button>
+                  </button>
                 ))}
-              </m.div>
+              </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-20 gap-4 px-4">
                 <div className="size-16 rounded-2xl bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] flex items-center justify-center">
