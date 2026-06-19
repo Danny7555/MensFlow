@@ -185,17 +185,17 @@ function TourTooltip({
   return (
     <div 
       {...tooltipProps} 
-      className="bg-[var(--mf-card)] border border-[var(--mf-border)] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] rounded-3xl p-5 max-w-[340px] w-[calc(100vw-32px)] text-left focus:outline-none relative z-50 animate-in fade-in zoom-in-95 duration-200"
+      className="bg-[var(--mf-card)] border border-[var(--mf-border)] rounded-2xl md:rounded-2xl p-5 md:p-7 max-w-[320px] md:max-w-[420px] w-[calc(100vw-32px)] md:w-auto text-left focus:outline-none relative z-50 animate-in fade-in zoom-in-95 duration-200"
     >
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--mf-accent)]">
+      <div className="flex items-center justify-between mb-3 md:mb-4">
+        <span className="text-[11px] md:text-xs font-semibold uppercase tracking-widest text-[var(--mf-accent)]">
           Tour • Step {index + 1} of {size}
         </span>
         {!isLastStep && (
           <button 
             {...skipProps} 
             type="button"
-            className="text-[10px] font-semibold uppercase tracking-wider text-[var(--mf-muted)] hover:text-[var(--mf-text-strong)] transition-colors cursor-pointer"
+            className="text-[11px] md:text-xs font-semibold uppercase tracking-wider text-[var(--mf-muted)] hover:text-[var(--mf-text-strong)] transition-colors cursor-pointer"
           >
             Skip
           </button>
@@ -203,35 +203,34 @@ function TourTooltip({
       </div>
 
       {step.title && (
-        <h4 className="text-base font-semibold text-[var(--mf-text-strong)] mb-1">
+        <h4 className="text-sm md:text-base font-semibold text-[var(--mf-text-strong)] mb-1.5 md:mb-2">
           {step.title}
         </h4>
       )}
 
-      <div className="text-xs text-[var(--mf-text)] leading-relaxed mb-5">
+      <div className="text-xs md:text-sm text-[var(--mf-text)] leading-relaxed md:leading-relaxed mb-5 md:mb-6">
         {step.content}
       </div>
 
-      <div className="flex items-center justify-between border-t border-[var(--mf-border)] pt-4">
-        {/* Progress Dots */}
-        <div className="flex gap-1.5">
+      <div className="flex items-center justify-between border-t border-[var(--mf-border)] pt-4 md:pt-5">
+        <div className="flex gap-1.5 md:gap-2">
           {Array.from({ length: size }).map((_, i) => (
             <div 
               key={i} 
               className={cn(
-                "size-1.5 rounded-full transition-all duration-300",
-                i === index ? "bg-[var(--mf-accent)] w-3" : "bg-[var(--mf-muted)]/30"
+                "size-1.5 md:size-2 rounded-full transition-all duration-300",
+                i === index ? "bg-[var(--mf-accent)] w-3 md:w-5" : "bg-[var(--mf-muted)]/30"
               )}
             />
           ))}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 md:gap-3">
           {index > 0 && (
             <button 
               {...backProps} 
               type="button"
-              className="px-3.5 py-1.5 rounded-xl border border-[var(--mf-border)] text-xs font-medium text-[var(--mf-text-strong)] hover:bg-[var(--mf-hover)] transition-colors cursor-pointer active-squish"
+              className="px-3.5 md:px-5 py-2 md:py-2.5 rounded-xl border border-[var(--mf-border)] text-xs md:text-sm font-medium text-[var(--mf-text-strong)] hover:bg-[var(--mf-hover)] transition-colors cursor-pointer active:scale-95"
             >
               Back
             </button>
@@ -239,7 +238,7 @@ function TourTooltip({
           <button 
             {...primaryProps} 
             type="button"
-            className="px-4 py-1.5 rounded-xl bg-[var(--mf-accent)] text-white text-xs font-semibold hover:brightness-105 transition-all cursor-pointer active-squish"
+            className="px-4 md:px-6 py-2 md:py-2.5 rounded-xl bg-[var(--mf-accent)] text-white text-xs md:text-sm font-semibold hover:brightness-105 transition-all cursor-pointer active:scale-95"
           >
             {isLastStep ? 'Finish' : 'Next'}
           </button>
@@ -619,8 +618,15 @@ export function DashboardView() {
     disableOverlayClose: true,
     scrollToFirstStep: true,
     scrollOffset: 100,
-    onEvent: handleJoyrideCallback,
+    callback: handleJoyrideCallback,
     tooltipComponent: TourTooltip,
+    spotlightPadding: 8,
+    floaterProps: {
+      disableAnimation: true,
+      options: {
+        preventOverflow: true,
+      },
+    },
     styles: {
       options: {
         overlayColor: 'rgba(0, 0, 0, 0.6)',
@@ -629,7 +635,6 @@ export function DashboardView() {
       spotlight: {
         borderRadius: '24px',
         border: '2px dashed var(--mf-accent)',
-        boxShadow: '0 0 15px var(--mf-accent)',
       }
     }
   }

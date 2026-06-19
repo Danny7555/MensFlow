@@ -463,6 +463,14 @@ export function CommunityView() {
                 <h1 className="text-2xl md:text-[28px] font-semibold text-[var(--mf-text-strong)] tracking-tight">Community</h1>
                 <p className="text-sm text-muted-foreground mt-0.5">Connect with others on their journey</p>
               </div>
+              <m.button
+                type="button"
+                onClick={() => setShowCreate(true)}
+                whileTap={{ scale: 0.92 }}
+                className="size-11 shrink-0 rounded-2xl bg-[var(--mf-accent)] text-white flex items-center justify-center hover:brightness-110 transition-all cursor-pointer"
+              >
+                <Plus size={22} weight="bold" />
+              </m.button>
             </div>
 
             <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 md:-mx-0 px-4 md:px-0 scrollbar-none mb-6">
@@ -548,15 +556,6 @@ export function CommunityView() {
           </div>
         </main>
       </div>
-
-      <m.button
-        type="button"
-        onClick={() => setShowCreate(true)}
-        whileTap={{ scale: 0.9 }}
-        className="fixed bottom-6 right-6 md:bottom-8 md:right-8 size-14 rounded-full bg-[var(--mf-accent)] text-white flex items-center justify-center hover:brightness-110 transition-all cursor-pointer z-40"
-      >
-        <Plus size={26} weight="bold" />
-      </m.button>
 
       <AnimatePresence>
         {showCreate && <CreatePostModal open={showCreate} onClose={() => setShowCreate(false)} />}

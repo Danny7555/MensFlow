@@ -433,8 +433,13 @@
   html, body {
     @apply bg-background text-foreground;
     background-color: var(--mf-main-bg) !important;
-    overflow-x: hidden;
-    scroll-behavior: smooth;
+    height: 100%;
+    overflow: hidden;
+  }
+  #root {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
   }
 }
 
