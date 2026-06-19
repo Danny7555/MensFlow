@@ -71,7 +71,19 @@ export function useSmartPushNotifications() {
       settings.parentalQuietHoursEnabled &&
       isWithinQuietHours(settings.parentalQuietHoursStart, settings.parentalQuietHoursEnd)
 
-    // Wait until user data is available
+      if (user &&
+        !hasRun.current &&
+        settings.notificationsPush &&
+        settings.notificationsCycleReminders &&
+        !quietHoursActive &&
+        typeof Notification !== 'undefined'
+    ) {
+
+      if (Notification.permission === 'default') {
+        Notification.requestPermission()
+      }
+    }
+
     if (user &&
         !hasRun.current &&
         settings.notificationsPush &&
