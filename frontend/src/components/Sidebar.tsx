@@ -38,6 +38,7 @@ const authItems: { id: SectionId; label: string; Icon: NavIcon }[] = [
   { id: 'ask', label: 'Ask MensFlow', Icon: ChatCircle },
   { id: 'symptoms', label: 'Symptoms', Icon: Pulse },
   { id: 'insights', label: 'Health insights', Icon: Target },
+  { id: 'community', label: 'Community', Icon: FlowerLotus },
   { id: 'education', label: 'Education', Icon: BookOpen },
   { id: 'calendar', label: 'Calendar', Icon: CalendarBlank },
   { id: 'tracker', label: 'Tracker', Icon: CalendarHeart },
@@ -164,13 +165,13 @@ export function Sidebar({
                     partnerStatus?.partner?.avatar ? (
                       <img src={resolveAssetUrl(partnerStatus.partner.avatar)} alt="Partner" className="w-full h-full object-cover" />
                     ) : (
-                      <img src="/images/girl.png" alt="Partner" className="w-full h-full object-cover" />
+                      <img src="/images/girl.jpg" alt="Partner" className="w-full h-full object-cover" />
                     )
                   ) : (
                     user?.avatar ? (
                       <img src={resolveAssetUrl(user.avatar)} alt="You" className="w-full h-full object-cover" />
                     ) : (
-                      <img src="/images/girl.png" alt="You" className="w-full h-full object-cover" />
+                      <img src="/images/girl.jpg" alt="You" className="w-full h-full object-cover" />
                     )
                   )}
                 </div>

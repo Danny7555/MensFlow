@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useStore } from '../store/useStore'
 import { useAuth } from '../context/useAuth'
 import { partnerApi } from '../services/partnerService'
@@ -43,6 +44,7 @@ const setPingsListStr = (val: string) => {
 }
 
 export function useNotificationsListener() {
+  const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
   const { user, incrementNotificationCount, fetchPartnerStatus } = useStore()
   const mountTime = useRef<number>(0)
@@ -116,6 +118,10 @@ export function useNotificationsListener() {
                   icon: React.createElement(HandWaving, { size: 16, weight: 'fill', className: 'text-amber-500' }),
                   description: user?.role === 'lady' ? `Partner says: "${ping.message}"` : `She is: "${ping.label}" (${ping.message})`,
                   duration: 8000,
+                  action: {
+                    label: 'View',
+                    onClick: () => navigate('/dashboard'),
+                  },
                 })
               }
             }

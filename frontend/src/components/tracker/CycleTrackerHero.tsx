@@ -1,7 +1,7 @@
 /* eslint-disable */
 "use client"
 
-import { useEffect, useMemo, useReducer, useState } from 'react'
+import { useEffect, useMemo, useReducer, useState, memo } from 'react'
 
 import { 
   CaretDown, 
@@ -106,7 +106,7 @@ const emptyStateCardStyle: React.CSSProperties = {
   textAlign: 'center',
 }
 
-export function CycleTrackerHero({ 
+function CycleTrackerHeroInner({ 
   showCheckIn = false,
   selectedDay: controlledSelectedDay,
   hoveredDay: controlledHoveredDay,
@@ -564,3 +564,5 @@ export function CycleTrackerHero({
     </div>
   )
 }
+
+export const CycleTrackerHero = memo(CycleTrackerHeroInner)

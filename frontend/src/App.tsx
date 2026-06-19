@@ -39,6 +39,7 @@ const OnboardingView = lazy(() => import('./views/OnboardingView').then(m => ({ 
 const NotificationsView = lazy(() => import('./views/NotificationsView').then(m => ({ default: m.NotificationsView })))
 const SyncView = lazy(() => import('./views/SyncView').then(m => ({ default: m.SyncView })))
 const LockedChatsView = lazy(() => import('./views/LockedChatsView').then(m => ({ default: m.LockedChatsView })))
+const CommunityView = lazy(() => import('./views/CommunityView').then(m => ({ default: m.CommunityView })))
 const NotFoundView = lazy(() => import('./views/NotFoundView').then(m => ({ default: m.NotFoundView })))
 
 
@@ -372,6 +373,7 @@ function MainShell() {
   }, [isMobile, settings.sidebarCollapsed, updateSettings])
 
   if (isRehydrating) {
+    const rehydrateExpanded = isMobile ? false : !settings.sidebarCollapsed
     return (
       <div className={cn("app-shell", user?.role === 'partner' && "partner-theme")}>
         <LazyMotion features={domAnimation}>
@@ -382,13 +384,13 @@ function MainShell() {
               onCloseMobile={() => {}}
               onLogin={() => {}}
               isMobile={false}
-              desktopCollapsed={false}
+              desktopCollapsed={!rehydrateExpanded}
               onToggleDesktopCollapse={() => {}}
               onToggleSidebar={() => {}}
             />
           )}
           <main className="app-canvas">
-            <div className="flex items-center justify-center min-h-screen">
+            <div className="flex items-center justify-center min-h-[80vh]">
               <div className="flex flex-col items-center gap-3">
                 <div className="size-8 rounded-full border-2 border-[var(--mf-border)] border-t-[var(--mf-accent)] animate-spin" />
                 <span className="text-xs text-muted-foreground">Loading your account...</span>
@@ -471,8 +473,8 @@ function MainShell() {
             "pb-bottom-nav"
           )}>
             <Suspense fallback={<PageLoader />}>
-              <AnimatePresence mode="wait">
-                <Routes location={location} key={location.pathname}>
+              <AnimatePresence mode="popLayout">
+                <Routes location={location}>
                 {!isAuthenticated ? (
                   <>
                     <Route path="/" element={<ErrorBoundary><LandingView /></ErrorBoundary>} />
@@ -541,6 +543,7 @@ function MainShell() {
                     <Route path="/symptoms" element={<ErrorBoundary><AccessGate><SymptomsView /></AccessGate></ErrorBoundary>} />
                     <Route path="/education" element={<ErrorBoundary><EducationView /></ErrorBoundary>} />
                     <Route path="/sync" element={<ErrorBoundary><AccessGate><SyncView /></AccessGate></ErrorBoundary>} />
+                    <Route path="/community" element={<ErrorBoundary><AccessGate><CommunityView /></AccessGate></ErrorBoundary>} />
                     <Route path="/locked-chats" element={<ErrorBoundary><LockedChatsView /></ErrorBoundary>} />
                     <Route path="*" element={<ErrorBoundary><NotFoundView /></ErrorBoundary>} />
                   </>

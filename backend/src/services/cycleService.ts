@@ -194,11 +194,13 @@ export async function getMonthInReview(userId: string): Promise<object> {
     periodDurations[currentStartStr] = currentDuration;
   }
 
-  // Calculate actual cycle lengths
+  // Calculate actual cycle lengths (filter outliers same as recalculateCycleMetrics)
   const cycleLengths: number[] = [];
   for (let i = 0; i < periodStarts.length - 1; i++) {
     const len = Math.round((periodStarts[i + 1].getTime() - periodStarts[i].getTime()) / (1000 * 3600 * 24));
-    cycleLengths.push(len);
+    if (len >= 15 && len <= 60) {
+      cycleLengths.push(len);
+    }
   }
 
   const lastCycleLength = cycleLengths.length > 0 ? cycleLengths[cycleLengths.length - 1] : typicalCycleDays;
@@ -220,16 +222,30 @@ export async function getMonthInReview(userId: string): Promise<object> {
       return diff >= 0 && diff < typicalCycleDays;
     });
 
+    // Phase baseline reflects biological energy patterns
+    const phaseLabel = (ladyDash?.phaseLabel || '').toLowerCase();
+    const phaseBaseline = phaseLabel.includes('menstrual') ? -0.5
+      : phaseLabel.includes('luteal') ? -0.3
+      : phaseLabel.includes('follicular') ? 0.5
+      : phaseLabel.includes('ovulat') || phaseLabel.includes('fertile') ? 1
+      : 0;
+
     logsInCycle.forEach(log => {
       if (!activeCycleStart) return;
       const logDate = new Date(log.date + 'T12:00:00');
       const day = Math.round((logDate.getTime() - activeCycleStart.getTime()) / (1000 * 3600 * 24)) + 1;
       
-      let score = 3;
-      if (log.symptoms.includes('mood-happy')) score += 2;
-      if (log.symptoms.includes('mood-calm')) score += 1;
-      if (log.symptoms.includes('phys-fatigue')) score -= 2;
-      if (log.symptoms.includes('phys-cramps') || log.symptoms.includes('endo-pelvicpain') || log.symptoms.includes('endo-backache')) score -= 1;
+      let score = phaseBaseline;
+      const s = log.symptoms;
+
+      if (s.includes('mood-happy')) score += 1;
+      if (s.includes('mood-calm')) score += 0.5;
+      if (s.includes('mood-sad') || s.includes('mood-irritable') || s.includes('mood-anxious')) score -= 0.5;
+      if (s.includes('phys-fatigue') || s.includes('peri-brainfog')) score -= 1;
+      if (s.includes('life-sleep')) score += 0.5;
+      if (s.includes('phys-cramps') || s.includes('endo-pelvicpain') || s.includes('endo-backache')) score -= 0.5;
+      if (s.includes('phys-headache') || s.includes('phys-bloating') || s.includes('phys-tender')) score -= 0.3;
+      if (s.includes('phys-acne')) score -= 0.2;
       
       dayScores[day] = score;
     });

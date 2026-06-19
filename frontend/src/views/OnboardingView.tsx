@@ -231,7 +231,7 @@ export function OnboardingView() {
                         className="onboarding-illustration-wrap"
                       >
                         <img
-                          src="/images/girl.png"
+                          src="/images/girl.jpg"
                           alt="Health illustration"
                           className="onboarding-illustration"
                         />

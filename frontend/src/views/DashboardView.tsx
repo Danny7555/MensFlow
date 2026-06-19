@@ -46,6 +46,7 @@ interface QuickEmpathyBoostCardProps {
 function QuickEmpathyBoostCard({ ladyName, isAuthenticated }: QuickEmpathyBoostCardProps) {
   const [activePing, setActivePing] = useState<string | null>(null)
   const { user } = useStore()
+  const nav = useNavigate()
   
   const options = [
     { id: 'chocolate', label: 'Bring Chocolate', Icon: Cookie, color: "text-amber-600", message: "I'm on my way home with some sweet treats for you! " },
@@ -73,7 +74,11 @@ function QuickEmpathyBoostCard({ ladyName, isAuthenticated }: QuickEmpathyBoostC
       window.dispatchEvent(new Event('storage'))
       
       toast.success(`Sent empathy boost to ${ladyName}!`, {
-        description: `"${label}" nudge dispatched successfully.`
+        description: `"${label}" nudge dispatched successfully.`,
+        action: {
+          label: 'Open Chat',
+          onClick: () => nav('/ask'),
+        },
       })
     } catch (err) {
       console.error(err)
@@ -438,7 +443,11 @@ export function DashboardView() {
     navigator.clipboard.writeText(text)
     toast.success("Copied supportive gesture!", {
       description: `"${title}" template copied to clipboard.`,
-      duration: 3000
+      duration: 5000,
+      action: {
+        label: 'Open Chat',
+        onClick: () => navigate('/ask'),
+      },
     })
   }
 
@@ -571,9 +580,13 @@ export function DashboardView() {
                       onClick={() => {
                         if (user?.partnerCode) {
                           navigator.clipboard.writeText(user.partnerCode)
-                          toast.success("Pairing code copied!", {
-                            description: "Send this code to your partner so they can pair with you."
-                          })
+    toast.success("Pairing code copied!", {
+        description: "Send this code to your partner so they can pair with you.",
+        action: {
+          label: 'Go to Sync',
+          onClick: () => navigate('/sync'),
+        },
+      })
                         }
                       }}
                       className="text-[11px] font-normal bg-white dark:bg-white/10 hover:bg-gray-50 dark:hover:bg-white/15 text-[var(--mf-text-strong)] border border-[var(--mf-border)] px-3 py-1.5 rounded-xl transition-all cursor-pointer shrink-0"
@@ -701,7 +714,9 @@ export function DashboardView() {
                     Partner Empathy Support Hub
                   </h2>
                   <p className="text-xs text-[var(--mf-muted)] max-w-xl leading-relaxed">
-                    Welcome to your supportive workspace for {ladyName}. Today is her cycle Day {currentDay} in the {phase.charAt(0).toUpperCase() + phase.slice(1)} Phase. Use the checklist playbooks and translators below to coordinate active support.
+                    {data.lastPeriodStart
+                      ? `Welcome to your supportive workspace for ${ladyName}. Today is her cycle Day ${currentDay} in the ${phase.charAt(0).toUpperCase() + phase.slice(1)} Phase. Use the checklist playbooks and translators below to coordinate active support.`
+                      : `Welcome to your supportive workspace for ${ladyName}. Once she starts logging her cycle, you'll see her phase, symptoms, and personalized care suggestions here.`}
                   </p>
                 </div>
                 <div className="shrink-0 flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/40 dark:bg-white/5 border border-[var(--mf-border)] text-xs font-normal text-[var(--mf-text)] ">

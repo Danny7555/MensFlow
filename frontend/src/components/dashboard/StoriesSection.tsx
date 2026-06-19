@@ -3,10 +3,10 @@ import { cn } from "@/lib/utils"
 
 const STORIES = [
   { label: 'Daily Plan', image: '/images/star.png', active: true, route: '/dashboard' },
-  { label: 'Insights', image: '/images/brain.png', route: '/insights' },
+  { label: 'Insights', image: '/images/brain.jpg', route: '/insights' },
   { label: 'Secret Chats', image: '/images/moon.png', route: '/ask' },
   { label: 'Wellness', image: '/images/heart.png', route: '/wellness-tips' },
-  { label: 'Partner', image: '/images/girl.png', route: '/sync' },
+  { label: 'Partner', image: '/images/girl.jpg', route: '/sync' },
 ]
 
 export function StoriesSection() {

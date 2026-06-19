@@ -16,8 +16,8 @@ export function predictWithML(
 ): MLPrediction | null {
   if (historicalCycleLengths.length < 2 || !lastPeriodStart) return null;
 
-  const sorted = [...historicalCycleLengths].sort((a, b) => a - b);
-  const validLengths = sorted.filter(l => l >= 15 && l <= 60);
+  // Keep chronological order — EWMA and trend detection depend on it
+  const validLengths = historicalCycleLengths.filter(l => l >= 15 && l <= 60);
   if (validLengths.length < 2) return null;
 
   const n = validLengths.length;

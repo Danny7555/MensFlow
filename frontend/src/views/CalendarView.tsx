@@ -654,7 +654,7 @@ export function CalendarView() {
   return (
     <div className="flex flex-col h-full bg-background overflow-auto relative" suppressHydrationWarning>
       <div className="absolute right-0 top-20 opacity-10 pointer-events-none z-0">
-        <img src="/images/girl.png" alt="" className="size-[800px] object-contain" />
+        <img src="/images/girl.jpg" alt="" className="size-[800px] object-contain" />
       </div>
 
       <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 relative z-10">

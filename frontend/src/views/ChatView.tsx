@@ -856,7 +856,7 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
           <div className="flex-1 overflow-y-auto flex items-center justify-center p-4">
             <div className="landing-center animate-in fade-in zoom-in duration-700 max-w-[800px] w-full px-4 mx-auto">
               <div className="landing-hero-image-wrap">
-                <img src="/images/lady.png" alt="" className="landing-hero-image" />
+                <img src="/images/lady.jpg" alt="" className="landing-hero-image" />
               </div>
               <h1 className="landing-title">Ask MensFlow about your cycle?</h1>
               <div className="landing-sub flex items-center gap-1 justify-center max-w-[500px] mx-auto text-center leading-relaxed">

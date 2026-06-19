@@ -1,16 +1,61 @@
+const CACHE = 'mensflow-v1'
+const STATIC_ASSETS = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/favicon.svg',
+]
+
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
-});
+  event.waitUntil(
+    caches.open(CACHE).then((cache) => {
+      return cache.addAll(STATIC_ASSETS).catch(() => {
+        // Static assets may not all be available at install time
+        // e.g. when served via a dev server; this is safe to ignore
+      })
+    }),
+  )
+  self.skipWaiting()
+})
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
-});
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))),
+    ),
+  )
+  event.waitUntil(self.clients.claim())
+})
 
 self.addEventListener('fetch', (event) => {
-  // Pass-through fetch handler just to satisfy PWA requirements
+  const { request } = event
+
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request).catch(() => caches.match('/index.html')),
+    )
+    return
+  }
+
+  if (request.url.includes('/api/')) {
+    event.respondWith(
+      fetch(request).catch(() => {
+        return new Response(JSON.stringify({ error: 'You are offline' }), {
+          status: 503,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }),
+    )
+    return
+  }
+
   event.respondWith(
-    fetch(event.request).catch(() => {
-      return new Response("You are currently offline.");
-    })
-  );
-});
+    caches.match(request).then((cached) => cached || fetch(request).then((response) => {
+      if (response.ok && response.type === 'basic') {
+        const clone = response.clone()
+        caches.open(CACHE).then((cache) => cache.put(request, clone))
+      }
+      return response
+    }).catch(() => new Response('Offline', { status: 503 }))),
+  )
+})

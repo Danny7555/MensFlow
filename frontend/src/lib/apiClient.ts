@@ -30,6 +30,8 @@ export class ApiError extends Error {
 
 // ─── Core fetch wrapper ───────────────────────────────────────────────────────
 
+const TIMEOUT = 30_000
+
 export async function request<T>(
   method: string,
   path: string,
@@ -46,12 +48,27 @@ export async function request<T>(
     if (token) headers['Authorization'] = `Bearer ${token}`
   }
 
-  const res = await fetch(`${BASE_URL}${path}`, {
-    method,
-    headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-    signal,
-  })
+  const combinedSignal = AbortSignal.any?.([AbortSignal.timeout(TIMEOUT), ...(signal ? [signal] : [])])
+    ?? signal ?? AbortSignal.timeout(TIMEOUT)
+
+  let res: Response
+  try {
+    res = await fetch(`${BASE_URL}${path}`, {
+      method,
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: combinedSignal,
+    })
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'TimeoutError') {
+      throw new ApiError('Request timed out — please try again', 408, null)
+    }
+    throw new ApiError(
+      err instanceof TypeError ? 'Network error — check your connection' : 'Request failed',
+      0,
+      null,
+    )
+  }
 
   const contentType = res.headers.get('content-type') ?? ''
   const data = contentType.includes('application/json')
@@ -95,16 +112,31 @@ export const put  = <T>(path: string, body?: unknown, signal?: AbortSignal) =>
 export const del  = <T>(path: string, signal?: AbortSignal) =>
   request<T>('DELETE', path, undefined, true, signal)
 
-export async function upload<T>(path: string, formData: FormData): Promise<T> {
+export async function upload<T>(path: string, formData: FormData, signal?: AbortSignal): Promise<T> {
   const headers: Record<string, string> = {}
   const token = getToken()
   if (token) headers['Authorization'] = `Bearer ${token}`
 
-  const res = await fetch(`${BASE_URL}${path}`, {
-    method: 'POST',
-    headers,
-    body: formData,
-  })
+  const combinedSignal = signal ?? AbortSignal.timeout(TIMEOUT)
+
+  let res: Response
+  try {
+    res = await fetch(`${BASE_URL}${path}`, {
+      method: 'POST',
+      headers,
+      body: formData,
+      signal: combinedSignal,
+    })
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'TimeoutError') {
+      throw new ApiError('Upload timed out — please try again', 408, null)
+    }
+    throw new ApiError(
+      err instanceof TypeError ? 'Network error — check your connection' : 'Upload failed',
+      0,
+      null,
+    )
+  }
 
   const contentType = res.headers.get('content-type') ?? ''
   const data = contentType.includes('application/json')

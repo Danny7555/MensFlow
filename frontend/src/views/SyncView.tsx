@@ -222,6 +222,14 @@ export function SyncView() {
     }
   }
 
+  if (partnerStatus === null) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="size-8 rounded-full border-2 border-[var(--mf-border)] border-t-[var(--mf-accent)] animate-spin" />
+      </div>
+    )
+  }
+
   if (!partnerStatus?.paired) {
     return (
       <m.div
@@ -415,7 +423,7 @@ export function SyncView() {
                     Invite Partner
                   </span>
                   <div className="absolute right-[-20px] top-[-20px] opacity-10 group-hover:scale-110 transition-transform duration-700">
-                     <img src="/images/girl.png" alt="" className="size-48 sm:size-64 object-contain rotate-[-15deg]" />
+                     <img src="/images/girl.jpg" alt="" className="size-48 sm:size-64 object-contain rotate-[-15deg]" />
                   </div>
                 </button>
               </m.div>
@@ -549,7 +557,7 @@ export function SyncView() {
                         {partnerStatus.partner.avatar ? (
                           <img src={resolveAssetUrl(partnerStatus.partner.avatar)} alt="" className="size-full object-cover" />
                         ) : (
-                          <img src="/images/girl.png" alt="" className="size-full object-cover" />
+                          <img src="/images/girl.jpg" alt="" className="size-full object-cover" />
                         )}
                       </div>
                       <span className="text-xs font-medium text-[var(--mf-text-strong)]">
@@ -562,7 +570,7 @@ export function SyncView() {
                 )}
               </div>
               <div className="hidden md:block shrink-0">
-                <img src="/images/lady.png" alt="Empathy Hub Illustration" className="h-32 lg:h-40 object-cover rounded-full opacity-95" />
+                <img src="/images/lady.jpg" alt="Empathy Hub Illustration" className="h-32 lg:h-40 object-cover rounded-full opacity-95" />
               </div>
             </div>
           </m.div>

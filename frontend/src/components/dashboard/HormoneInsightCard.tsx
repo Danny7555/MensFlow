@@ -33,7 +33,7 @@ export function HormoneInsightCard({ variants, phaseLabel, aiInsightText }: Horm
           <m.img 
             whileHover={{ scale: 1.1 }}
             transition={{ duration: 0.6 }}
-            src="/images/brain.png" alt="Insight" className="w-full h-full object-cover object-center scale-[1.3] translate-y-1" 
+            src="/images/brain.jpg" alt="Insight" className="w-full h-full object-cover object-center scale-[1.3] translate-y-1" 
           />
         </div>
         <div className="flo-card-top relative z-10">

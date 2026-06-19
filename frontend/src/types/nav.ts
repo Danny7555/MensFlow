@@ -15,3 +15,4 @@ export type SectionId =
   | 'settings'
   | 'sync'
   | 'locked-chats'
+  | 'community'

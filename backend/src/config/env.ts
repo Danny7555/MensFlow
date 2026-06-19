@@ -22,6 +22,18 @@ function requiredEnv(name: string): string {
 export function validateRuntimeEnv(): void {
   requiredEnv('MONGO_URI');
   getJwtSecret();
+  if (process.env.NODE_ENV === 'production') {
+    // Email service — required for auth (OTP, password reset)
+    if (process.env.SMTP_HOST || process.env.SMTP_USER) {
+      requiredEnv('SMTP_HOST');
+      requiredEnv('SMTP_USER');
+      requiredEnv('SMTP_PASS');
+    }
+    // Cron job security
+    if (!process.env.CRON_SECRET) {
+      console.warn('[Env] CRON_SECRET not set — scheduler endpoints will be unprotected');
+    }
+  }
 }
 
 export function getJwtSecret(): string {
@@ -49,7 +61,11 @@ export function getPort(): number {
 export function getCorsOrigins(): string[] | true {
   const raw = process.env.CORS_ORIGINS ?? process.env.CORS_ORIGIN;
   if (!raw) {
-    return isProduction ? [] : DEFAULT_DEV_CORS_ORIGINS;
+    if (isProduction) {
+      const vercelUrl = process.env.VERCEL_URL;
+      return vercelUrl ? [`https://${vercelUrl}`] : [];
+    }
+    return DEFAULT_DEV_CORS_ORIGINS;
   }
 
   const origins = raw
