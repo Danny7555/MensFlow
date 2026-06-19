@@ -210,8 +210,8 @@ export function NotificationsView() {
         id: pingId,
         title: isPartner ? "Partner Check-In" : "Support Nudge Received",
         message: isPartner 
-          ? `She is feeling: "${ping.label}" (${ping.message})`
-          : `Partner says: "${ping.message}"`,
+          ? `She is feeling: "${ping.label || 'Support'}" (${ping.message || 'nudge sent'})`
+          : `Partner says: "${ping.message || 'A new nudge was sent'}"`,
         time: (() => { const d = new Date(ping.timestamp); return isNaN(d.getTime()) ? new Date() : d; })(),
         type: 'info',
         read: readIds.has(pingId)

@@ -114,9 +114,11 @@ export function useNotificationsListener() {
 
               // Only toast if the message is fresh
               if (ping.timestamp > mountTime.current - 15000) {
+                const msg = ping.message || 'A new nudge was sent'
+                const lbl = ping.label || 'Support'
                 toast.info(user?.role === 'lady' ? "Support Update received!" : "Partner Update received!", {
                   icon: React.createElement(HandWaving, { size: 16, weight: 'fill', className: 'text-amber-500' }),
-                  description: user?.role === 'lady' ? `Partner says: "${ping.message}"` : `She is: "${ping.label}" (${ping.message})`,
+                  description: user?.role === 'lady' ? `Partner says: "${msg}"` : `She is: "${lbl}" (${msg})`,
                   duration: 8000,
                   action: {
                     label: 'View',
