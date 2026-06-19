@@ -348,7 +348,7 @@ export function CommunityView() {
                 <AvatarCircle name={detail.post.author.name} avatar={detail.post.author.avatar} />
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-[var(--mf-text-strong)]">{detail.post.author.name}</p>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                     <span className="px-2 py-0.5 rounded-full bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] font-medium capitalize text-[11px]">{detail.post.category}</span>
                     <span>·</span>
                     <span>{timeAgo(detail.post.createdAt)}</span>
@@ -378,7 +378,7 @@ export function CommunityView() {
                     key={c._id}
                     className="bg-white dark:bg-[var(--mf-card)] rounded-2xl border border-[var(--mf-border)] p-4 space-y-2"
                   >
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex flex-wrap items-center gap-2.5">
                       {c.isAI ? (
                         <div className="size-7 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0">AI</div>
                       ) : (
@@ -473,7 +473,7 @@ export function CommunityView() {
               </m.button>
             </div>
 
-            <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 md:-mx-0 px-4 md:px-0 scrollbar-none mb-6">
+            <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 md:-mx-0 px-4 md:px-0 scrollbar-hide no-scrollbar mb-6">
               {CATEGORIES.map(cat => {
                 const active = category === cat.id
                 return (
@@ -502,16 +502,23 @@ export function CommunityView() {
             ) : list && list.posts.length > 0 ? (
               <div className="space-y-3 pb-4">
                 {list.posts.map(post => (
-                  <button
+                  <div
                     key={post._id}
-                    type="button"
+                    role="button"
+                    tabIndex={0}
                     onClick={() => handlePostClick(post._id)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handlePostClick(post._id);
+                      }
+                    }}
                     className="w-full text-left bg-white dark:bg-[var(--mf-card)] rounded-2xl border border-[var(--mf-border)] p-4 md:p-5 space-y-3 cursor-pointer hover:border-[var(--mf-accent-border)] transition-all active:scale-[0.99]"
                   >
                     <div className="flex items-start gap-3">
                       <AvatarCircle name={post.author.name} avatar={post.author.avatar} />
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mb-1">
                           <span className="font-semibold text-[var(--mf-text-strong)]">{post.author.name}</span>
                           <span>·</span>
                           <span>{timeAgo(post.createdAt)}</span>
@@ -519,7 +526,7 @@ export function CommunityView() {
                         </div>
                         <h3 className="text-[15px] font-semibold text-[var(--mf-text-strong)] leading-snug">{post.title}</h3>
                         <p className="text-sm text-[var(--mf-muted)] line-clamp-2 mt-1.5 leading-relaxed">{post.body}</p>
-                        <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
+                        <div className="flex flex-wrap items-center gap-4 mt-3 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1.5">
                             <ChatCircleDots size={15} weight="regular" />
                             {post.commentCount} {post.commentCount === 1 ? 'reply' : 'replies'}
@@ -539,7 +546,7 @@ export function CommunityView() {
                         </div>
                       </div>
                     </div>
-                  </button>
+                  </div>
                 ))}
               </div>
             ) : (
