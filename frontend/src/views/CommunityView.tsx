@@ -11,6 +11,15 @@ import { useStore } from '../store/useStore'
 import { useCommunityPosts, useCommunityPost, useCreatePost, useAddComment, communityApi } from '../services/communityService'
 import { cn } from '../lib/utils'
 import { resolveAssetUrl } from '../lib/apiClient'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
 
 const CATEGORIES = [
   { id: 'all', label: 'All', Icon: Sparkle },
@@ -273,6 +282,7 @@ export function CommunityView() {
   const [showCreate, setShowCreate] = useState(false)
   const [commentText, setCommentText] = useState('')
   const [commentAnonymous, setCommentAnonymous] = useState(false)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   const { data: list, isLoading } = useCommunityPosts(category === 'all' ? undefined : category, page)
   const { data: detail } = useCommunityPost(selectedPostId || '')
@@ -294,12 +304,19 @@ export function CommunityView() {
   }
 
   const handleDeletePost = async (postId: string) => {
+    setConfirmDeleteId(postId)
+  }
+
+  const confirmDelete = async () => {
+    if (!confirmDeleteId) return
     try {
-      await communityApi.deletePost(postId)
+      await communityApi.deletePost(confirmDeleteId)
       toast.success('Post deleted')
       setSelectedPostId(null)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to delete post')
+    } finally {
+      setConfirmDeleteId(null)
     }
   }
 
@@ -424,6 +441,19 @@ export function CommunityView() {
             </div>
           </div>
         </main>
+
+        <Dialog open={!!confirmDeleteId} onOpenChange={() => setConfirmDeleteId(null)}>
+          <DialogContent className="sm:max-w-[360px] rounded-2xl">
+            <DialogHeader>
+              <DialogTitle>Delete post?</DialogTitle>
+              <DialogDescription>This action cannot be undone.</DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="flex gap-2 sm:gap-2">
+              <Button variant="outline" onClick={() => setConfirmDeleteId(null)} className="flex-1 rounded-xl">Cancel</Button>
+              <Button onClick={confirmDelete} className="flex-1 rounded-xl bg-[var(--mf-danger)] hover:bg-[var(--mf-danger)]/90 text-white">Delete</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     )
   }
@@ -537,6 +567,19 @@ export function CommunityView() {
       <AnimatePresence>
         {showCreate && <CreatePostModal open={showCreate} onClose={() => setShowCreate(false)} />}
       </AnimatePresence>
+
+      <Dialog open={!!confirmDeleteId} onOpenChange={() => setConfirmDeleteId(null)}>
+        <DialogContent className="sm:max-w-[360px] rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Delete post?</DialogTitle>
+            <DialogDescription>This action cannot be undone.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => setConfirmDeleteId(null)} className="flex-1 rounded-xl">Cancel</Button>
+            <Button onClick={confirmDelete} className="flex-1 rounded-xl bg-[var(--mf-danger)] hover:bg-[var(--mf-danger)]/90 text-white">Delete</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
