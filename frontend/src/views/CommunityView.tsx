@@ -455,8 +455,10 @@ export function CommunityView() {
                           type="button"
                           onMouseDown={e => {
                             e.preventDefault()
-                            const before = commentText.replace(/@\w*$/, `@${u.name} `)
-                            setCommentText(before)
+                            setCommentText(prev => {
+                              const before = prev.replace(/@\w*$/, `@${u.name} `)
+                              return before
+                            })
                             setShowMentions(false)
                             setMentionQuery('')
                           }}
