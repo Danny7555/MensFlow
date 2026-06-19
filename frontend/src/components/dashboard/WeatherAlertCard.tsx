@@ -230,35 +230,35 @@ const WEATHER_STYLES: Record<string, {
     color: 'text-amber-500',
     glow: 'bg-[radial-gradient(ellipse_at_top_right,rgba(245,158,11,0.08),transparent_50%)]',
     badge: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20',
-    img: '/images/weather/sunny.png',
+    img: '/images/weather/sunny.jpg',
     label: 'Sunny'
   },
   cold: {
     color: 'text-blue-500',
     glow: 'bg-[radial-gradient(ellipse_at_top_right,rgba(59,130,246,0.08),transparent_50%)]',
     badge: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20',
-    img: '/images/weather/chilly.png',
+    img: '/images/weather/chilly.jpg',
     label: 'Chilly'
   },
   rainy: {
     color: 'text-indigo-500',
     glow: 'bg-[radial-gradient(ellipse_at_top_right,rgba(99,102,241,0.08),transparent_50%)]',
     badge: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20',
-    img: '/images/weather/rainy.png',
+    img: '/images/weather/rainy.jpg',
     label: 'Rainy'
   },
   humid: {
     color: 'text-teal-500',
     glow: 'bg-[radial-gradient(ellipse_at_top_right,rgba(20,184,166,0.08),transparent_50%)]',
     badge: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20',
-    img: '/images/weather/humid.png',
+    img: '/images/weather/humid.jpg',
     label: 'Humid'
   },
   moderate: {
     color: 'text-rose-400',
     glow: 'bg-[radial-gradient(ellipse_at_top_right,rgba(244,63,94,0.06),transparent_50%)]',
     badge: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20',
-    img: '/images/weather/mild.png',
+    img: '/images/weather/mild.jpg',
     label: 'Mild'
   }
 }

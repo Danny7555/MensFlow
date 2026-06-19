@@ -11,7 +11,7 @@ export function NotFoundView() {
       {/* Immersive Background */}
       <div className="absolute inset-0">
         <img 
-          src="/images/lady.png" 
+          src="/images/lady.jpg" 
           alt="Brand Background" 
           className="w-full h-full object-cover"
         />

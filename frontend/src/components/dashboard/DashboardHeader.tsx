@@ -64,7 +64,7 @@ export function DashboardHeader({
           className="flo-avatar-wrap"
         >
           <img 
-            src={resolveAssetUrl(user.avatar) || (user.role === 'partner' ? '/images/mens.jpg' : '/images/girl.png')} 
+            src={resolveAssetUrl(user.avatar) || (user.role === 'partner' ? '/images/mens.jpg' : '/images/girl.jpg')} 
             alt="Profile" 
             className="flo-avatar" 
           />

@@ -19,6 +19,8 @@ import { startScheduler } from './services/schedulerService';
 import educationRoutes from './routes/educationRoutes';
 import { seedEducation } from './utils/seedEducation';
 import wellnessTipRoutes from './routes/wellnessTipRoutes';
+import communityRoutes from './routes/communityRoutes';
+import medicationRoutes from './routes/medicationRoutes';
 import { seedWellnessTips } from './utils/seedWellnessTips';
 import path from 'path';
 import uploadRoutes from './routes/uploadRoutes';
@@ -115,6 +117,8 @@ app.use('/api/scheduler', schedulerRoutes);
 app.use('/api/education', educationRoutes);
 app.use('/api/tips', wellnessTipRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/community', communityRoutes);
+app.use('/api/medications', medicationRoutes);
 app.get('/', (_req: Request, res: Response) => {
   res.json({ message: 'MensFlow API is running successfully' });
 });

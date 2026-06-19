@@ -46,6 +46,7 @@ interface QuickEmpathyBoostCardProps {
 function QuickEmpathyBoostCard({ ladyName, isAuthenticated }: QuickEmpathyBoostCardProps) {
   const [activePing, setActivePing] = useState<string | null>(null)
   const { user } = useStore()
+  const nav = useNavigate()
   
   const options = [
     { id: 'chocolate', label: 'Bring Chocolate', Icon: Cookie, color: "text-amber-600", message: "I'm on my way home with some sweet treats for you! " },
@@ -73,7 +74,11 @@ function QuickEmpathyBoostCard({ ladyName, isAuthenticated }: QuickEmpathyBoostC
       window.dispatchEvent(new Event('storage'))
       
       toast.success(`Sent empathy boost to ${ladyName}!`, {
-        description: `"${label}" nudge dispatched successfully.`
+        description: `"${label}" nudge dispatched successfully.`,
+        action: {
+          label: 'Open Chat',
+          onClick: () => nav('/ask'),
+        },
       })
     } catch (err) {
       console.error(err)
@@ -180,17 +185,17 @@ function TourTooltip({
   return (
     <div 
       {...tooltipProps} 
-      className="bg-[var(--mf-card)] border border-[var(--mf-border)] shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] rounded-3xl p-5 max-w-[340px] w-[calc(100vw-32px)] text-left focus:outline-none relative z-50 animate-in fade-in zoom-in-95 duration-200"
+      className="bg-[var(--mf-card)] border border-[var(--mf-border)] rounded-2xl md:rounded-2xl p-5 md:p-7 max-w-[320px] md:max-w-[420px] w-[calc(100vw-32px)] md:w-auto text-left focus:outline-none relative z-50 animate-in fade-in zoom-in-95 duration-200"
     >
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--mf-accent)]">
+      <div className="flex items-center justify-between mb-3 md:mb-4">
+        <span className="text-[11px] md:text-xs font-semibold uppercase tracking-widest text-[var(--mf-accent)]">
           Tour • Step {index + 1} of {size}
         </span>
         {!isLastStep && (
           <button 
             {...skipProps} 
             type="button"
-            className="text-[10px] font-semibold uppercase tracking-wider text-[var(--mf-muted)] hover:text-[var(--mf-text-strong)] transition-colors cursor-pointer"
+            className="text-[11px] md:text-xs font-semibold uppercase tracking-wider text-[var(--mf-muted)] hover:text-[var(--mf-text-strong)] transition-colors cursor-pointer"
           >
             Skip
           </button>
@@ -198,35 +203,34 @@ function TourTooltip({
       </div>
 
       {step.title && (
-        <h4 className="text-base font-semibold text-[var(--mf-text-strong)] mb-1">
+        <h4 className="text-sm md:text-base font-semibold text-[var(--mf-text-strong)] mb-1.5 md:mb-2">
           {step.title}
         </h4>
       )}
 
-      <div className="text-xs text-[var(--mf-text)] leading-relaxed mb-5">
+      <div className="text-xs md:text-sm text-[var(--mf-text)] leading-relaxed md:leading-relaxed mb-5 md:mb-6">
         {step.content}
       </div>
 
-      <div className="flex items-center justify-between border-t border-[var(--mf-border)] pt-4">
-        {/* Progress Dots */}
-        <div className="flex gap-1.5">
+      <div className="flex items-center justify-between border-t border-[var(--mf-border)] pt-4 md:pt-5">
+        <div className="flex gap-1.5 md:gap-2">
           {Array.from({ length: size }).map((_, i) => (
             <div 
               key={i} 
               className={cn(
-                "size-1.5 rounded-full transition-all duration-300",
-                i === index ? "bg-[var(--mf-accent)] w-3" : "bg-[var(--mf-muted)]/30"
+                "size-1.5 md:size-2 rounded-full transition-all duration-300",
+                i === index ? "bg-[var(--mf-accent)] w-3 md:w-5" : "bg-[var(--mf-muted)]/30"
               )}
             />
           ))}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 md:gap-3">
           {index > 0 && (
             <button 
               {...backProps} 
               type="button"
-              className="px-3.5 py-1.5 rounded-xl border border-[var(--mf-border)] text-xs font-medium text-[var(--mf-text-strong)] hover:bg-[var(--mf-hover)] transition-colors cursor-pointer active-squish"
+              className="px-3.5 md:px-5 py-2 md:py-2.5 rounded-xl border border-[var(--mf-border)] text-xs md:text-sm font-medium text-[var(--mf-text-strong)] hover:bg-[var(--mf-hover)] transition-colors cursor-pointer active:scale-95"
             >
               Back
             </button>
@@ -234,7 +238,7 @@ function TourTooltip({
           <button 
             {...primaryProps} 
             type="button"
-            className="px-4 py-1.5 rounded-xl bg-[var(--mf-accent)] text-white text-xs font-semibold hover:brightness-105 transition-all cursor-pointer active-squish"
+            className="px-4 md:px-6 py-2 md:py-2.5 rounded-xl bg-[var(--mf-accent)] text-white text-xs md:text-sm font-semibold hover:brightness-105 transition-all cursor-pointer active:scale-95"
           >
             {isLastStep ? 'Finish' : 'Next'}
           </button>
@@ -438,7 +442,11 @@ export function DashboardView() {
     navigator.clipboard.writeText(text)
     toast.success("Copied supportive gesture!", {
       description: `"${title}" template copied to clipboard.`,
-      duration: 3000
+      duration: 5000,
+      action: {
+        label: 'Open Chat',
+        onClick: () => navigate('/ask'),
+      },
     })
   }
 
@@ -571,9 +579,13 @@ export function DashboardView() {
                       onClick={() => {
                         if (user?.partnerCode) {
                           navigator.clipboard.writeText(user.partnerCode)
-                          toast.success("Pairing code copied!", {
-                            description: "Send this code to your partner so they can pair with you."
-                          })
+    toast.success("Pairing code copied!", {
+        description: "Send this code to your partner so they can pair with you.",
+        action: {
+          label: 'Go to Sync',
+          onClick: () => navigate('/sync'),
+        },
+      })
                         }
                       }}
                       className="text-[11px] font-normal bg-white dark:bg-white/10 hover:bg-gray-50 dark:hover:bg-white/15 text-[var(--mf-text-strong)] border border-[var(--mf-border)] px-3 py-1.5 rounded-xl transition-all cursor-pointer shrink-0"
@@ -606,8 +618,15 @@ export function DashboardView() {
     disableOverlayClose: true,
     scrollToFirstStep: true,
     scrollOffset: 100,
-    onEvent: handleJoyrideCallback,
+    callback: handleJoyrideCallback,
     tooltipComponent: TourTooltip,
+    spotlightPadding: 8,
+    floaterProps: {
+      disableAnimation: true,
+      options: {
+        preventOverflow: true,
+      },
+    },
     styles: {
       options: {
         overlayColor: 'rgba(0, 0, 0, 0.6)',
@@ -616,7 +635,6 @@ export function DashboardView() {
       spotlight: {
         borderRadius: '24px',
         border: '2px dashed var(--mf-accent)',
-        boxShadow: '0 0 15px var(--mf-accent)',
       }
     }
   }
@@ -701,7 +719,9 @@ export function DashboardView() {
                     Partner Empathy Support Hub
                   </h2>
                   <p className="text-xs text-[var(--mf-muted)] max-w-xl leading-relaxed">
-                    Welcome to your supportive workspace for {ladyName}. Today is her cycle Day {currentDay} in the {phase.charAt(0).toUpperCase() + phase.slice(1)} Phase. Use the checklist playbooks and translators below to coordinate active support.
+                    {data.lastPeriodStart
+                      ? `Welcome to your supportive workspace for ${ladyName}. Today is her cycle Day ${currentDay} in the ${phase.charAt(0).toUpperCase() + phase.slice(1)} Phase. Use the checklist playbooks and translators below to coordinate active support.`
+                      : `Welcome to your supportive workspace for ${ladyName}. Once she starts logging her cycle, you'll see her phase, symptoms, and personalized care suggestions here.`}
                   </p>
                 </div>
                 <div className="shrink-0 flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/40 dark:bg-white/5 border border-[var(--mf-border)] text-xs font-normal text-[var(--mf-text)] ">

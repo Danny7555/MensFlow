@@ -194,11 +194,13 @@ export async function getMonthInReview(userId: string): Promise<object> {
     periodDurations[currentStartStr] = currentDuration;
   }
 
-  // Calculate actual cycle lengths
+  // Calculate actual cycle lengths (filter outliers same as recalculateCycleMetrics)
   const cycleLengths: number[] = [];
   for (let i = 0; i < periodStarts.length - 1; i++) {
     const len = Math.round((periodStarts[i + 1].getTime() - periodStarts[i].getTime()) / (1000 * 3600 * 24));
-    cycleLengths.push(len);
+    if (len >= 15 && len <= 60) {
+      cycleLengths.push(len);
+    }
   }
 
   const lastCycleLength = cycleLengths.length > 0 ? cycleLengths[cycleLengths.length - 1] : typicalCycleDays;
@@ -220,17 +222,50 @@ export async function getMonthInReview(userId: string): Promise<object> {
       return diff >= 0 && diff < typicalCycleDays;
     });
 
+    // Phase baseline — reflects actual hormonal energy patterns
+    const phaseLabel = (ladyDash?.phaseLabel || '').toLowerCase();
+    const phaseBaseline = phaseLabel.includes('menstrual') ? -0.3
+      : phaseLabel.includes('luteal') ? -0.1
+      : phaseLabel.includes('follicular') ? 0.2
+      : phaseLabel.includes('ovulat') || phaseLabel.includes('fertile') ? 0.5
+      : 0;
+
+    // Symptom impact on energy (evidence-informed weights)
+    const symptomImpact: Record<string, number> = {
+      'phys-fatigue': -0.8,
+      'peri-brainfog': -0.8,
+      'phys-cramps': -0.4,
+      'endo-pelvicpain': -0.4,
+      'endo-backache': -0.4,
+      'phys-headache': -0.4,
+      'mood-sad': -0.25,
+      'mood-irritable': -0.25,
+      'mood-anxious': -0.25,
+      'phys-bloating': -0.2,
+      'phys-tender': -0.2,
+      'phys-acne': -0.15,
+      'life-sleep': 0.5,
+      'mood-happy': 0.3,
+      'mood-calm': 0.15,
+    };
+
     logsInCycle.forEach(log => {
       if (!activeCycleStart) return;
       const logDate = new Date(log.date + 'T12:00:00');
       const day = Math.round((logDate.getTime() - activeCycleStart.getTime()) / (1000 * 3600 * 24)) + 1;
-      
-      let score = 3;
-      if (log.symptoms.includes('mood-happy')) score += 2;
-      if (log.symptoms.includes('mood-calm')) score += 1;
-      if (log.symptoms.includes('phys-fatigue')) score -= 2;
-      if (log.symptoms.includes('phys-cramps') || log.symptoms.includes('endo-pelvicpain') || log.symptoms.includes('endo-backache')) score -= 1;
-      
+
+      // Average the impacts of all logged energy-related symptoms
+      let total = 0;
+      let count = 0;
+      for (const s of log.symptoms) {
+        if (symptomImpact[s] !== undefined) {
+          total += symptomImpact[s];
+          count++;
+        }
+      }
+      const symptomAvg = count > 0 ? total / count : 0;
+      const score = phaseBaseline + symptomAvg;
+
       dayScores[day] = score;
     });
   }

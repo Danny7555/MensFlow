@@ -773,6 +773,7 @@ function PersonalizationPanel({
   )
 }
 
+
 function AppsPanel() {
   return (
     <div className="settings-placeholder-block">
@@ -1784,9 +1785,9 @@ function AccountPanel({
 
           <div className="mb-8 pt-6 border-t border-border/50">
             <span className="text-xs font-semibold text-[var(--mf-text-strong)] uppercase tracking-wider block mb-2">System Avatars</span>
-            <p className="text-xs text-muted-foreground mb-4">
-              Choose a default avatar to represent the partner profile.
-            </p>
+<p className="text-xs text-muted-foreground mb-4">
+  {user?.role === 'partner' ? 'Choose a default avatar to represent your partner profile.' : 'Choose a default avatar for your profile.'}
+</p>
             <div className="flex flex-wrap gap-4">
               {[
                 { id: 'lotus', src: '/avatars/lotus.svg', label: 'Lotus' },

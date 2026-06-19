@@ -464,7 +464,7 @@ export function DailyQuiz() {
         <div className={cn("pt-4 border-t border-[var(--mf-border)]/50", currentQuiz ? "mt-6" : "mt-3")}>
           <div className="flex justify-between items-center text-xs mb-1.5">
             <span className="font-medium text-[var(--mf-text-strong)]">AI Assistant Unlock Progress</span>
-            <span className="text-[var(--mf-accent)] font-semibold">{(user?.xp || 0)} / 100 XP</span>
+            <span className="text-[var(--mf-accent)] font-semibold">{Math.min(user?.xp || 0, 100)} / 100 XP</span>
           </div>
           <div className="w-full bg-muted/40 h-2.5 rounded-full overflow-hidden border border-border/20 relative">
             <div 

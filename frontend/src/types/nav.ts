@@ -15,3 +15,7 @@ export type SectionId =
   | 'settings'
   | 'sync'
   | 'locked-chats'
+  | 'community'
+  | 'cycle-history'
+  | 'cycle-compare'
+  | 'medications'

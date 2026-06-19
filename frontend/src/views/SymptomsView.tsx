@@ -232,7 +232,7 @@ export function SymptomsView() {
     <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <header className="dash-header">
         <div className="dash-header-left">
-          <img src="/images/girl.png" alt="" className="dash-avatar" />
+          <img src="/images/girl.jpg" alt="" className="dash-avatar" />
           <div>
             <p className="dash-kicker">{isPartner ? "Partner's Cycle" : "Tracking"}</p>
             <div className="flex items-center gap-3">

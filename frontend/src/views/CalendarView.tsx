@@ -654,7 +654,7 @@ export function CalendarView() {
   return (
     <div className="flex flex-col h-full bg-background overflow-auto relative" suppressHydrationWarning>
       <div className="absolute right-0 top-20 opacity-10 pointer-events-none z-0">
-        <img src="/images/girl.png" alt="" className="size-[800px] object-contain" />
+        <img src="/images/girl.jpg" alt="" className="size-[800px] object-contain" />
       </div>
 
       <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 relative z-10">
@@ -753,7 +753,7 @@ export function CalendarView() {
               <div className="w-5 h-5 rounded-full border-2 border-dashed border-teal-500/85 dark:border-teal-400/80 bg-teal-50/20 dark:bg-teal-950/15 flex items-center justify-center text-[10px] text-teal-600 dark:text-teal-400 font-semibold">
                 1
               </div>
-              <span className="font-medium text-foreground/80">Fertile Window</span>
+              <span className="font-medium text-foreground/80">Ovulation</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-5 h-5 rounded-full bg-[#e0e0e0] dark:bg-muted flex items-center justify-center text-[10px] text-foreground font-semibold">
@@ -897,6 +897,24 @@ function MonthView({
             const connectsLeft = isPeriod && (isPredicted ? isPrevPredicted : isPrevLogged) && !isWeekStart
             const connectsRight = isPeriod && (isPredicted ? isNextPredicted : isNextLogged) && !isWeekEnd
 
+            // Fertile window connection checks (continuous capsule)
+            const isPrevFertile = cycleDay !== null && (() => {
+              const prevTarget = new Date(year, month, d - 1)
+              const prevCycleDay = data.lastPeriodStart 
+                ? computeCycleDayForDate(prevTarget, data.lastPeriodStart, data.typicalCycleDays) 
+                : null
+              return prevCycleDay !== null && prevCycleDay >= fertileStart && prevCycleDay <= fertileEnd
+            })()
+            const isNextFertile = cycleDay !== null && (() => {
+              const nextTarget = new Date(year, month, d + 1)
+              const nextCycleDay = data.lastPeriodStart 
+                ? computeCycleDayForDate(nextTarget, data.lastPeriodStart, data.typicalCycleDays) 
+                : null
+              return nextCycleDay !== null && nextCycleDay >= fertileStart && nextCycleDay <= fertileEnd
+            })()
+            const fertileConnectsLeft = isFertile && isPrevFertile && !isWeekStart
+            const fertileConnectsRight = isFertile && isNextFertile && !isWeekEnd
+
             // Tentative connection checks
             const isTentative = tentativeRange.has(key)
             const isTentativePrev = tentativeRange.has(prevKey)
@@ -985,9 +1003,13 @@ function MonthView({
                     </div>
                   )}
 
-                  {/* Fertile window ring (non-edit mode only) */}
+                  {/* Fertile window capsule (non-edit mode only) */}
                   {isFertile && !isEditingPeriods && (
-                    <div className="absolute inset-0 border-2 border-dashed border-teal-500/80 dark:border-teal-400/80 rounded-full bg-teal-50/20 dark:bg-teal-950/10 z-20 pointer-events-none" />
+                    <div className={cn(
+                      "absolute h-10 sm:h-11 z-0 border-y border-dashed border-teal-400/60 dark:border-teal-600/60 bg-teal-50/30 dark:bg-teal-950/15",
+                      fertileConnectsLeft ? "left-0" : "left-[calc(50%-20px)] sm:left-[calc(50%-22px)] border-l rounded-l-full",
+                      fertileConnectsRight ? "right-0" : "right-[calc(50%-20px)] sm:right-[calc(50%-22px)] border-r rounded-r-full",
+                    )} />
                   )}
 
                   <div className={cn(

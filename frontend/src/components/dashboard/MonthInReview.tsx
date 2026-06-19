@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { m } from 'framer-motion'
 import type { Variants } from 'framer-motion'
 import { Calendar, Lightning, Pulse, Heart, Sparkle, Info } from '@phosphor-icons/react'
@@ -74,7 +75,7 @@ function EmptyState() {
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
-export function MonthInReview() {
+export const MonthInReview = memo(function MonthInReview() {
   const { logs } = useStore()
   const stats = useMonthInReviewStats()
 
@@ -118,4 +119,4 @@ export function MonthInReview() {
       </div>
     </m.div>
   )
-}
+})
