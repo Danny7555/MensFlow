@@ -192,5 +192,5 @@ export function useNotificationsListener() {
       window.removeEventListener('storage', handlePingEvent as EventListener)
       clearInterval(interval)
     }
-  }, [isAuthenticated, user?.id, user?.role, incrementNotificationCount, fetchPartnerStatus])
+  }, [isAuthenticated, user?.id, user?.role, incrementNotificationCount, fetchPartnerStatus, navigate])
 }
