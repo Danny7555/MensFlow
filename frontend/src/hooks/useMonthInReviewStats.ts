@@ -74,13 +74,32 @@ export function useMonthInReviewStats(): MonthInReviewStats {
       return diff >= 0 && diff < typicalCycleDays
     })
 
-    // Phase baseline reflects biological energy patterns
+    // Phase baseline — reflects actual hormonal energy patterns
     const pl = (dashboard.phaseLabel || '').toLowerCase()
-    const phaseBaseline = pl.includes('menstrual') ? -0.5
-      : pl.includes('luteal') ? -0.3
-      : pl.includes('follicular') ? 0.5
-      : (pl.includes('ovulat') || pl.includes('fertile')) ? 1
+    const phaseBaseline = pl.includes('menstrual') ? -0.3
+      : pl.includes('luteal') ? -0.1
+      : pl.includes('follicular') ? 0.2
+      : (pl.includes('ovulat') || pl.includes('fertile')) ? 0.5
       : 0
+
+    // Symptom impact on energy (evidence-informed weights)
+    const impact: Record<string, number> = {
+      'phys-fatigue': -0.8,
+      'peri-brainfog': -0.8,
+      'phys-cramps': -0.4,
+      'endo-pelvicpain': -0.4,
+      'endo-backache': -0.4,
+      'phys-headache': -0.4,
+      'mood-sad': -0.25,
+      'mood-irritable': -0.25,
+      'mood-anxious': -0.25,
+      'phys-bloating': -0.2,
+      'phys-tender': -0.2,
+      'phys-acne': -0.15,
+      'life-sleep': 0.5,
+      'mood-happy': 0.3,
+      'mood-calm': 0.15,
+    }
 
     const dayScores: Record<number, number> = {}
     logsInCycle.forEach((log) => {
@@ -88,19 +107,16 @@ export function useMonthInReviewStats(): MonthInReviewStats {
       const logDate = parseISO(log.date)
       const day = differenceInDays(logDate, activeCycleStart) + 1
 
-      let score = phaseBaseline
-      const s = log.symptoms
-
-      if (s.includes('mood-happy')) score += 1
-      if (s.includes('mood-calm')) score += 0.5
-      if (s.includes('mood-sad') || s.includes('mood-irritable') || s.includes('mood-anxious')) score -= 0.5
-      if (s.includes('phys-fatigue') || s.includes('peri-brainfog')) score -= 1
-      if (s.includes('life-sleep')) score += 0.5
-      if (s.includes('phys-cramps') || s.includes('endo-pelvicpain') || s.includes('endo-backache')) score -= 0.5
-      if (s.includes('phys-headache') || s.includes('phys-bloating') || s.includes('phys-tender')) score -= 0.3
-      if (s.includes('phys-acne')) score -= 0.2
-
-      dayScores[day] = score
+      let total = 0
+      let count = 0
+      for (const s of log.symptoms) {
+        if (impact[s] !== undefined) {
+          total += impact[s]
+          count++
+        }
+      }
+      const symptomAvg = count > 0 ? total / count : 0
+      dayScores[day] = phaseBaseline + symptomAvg
     })
 
     // Find the 5-day window with the highest average energy
