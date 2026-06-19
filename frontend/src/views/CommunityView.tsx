@@ -11,6 +11,7 @@ import { useStore } from '../store/useStore'
 import { useCommunityPosts, useCommunityPost, useCreatePost, useAddComment, communityApi } from '../services/communityService'
 import { cn } from '../lib/utils'
 import { resolveAssetUrl } from '../lib/apiClient'
+import { useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -266,6 +267,7 @@ function CreatePostModal({ open, onClose }: { open: boolean; onClose: () => void
 
 export function CommunityView() {
   const { user } = useStore()
+  const qc = useQueryClient()
   const [category, setCategory] = useState('all')
   const [page, setPage] = useState(1)
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null)
@@ -301,6 +303,11 @@ export function CommunityView() {
     if (!confirmDeleteId) return
     try {
       await communityApi.deletePost(confirmDeleteId)
+      // Remove from cache instantly — no refetch needed
+      qc.setQueryData<import('../services/communityService').ApiPostList>(['community', 'posts', undefined, 1], (old) => {
+        if (!old) return old
+        return { ...old, posts: old.posts.filter(p => p._id !== confirmDeleteId), total: old.total - 1 }
+      })
       toast.success('Post deleted')
       setSelectedPostId(null)
     } catch (err) {

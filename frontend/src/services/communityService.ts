@@ -86,8 +86,12 @@ export function useCreatePost() {
   return useMutation({
     mutationFn: (data: { title: string; body: string; category: string; tags?: string[]; isAnonymous?: boolean; location?: string }) =>
       communityApi.createPost(data),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['community', 'posts'] })
+    onSuccess: (newPost) => {
+      // Prepend new post to cached list instantly — no refetch wait
+      qc.setQueryData<ApiPostList>(['community', 'posts', undefined, 1], (old) => {
+        if (!old) return { posts: [newPost], total: 1, page: 1, totalPages: 1 }
+        return { ...old, posts: [newPost, ...old.posts], total: old.total + 1 }
+      })
     },
   })
 }
@@ -97,9 +101,17 @@ export function useAddComment() {
   return useMutation({
     mutationFn: ({ postId, data }: { postId: string; data: { body: string; isAnonymous?: boolean } }) =>
       communityApi.addComment(postId, data),
-    onSuccess: (_, vars) => {
-      qc.invalidateQueries({ queryKey: ['community', 'post', vars.postId] })
-      qc.invalidateQueries({ queryKey: ['community', 'posts'] })
+    onSuccess: (newComment, vars) => {
+      // Append comment to cached post detail instantly
+      qc.setQueryData<ApiPostDetail>(['community', 'post', vars.postId], (old) => {
+        if (!old) return old
+        return { ...old, comments: [...old.comments, newComment], post: { ...old.post, commentCount: old.post.commentCount + 1 } }
+      })
+      // Also update the count in the list cache
+      qc.setQueryData<ApiPostList>(['community', 'posts', undefined, 1], (old) => {
+        if (!old) return old
+        return { ...old, posts: old.posts.map(p => p._id === vars.postId ? { ...p, commentCount: p.commentCount + 1 } : p) }
+      })
     },
   })
 }
