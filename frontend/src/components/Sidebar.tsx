@@ -39,6 +39,7 @@ const authItems: { id: SectionId; label: string; Icon: NavIcon }[] = [
   { id: 'symptoms', label: 'Symptoms', Icon: Pulse },
   { id: 'insights', label: 'Health insights', Icon: Target },
   { id: 'community', label: 'Community', Icon: FlowerLotus },
+  { id: 'cycle-history', label: 'Cycle History', Icon: CalendarBlank },
   { id: 'education', label: 'Education', Icon: BookOpen },
   { id: 'calendar', label: 'Calendar', Icon: CalendarBlank },
   { id: 'tracker', label: 'Tracker', Icon: CalendarHeart },
