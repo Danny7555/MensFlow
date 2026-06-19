@@ -36,13 +36,13 @@
   backdrop-filter: blur(24px) saturate(200%);
   -webkit-backdrop-filter: blur(24px) saturate(200%);
   border: 1px solid rgba(var(--mf-accent-rgb), 0.15) !important;
-  box-shadow: 0 8px 32px rgba(var(--mf-accent-rgb), 0.05);
+  box-shadow: none;
 }
 
 [data-theme='dark'] .glass-morphism {
   background: rgba(var(--mf-card-rgb, 31, 22, 29), 0.6) !important;
   border: 1px solid rgba(var(--mf-accent-rgb), 0.15) !important;
-  box-shadow: 0 8px 32px rgba(var(--mf-accent-rgb), 0.08);
+  box-shadow: none;
 }
 
 .app-main {
@@ -239,7 +239,7 @@
     width: min(288px, 86vw);
     transform: translateX(-100%);
     transition: transform 0.22s ease;
-    box-shadow: var(--mf-shadow);
+    box-shadow: none;
     z-index: 150;
   }
 
@@ -253,7 +253,7 @@
 
   .sidebar--open {
     transform: translateX(0);
-    box-shadow: 20px 0 50px -10px rgba(0, 0, 0, 0.2);
+    box-shadow: none;
   }
 }
 
@@ -603,7 +603,7 @@
   border-radius: 12px;
   border: 1px solid var(--mf-border);
   background: var(--mf-dropdown-bg);
-  box-shadow: var(--mf-shadow-pop);
+  box-shadow: none;
   z-index: 80;
 }
 
@@ -667,7 +667,7 @@
   border: 1px solid var(--mf-border);
   border-radius: 999px;
   background: var(--mf-composer-bg);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: none;
   width: 100%;
   box-sizing: border-box;
   -webkit-appearance: none;
@@ -1389,7 +1389,7 @@
   background: #ec4899;
   width: 12px;
   height: 12px;
-  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.2);
+  box-shadow: none;
 }
 
 /* Hormone Levels Section */
@@ -1714,7 +1714,7 @@
   border-radius: 12px;
   border: 1px solid var(--mf-border);
   background: var(--mf-dropdown-bg);
-  box-shadow: var(--mf-shadow-pop);
+  box-shadow: none;
   z-index: 120;
 }
 
@@ -2244,12 +2244,12 @@
 
 .input-valid:focus {
   border-color: var(--mf-accent) !important;
-  box-shadow: 0 0 0 1px var(--mf-accent-soft) !important;
+  box-shadow: none;
 }
 
 .input-invalid:focus {
   border-color: #ef4444 !important;
-  box-shadow: 0 0 0 1px #fee2e2 !important;
+  box-shadow: none;
 }
 
 /* Character counter */
@@ -2401,7 +2401,7 @@
   border-radius: 50%;
   background: #fff;
   transition: transform 0.18s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  box-shadow: none;
 }
 
 .switch--on .switch-thumb {
@@ -3511,7 +3511,7 @@
   overflow: hidden;
   margin-bottom: 2rem;
   border: 1px solid rgba(var(--mf-accent-rgb), 0.18);
-  box-shadow: 0 10px 40px -10px rgba(var(--mf-accent-rgb), 0.06);
+  box-shadow: none;
 }
 
 [data-theme='dark'] .stats-banner {
@@ -3573,7 +3573,7 @@
   display: flex;
   align-items: stretch;
   padding: 1.5rem;
-  box-shadow: 0 10px 40px -10px rgba(var(--mf-accent-rgb), 0.06);
+  box-shadow: none;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -3581,7 +3581,7 @@
   border: 1px solid rgba(var(--mf-accent-rgb), 0.4);
   background: rgba(var(--mf-card-rgb, 31, 22, 29), 0.5);
   backdrop-filter: blur(24px);
-  box-shadow: 0 10px 40px -10px rgba(var(--mf-accent-rgb), 0.12);
+  box-shadow: none;
 }
 
 .stats-card-main {
@@ -4318,15 +4318,15 @@
 
 @keyframes pulse-ring {
   0% {
-    box-shadow: 0 0 0 0 rgba(var(--mf-accent-rgb), 0.4);
+    box-shadow: none;
   }
 
   70% {
-    box-shadow: 0 0 0 10px rgba(var(--mf-accent-rgb), 0);
+    box-shadow: none;
   }
 
   100% {
-    box-shadow: 0 0 0 0 rgba(var(--mf-accent-rgb), 0);
+    box-shadow: none;
   }
 }
 
@@ -5034,7 +5034,7 @@
     color: white;
     border: none;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(var(--mf-accent-rgb, 255, 107, 139), 0.3);
+    box-shadow: none;
     transition: all 0.2s ease;
     -webkit-tap-highlight-color: transparent;
     outline: none;
@@ -5045,7 +5045,7 @@
   }
 
   .flo-fab:hover {
-    box-shadow: 0 6px 16px rgba(var(--mf-accent-rgb, 255, 107, 139), 0.4);
+    box-shadow: none;
   }
 
   .flo-fab-ripple {
@@ -5115,7 +5115,7 @@
 
 .sync-dot-active {
   animation: sync-pulse 1.5s infinite ease-in-out;
-  box-shadow: 0 0 8px var(--mf-accent);
+  box-shadow: none;
 }
 
 .sync-pill {
@@ -5154,7 +5154,7 @@
 [data-sonner-toast],
 .sonner-toast,
 [data-registry="toast"] {
-  box-shadow: none !important;
+  box-shadow: none;
 }
 
 /* Add padding-bottom on mobile when bottom navigation is visible */
@@ -5219,7 +5219,7 @@
   .flo-card {
     background: white !important;
     border: 1px solid #ccc !important;
-    box-shadow: none !important;
+    box-shadow: none;
     page-break-inside: avoid;
   }
 }
@@ -5262,7 +5262,7 @@
     top: 0;
     bottom: 0;
     left: 0;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+    box-shadow: none;
   }
   .chat-sidebar-wrapper.collapsed {
     transform: translateX(-100%);
@@ -5432,7 +5432,7 @@
   border-radius: 20px;
   border: 1px solid var(--mf-border);
   background: var(--mf-card);
-  box-shadow: none !important;
+  box-shadow: none;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -5650,7 +5650,7 @@
   .landing-center--chatting {
     border-left: 1px solid var(--mf-border) !important;
     border-right: 1px solid var(--mf-border) !important;
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.02) !important;
+    box-shadow: none;
   }
 }
 
@@ -5749,7 +5749,7 @@
   color: var(--foreground);
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  box-shadow: none;
   line-height: 1.4;
   height: 100%;
   box-sizing: border-box;
@@ -5801,13 +5801,13 @@
 
 .otp-digit-input:focus {
   border-color: #f472b6;
-  box-shadow: 0 0 0 3px rgba(244, 114, 182, 0.15);
+  box-shadow: none;
   background: var(--card);
 }
 
 .otp-digit-input.has-value {
   border-color: #ec4899;
-  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.15);
+  box-shadow: none;
   background: var(--card);
 }
 
@@ -5912,20 +5912,29 @@
   }
 
   /* iOS-style shadows */
-  .shadow-sm {
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  .shadow-sm,
+  .shadow,
+  .shadow-md,
+  .shadow-lg,
+  .shadow-xl,
+  .shadow-2xl,
+  .shadow-xs {
+    box-shadow: none;
   }
 
-  .shadow {
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  [class*="shadow-["] {
+    box-shadow: none !important;
   }
 
-  .shadow-md {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  [class*="hover:shadow"] {
+    box-shadow: none !important;
   }
 
-  .shadow-lg {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  .drop-shadow-sm,
+  .drop-shadow-md,
+  .drop-shadow-lg,
+  [class*="drop-shadow-["] {
+    filter: none !important;
   }
 
   /* iOS transition improvements */

@@ -144,7 +144,7 @@ function CreatePostModal({ open, onClose }: { open: boolean; onClose: () => void
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: '100%', opacity: 0 }}
         transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-        className="absolute bottom-0 left-0 right-0 sm:relative sm:max-w-lg sm:mx-auto sm:mt-[8vh] sm:rounded-3xl bg-white dark:bg-[var(--mf-card)] rounded-t-3xl p-6 space-y-5 max-h-[85vh] overflow-y-auto shadow-2xl"
+        className="absolute bottom-0 left-0 right-0 sm:relative sm:max-w-lg sm:mx-auto sm:mt-[8vh] sm:rounded-3xl bg-white dark:bg-[var(--mf-card)] rounded-t-3xl p-6 space-y-5 max-h-[85vh] overflow-y-auto"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
@@ -174,7 +174,7 @@ function CreatePostModal({ open, onClose }: { open: boolean; onClose: () => void
               maxLength={10000}
             />
             {body.toLowerCase().includes('@men') && !body.toLowerCase().includes('@mensflow') && (
-              <div className="absolute -bottom-2 left-3 translate-y-full bg-white dark:bg-gray-800 border border-[var(--mf-border)] rounded-xl shadow-lg px-3 py-2 text-xs text-muted-foreground flex items-center gap-2 z-10 animate-in fade-in slide-in-from-top-1">
+              <div className="absolute -bottom-2 left-3 translate-y-full bg-white dark:bg-gray-800 border border-[var(--mf-border)] rounded-xl px-3 py-2 text-xs text-muted-foreground flex items-center gap-2 z-10 animate-in fade-in slide-in-from-top-1">
                 <span className="text-purple-500 font-semibold">@mensflow</span>
                 <span>— Ask MensFlow AI to answer</span>
               </div>
@@ -403,7 +403,7 @@ export function CommunityView() {
                     maxLength={5000}
                   />
                   {commentText.toLowerCase().includes('@men') && !commentText.toLowerCase().includes('@mensflow') && (
-                    <div className="absolute -bottom-2 left-3 translate-y-full bg-white dark:bg-gray-800 border border-[var(--mf-border)] rounded-xl shadow-lg px-3 py-2 text-xs text-muted-foreground flex items-center gap-2 z-10 animate-in fade-in slide-in-from-top-1">
+                    <div className="absolute -bottom-2 left-3 translate-y-full bg-white dark:bg-gray-800 border border-[var(--mf-border)] rounded-xl px-3 py-2 text-xs text-muted-foreground flex items-center gap-2 z-10 animate-in fade-in slide-in-from-top-1">
                       <span className="text-purple-500 font-semibold">@mensflow</span>
                       <span>— Ask MensFlow AI to answer</span>
                     </div>
@@ -553,7 +553,7 @@ export function CommunityView() {
         type="button"
         onClick={() => setShowCreate(true)}
         whileTap={{ scale: 0.9 }}
-        className="fixed bottom-6 right-6 md:bottom-8 md:right-8 size-14 rounded-full bg-[var(--mf-accent)] text-white flex items-center justify-center shadow-lg shadow-[var(--mf-accent)]/30 hover:brightness-110 transition-all cursor-pointer z-40"
+        className="fixed bottom-6 right-6 md:bottom-8 md:right-8 size-14 rounded-full bg-[var(--mf-accent)] text-white flex items-center justify-center hover:brightness-110 transition-all cursor-pointer z-40"
       >
         <Plus size={26} weight="bold" />
       </m.button>
