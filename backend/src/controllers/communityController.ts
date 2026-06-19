@@ -2,7 +2,6 @@ import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../interfaces';
 import { CommunityPost, CommunityComment } from '../models/Community';
 import { User } from '../models/User';
-import { Settings } from '../models/Settings';
 import { objectRecord, requiredString, optionalString } from '../utils/validation';
 import { Types } from 'mongoose';
 
@@ -300,17 +299,17 @@ export async function deletePost(req: AuthRequest, res: Response, next: NextFunc
 }
 
 async function notifyMention(mentionedUser: Record<string, unknown>, commenter: Record<string, unknown>, post: Record<string, unknown>, commentBody: string): Promise<void> {
-  const settings = await Settings.findOne({ userId: mentionedUser._id }).lean();
-  if (!settings?.notificationsEmail) return;
-
   const commenterName = (commenter as any).name || 'Someone';
   const postTitle = (post as any).title || 'a post';
+  const mentionedEmail = (mentionedUser as any).email;
+  if (!mentionedEmail) return;
+
   const preview = commentBody.length > 100 ? commentBody.slice(0, 100) + '...' : commentBody;
 
   try {
     const { sendReminderEmail } = await import('../services/emailService');
     await sendReminderEmail({
-      toEmail: (mentionedUser as any).email || '',
+      toEmail: mentionedEmail,
       toName: (mentionedUser as any).name || 'there',
       reminderTitle: `@${commenterName} mentioned you`,
       reminderMessage: `${commenterName} mentioned you in a comment on "${postTitle}":\n\n${preview}`,
