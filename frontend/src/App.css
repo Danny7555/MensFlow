@@ -164,6 +164,11 @@
   transition: background 0.15s ease;
 }
 
+.sidebar-link--child {
+  padding-left: 2.5rem;
+  font-size: 0.8rem;
+}
+
 .sidebar-link-icon {
   flex-shrink: 0;
   opacity: 0.88;
@@ -186,6 +191,11 @@
 }
 
 .sidebar-link--active .sidebar-link-icon {
+  color: var(--mf-accent);
+}
+
+.sidebar-link--child.sidebar-link--active {
+  background: var(--mf-accent-soft);
   color: var(--mf-accent);
 }
 

@@ -1,16 +1,20 @@
 import type { ComponentType } from 'react'
-import { NavLink } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { NavLink, useLocation } from 'react-router-dom'
 import { m } from 'framer-motion'
 import type { IconProps } from '@phosphor-icons/react'
 import {
   BookOpen,
   CalendarBlank,
   CalendarHeart,
+  CaretDown,
+  ChartBar,
   ChatCircle,
   FlowerLotus,
   GearSix,
   Heart,
   House,
+  Pill,
   Pulse,
   Target,
   X,
@@ -27,19 +31,29 @@ import { resolveAssetUrl } from '../lib/apiClient'
 
 type NavIcon = ComponentType<IconProps>
 
-const guestItems: { id: SectionId; label: string; Icon: NavIcon }[] = [
+interface NavItem {
+  id: SectionId
+  label: string
+  Icon: NavIcon
+  children?: { id: SectionId; label: string; Icon?: NavIcon }[]
+}
+
+const guestItems: NavItem[] = [
   { id: 'dashboard', label: 'Home', Icon: House },
   { id: 'education', label: 'Education', Icon: BookOpen },
   { id: 'settings', label: 'Settings', Icon: GearSix },
 ]
 
-const authItems: { id: SectionId; label: string; Icon: NavIcon }[] = [
+const authItems: NavItem[] = [
   { id: 'dashboard', label: 'Home', Icon: House },
   { id: 'ask', label: 'Ask MensFlow', Icon: ChatCircle },
   { id: 'symptoms', label: 'Symptoms', Icon: Pulse },
   { id: 'insights', label: 'Health insights', Icon: Target },
   { id: 'community', label: 'Community', Icon: FlowerLotus },
-  { id: 'cycle-history', label: 'Cycle History', Icon: CalendarBlank },
+  { id: 'cycle-history', label: 'Cycle History', Icon: CalendarBlank, children: [
+    { id: 'cycle-compare', label: 'Compare Cycles', Icon: ChartBar },
+    { id: 'medications', label: 'Medications', Icon: Pill },
+  ] },
   { id: 'education', label: 'Education', Icon: BookOpen },
   { id: 'calendar', label: 'Calendar', Icon: CalendarBlank },
   { id: 'tracker', label: 'Tracker', Icon: CalendarHeart },
@@ -73,21 +87,23 @@ export function Sidebar({
   const { logout, onboardingCompleted } = useAuth()
 
   const { dashboard: data, user, partnerStatus } = useStore()
+  const location = useLocation()
 
   const rawItems = isAuthenticated ? [...authItems] : [...guestItems]
 
-
-  const items = rawItems.filter(item => {
-    // If onboarding is not completed, only show the chat assistant
-    if (!onboardingCompleted && item.id !== 'ask') return false
-    // If user has educational access, restrict dashboard, symptoms, insights, calendar, tracker, tips, sync.
-    // So only keep ask, education, settings, and locked-chats.
-    if (isAuthenticated && user?.accessLevel === 'educational') {
-      const allowedEducationalIds = ['ask', 'education', 'settings']
-      if (!allowedEducationalIds.includes(item.id)) return false
+  // Track which parent items are expanded
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({})
+  // Auto-expand parent if currently on a child page
+  useEffect(() => {
+    for (const item of rawItems) {
+      if (item.children) {
+        const onChildPage = item.children.some(c => location.pathname === `/${c.id}`)
+        if (onChildPage) {
+          setExpanded(prev => ({ ...prev, [item.id]: true }))
+        }
+      }
     }
-    return true
-  })
+  }, [location.pathname])
 
   const collapsed = !isMobile && desktopCollapsed
   const navIconSize = collapsed ? 22 : 20
@@ -192,21 +208,64 @@ export function Sidebar({
         )}
 
         <nav className="sidebar-nav">
-          {items.map(({ id, label, Icon }) => (
-            <NavLink
-              key={id}
-              to={id === 'dashboard' ? (isAuthenticated ? '/dashboard' : '/') : `/${id}`}
-              title={collapsed ? label : undefined}
-              className={({ isActive }) => cn(
-                "sidebar-link transition-all duration-200",
-                isActive && "sidebar-link--active"
-              )}
-              onClick={onCloseMobile}
-            >
-              <Icon size={navIconSize} className="sidebar-link-icon" aria-hidden />
-              <span className="sidebar-link-label">{label}</span>
-            </NavLink>
-          ))}
+          {rawItems.map((item) => {
+            // Check if this parent or any of its children should be visible
+            const parentVisible = !onboardingCompleted && item.id !== 'ask' ? false
+              : isAuthenticated && user?.accessLevel === 'educational' && !['ask', 'education', 'settings', 'cycle-history'].includes(item.id) ? false
+              : true
+            if (!parentVisible) return null
+            return (
+              <div key={item.id}>
+                <div className="flex items-center">
+                  <NavLink
+                    to={item.id === 'dashboard' ? (isAuthenticated ? '/dashboard' : '/') : `/${item.id}`}
+                    title={collapsed ? item.label : undefined}
+                    className={({ isActive }) => cn(
+                      "sidebar-link flex-1 transition-all duration-200",
+                      isActive && "sidebar-link--active"
+                    )}
+                    onClick={onCloseMobile}
+                  >
+                    <item.Icon size={navIconSize} className="sidebar-link-icon" aria-hidden />
+                    <span className="sidebar-link-label">{item.label}</span>
+                  </NavLink>
+                  {item.children && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setExpanded(prev => ({ ...prev, [item.id]: !prev[item.id] }))
+                      }}
+                      className="flex items-center justify-center size-8 mr-1 text-muted-foreground hover:text-[var(--mf-text-strong)] transition-colors cursor-pointer bg-transparent border-none rounded-lg hover:bg-[var(--mf-hover)]"
+                      aria-label={expanded[item.id] ? 'Collapse' : 'Expand'}
+                    >
+                      <CaretDown size={14} className={`transition-transform duration-200 ${expanded[item.id] ? '' : '-rotate-90'}`} />
+                    </button>
+                  )}
+                </div>
+                {item.children && expanded[item.id] && item.children.map(child => {
+                  const childVisible = isAuthenticated && user?.accessLevel === 'educational' && !['cycle-compare', 'medications'].includes(child.id) ? false : true
+                  if (!childVisible) return null
+                  const ChildIcon = child.Icon
+                  return (
+                    <NavLink
+                      key={child.id}
+                      to={`/${child.id}`}
+                      title={collapsed ? child.label : undefined}
+                      className={({ isActive }) => cn(
+                        "sidebar-link sidebar-link--child transition-all duration-200",
+                        isActive && "sidebar-link--active"
+                      )}
+                      onClick={onCloseMobile}
+                    >
+                      {ChildIcon && <ChildIcon size={navIconSize} className="sidebar-link-icon" aria-hidden />}
+                      <span className="sidebar-link-label text-xs">{child.label}</span>
+                    </NavLink>
+                  )
+                })}
+              </div>
+            )
+          })}
         </nav>
 
         {!isAuthenticated ? (

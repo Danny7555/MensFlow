@@ -41,6 +41,8 @@ const SyncView = lazy(() => import('./views/SyncView').then(m => ({ default: m.S
 const LockedChatsView = lazy(() => import('./views/LockedChatsView').then(m => ({ default: m.LockedChatsView })))
 const CommunityView = lazy(() => import('./views/CommunityView').then(m => ({ default: m.CommunityView })))
 const CycleHistoryView = lazy(() => import('./views/CycleHistoryView').then(m => ({ default: m.CycleHistoryView })))
+const CycleCompareView = lazy(() => import('./views/CycleCompareView').then(m => ({ default: m.CycleCompareView })))
+const MedicationsView = lazy(() => import('./views/MedicationsView').then(m => ({ default: m.MedicationsView })))
 const NotFoundView = lazy(() => import('./views/NotFoundView').then(m => ({ default: m.NotFoundView })))
 
 
@@ -509,6 +511,8 @@ function MainShell() {
                     <Route path="/symptoms" element={<Navigate to="/" replace />} />
                     <Route path="/notifications" element={<Navigate to="/" replace />} />
                     <Route path="/history" element={<Navigate to="/" replace />} />
+                    <Route path="/cycle-compare" element={<Navigate to="/" replace />} />
+                    <Route path="/medications" element={<Navigate to="/" replace />} />
                     <Route path="*" element={<ErrorBoundary><NotFoundView /></ErrorBoundary>} />
                   </>
                 ) : (
@@ -546,6 +550,8 @@ function MainShell() {
                     <Route path="/sync" element={<ErrorBoundary><AccessGate><SyncView /></AccessGate></ErrorBoundary>} />
                     <Route path="/community" element={<ErrorBoundary><AccessGate><CommunityView /></AccessGate></ErrorBoundary>} />
                     <Route path="/cycle-history" element={<ErrorBoundary><AccessGate><CycleHistoryView /></AccessGate></ErrorBoundary>} />
+                    <Route path="/cycle-compare" element={<ErrorBoundary><AccessGate><CycleCompareView /></AccessGate></ErrorBoundary>} />
+                    <Route path="/medications" element={<ErrorBoundary><AccessGate><MedicationsView /></AccessGate></ErrorBoundary>} />
                     <Route path="/locked-chats" element={<ErrorBoundary><LockedChatsView /></ErrorBoundary>} />
                     <Route path="*" element={<ErrorBoundary><NotFoundView /></ErrorBoundary>} />
                   </>
