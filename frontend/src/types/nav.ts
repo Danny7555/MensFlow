@@ -17,4 +17,3 @@ export type SectionId =
   | 'locked-chats'
   | 'community'
   | 'cycle-history'
-  | 'medications'

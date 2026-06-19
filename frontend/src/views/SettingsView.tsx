@@ -26,10 +26,12 @@ import {
   LockKey,
   FileText,
   Brain,
+  Flask,
 } from '@phosphor-icons/react'
 import { DoctorReportModal } from '../components/dashboard/DoctorReportModal'
 import { toast } from 'sonner'
 import { useAIUsageStats } from '../services/chatService'
+import { useMedications, useCreateMedication, useDeleteMedication } from '../services/medicationService'
 import {
   Dialog,
   DialogContent,
@@ -68,6 +70,7 @@ const SETTINGS_CATS = [
   'general',
   'notifications',
   'personalization',
+  'medications',
   'apps',
   'data_controls',
   'security',
@@ -85,6 +88,7 @@ const NAV: {
     { id: 'general', label: 'General', Icon: GearSix },
     { id: 'notifications', label: 'Notifications', Icon: Bell },
     { id: 'personalization', label: 'Personalization', Icon: Sparkle },
+    { id: 'medications', label: 'Medications', Icon: Flask },
     { id: 'apps', label: 'Apps', Icon: SquaresFour },
     { id: 'data_controls', label: 'Data controls', Icon: Database },
     { id: 'security', label: 'Security', Icon: ShieldCheck },
@@ -770,6 +774,76 @@ function PersonalizationPanel({
         ]}
       />
     </>
+  )
+}
+
+function MedicationsSettingsPanel() {
+  const { data: meds, isLoading } = useMedications()
+  const createMed = useCreateMedication()
+  const deleteMed = useDeleteMedication()
+  const [name, setName] = useState('')
+  const [dosage, setDosage] = useState('')
+  const [frequency, setFrequency] = useState('daily')
+  const [timeOfDay, setTimeOfDay] = useState('08:00')
+  const [notes, setNotes] = useState('')
+
+  const handleAdd = async () => {
+    if (!name.trim()) return
+    try {
+      await createMed.mutateAsync({ name: name.trim(), dosage, frequency, timeOfDay, notes })
+      toast.success('Medication added')
+      setName('')
+      setDosage('')
+      setFrequency('daily')
+      setTimeOfDay('08:00')
+      setNotes('')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to add medication')
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="settings-panel-intro">Track your pills, supplements, and treatments.</p>
+
+      <div className="flex items-center gap-2">
+        <input value={name} onChange={e => setName(e.target.value)} placeholder="Medication name" className="flex-1 h-10 px-3 rounded-xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm" maxLength={100} />
+        <input value={dosage} onChange={e => setDosage(e.target.value)} placeholder="Dosage" className="w-24 h-10 px-3 rounded-xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm" maxLength={50} />
+        <select value={frequency} onChange={e => setFrequency(e.target.value)} className="h-10 px-3 rounded-xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm">
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="as-needed">PRN</option>
+        </select>
+      </div>
+      <div className="flex items-center gap-2">
+        <input type="time" value={timeOfDay} onChange={e => setTimeOfDay(e.target.value)} className="h-10 px-3 rounded-xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm" />
+        <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notes" className="flex-1 h-10 px-3 rounded-xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm" maxLength={500} />
+        <button type="button" onClick={handleAdd} disabled={!name.trim() || createMed.isPending} className="h-10 px-4 rounded-xl bg-[var(--mf-accent)] text-white text-sm font-medium hover:brightness-110 disabled:opacity-40 transition-all cursor-pointer whitespace-nowrap">{createMed.isPending ? '...' : 'Add'}</button>
+      </div>
+
+      <div className="space-y-2">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-6">
+            <div className="size-6 rounded-full border-2 border-[var(--mf-border)] border-t-[var(--mf-accent)] animate-spin" />
+          </div>
+        ) : meds && meds.length > 0 ? (
+          meds.map(med => (
+            <div key={med._id} className="flex items-center justify-between py-2 px-3 rounded-xl bg-[var(--mf-elevated)] border border-[var(--mf-border)]">
+              <div className="min-w-0 flex-1">
+                <span className="text-sm font-medium text-[var(--mf-text-strong)]">{med.name}</span>
+                {med.dosage && <span className="text-xs text-muted-foreground ml-2">{med.dosage}</span>}
+                <div className="text-[11px] text-muted-foreground mt-0.5">{med.timeOfDay} · {med.frequency}</div>
+              </div>
+              <button type="button" onClick={() => { if (window.confirm('Remove?')) deleteMed.mutate(med._id) }} className="text-muted-foreground hover:text-[var(--mf-danger)] transition-colors cursor-pointer p-1">
+                <Trash size={14} />
+              </button>
+            </div>
+          ))
+        ) : (
+          <p className="text-xs text-muted-foreground text-center py-4">No medications added yet.</p>
+        )}
+      </div>
+    </div>
   )
 }
 
@@ -2045,6 +2119,9 @@ export function SettingsView({
           updateSettings={updateSettings}
         />
       )
+      break
+    case 'medications':
+      panel = <MedicationsSettingsPanel />
       break
     case 'apps':
       panel = <AppsPanel />
