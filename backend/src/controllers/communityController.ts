@@ -2,6 +2,7 @@ import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../interfaces';
 import { CommunityPost, CommunityComment } from '../models/Community';
 import { User } from '../models/User';
+import { Settings } from '../models/Settings';
 import { objectRecord, requiredString, optionalString } from '../utils/validation';
 import { Types } from 'mongoose';
 
@@ -197,7 +198,7 @@ export async function addComment(req: AuthRequest, res: Response, next: NextFunc
     const commentBody = requiredString(body.body, 'body', { min: 1, max: 5000 });
     const isAnonymous = body.isAnonymous !== false;
 
-    const post = await CommunityPost.findById(postId);
+    const post = await CommunityPost.findById(postId).lean();
     if (!post) {
       res.status(404).json({ error: 'Post not found' });
       return;
@@ -217,6 +218,24 @@ export async function addComment(req: AuthRequest, res: Response, next: NextFunc
       generateAICommunityReply(post._id.toString(), post.title, post.body, commentBody).catch((err: unknown) =>
         console.error('[Community AI] Failed to generate reply from comment:', err)
       );
+    }
+
+    // Detect @username mentions and notify (non-blocking)
+    const mentionMatch = commentBody.match(/@(\w+)/g);
+    if (mentionMatch) {
+      for (const mention of mentionMatch) {
+        const name = mention.slice(1); // remove @
+        if (name.toLowerCase() === 'mensflow') continue; // already handled above
+        const mentionedUser = await User.findOne({ name: new RegExp(`^${name}$`, 'i') }).lean();
+        if (mentionedUser && String(mentionedUser._id) !== req.user!.id) {
+          const commenter = await User.findById(req.user!.id).select('name').lean();
+          if (commenter) {
+            notifyMention(mentionedUser, commenter, post, commentBody).catch((err: unknown) =>
+              console.error('[Community] Failed to send mention notification:', err)
+            );
+          }
+        }
+      }
     }
 
     const u = await User.findById(req.user!.id).select('name role').lean();
@@ -249,5 +268,26 @@ export async function deletePost(req: AuthRequest, res: Response, next: NextFunc
     res.json({ success: true });
   } catch (err) {
     next(err);
+  }
+}
+
+async function notifyMention(mentionedUser: Record<string, unknown>, commenter: Record<string, unknown>, post: Record<string, unknown>, commentBody: string): Promise<void> {
+  const settings = await Settings.findOne({ userId: mentionedUser._id }).lean();
+  if (!settings?.notificationsEmail) return;
+
+  const commenterName = (commenter as any).name || 'Someone';
+  const postTitle = (post as any).title || 'a post';
+  const preview = commentBody.length > 100 ? commentBody.slice(0, 100) + '...' : commentBody;
+
+  try {
+    const { sendReminderEmail } = await import('../services/emailService');
+    await sendReminderEmail({
+      toEmail: (mentionedUser as any).email || '',
+      toName: (mentionedUser as any).name || 'there',
+      reminderTitle: `@${commenterName} mentioned you`,
+      reminderMessage: `${commenterName} mentioned you in a comment on "${postTitle}":\n\n${preview}`,
+    });
+  } catch {
+    // Email sending failed — silently ignore
   }
 }
