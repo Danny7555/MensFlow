@@ -343,20 +343,20 @@ export async function sendGuardianEmail(opts: SendGuardianEmailOptions): Promise
   }
 
   const fromField = fromEmail.includes('<') && fromEmail.includes('>') ? fromEmail : `"${fromName}" <${fromEmail}>`;
-  const info = await transporter.sendMail({
+  const info = await withRetry(() => transporter.sendMail({
     from: fromField,
     to: toEmail,
     subject: `MensFlow: Guardian Supervision Enabled`,
     html,
     text: `Guardian Supervision Enabled\n\nHello,\n\nThis email address (${toEmail}) has been set as the contact for supervision and account recovery for ${userName}'s MensFlow account.\n\nIf you did not authorize this, please contact support@mensflow.app immediately.`,
-  });
+  }), { maxAttempts: 3, baseDelayMs: 1_000 });
 
   const rawPreview = nodemailer.getTestMessageUrl(info);
   if (rawPreview) {
     previewUrl = String(rawPreview);
-    console.log(`[Email] Guardian preview URL: ${previewUrl}`);
+    logger.info(`[Email] Guardian preview URL: ${previewUrl}`);
   }
 
-  console.log(`[Email] Guardian alert sent: ${info.messageId} → ${toEmail}`);
+  logger.info(`[Email] Guardian alert sent: ${info.messageId} → ${toEmail}`);
   return { success: true, previewUrl };
 }

@@ -5,6 +5,8 @@ import nodemailer from 'nodemailer';
 import { User } from '../models/User';
 import { getJwtSecret } from '../config/env';
 import { httpError } from '../utils/http';
+import { withRetry } from '../utils/retry';
+import { logger } from '../utils/logger';
 
 const OTP_EXPIRY_MINUTES = 10;
 const OTP_TEMP_TOKEN_MINUTES = 15;
@@ -211,20 +213,20 @@ export async function createResetSession(email: string): Promise<string | null> 
     const transporter = await getTransporter();
 
     const fromField = fromEmail.includes('<') && fromEmail.includes('>') ? fromEmail : `"${fromName}" <${fromEmail}>`;
-    const info = await transporter.sendMail({
+    const info = await withRetry(() => transporter.sendMail({
       from: fromField,
       to: `"${user.name}" <${recipientEmail}>`,
       subject: 'MensFlow — Reset your password',
       html: buildOtpEmailHtml(user.name, code, OTP_EXPIRY_MINUTES),
       text: `Your MensFlow password reset code: ${code}\n\nExpires in ${OTP_EXPIRY_MINUTES} minutes. Do not share it with anyone.`,
-    });
+    }), { maxAttempts: 3, baseDelayMs: 1_000 });
 
     const previewUrl = nodemailer.getTestMessageUrl(info);
     if (previewUrl) {
-      console.log(`[RESET] 📧 Preview reset email at: ${previewUrl}`);
+      logger.info(`[RESET] Preview reset email at: ${previewUrl}`);
     }
   } catch (emailErr) {
-    console.error('[RESET] Failed to send reset email:', emailErr);
+    logger.error('[RESET] Failed to send reset email', { error: emailErr instanceof Error ? emailErr.message : String(emailErr) });
   }
 
   return tempToken;
@@ -259,21 +261,20 @@ export async function createOtpSession(userId: string): Promise<string> {
     const transporter = await getTransporter();
 
     const fromField = fromEmail.includes('<') && fromEmail.includes('>') ? fromEmail : `"${fromName}" <${fromEmail}>`;
-    const info = await transporter.sendMail({
+    const info = await withRetry(() => transporter.sendMail({
       from: fromField,
       to: `"${user.name}" <${recipientEmail}>`,
       subject: 'MensFlow — Your verification code',
       html: buildOtpEmailHtml(user.name, code, OTP_EXPIRY_MINUTES),
       text: `Your MensFlow verification code: ${code}\n\nExpires in ${OTP_EXPIRY_MINUTES} minutes. Do not share it with anyone.`,
-    });
+    }), { maxAttempts: 3, baseDelayMs: 1_000 });
 
     const previewUrl = nodemailer.getTestMessageUrl(info);
     if (previewUrl) {
-      console.log(`[OTP] 📧 Preview your code at: ${previewUrl}`);
+      logger.info(`[OTP] Preview your code at: ${previewUrl}`);
     }
   } catch (emailErr) {
-    console.error('[OTP] Failed to send OTP email:', emailErr);
-    // Don't block auth — user can use resend
+    logger.error('[OTP] Failed to send OTP email', { error: emailErr instanceof Error ? emailErr.message : String(emailErr) });
   }
 
   return tempToken;
