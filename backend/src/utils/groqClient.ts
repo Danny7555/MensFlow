@@ -1,6 +1,12 @@
 import { logAIInteraction, AIFeature } from './aiLogger';
+import { CircuitBreaker } from './circuitBreaker';
 
 const GROQ_API_BASE = 'https://api.groq.com/openai/v1/chat/completions';
+const groqBreaker = new CircuitBreaker({
+  name: 'groq-api',
+  failureThreshold: 5,
+  resetTimeoutMs: 30_000,
+});
 
 export interface GroqCallParams {
   messages: Array<{ role: string; content: string }>;
@@ -39,7 +45,7 @@ export async function callGroq(params: GroqCallParams): Promise<GroqCallResult> 
   const start = Date.now();
 
   try {
-    const response = await fetch(GROQ_API_BASE, {
+    const response = await groqBreaker.call(() => fetch(GROQ_API_BASE, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -52,7 +58,7 @@ export async function callGroq(params: GroqCallParams): Promise<GroqCallResult> 
         max_tokens: params.maxTokens,
       }),
       signal: AbortSignal.timeout(30000),
-    });
+    }));
 
     const latencyMs = Date.now() - start;
 

@@ -1,4 +1,6 @@
 import nodemailer from 'nodemailer';
+import { withRetry } from '../utils/retry';
+import { logger } from '../utils/logger';
 
 // ─── Transporter ──────────────────────────────────────────────────────────────
 
@@ -178,21 +180,21 @@ export async function sendInviteEmail(opts: SendInviteEmailOptions): Promise<{ s
   }
 
   const fromField = fromEmail.includes('<') && fromEmail.includes('>') ? fromEmail : `"${fromName}" <${fromEmail}>`;
-  const info = await transporter.sendMail({
+  const info = await withRetry(() => transporter.sendMail({
     from: fromField,
     to: toEmail,
     subject: `${inviterName} invited you to MensFlow`,
     html,
     text: `${inviterName} has invited you to MensFlow.\n\nCreate your account and pair instantly:\n${signupLink}\n\nOr use partner code: ${partnerCode}`,
-  });
+  }), { maxAttempts: 3, baseDelayMs: 1_000 });
 
   const rawPreview = nodemailer.getTestMessageUrl(info);
   if (rawPreview) {
     previewUrl = String(rawPreview);
-    console.log(`[Email] Invite preview URL: ${previewUrl}`);
+    logger.info(`[Email] Invite preview URL: ${previewUrl}`);
   }
 
-  console.log(`[Email] Invite sent: ${info.messageId} → ${toEmail}`);
+  logger.info(`[Email] Invite sent: ${info.messageId} → ${toEmail}`);
   return { success: true, previewUrl };
 }
 
@@ -229,21 +231,21 @@ export async function sendReminderEmail(opts: SendEmailOptions): Promise<{ succe
   }
 
   const fromField = fromEmail.includes('<') && fromEmail.includes('>') ? fromEmail : `"${fromName}" <${fromEmail}>`;
-  const info = await transporter.sendMail({
+  const info = await withRetry(() => transporter.sendMail({
     from: fromField,
     to: `"${toName}" <${toEmail}>`,
     subject: `MensFlow: ${reminderTitle}`,
     html,
     text: `${reminderTitle}\n\n${reminderMessage}\n\nOpen MensFlow at https://mens-flow-f7jm.vercel.app`,
-  });
+  }), { maxAttempts: 3, baseDelayMs: 1_000 });
 
   const rawPreview = nodemailer.getTestMessageUrl(info);
   if (rawPreview) {
     previewUrl = String(rawPreview);
-    console.log(`[Email] Preview URL: ${previewUrl}`);
+    logger.info(`[Email] Preview URL: ${previewUrl}`);
   }
 
-  console.log(`[Email] Message sent: ${info.messageId} → ${toEmail}`);
+  logger.info(`[Email] Message sent: ${info.messageId} → ${toEmail}`);
   return { success: true, previewUrl };
 }
 

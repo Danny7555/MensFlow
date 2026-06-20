@@ -124,15 +124,25 @@ app.get('/', (_req: Request, res: Response) => {
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 
+const startTime = Date.now();
+
 app.get('/health', (_req: Request, res: Response) => {
   const dbState = mongoose.connection.readyState;
-  // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
   const dbStatus = ['disconnected', 'connected', 'connecting', 'disconnecting'][dbState] ?? 'unknown';
   const isHealthy = dbState === 1;
+  const mem = process.memoryUsage();
 
   res.status(isHealthy ? 200 : 503).json({
     status: isHealthy ? 'ok' : 'degraded',
     db: dbStatus,
+    uptime: Math.floor((Date.now() - startTime) / 1000),
+    memory: {
+      rss: Math.round(mem.rss / 1024 / 1024),
+      heapUsed: Math.round(mem.heapUsed / 1024 / 1024),
+      heapTotal: Math.round(mem.heapTotal / 1024 / 1024),
+    },
+    version: process.env.npm_package_version || '1.0.0',
+    node: process.version,
     timestamp: new Date().toISOString(),
   });
 });

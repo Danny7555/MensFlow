@@ -1,5 +1,9 @@
 import mongoose from 'mongoose';
 import { logger } from '../utils/logger';
+import { withRetry } from '../utils/retry';
+
+const MAX_RECONNECT_ATTEMPTS = 5;
+const RECONNECT_BASE_DELAY = 1_000;
 
 export async function connectDatabase(): Promise<void> {
   if (mongoose.connection.readyState >= 1) {
@@ -28,7 +32,7 @@ export async function connectDatabase(): Promise<void> {
     logger.error('MongoDB connection error', { error: err.message });
   });
 
-  await mongoose.connect(uri, {
+  await withRetry(() => mongoose.connect(uri, {
     maxPoolSize: parseInt(process.env.MONGO_POOL_SIZE || (process.env.VERCEL === '1' ? '2' : '20'), 10),
     minPoolSize: 0,
     serverSelectionTimeoutMS: 8_000,
@@ -37,5 +41,12 @@ export async function connectDatabase(): Promise<void> {
     connectTimeoutMS: 10_000,
     socketTimeoutMS: 30_000,
     bufferCommands: false,
+  }), {
+    maxAttempts: MAX_RECONNECT_ATTEMPTS,
+    baseDelayMs: RECONNECT_BASE_DELAY,
+    maxDelayMs: 10_000,
+    onRetry: (attempt, _err, delayMs) => {
+      logger.warn(`MongoDB connection attempt ${attempt + 1}/${MAX_RECONNECT_ATTEMPTS} failed — retrying in ${delayMs}ms`);
+    },
   });
 }
