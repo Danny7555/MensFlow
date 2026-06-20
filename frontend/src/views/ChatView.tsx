@@ -908,29 +908,33 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
           </div>
         ) : isInitialState ? (
           /* Render Landing view */
-          <div className="flex-1 overflow-y-auto flex items-center justify-center p-4">
-            <div className="landing-center animate-in fade-in zoom-in duration-700 max-w-[800px] w-full px-4 mx-auto">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-5 flex flex-col">
+            <div className="landing-center animate-in fade-in zoom-in duration-700 w-full mx-auto my-auto">
               <div className="landing-hero-image-wrap">
+                <div className="landing-hero-glow" />
                 <img src="/images/lady.jpg" alt="" className="landing-hero-image" />
               </div>
-              <h1 className="landing-title">Ask MensFlow about your cycle?</h1>
-              <div className="landing-sub flex items-center gap-1 justify-center max-w-[500px] mx-auto text-center leading-relaxed">
-                Education, tracking context, and supportive guidance; <strong className="font-semibold text-rose-600 dark:text-rose-400">not a substitute for medical care.</strong>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button type="button" className="p-1 hover:bg-black/5 rounded-full transition-colors inline-flex items-center justify-center cursor-help" aria-label="Medical disclaimer information">
-                      <Question size={14} weight="bold" className="opacity-40" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="text-center">
-                    <p className="max-w-[240px]">
-                      MensFlow is an educational tool. Always consult a healthcare professional for medical advice, diagnosis, or treatment.
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
+              <div className="w-full max-w-[500px] mx-auto space-y-1 sm:space-y-1.5">
+                <h1 className="landing-title">Ask MensFlow about your cycle?</h1>
+                <p className="landing-sub">
+                  <span>Education, tracking context, and supportive guidance; </span>
+                  <strong className="font-semibold text-rose-600 dark:text-rose-400">not a substitute for medical care.</strong>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button type="button" className="p-1 hover:bg-black/5 rounded-full transition-colors inline-flex items-center justify-center cursor-help align-middle ml-0.5" aria-label="Medical disclaimer information">
+                        <Question size={14} weight="bold" className="opacity-40" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="text-center">
+                      <p className="max-w-[240px]">
+                        MensFlow is an educational tool. Always consult a healthcare professional for medical advice, diagnosis, or treatment.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </p>
               </div>
 
-              <div className="landing-composer-wrap mt-8">
+              <div className="landing-composer-wrap mt-5 sm:mt-7">
                 {!suggestionsLoading && suggestions && suggestions.length > 0 && !isTyping && !isLoading && (
                   <div className="chat-suggestions-container">
                     <div className="chat-suggestions-label">

@@ -394,7 +394,7 @@ export function WeatherAlertCard() {
           >
             <CloudSun size={28} />
           </m.div>
-          <span className="text-xs text-[var(--mf-muted)] tracking-wider">Syncing local atmospheric alerts…</span>
+          <span className="text-xs text-[var(--mf-muted)] tracking-wider">Loading weather…</span>
         </div>
       </div>
     )
@@ -436,6 +436,14 @@ export function WeatherAlertCard() {
 
         {/* Info Badges Row */}
         <div className="flex flex-wrap items-center gap-1.5 mb-3.5">
+          <m.span 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.1 }}
+            className={`px-2.5 py-0.5 rounded-full text-[9px] font-medium ${style.badge}`}
+          >
+            {style.label}
+          </m.span>
           <span className="px-2 py-0.5 rounded-full text-[9px] font-medium bg-[var(--mf-elevated)] text-[var(--mf-text-strong)] border border-[var(--mf-border)]">
             {weather.humidity}% Humidity
           </span>
@@ -452,20 +460,24 @@ export function WeatherAlertCard() {
 
       {/* Recommended Tips */}
       <div className="relative z-10 pt-3 border-t border-[var(--mf-border)]">
-        <span className="text-[9px] font-semibold text-[var(--mf-muted)] uppercase tracking-wider block mb-2.5">
+        <span className="text-[9px] font-semibold text-[var(--mf-muted)] uppercase tracking-wider block mb-3">
           Recommended
+          <span className="ml-2 text-[var(--mf-accent)] font-normal normal-case tracking-normal">{weatherInfo.alertData.recommended.length} tips</span>
         </span>
         <div className="space-y-2">
           {weatherInfo.alertData.recommended.map((tip, idx) => (
-            <div
+            <m.div
               key={tip}
-              className="flex items-start gap-2 text-xs text-[var(--mf-text-strong)]"
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 + idx * 0.06, duration: 0.3 }}
+              className="group/tip flex items-start gap-2.5 text-xs text-[var(--mf-text-strong)] p-1.5 -mx-1.5 rounded-lg hover:bg-[var(--mf-hover)] transition-all cursor-default"
             >
-              <span className="flex size-4.5 items-center justify-center rounded bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] text-[9px] font-bold shrink-0 mt-0.5">
+              <span className="flex size-5 items-center justify-center rounded-md bg-gradient-to-br from-[var(--mf-accent-soft)] to-[var(--mf-accent)]/10 text-[var(--mf-accent)] text-[9px] font-bold shrink-0 mt-0.5 ring-1 ring-[var(--mf-accent-border)]/30 group-hover/tip:ring-[var(--mf-accent-border)]/60 transition-all">
                 {idx + 1}
               </span>
-              <span className="leading-snug opacity-90">{tip}</span>
-            </div>
+              <span className="leading-snug opacity-90 group-hover/tip:opacity-100 transition-opacity">{tip}</span>
+            </m.div>
           ))}
         </div>
       </div>

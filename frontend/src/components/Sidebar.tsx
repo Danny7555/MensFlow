@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react'
-import { useState, useRef } from 'react'
+import { useState, useMemo } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { m } from 'framer-motion'
 import type { IconProps } from '@phosphor-icons/react'
@@ -91,23 +91,27 @@ export function Sidebar({
 
   const rawItems = isAuthenticated ? [...authItems] : [...guestItems]
 
-  // Track which parent items are expanded
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({})
-  // Auto-expand parent during render (not effect) to avoid stale-UI flash
+  // Track user's manual toggle for parent sections
+  const [userToggles, setUserToggles] = useState<Record<string, boolean>>({})
   const items = isAuthenticated ? authItems : guestItems
-  const prevNavRef = useRef({ pathname, isAuthenticated })
-  const prev = prevNavRef.current
-  if (prev.pathname !== pathname || prev.isAuthenticated !== isAuthenticated) {
-    prevNavRef.current = { pathname, isAuthenticated }
+  // Derive auto-expanded sections from current pathname
+  const autoExpanded = useMemo(() => {
+    const auto: Record<string, boolean> = {}
     for (const item of items) {
       if (item.children) {
-        const onChildPage = item.children.some(c => pathname === `/${c.id}`)
-        if (onChildPage) {
-          setExpanded(prevExpanded => ({ ...prevExpanded, [item.id]: true }))
-        }
+        auto[item.id] = item.children.some(c => pathname === `/${c.id}`)
       }
     }
-  }
+    return auto
+  }, [pathname, items])
+  // Merge: user toggle overrides, else auto-expand
+  const expanded: Record<string, boolean> = useMemo(() => {
+    const result = { ...autoExpanded }
+    for (const [id, val] of Object.entries(userToggles)) {
+      result[id] = val
+    }
+    return result
+  }, [autoExpanded, userToggles])
 
   const collapsed = !isMobile && desktopCollapsed
   const navIconSize = collapsed ? 22 : 20
@@ -238,7 +242,10 @@ export function Sidebar({
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation()
-                        setExpanded(prev => ({ ...prev, [item.id]: !prev[item.id] }))
+                        setUserToggles(prev => {
+                          const currentDisplayed = item.id in prev ? prev[item.id] : autoExpanded[item.id]
+                          return { ...prev, [item.id]: !currentDisplayed }
+                        })
                       }}
                       className="flex items-center justify-center size-8 mr-1 text-muted-foreground hover:text-[var(--mf-text-strong)] transition-colors cursor-pointer bg-transparent border-none rounded-lg hover:bg-[var(--mf-hover)]"
                       aria-label={expanded[item.id] ? 'Collapse' : 'Expand'}

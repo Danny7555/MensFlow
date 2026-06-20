@@ -537,12 +537,12 @@
 .composer-stack {
   position: relative;
   width: 100%;
-  max-width: 720px;
+  max-width: 600px;
   margin: 0 auto;
 }
 
 .composer-stack--minimal {
-  max-width: min(720px, 100%);
+  max-width: min(600px, 100%);
 }
 
 .composer-hidden-input {
@@ -783,31 +783,34 @@
 
 .landing-center {
   width: 100%;
-  max-width: 560px;
+  max-width: 600px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: clamp(0.5rem, 2vw, 1rem);
+  padding: 0 0.75rem;
+  box-sizing: border-box;
 }
 
 .landing-title {
   margin: 0;
-  font-size: clamp(1.25rem, 6vw, 2.5rem);
+  font-size: clamp(1.1rem, 5vw, 2rem);
   font-weight: 500;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.03em;
   text-align: center;
   color: var(--foreground);
-  line-height: 1.15;
-  white-space: nowrap;
+  line-height: 1.25;
 }
 
 .landing-sub {
   margin: 0;
-  font-size: 1rem;
+  font-size: clamp(0.78rem, 2.2vw, 0.92rem);
   line-height: 1.6;
   text-align: center;
   color: var(--muted-foreground);
-  max-width: 45ch;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  padding: 0 0.25rem;
 }
 
 .landing-preview {
@@ -819,6 +822,8 @@
 
 .landing-composer-wrap {
   width: 100%;
+  max-width: 600px;
+  box-sizing: border-box;
 }
 
 .landing-bot {
@@ -1028,7 +1033,9 @@
 }
 
 .chat-bubble--assistant {
-  align-self: stretch;
+  align-self: flex-start;
+  max-width: 85%;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
 }
 
 .chat-role {
@@ -3232,18 +3239,37 @@
 
 /* Landing Hero Image */
 .landing-hero-image-wrap {
+  position: relative;
   display: flex;
   justify-content: center;
-  margin-bottom: 2.5rem;
+  align-items: center;
+  margin-bottom: 1.25rem;
   animation: fade-in-up 0.8s ease-out;
 }
 
+.landing-hero-glow {
+  position: absolute;
+  width: clamp(130px, 28vw, 180px);
+  height: clamp(130px, 28vw, 180px);
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--mf-accent) 15%, transparent) 0%, transparent 70%);
+  pointer-events: none;
+}
+
 .landing-hero-image {
-  width: 140px;
-  height: 140px;
+  width: clamp(88px, 22vw, 130px);
+  height: clamp(88px, 22vw, 130px);
   object-fit: cover;
   border-radius: 50%;
-  border: 4px solid var(--mf-accent-soft);
+  border: 3px solid var(--mf-accent-soft);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  position: relative;
+}
+
+.landing-hero-image:hover {
+  box-shadow: 0 12px 40px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06);
+  transform: scale(1.02);
 }
 
 @keyframes fade-in-up {
@@ -5384,6 +5410,7 @@
   background: var(--mf-card);
   gap: 1rem;
   z-index: 10;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
 }
 
 .chat-header-left {
@@ -5434,7 +5461,7 @@
   border-radius: 20px;
   border: 1px solid var(--mf-border);
   background: var(--mf-card);
-  box-shadow: none;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -5474,6 +5501,7 @@
 .chat-lock-input:focus {
   outline: none;
   border-color: var(--mf-accent);
+  box-shadow: 0 0 0 3px rgba(var(--mf-accent-rgb), 0.08);
 }
 
 .chat-lock-btn {
@@ -5690,8 +5718,10 @@
   flex-direction: column;
   gap: 0.5rem;
   width: 100%;
+  max-width: 100%;
   margin-bottom: 0.85rem;
   animation: fadeIn 0.4s ease-out;
+  box-sizing: border-box;
 }
 
 .chat-suggestions-label {
@@ -5709,7 +5739,7 @@
 
 .chat-suggestions-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
   gap: 0.5rem;
   width: 100%;
 }
@@ -5751,10 +5781,16 @@
   color: var(--foreground);
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
   line-height: 1.4;
   height: 100%;
   box-sizing: border-box;
+}
+
+.chat-suggestion-chip:hover {
+  border-color: var(--mf-accent-border);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  background: var(--mf-hover);
 }
 
 

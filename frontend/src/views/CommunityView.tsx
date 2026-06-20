@@ -7,7 +7,7 @@ import {
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { useStore } from '../store/useStore'
-import { useCommunityPosts, useCommunityPost, useCreatePost, useAddComment, communityApi } from '../services/communityService'
+import { useCommunityPosts, useCommunityPost, useCreatePost, useAddComment, communityApi, type ApiPostDetail } from '../services/communityService'
 import { cn } from '../lib/utils'
 import { resolveAssetUrl } from '../lib/apiClient'
 import { useQueryClient } from '@tanstack/react-query'
@@ -281,6 +281,7 @@ function CreatePostModal({ open, onClose }: { open: boolean; onClose: () => void
         </button>
 
         <button
+          type="button"
           onClick={handleSubmit}
           disabled={!title.trim() || !body.trim() || createPost.isPending}
           className="w-full h-12 rounded-2xl bg-[var(--mf-accent)] text-white font-semibold text-sm hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center justify-center gap-2"
@@ -301,13 +302,9 @@ function CreatePostModal({ open, onClose }: { open: boolean; onClose: () => void
 
 function PostCard({ post, onClick }: { post: import('../services/communityService').ApiCommunityPost; onClick: () => void }) {
   return (
-    <div
-      role="button"
-      tabIndex={0}
+    <button
+      type="button"
       onClick={onClick}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() }
-      }}
       className="w-full text-left bg-white dark:bg-[var(--mf-card)] rounded-2xl border border-[var(--mf-border)] p-4 md:p-5 space-y-3 cursor-pointer hover:border-[var(--mf-accent-border)] transition-all active:scale-[0.99]"
     >
       <div className="flex items-start gap-3">
@@ -341,6 +338,220 @@ function PostCard({ post, onClick }: { post: import('../services/communityServic
           </div>
         </div>
       </div>
+    </button>
+  )
+}
+
+function PostDetailView({
+  detail,
+  user,
+  onBack,
+  onDelete,
+  confirmDelete,
+  confirmDeleteId,
+  setConfirmDeleteId,
+  commentText,
+  setCommentText,
+  commentAnonymous,
+  setCommentAnonymous,
+  showMentions,
+  setShowMentions,
+  setMentionQuery,
+  mentionResults,
+  mentionRef,
+  handleSubmitComment,
+  isSending,
+}: {
+  detail: ApiPostDetail
+  user: { id?: string } | null
+  onBack: () => void
+  onDelete: (id: string) => void
+  confirmDelete: () => Promise<void>
+  confirmDeleteId: string | null
+  setConfirmDeleteId: (id: string | null) => void
+  commentText: string
+  setCommentText: React.Dispatch<React.SetStateAction<string>>
+  commentAnonymous: boolean
+  setCommentAnonymous: (val: boolean) => void
+  showMentions: boolean
+  setShowMentions: (val: boolean) => void
+  setMentionQuery: (val: string) => void
+  mentionResults: Array<{ id: string; name: string; role: string }>
+  mentionRef: React.RefObject<HTMLDivElement | null>
+  handleSubmitComment: () => Promise<void>
+  isSending: boolean
+}) {
+  return (
+    <div className="dashboard-flo-theme relative min-h-screen animate-in fade-in duration-200">
+      <main className="flo-main-container pb-24 md:pb-32 pt-6 md:pt-10">
+        <div className="flo-content-inner max-w-2xl mx-auto">
+          <div className="flex items-center justify-between mb-5 px-1">
+            <button
+              type="button"
+              onClick={onBack}
+              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-[var(--mf-text-strong)] transition-colors cursor-pointer"
+            >
+              <ArrowLeft size={18} weight="bold" />
+              <span>Back</span>
+            </button>
+            {detail.post.userId === user?.id && (
+              <button
+                type="button"
+                onClick={() => onDelete(detail.post._id)}
+                className="flex items-center gap-1.5 text-xs text-[var(--mf-danger)] hover:opacity-80 transition-colors cursor-pointer"
+              >
+                <Trash size={14} />
+                <span>Delete</span>
+              </button>
+            )}
+          </div>
+
+          <div className="bg-white dark:bg-[var(--mf-card)] rounded-3xl border border-[var(--mf-border)] p-5 md:p-7 space-y-4">
+            <div className="flex items-center gap-3">
+              <AvatarCircle name={detail.post.author.name} avatar={detail.post.author.avatar} />
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-[var(--mf-text-strong)]">{detail.post.author.name}</p>
+                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  <span className="px-2 py-0.5 rounded-full bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] font-medium capitalize text-[11px]">{detail.post.category}</span>
+                  <span>·</span>
+                  <span>{timeAgo(detail.post.createdAt)}</span>
+                  {detail.post.location && (
+                    <>
+                      <span>·</span>
+                      <span className="flex items-center gap-1"><MapPin size={12} />{detail.post.location}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+            <h1 className="text-xl md:text-2xl font-semibold text-[var(--mf-text-strong)] leading-tight">{detail.post.title}</h1>
+            <p className="text-sm text-[var(--mf-text)] leading-relaxed whitespace-pre-wrap">{detail.post.body}</p>
+          </div>
+
+          <div className="mt-6 md:mt-8 space-y-4">
+            <h3 className="text-sm font-semibold text-[var(--mf-text-strong)] px-1">
+              {detail.comments.length > 0
+                ? `${detail.comments.length} ${detail.comments.length === 1 ? 'reply' : 'replies'}`
+                : 'No replies yet'}
+            </h3>
+
+            <div className="space-y-3">
+              {detail.comments.map(c => (
+                <div
+                  key={c._id}
+                  className="bg-white dark:bg-[var(--mf-card)] rounded-2xl border border-[var(--mf-border)] p-4 space-y-2"
+                >
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    {c.isAI ? (
+                      <div className="size-7 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0">AI</div>
+                    ) : (
+                      <AvatarCircle name={c.author.name} avatar={c.author.avatar} size="sm" />
+                    )}
+                    <span className="text-sm font-semibold text-[var(--mf-text-strong)]">{c.author.name}</span>
+                    {c.isAI && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gradient-to-r from-pink-500/10 to-purple-500/10 text-purple-500 font-medium">Assistant</span>}
+                    <span className="text-xs text-muted-foreground ml-auto">{timeAgo(c.createdAt)}</span>
+                  </div>
+                  <p className="text-sm text-[var(--mf-text)] leading-relaxed pl-9">{c.body}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-white dark:bg-[var(--mf-card)] rounded-2xl border border-[var(--mf-border)] p-4 space-y-3">
+              <div className="relative">
+                <textarea
+                  aria-label="Write a comment"
+                  value={commentText}
+                  onChange={e => {
+                    const val = e.target.value
+                    setCommentText(val)
+                    const cursorPos = e.target.selectionStart
+                    const textBefore = val.slice(0, cursorPos)
+                    const atMatch = textBefore.match(/@(\w*)$/)
+                    if (atMatch) {
+                      setMentionQuery(atMatch[1])
+                      setShowMentions(true)
+                    } else {
+                      setShowMentions(false)
+                    }
+                  }}
+                  placeholder="Write a reply..."
+                  className="w-full min-h-[80px] px-4 py-3 rounded-2xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm text-[var(--mf-text-strong)] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[var(--mf-ring)] resize-none transition-all"
+                  maxLength={5000}
+                />
+                {showMentions && mentionResults.length > 0 && (
+                  <div ref={mentionRef} className="absolute bottom-full left-0 right-0 mb-1 bg-white dark:bg-gray-800 border border-[var(--mf-border)] rounded-xl shadow-lg overflow-hidden z-20 max-h-36 overflow-y-auto">
+                    {mentionResults.map(u => (
+                      <button
+                        key={u.id}
+                        type="button"
+                        onMouseDown={e => {
+                          e.preventDefault()
+                          setCommentText(prev => {
+                            const before = prev.replace(/@\w*$/, `@${u.name} `)
+                            return before
+                          })
+                          setShowMentions(false)
+                          setMentionQuery('')
+                        }}
+                        className="w-full text-left px-3 py-2 text-xs hover:bg-[var(--mf-accent-soft)] transition-colors flex items-center gap-2 cursor-pointer"
+                      >
+                        <div className="size-6 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[10px] font-semibold text-[var(--mf-accent)]">
+                          {u.name[0]?.toUpperCase() || '?'}
+                        </div>
+                        <span className="font-medium text-[var(--mf-text-strong)]">{u.name}</span>
+                        <span className="text-muted-foreground ml-auto">{u.role === 'partner' ? 'Partner' : 'Member'}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {commentText.toLowerCase().includes('@men') && !commentText.toLowerCase().includes('@mensflow') && (
+                  <div className="absolute -bottom-2 left-3 translate-y-full bg-white dark:bg-gray-800 border border-[var(--mf-border)] rounded-xl shadow-lg px-3 py-2 text-xs text-muted-foreground flex items-center gap-2 z-10 animate-in fade-in slide-in-from-top-1">
+                    <span className="text-purple-500 font-semibold">@mensflow</span>
+                    <span>— Ask MensFlow AI to answer</span>
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none">
+                    <input type="checkbox" checked={commentAnonymous} onChange={e => setCommentAnonymous(e.target.checked)} className="accent-[var(--mf-accent)]" />
+                    Reply anonymously
+                  </label>
+                  <span className="text-[10px] text-muted-foreground/60 flex items-center gap-1">
+                    <Sparkle size={10} className="text-purple-500" />
+                    @mensflow
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSubmitComment}
+                  disabled={!commentText.trim() || isSending}
+                  className="h-9 px-5 rounded-xl bg-[var(--mf-accent)] text-white text-sm font-medium hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center gap-1.5"
+                >
+                  {isSending ? (
+                    <div className="size-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                  ) : (
+                    'Reply'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <Dialog open={!!confirmDeleteId} onOpenChange={() => setConfirmDeleteId(null)}>
+        <DialogContent className="sm:max-w-[360px] rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Delete post?</DialogTitle>
+            <DialogDescription>This action cannot be undone.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => setConfirmDeleteId(null)} className="flex-1 rounded-xl">Cancel</Button>
+            <Button onClick={confirmDelete} className="flex-1 rounded-xl bg-[var(--mf-danger)] hover:bg-[var(--mf-danger)]/90 text-white">Delete</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
@@ -361,19 +572,18 @@ export function CommunityView() {
   const mentionRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!showMentions || !mentionQuery) {
-      setMentionResults([])
-      return
-    }
+    if (!showMentions || !mentionQuery) return
     const t = setTimeout(async () => {
       try {
         const data = await communityApi.searchUsers(mentionQuery)
-        setMentionResults(data.users)
+        if (mentionQuery && showMentions) {
+          setMentionResults(data.users)
+        }
       } catch {
         setMentionResults([])
       }
     }, 200)
-    return () => clearTimeout(t)
+    return () => { clearTimeout(t); setMentionResults([]) }
   }, [mentionQuery, showMentions])
 
   useEffect(() => {
@@ -428,176 +638,26 @@ export function CommunityView() {
 
   if (selectedPostId && detail) {
     return (
-      <div className="dashboard-flo-theme relative min-h-screen animate-in fade-in duration-200">
-        <main className="flo-main-container pb-24 md:pb-32 pt-6 md:pt-10">
-          <div className="flo-content-inner max-w-2xl mx-auto">
-            <div className="flex items-center justify-between mb-5 px-1">
-              <button
-                type="button"
-                onClick={() => setSelectedPostId(null)}
-                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-[var(--mf-text-strong)] transition-colors cursor-pointer"
-              >
-                <ArrowLeft size={18} weight="bold" />
-                <span>Back</span>
-              </button>
-              {detail.post.userId === user?.id && (
-                <button
-                  type="button"
-                  onClick={() => handleDeletePost(detail.post._id)}
-                  className="flex items-center gap-1.5 text-xs text-[var(--mf-danger)] hover:opacity-80 transition-colors cursor-pointer"
-                >
-                  <Trash size={14} />
-                  <span>Delete</span>
-                </button>
-              )}
-            </div>
-
-            <div className="bg-white dark:bg-[var(--mf-card)] rounded-3xl border border-[var(--mf-border)] p-5 md:p-7 space-y-4">
-              <div className="flex items-center gap-3">
-                <AvatarCircle name={detail.post.author.name} avatar={detail.post.author.avatar} />
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-[var(--mf-text-strong)]">{detail.post.author.name}</p>
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                    <span className="px-2 py-0.5 rounded-full bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] font-medium capitalize text-[11px]">{detail.post.category}</span>
-                    <span>·</span>
-                    <span>{timeAgo(detail.post.createdAt)}</span>
-                    {detail.post.location && (
-                      <>
-                        <span>·</span>
-                        <span className="flex items-center gap-1"><MapPin size={12} />{detail.post.location}</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <h1 className="text-xl md:text-2xl font-semibold text-[var(--mf-text-strong)] leading-tight">{detail.post.title}</h1>
-              <p className="text-sm text-[var(--mf-text)] leading-relaxed whitespace-pre-wrap">{detail.post.body}</p>
-            </div>
-
-            <div className="mt-6 md:mt-8 space-y-4">
-              <h3 className="text-sm font-semibold text-[var(--mf-text-strong)] px-1">
-                {detail.comments.length > 0
-                  ? `${detail.comments.length} ${detail.comments.length === 1 ? 'reply' : 'replies'}`
-                  : 'No replies yet'}
-              </h3>
-
-              <div className="space-y-3">
-                {detail.comments.map(c => (
-                  <div
-                    key={c._id}
-                    className="bg-white dark:bg-[var(--mf-card)] rounded-2xl border border-[var(--mf-border)] p-4 space-y-2"
-                  >
-                    <div className="flex flex-wrap items-center gap-2.5">
-                      {c.isAI ? (
-                        <div className="size-7 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0">AI</div>
-                      ) : (
-                        <AvatarCircle name={c.author.name} avatar={c.author.avatar} size="sm" />
-                      )}
-                      <span className="text-sm font-semibold text-[var(--mf-text-strong)]">{c.author.name}</span>
-                      {c.isAI && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gradient-to-r from-pink-500/10 to-purple-500/10 text-purple-500 font-medium">Assistant</span>}
-                      <span className="text-xs text-muted-foreground ml-auto">{timeAgo(c.createdAt)}</span>
-                    </div>
-                    <p className="text-sm text-[var(--mf-text)] leading-relaxed pl-9">{c.body}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="bg-white dark:bg-[var(--mf-card)] rounded-2xl border border-[var(--mf-border)] p-4 space-y-3">
-                <div className="relative">
-                  <textarea
-                    aria-label="Write a comment"
-                    value={commentText}
-                    onChange={e => {
-                      const val = e.target.value
-                      setCommentText(val)
-                      const cursorPos = e.target.selectionStart
-                      const textBefore = val.slice(0, cursorPos)
-                      const atMatch = textBefore.match(/@(\w*)$/)
-                      if (atMatch) {
-                        setMentionQuery(atMatch[1])
-                        setShowMentions(true)
-                      } else {
-                        setShowMentions(false)
-                      }
-                    }}
-                    placeholder="Write a reply..."
-                    className="w-full min-h-[80px] px-4 py-3 rounded-2xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm text-[var(--mf-text-strong)] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[var(--mf-ring)] resize-none transition-all"
-                    maxLength={5000}
-                  />
-                  {showMentions && mentionResults.length > 0 && (
-                    <div ref={mentionRef} className="absolute bottom-full left-0 right-0 mb-1 bg-white dark:bg-gray-800 border border-[var(--mf-border)] rounded-xl shadow-lg overflow-hidden z-20 max-h-36 overflow-y-auto">
-                      {mentionResults.map(u => (
-                        <button
-                          key={u.id}
-                          type="button"
-                          onMouseDown={e => {
-                            e.preventDefault()
-                            setCommentText(prev => {
-                              const before = prev.replace(/@\w*$/, `@${u.name} `)
-                              return before
-                            })
-                            setShowMentions(false)
-                            setMentionQuery('')
-                          }}
-                          className="w-full text-left px-3 py-2 text-xs hover:bg-[var(--mf-accent-soft)] transition-colors flex items-center gap-2 cursor-pointer"
-                        >
-                          <div className="size-6 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[10px] font-semibold text-[var(--mf-accent)]">
-                            {u.name[0]?.toUpperCase() || '?'}
-                          </div>
-                          <span className="font-medium text-[var(--mf-text-strong)]">{u.name}</span>
-                          <span className="text-muted-foreground ml-auto">{u.role === 'partner' ? 'Partner' : 'Member'}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  {commentText.toLowerCase().includes('@men') && !commentText.toLowerCase().includes('@mensflow') && (
-                    <div className="absolute -bottom-2 left-3 translate-y-full bg-white dark:bg-gray-800 border border-[var(--mf-border)] rounded-xl shadow-lg px-3 py-2 text-xs text-muted-foreground flex items-center gap-2 z-10 animate-in fade-in slide-in-from-top-1">
-                      <span className="text-purple-500 font-semibold">@mensflow</span>
-                      <span>— Ask MensFlow AI to answer</span>
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none">
-                      <input type="checkbox" checked={commentAnonymous} onChange={e => setCommentAnonymous(e.target.checked)} className="accent-[var(--mf-accent)]" />
-                      Reply anonymously
-                    </label>
-                    <span className="text-[10px] text-muted-foreground/60 flex items-center gap-1">
-                      <Sparkle size={10} className="text-purple-500" />
-                      @mensflow
-                    </span>
-                  </div>
-                  <button
-                    onClick={handleSubmitComment}
-                    disabled={!commentText.trim() || addComment.isPending}
-                    className="h-9 px-5 rounded-xl bg-[var(--mf-accent)] text-white text-sm font-medium hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center gap-1.5"
-                  >
-                    {addComment.isPending ? (
-                      <div className="size-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                    ) : (
-                      'Reply'
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </main>
-
-        <Dialog open={!!confirmDeleteId} onOpenChange={() => setConfirmDeleteId(null)}>
-          <DialogContent className="sm:max-w-[360px] rounded-2xl">
-            <DialogHeader>
-              <DialogTitle>Delete post?</DialogTitle>
-              <DialogDescription>This action cannot be undone.</DialogDescription>
-            </DialogHeader>
-            <DialogFooter className="flex gap-2 sm:gap-2">
-              <Button variant="outline" onClick={() => setConfirmDeleteId(null)} className="flex-1 rounded-xl">Cancel</Button>
-              <Button onClick={confirmDelete} className="flex-1 rounded-xl bg-[var(--mf-danger)] hover:bg-[var(--mf-danger)]/90 text-white">Delete</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+      <PostDetailView
+        detail={detail}
+        user={user}
+        onBack={() => setSelectedPostId(null)}
+        onDelete={handleDeletePost}
+        confirmDelete={confirmDelete}
+        confirmDeleteId={confirmDeleteId}
+        setConfirmDeleteId={setConfirmDeleteId}
+        commentText={commentText}
+        setCommentText={setCommentText}
+        commentAnonymous={commentAnonymous}
+        setCommentAnonymous={setCommentAnonymous}
+        showMentions={showMentions}
+        setShowMentions={setShowMentions}
+        setMentionQuery={setMentionQuery}
+        mentionResults={mentionResults}
+        mentionRef={mentionRef}
+        handleSubmitComment={handleSubmitComment}
+        isSending={addComment.isPending}
+      />
     )
   }
 
