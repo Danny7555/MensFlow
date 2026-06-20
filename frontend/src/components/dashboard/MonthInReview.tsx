@@ -1,7 +1,7 @@
 import { memo } from 'react'
 import { m } from 'framer-motion'
 import type { Variants } from 'framer-motion'
-import { Calendar, Lightning, Pulse, Heart, Sparkle, Info } from '@phosphor-icons/react'
+import { Calendar, Lightning, Pulse, Heart, Sparkle, Info, ChartLineUp } from '@phosphor-icons/react'
 import { useStore } from '../../store/useStore'
 import { useMonthInReviewStats } from '../../hooks/useMonthInReviewStats'
 
@@ -49,6 +49,14 @@ function StatRow({ icon, label, text }: StatRowProps) {
 }
 
 // ─── Empty state ──────────────────────────────────────────────────────────────
+const pulseIcon = {
+  animate: {
+    scale: [1, 1.08, 1],
+    opacity: [0.7, 1, 0.7],
+    transition: { repeat: Infinity, duration: 3, ease: 'easeInOut' },
+  },
+}
+
 function EmptyState() {
   return (
     <m.div
@@ -59,15 +67,27 @@ function EmptyState() {
         <CardHeader />
       </div>
       <div className="flex flex-col items-center justify-center text-center my-auto py-4 gap-4">
-        <div className="size-12 rounded-2xl bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] flex items-center justify-center">
-          <Calendar size={24} weight="duotone" />
-        </div>
-        <div className="space-y-1.5 max-w-xs">
+        <m.div
+          variants={pulseIcon}
+          animate="animate"
+          className="size-14 rounded-2xl bg-gradient-to-br from-[var(--mf-accent-soft)] to-[var(--mf-accent)]/10 text-[var(--mf-accent)] flex items-center justify-center"
+        >
+          <ChartLineUp size={28} weight="duotone" />
+        </m.div>
+        <div className="space-y-2 max-w-xs">
           <h4 className="text-sm font-semibold text-[var(--mf-text-strong)]">No Cycle Data Logged Yet</h4>
           <p className="text-xs text-[var(--mf-muted)] leading-relaxed">
             Once you start logging symptoms and flow details, your personalized cycle insights, hormonal exertion peaks,
             and symptom trends will appear here.
           </p>
+        </div>
+        <div className="grid grid-cols-3 gap-3 mt-2 w-full max-w-[260px]">
+          {['Cycle Length', 'Symptoms', 'Resonance'].map(label => (
+            <div key={label} className="flex flex-col items-center gap-1.5 opacity-40">
+              <div className="size-6 rounded-lg bg-[var(--mf-border)]" />
+              <span className="text-[8px] uppercase tracking-wider text-[var(--mf-muted)]">{label}</span>
+            </div>
+          ))}
         </div>
       </div>
     </m.div>

@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { m } from "framer-motion"
 import type { Variants } from "framer-motion"
 import { 
@@ -48,8 +49,17 @@ const METRICS_BY_PHASE: Record<string, string> = {
   luteal: "PROGESTERONE ACTIVE"
 }
 
+const PHASE_GRADIENTS: Record<string, string> = {
+  menstrual: 'from-rose-500/20 to-pink-500/10',
+  follicular: 'from-amber-500/20 to-yellow-500/10',
+  ovulatory: 'from-teal-500/20 to-emerald-500/10',
+  fertile: 'from-teal-500/20 to-emerald-500/10',
+  luteal: 'from-indigo-500/20 to-purple-500/10',
+}
+
 export function PrimaryInsightCard({ label, currentDay, trend }: { label: string; currentDay: number; trend: string }) {
   const normalized = (label || '').toLowerCase()
+  const [imgError, setImgError] = useState(false)
   const description = normalized
     ? (INSIGHTS_BY_PHASE[normalized] || INSIGHTS_BY_PHASE.luteal)
     : "No cycle tracking setup found. Set your partner's period details to display hormonal peak indicators and phase descriptions."
@@ -57,13 +67,18 @@ export function PrimaryInsightCard({ label, currentDay, trend }: { label: string
     ? (METRICS_BY_PHASE[normalized] || METRICS_BY_PHASE.luteal)
     : "NO CYCLE DATA SET"
 
+  const gradient = PHASE_GRADIENTS[normalized] || 'from-gray-500/20 to-gray-500/10'
+
   return (
     <m.div variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
       <div className="flex flex-col h-full">
-        <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden">
-          <img 
-            src="/images/track.png" alt="Phase" className="w-full h-full object-cover object-center" 
-          />
+        <div className={`-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden bg-gradient-to-r ${gradient}`}>
+          {!imgError && (
+            <img 
+              src="/images/track.png" alt="Phase" className="w-full h-full object-cover object-center"
+              onError={() => setImgError(true)}
+            />
+          )}
         </div>
         <div className="flo-card-top relative z-10">
           <div className="flex items-center gap-2">
@@ -108,6 +123,7 @@ const FOCUS_BY_PHASE: Record<string, string[]> = {
 
 export function BodySignalsCard({ signals, currentDay, phaseLabel }: { signals: string; currentDay: number; phaseLabel: string }) {
   const normalized = (phaseLabel || '').toLowerCase()
+  const [imgError, setImgError] = useState(false)
   const focusAreas = normalized
     ? (FOCUS_BY_PHASE[normalized] || FOCUS_BY_PHASE.luteal)
     : ['Setup Tracking', 'Log Cycle']
@@ -115,10 +131,13 @@ export function BodySignalsCard({ signals, currentDay, phaseLabel }: { signals: 
   return (
     <m.div variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
       <div className="flex flex-col h-full">
-        <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden">
-          <img 
-            src="/images/calm.jpg" alt="Body Signals" className="w-full h-full object-cover" 
-          />
+        <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden bg-gradient-to-br from-blue-500/20 to-cyan-500/10">
+          {!imgError && (
+            <img 
+              src="/images/calm.jpg" alt="Body Signals" className="w-full h-full object-cover"
+              onError={() => setImgError(true)}
+            />
+          )}
         </div>
         <div className="flo-card-top relative z-10">
           <div className="flo-card-icon flo-card-icon--pink">

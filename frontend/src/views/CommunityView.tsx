@@ -180,8 +180,9 @@ function CreatePostModal({ open, onClose }: { open: boolean; onClose: () => void
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">Title</label>
+          <label htmlFor="post-title" className="text-xs font-medium text-muted-foreground">Title</label>
           <input
+            id="post-title"
             value={title}
             onChange={e => dispatch({ type: 'SET_TITLE', payload: e.target.value })}
             placeholder="What's on your mind?"
@@ -191,9 +192,10 @@ function CreatePostModal({ open, onClose }: { open: boolean; onClose: () => void
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">Description</label>
+          <label htmlFor="post-description" className="text-xs font-medium text-muted-foreground">Description</label>
           <div className="relative">
             <textarea
+              id="post-description"
               value={body}
               onChange={e => dispatch({ type: 'SET_BODY', payload: e.target.value })}
               placeholder="Share your experience or ask a question..."
@@ -236,11 +238,12 @@ function CreatePostModal({ open, onClose }: { open: boolean; onClose: () => void
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">Category</label>
+          <span className="text-xs font-medium text-muted-foreground block">Category</span>
           <div className="flex flex-wrap gap-2">
-            {CATEGORIES.filter(c => c.id !== 'all').map(cat => {
+            {CATEGORIES.flatMap(cat => {
+              if (cat.id === 'all') return []
               const active = category === cat.id
-              return (
+              return [(
                 <button
                   key={cat.id}
                   type="button"
@@ -255,14 +258,18 @@ function CreatePostModal({ open, onClose }: { open: boolean; onClose: () => void
                   {React.createElement(cat.Icon, { size: 14, className: active ? 'text-white' : 'text-[var(--mf-accent)]' })}
                   {cat.label}
                 </button>
-              )
+              )]
             })}
           </div>
         </div>
 
-        <label className="flex items-center gap-3 py-2 cursor-pointer" onClick={() => dispatch({ type: 'SET_ANONYMOUS', payload: !anonymous })}>
+        <button
+          type="button"
+          onClick={() => dispatch({ type: 'SET_ANONYMOUS', payload: !anonymous })}
+          className="flex items-center gap-3 py-2 w-full text-left bg-transparent border-0 cursor-pointer rounded-lg hover:bg-[var(--mf-elevated)] transition-colors"
+        >
           <div className={cn(
-            'size-5 rounded-md border-2 flex items-center justify-center transition-all',
+            'size-5 rounded-md border-2 flex items-center justify-center transition-all shrink-0',
             anonymous ? 'bg-[var(--mf-accent)] border-[var(--mf-accent)]' : 'border-[var(--mf-border)]',
           )}>
             {anonymous && <span className="text-white text-[10px] font-bold">✓</span>}
@@ -271,7 +278,7 @@ function CreatePostModal({ open, onClose }: { open: boolean; onClose: () => void
             <span className="text-sm text-[var(--mf-text-strong)] font-medium">Post anonymously</span>
             <p className="text-[11px] text-muted-foreground">Your name won't be visible</p>
           </div>
-        </label>
+        </button>
 
         <button
           onClick={handleSubmit}
@@ -498,6 +505,7 @@ export function CommunityView() {
               <div className="bg-white dark:bg-[var(--mf-card)] rounded-2xl border border-[var(--mf-border)] p-4 space-y-3">
                 <div className="relative">
                   <textarea
+                    aria-label="Write a comment"
                     value={commentText}
                     onChange={e => {
                       const val = e.target.value
