@@ -4594,7 +4594,7 @@
 }
 
 .flo-feed-row .flo-card {
-  flex: 0 0 280px;
+  flex: 0 0 min(85vw, 280px);
 }
 
 .flo-sub-grid {
@@ -4611,7 +4611,6 @@
   width: 100%;
   background: radial-gradient(circle at 50% 20%, rgba(var(--mf-accent-rgb), 0.08) 0%, rgba(var(--mf-accent-rgb), 0.02) 40%, var(--mf-main-bg) 80%);
   position: relative;
-  overflow: hidden;
 }
 
 /* Partner dark mode should have a solid tracker/dashboard background */
@@ -5056,7 +5055,7 @@
   .flo-fab {
     display: flex;
     position: fixed;
-    bottom: 90px;
+    bottom: calc(88px + env(safe-area-inset-bottom));
     right: 1.5rem;
     z-index: 100;
     align-items: center;

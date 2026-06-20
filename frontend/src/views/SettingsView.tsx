@@ -114,7 +114,7 @@ function SelectRow({
         )}
       </div>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="settings-select flex items-center justify-between bg-none shadow-none min-w-[150px] h-9 pr-2 pl-3 cursor-pointer">
+        <SelectTrigger className="settings-select flex items-center justify-between bg-none shadow-none min-w-[120px] sm:min-w-[150px] h-9 pr-2 pl-3 cursor-pointer">
           <SelectValue />
         </SelectTrigger>
         <SelectContent className="rounded-xl border border-border bg-card">
