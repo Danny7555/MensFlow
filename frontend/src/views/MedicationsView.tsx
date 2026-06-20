@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { useState } from 'react'
 import { m } from 'framer-motion'
 import { Plus, Trash, Pill, Clock } from '@phosphor-icons/react'
@@ -11,6 +10,7 @@ export function MedicationsView() {
   const createMed = useCreateMedication()
   const deleteMed = useDeleteMedication()
   const [showForm, setShowForm] = useState(false)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [name, setName] = useState('')
   const [dosage, setDosage] = useState('')
   const [frequency, setFrequency] = useState('daily')
@@ -126,13 +126,37 @@ export function MedicationsView() {
                     </div>
                     {med.notes && <p className="text-xs text-muted-foreground mt-1">{med.notes}</p>}
                   </div>
+                  <>{confirmDeleteId === med._id && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20" onClick={() => setConfirmDeleteId(null)}>
+                      <m.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        onClick={e => e.stopPropagation()}
+                        className="bg-[var(--mf-card)] border border-[var(--mf-border)] rounded-xl p-4 shadow-lg min-w-[200px]"
+                      >
+                        <p className="text-sm text-[var(--mf-text)] mb-3">Remove this medication?</p>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => { deleteMed.mutate(med._id); setConfirmDeleteId(null) }}
+                            className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-[var(--mf-danger)] text-white hover:brightness-110 transition-all cursor-pointer"
+                          >
+                            Remove
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setConfirmDeleteId(null)}
+                            className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-muted text-muted-foreground hover:text-[var(--mf-text-strong)] transition-all cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </m.div>
+                    </div>
+                  )}</>
                   <button
                     type="button"
-                    onClick={() => {
-                      if (window.confirm('Remove this medication?')) {
-                        deleteMed.mutate(med._id)
-                      }
-                    }}
+                    onClick={() => setConfirmDeleteId(med._id)}
                     className="text-muted-foreground hover:text-[var(--mf-danger)] transition-colors cursor-pointer shrink-0 mt-1"
                   >
                     <Trash size={16} />

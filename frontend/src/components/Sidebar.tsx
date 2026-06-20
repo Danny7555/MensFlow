@@ -10,6 +10,7 @@ import {
   CaretDown,
   ChartBar,
   ChatCircle,
+  ClockClockwise,
   FlowerLotus,
   GearSix,
   Heart,
@@ -50,7 +51,7 @@ const authItems: NavItem[] = [
   { id: 'symptoms', label: 'Symptoms', Icon: Pulse },
   { id: 'insights', label: 'Health insights', Icon: Target },
   { id: 'community', label: 'Community', Icon: FlowerLotus },
-  { id: 'cycle-history', label: 'Cycle History', Icon: CalendarBlank, children: [
+  { id: 'cycle-history', label: 'Cycle History', Icon: ClockClockwise, children: [
     { id: 'cycle-compare', label: 'Compare Cycles', Icon: ChartBar },
     { id: 'medications', label: 'Medications', Icon: Pill },
   ] },

@@ -1,4 +1,5 @@
 import { useMemo, useReducer, useState, useEffect, useCallback } from 'react'
+import { Heart } from '@phosphor-icons/react'
 import { useStore } from '../store/useStore'
 import { TipsSkeleton } from '../components/skeletons/TipsSkeleton'
 import { cn } from '@/lib/utils'
@@ -59,6 +60,7 @@ function TipCard({ tip, isSaved, onToggleSave }: TipCardProps) {
 interface FetchState {
   tips: ApiWellnessTip[]
   isLoading: boolean
+  errored: boolean
 }
 type FetchAction =
   | { type: 'loaded'; tips: ApiWellnessTip[] }
@@ -66,8 +68,8 @@ type FetchAction =
 
 function fetchReducer(state: FetchState, action: FetchAction): FetchState {
   switch (action.type) {
-    case 'loaded': return { tips: action.tips, isLoading: false }
-    case 'error':  return { ...state, isLoading: false }
+    case 'loaded': return { tips: action.tips, isLoading: false, errored: false }
+    case 'error':  return { ...state, isLoading: false, errored: true }
     default:       return state
   }
 }
@@ -85,18 +87,12 @@ export function TipsView() {
   const [saved, setSaved] = useState<Set<string>>(() => new Set())
 
   // Grouped: data loading (tips + isLoading always transition together)
-  const [fetch, dispatchFetch] = useReducer(fetchReducer, { tips: [], isLoading: true })
+  const [fetch, dispatchFetch] = useReducer(fetchReducer, { tips: [], isLoading: true, errored: false })
 
   const fetchTips = useCallback(async () => {
     try {
       const dbTips = await tipsApi.getTips()
       dispatchFetch({ type: 'loaded', tips: dbTips })
-      setSaved((prev) => {
-        if (prev.size === 0 && dbTips.length > 0) {
-          return new Set(dbTips.slice(0, 2).map((t) => t.id || t._id || ''))
-        }
-        return prev
-      })
     } catch (err) {
       console.error('Failed to load wellness tips:', err)
       toast.error('Could not load wellness tips from server.')
@@ -148,6 +144,29 @@ export function TipsView() {
 
   if (fetch.isLoading) {
     return <TipsSkeleton />
+  }
+
+  if (fetch.errored) {
+    return (
+      <div className="tips-page">
+        <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="size-16 rounded-2xl bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] flex items-center justify-center">
+            <Heart size={32} weight="thin" />
+          </div>
+          <div className="text-center space-y-1.5 max-w-xs">
+            <p className="text-base font-semibold text-[var(--mf-text-strong)]">Could not load tips</p>
+            <p className="text-sm text-muted-foreground">Something went wrong. Please try again.</p>
+            <button
+              type="button"
+              onClick={fetchTips}
+              className="mt-4 px-6 py-2.5 rounded-full bg-[var(--mf-accent)] text-white text-sm font-medium hover:brightness-110 transition-all cursor-pointer"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
