@@ -87,7 +87,7 @@ export function Sidebar({
   const { logout, onboardingCompleted } = useAuth()
 
   const { dashboard: data, user, partnerStatus } = useStore()
-  const location = useLocation()
+  const { pathname } = useLocation()
 
   const rawItems = isAuthenticated ? [...authItems] : [...guestItems]
 
@@ -95,15 +95,16 @@ export function Sidebar({
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   // Auto-expand parent if currently on a child page
   useEffect(() => {
-    for (const item of rawItems) {
+    const items = isAuthenticated ? authItems : guestItems
+    for (const item of items) {
       if (item.children) {
-        const onChildPage = item.children.some(c => location.pathname === `/${c.id}`)
+        const onChildPage = item.children.some(c => pathname === `/${c.id}`)
         if (onChildPage) {
           setExpanded(prev => ({ ...prev, [item.id]: true }))
         }
       }
     }
-  }, [location.pathname])
+  }, [pathname, isAuthenticated])
 
   const collapsed = !isMobile && desktopCollapsed
   const navIconSize = collapsed ? 22 : 20

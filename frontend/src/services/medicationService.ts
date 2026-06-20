@@ -13,7 +13,7 @@ export type ApiMedication = {
   createdAt: string
 }
 
-export const medicationApi = {
+const medicationApi = {
   list: () => get<ApiMedication[]>('/medications'),
   create: (data: { name: string; dosage?: string; frequency?: string; timeOfDay?: string; notes?: string }) =>
     post<ApiMedication>('/medications', data),
