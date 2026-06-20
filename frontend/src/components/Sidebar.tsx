@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react'
-import { useState, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { m } from 'framer-motion'
 import type { IconProps } from '@phosphor-icons/react'
@@ -93,18 +93,21 @@ export function Sidebar({
 
   // Track which parent items are expanded
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
-  // Auto-expand parent if currently on a child page
-  useEffect(() => {
-    const items = isAuthenticated ? authItems : guestItems
+  // Auto-expand parent during render (not effect) to avoid stale-UI flash
+  const items = isAuthenticated ? authItems : guestItems
+  const prevNavRef = useRef({ pathname, isAuthenticated })
+  const prev = prevNavRef.current
+  if (prev.pathname !== pathname || prev.isAuthenticated !== isAuthenticated) {
+    prevNavRef.current = { pathname, isAuthenticated }
     for (const item of items) {
       if (item.children) {
         const onChildPage = item.children.some(c => pathname === `/${c.id}`)
         if (onChildPage) {
-          setExpanded(prev => ({ ...prev, [item.id]: true }))
+          setExpanded(prevExpanded => ({ ...prevExpanded, [item.id]: true }))
         }
       }
     }
-  }, [pathname, isAuthenticated])
+  }
 
   const collapsed = !isMobile && desktopCollapsed
   const navIconSize = collapsed ? 22 : 20
