@@ -66,7 +66,7 @@ export function buildCycleModel(input: CycleModelInput): CycleModel {
   };
 }
 
-export function computeCycleDay(startIso?: string, cycleLen = 28): number {
+function computeCycleDay(startIso?: string, cycleLen = 28): number {
   const safeCycleLen = clampNumber(cycleLen, 15, 60, 28);
   const start = startIso ? new Date(`${startIso}T12:00:00`) : null;
   if (!start || Number.isNaN(start.getTime())) return 1;
@@ -75,7 +75,7 @@ export function computeCycleDay(startIso?: string, cycleLen = 28): number {
   return normalized + 1;
 }
 
-export function getPhaseFromDay(
+function getPhaseFromDay(
   cycleDay: number,
   cycleLen = 28,
   lhPeakDay?: number | null,
@@ -111,7 +111,7 @@ export function computeNextPeriodStart(lastPeriodStart?: string, cycleLen?: numb
   return next.toISOString().split('T')[0];
 }
 
-export function computeOvulationDay(
+function computeOvulationDay(
   cycleLen: number,
   lhPeakDay?: number | null,
   eggWhiteMucusDay?: number | null

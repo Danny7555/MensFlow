@@ -250,16 +250,21 @@ export async function addComment(req: AuthRequest, res: Response, next: NextFunc
     // Detect @username mentions and notify (non-blocking)
     const mentionMatch = commentBody.match(/@(\w+)/g);
     if (mentionMatch) {
-      for (const mention of mentionMatch) {
-        const name = mention.slice(1); // remove @
-        if (name.toLowerCase() === 'mensflow') continue; // already handled above
-        const mentionedUser = await User.findOne({ name: new RegExp(`^${name}$`, 'i') }).lean();
-        if (mentionedUser && String(mentionedUser._id) !== req.user!.id) {
-          const commenter = await User.findById(req.user!.id).select('name').lean();
-          if (commenter) {
-            notifyMention(mentionedUser, commenter, post, commentBody).catch((err: unknown) =>
-              console.error('[Community] Failed to send mention notification:', err)
-            );
+      const mentionNames = [...new Set(mentionMatch.map(m => m.slice(1)))].filter(n => n.toLowerCase() !== 'mensflow');
+      if (mentionNames.length > 0) {
+        const commenter = await User.findById(req.user!.id).select('name').lean();
+        if (commenter) {
+          const mentionedUsers = (await Promise.all(
+            mentionNames.map(name =>
+              User.findOne({ name: new RegExp(`^${name}$`, 'i') }).lean()
+            )
+          )).filter((u): u is NonNullable<typeof u> => u != null);
+          for (const mentionedUser of mentionedUsers) {
+            if (String(mentionedUser._id) !== req.user!.id) {
+              notifyMention(mentionedUser, commenter, post, commentBody).catch((err: unknown) =>
+                console.error('[Community] Failed to send mention notification:', err)
+              );
+            }
           }
         }
       }

@@ -365,7 +365,7 @@ export async function getMonthInReview(userId: string): Promise<object> {
   };
 }
 
-export async function recalculateCycleMetrics(userId: string): Promise<void> {
+async function recalculateCycleMetrics(userId: string): Promise<void> {
   const user = await User.findById(userId).lean();
   if (!user) return;
 

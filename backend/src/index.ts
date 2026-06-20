@@ -177,8 +177,10 @@ async function bootstrap(): Promise<void> {
     return;
   }
   await connectDatabase();
-  await seedEducation();
-  await seedWellnessTips();
+  await Promise.all([
+    seedEducation(),
+    seedWellnessTips(),
+  ]);
   const PORT = getPort();
   const server = await listen(PORT);
   setupGracefulShutdown(server);

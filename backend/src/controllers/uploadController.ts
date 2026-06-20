@@ -6,6 +6,7 @@ import fs from 'fs';
 import crypto from 'crypto';
 import { put } from '@vercel/blob';
 import { AuthRequest } from '../interfaces';
+import { httpError } from '../utils/http';
 
 const UPLOADS_DIR = path.resolve(process.cwd(), 'public/uploads');
 const AVATARS_DIR = path.join(UPLOADS_DIR, 'avatars');
@@ -29,7 +30,7 @@ const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFil
   if (file.mimetype.startsWith('image/')) {
     cb(null, true);
   } else {
-    cb(Object.assign(new Error('Only image files are allowed!'), { status: 400 }) as any, false);
+    cb(httpError('Only image files are allowed!', 400) as any, false);
   }
 };
 
@@ -44,7 +45,7 @@ export const uploadMiddleware = multer({
 export async function handleImageUpload(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   try {
     if (!req.file) {
-      throw Object.assign(new Error('No file uploaded'), { status: 400 });
+      throw httpError('No file uploaded', 400);
     }
 
     const type = req.query.type === 'cover' ? 'cover' : 'avatar';

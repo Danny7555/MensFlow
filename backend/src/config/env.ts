@@ -70,8 +70,7 @@ export function getCorsOrigins(): string[] | true {
 
   const origins = raw
     .split(',')
-    .map((origin) => origin.trim())
-    .filter(Boolean);
+    .flatMap(origin => { const t = origin.trim(); return t ? [t] : []; });
 
   if (origins.includes('*')) {
     if (isProduction) {

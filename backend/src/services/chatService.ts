@@ -791,14 +791,15 @@ export async function getSuggestions(userId?: string): Promise<string[]> {
     "How can I support my energy?"
   ];
 
-  while (localSuggestions.length < 3) {
-    const nextDefault = defaults.find(d => !localSuggestions.includes(d));
-    if (nextDefault) {
-      localSuggestions.push(nextDefault);
-    } else {
-      localSuggestions.push(defaults[0]);
+  const used = new Set(localSuggestions);
+  for (const d of defaults) {
+    if (localSuggestions.length >= 3) break;
+    if (!used.has(d)) {
+      localSuggestions.push(d);
+      used.add(d);
     }
   }
+  while (localSuggestions.length < 3) localSuggestions.push(defaults[0]);
 
   const prompt = isPartnerUser
     ? `You are a helpful assistant.

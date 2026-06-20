@@ -12,11 +12,11 @@ import { createOtpSession } from './otpService';
 import { getUserProfile } from './userService';
 
 export async function generateUniquePartnerCode(): Promise<string> {
-  for (let attempt = 0; attempt < 100; attempt++) {
-    const code = crypto.randomBytes(3).toString('hex').toUpperCase();
-    const exists = await User.exists({ partnerCode: code });
-    if (!exists) return code;
-  }
+  const allCodes = Array.from({ length: 100 }, () => crypto.randomBytes(3).toString('hex').toUpperCase());
+  const used = await User.find({ partnerCode: { $in: allCodes } }, { partnerCode: 1 }).lean();
+  const usedSet = new Set(used.map(u => u.partnerCode));
+  const available = allCodes.find(c => !usedSet.has(c));
+  if (available) return available;
   throw new Error('Unable to generate a unique partner code — please try again');
 }
 
@@ -57,8 +57,10 @@ export async function registerUser(
   if (existingUsername) throw httpError('Username is already taken', 409);
   if (existingEmail) throw httpError('An account with that email already exists', 409);
 
-  const partnerCode = await generateUniquePartnerCode();
-  const passwordHash = await bcrypt.hash(password, 10);
+  const [partnerCode, passwordHash] = await Promise.all([
+    generateUniquePartnerCode(),
+    bcrypt.hash(password, 10),
+  ]);
 
   const user = await User.create({
     username: normalizedUsername,

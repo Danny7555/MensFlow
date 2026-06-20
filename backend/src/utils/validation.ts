@@ -9,7 +9,7 @@ type StringOptions = {
   allowEmpty?: boolean;
 };
 
-export function hasOwn(source: object, key: string): boolean {
+function hasOwn(source: object, key: string): boolean {
   return Object.prototype.hasOwnProperty.call(source, key);
 }
 
@@ -93,7 +93,7 @@ export function optionalNumber(
   return value;
 }
 
-export function oneOf<const T extends readonly string[]>(
+function oneOf<const T extends readonly string[]>(
   value: unknown,
   field: string,
   allowed: T,
