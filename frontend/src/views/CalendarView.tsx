@@ -109,24 +109,23 @@ function RestrictedAccessView({
 }) {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
-      <div className="max-w-md w-full bg-card border border-border rounded-3xl p-8 text-center space-y-5">
-        <div className="size-16 rounded-2xl bg-[var(--mf-accent)]/10 text-[var(--mf-accent)] flex items-center justify-center mx-auto">
-          <CalendarBlank size={32} weight="fill" />
+      <div className="max-w-sm w-full bg-card border border-border rounded-2xl p-6 text-center space-y-4">
+        <div className="size-12 rounded-2xl bg-[var(--mf-accent)]/10 text-[var(--mf-accent)] flex items-center justify-center mx-auto">
+          <CalendarBlank size={24} weight="fill" />
         </div>
-        <div>
-          <h1 className="text-2xl font-normal text-foreground mb-2">Calendar access is private</h1>
-          <p className="text-sm text-muted-foreground leading-relaxed">
+        <div className="space-y-1.5">
+          <h1 className="text-xl font-normal text-foreground">Calendar access is private</h1>
+          <p className="text-xs text-muted-foreground leading-relaxed">
             Ask your partner to approve calendar and tracker access so you can see forecasts and cycle timing.
           </p>
         </div>
-        <button
-          type="button"
+        <Button
           onClick={() => setShowAccessModal(true)}
           disabled={requestSent || isSaving}
-          className="btn btn-primary px-6 py-3 rounded-full disabled:opacity-60"
+          className="bg-[var(--mf-accent)] hover:bg-[var(--mf-accent)]/90 text-white rounded-full px-6"
         >
           {requestSent ? 'Request sent' : 'Request access'}
-        </button>
+        </Button>
       </div>
       <RequestAccessModal
         open={showAccessModal}
@@ -163,7 +162,7 @@ function CalendarHeader({
 }) {
   const year = viewDate.getFullYear()
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-6 px-6 mb-8 text-center">
+    <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4 px-4 mb-6 text-center">
       <div className="flex justify-center sm:justify-start order-2 sm:order-1">
         <div className="ios-segmented-control max-w-[200px] mx-auto sm:mx-0">
           <button type="button"
@@ -206,19 +205,19 @@ function CalendarHeader({
               Tap days below to toggle
             </span>
           ) : (
-            <button
-              type="button"
+            <Button
               onClick={enterEditMode}
-              className="flex items-center gap-2 text-xs font-medium text-[#ff5a5f] bg-[#ff5a5f]/8 hover:bg-[#ff5a5f]/15 border border-[#ff5a5f]/25 px-4 py-2 rounded-full transition-all active:scale-95"
+              variant="outline"
+              className="text-xs gap-1.5 rounded-full px-4 border-[var(--mf-accent)]/30 text-[var(--mf-accent)] hover:bg-[var(--mf-accent)]/10"
             >
               <PencilSimple size={13} weight="bold" />
               <span>Edit periods</span>
-            </button>
+            </Button>
           )
         )}
         {isPartner && (
-          <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest bg-muted px-4 py-2 rounded-full border border-border/40">
-            View-Only Mode
+          <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider bg-muted px-3 py-1.5 rounded-full border border-border/40">
+            View-Only
           </div>
         )}
       </div>
@@ -245,7 +244,7 @@ function EditActionBar({
 }) {
   return (
     <div className="animate-in slide-in-from-top-4 fade-in duration-300 w-full max-w-xl mx-auto">
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-3xl bg-white/95 dark:bg-[#1e1e1e]/95 border border-[#ff5a5f]/25 shadow-[0_4px_20px_rgba(255,90,95,0.08)] p-4">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl bg-white/95 dark:bg-[#1e1e1e]/95 border border-[var(--mf-accent)]/20 shadow-[0_4px_20px_rgba(255,90,95,0.06)] p-3.5">
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <div className="size-9 rounded-full bg-[#ff5a5f]/10 flex items-center justify-center shrink-0">
             <Drop size={16} weight="fill" className="text-[#ff5a5f]" />
@@ -290,26 +289,25 @@ function EditActionBar({
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              type="button"
+            <Button
               onClick={handleCancelEditing}
               disabled={isSavingPeriods}
-              className="text-xs font-medium text-muted-foreground hover:text-foreground px-3 py-1.5 rounded-xl hover:bg-muted transition-all disabled:opacity-50"
+              variant="ghost"
+              className="text-xs rounded-xl"
             >
               Cancel
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
               onClick={handleSavePeriods}
               disabled={isSavingPeriods}
-              className="text-xs font-semibold text-white bg-[#ff5a5f] hover:brightness-105 px-4 py-1.5 rounded-xl transition-all active:scale-95 disabled:opacity-60 flex items-center gap-1.5"
+              className="text-xs rounded-xl bg-[var(--mf-accent)] hover:bg-[var(--mf-accent)]/90 text-white"
             >
               {isSavingPeriods ? (
                 <><span className="animate-spin inline-block">⟳</span><span>Saving…</span></>
               ) : (
                 <span>Save</span>
               )}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -657,7 +655,7 @@ export function CalendarView() {
         <img src="/images/girl.jpg" alt="" className="size-[800px] object-contain" />
       </div>
 
-      <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 relative z-10">
+      <div className="flex-1 w-full max-w-[1200px] mx-auto p-4 md:p-6 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 relative z-10">
         
         <CalendarHeader
           view={view}
@@ -719,16 +717,16 @@ export function CalendarView() {
           {!isAuthenticated && (
             <div className="absolute inset-x-[-24px] bottom-[-24px] top-[200px] bg-gradient-to-t from-background via-background/90 to-transparent pointer-events-none z-20 flex flex-col items-center justify-center pt-24">
               <div className="w-full h-full backdrop-blur-[6px] opacity-100" />
-              <div className="absolute inset-0 flex flex-col items-center justify-center p-8 pointer-events-auto">
-                 <div className="bg-card border border-border p-8 rounded-3xl text-center max-w-[400px] mx-auto">
-                  <h3 className="text-xl font-normal mb-2">Track your patterns</h3>
-                  <p className="text-muted-foreground text-sm mb-6">Unlock period editing, symptom logging, and historical calendar views by signing in.</p>
-                  <button type="button" 
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-6 pointer-events-auto">
+                 <div className="bg-card border border-border p-6 rounded-2xl text-center max-w-[360px] mx-auto space-y-3">
+                  <h3 className="text-base font-normal">Track your patterns</h3>
+                  <p className="text-muted-foreground text-xs">Unlock period editing, symptom logging, and historical calendar views by signing in.</p>
+                  <Button
                     onClick={() => openAuthModal()}
-                    className="btn btn-primary px-8 py-3 rounded-full"
+                    className="bg-[var(--mf-accent)] hover:bg-[var(--mf-accent)]/90 text-white rounded-full px-8"
                   >
                     Log in to access
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -736,30 +734,22 @@ export function CalendarView() {
         </div>
 
         {view === "month" && (
-          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 pt-6 border-t border-border/40 text-xs text-muted-foreground animate-in fade-in duration-500">
-            <div className="flex items-center gap-2">
-              <div className="w-5 h-5 rounded-full bg-violet-100 dark:bg-violet-950/80 border border-violet-200 dark:border-violet-900/60 flex items-center justify-center text-[10px] text-violet-700 dark:text-violet-300 font-bold">
-                1
-              </div>
-              <span className="font-medium text-foreground/80">Logged Period</span>
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 pt-5 border-t border-border/40 text-[11px] text-muted-foreground animate-in fade-in duration-500">
+            <div className="flex items-center gap-1.5">
+              <div className="size-4 rounded-full bg-violet-100 dark:bg-violet-950/80 border border-violet-200 dark:border-violet-900/60" />
+              <span className="text-foreground/80">Logged</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-5 h-5 rounded-full border border-dashed border-rose-400 dark:border-rose-700/80 bg-rose-50/50 dark:bg-rose-950/20 flex items-center justify-center text-[10px] text-rose-500 font-semibold">
-                1
-              </div>
-              <span className="font-medium text-foreground/80">Predicted Period</span>
+            <div className="flex items-center gap-1.5">
+              <div className="size-4 rounded-full border border-dashed border-rose-400 dark:border-rose-700/80 bg-rose-50/50 dark:bg-rose-950/20" />
+              <span className="text-foreground/80">Predicted</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-5 h-5 rounded-full border-2 border-dashed border-teal-500/85 dark:border-teal-400/80 bg-teal-50/20 dark:bg-teal-950/15 flex items-center justify-center text-[10px] text-teal-600 dark:text-teal-400 font-semibold">
-                1
-              </div>
-              <span className="font-medium text-foreground/80">Ovulation</span>
+            <div className="flex items-center gap-1.5">
+              <div className="size-4 rounded-full border-2 border-dashed border-teal-500/85 dark:border-teal-400/80 bg-teal-50/20 dark:bg-teal-950/15" />
+              <span className="text-foreground/80">Ovulation</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-5 h-5 rounded-full bg-[#e0e0e0] dark:bg-muted flex items-center justify-center text-[10px] text-foreground font-semibold">
-                1
-              </div>
-              <span className="font-medium text-foreground/80">Selected Day</span>
+            <div className="flex items-center gap-1.5">
+              <div className="size-4 rounded-full bg-[#e0e0e0] dark:bg-muted" />
+              <span className="text-foreground/80">Selected</span>
             </div>
           </div>
         )}
@@ -1057,7 +1047,7 @@ const YearView = ({
   const months = Array.from({ length: 12 }, (_, i) => new Date(year, i, 1))
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 px-4" suppressHydrationWarning>
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 px-4" suppressHydrationWarning>
       {months.map((m, idx) => {
         const mName = m.toLocaleString("default", { month: "short" })
         const dInM = new Date(year, idx + 1, 0).getDate()
@@ -1217,40 +1207,42 @@ function DetailSheet({
         
         {!isAuthenticated && (
           <div className="absolute inset-0 bg-white/60 dark:bg-card/60 backdrop-blur-[2px] z-30 flex items-center justify-center">
-            <button type="button" 
+            <Button
               onClick={() => onOpenAuth()}
-              className="text-sm font-normal text-[var(--mf-accent)] hover:underline"
+              variant="link"
+              className="text-sm text-[var(--mf-accent)]"
             >
               Login to log data
-            </button>
+            </Button>
           </div>
         )}
         
-        <div className="flex items-start justify-between mb-8">
-          <div>
-            <h3 className="text-lg font-normal text-foreground">
+        <div className="flex items-start justify-between mb-5">
+          <div className="space-y-0.5">
+            <h3 className="text-sm font-normal text-foreground">
               {isPartner 
-                ? `Cycle Day Details for ${selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
-                : `Edit Period for ${selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
+                ? `Cycle Day for ${selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
+                : `${selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
               }
             </h3>
-            <p className="text-[var(--mf-accent)] font-normal text-sm">
+            <p className="text-[var(--mf-accent)] text-xs">
               Cycle Day {displayCycleDay}
             </p>
           </div>
-          <button
-            type="button"
-            className="text-muted-foreground hover:text-foreground transition-colors p-2"
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground rounded-full"
             onClick={onClose}
             aria-label="Close day details"
           >
-            <X size={20} />
-          </button>
+            <X size={18} />
+          </Button>
         </div>
 
         <div className="flex items-center justify-between gap-4">
-          <div className="flex-1 bg-muted/30 dark:bg-muted/10 rounded-2xl p-4 border border-dashed border-muted">
-            <p className="text-muted-foreground text-sm text-center italic">
+          <div className="flex-1 bg-muted/30 dark:bg-muted/10 rounded-xl p-3 border border-dashed border-muted">
+            <p className="text-muted-foreground text-xs text-center italic">
               {isPartner 
                 ? "Symptom and period data are managed by your partner." 
                 : "Add weight, mood & symptoms for this day"
@@ -1259,19 +1251,20 @@ function DetailSheet({
           </div>
           
           {!isPartner && (
-            <div className="flex items-center gap-4 sm:gap-8">
-              <div className="hidden sm:flex items-center gap-2">
-                <span className="text-[10px] font-normal text-muted-foreground uppercase tracking-widest">LOG DATA</span>
-                <svg width="40" height="20" viewBox="0 0 40 20" fill="none" className="text-muted-foreground opacity-30">
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:flex items-center gap-1.5">
+                <span className="text-[9px] font-normal text-muted-foreground uppercase tracking-widest">LOG</span>
+                <svg width="28" height="14" viewBox="0 0 40 20" fill="none" className="text-muted-foreground opacity-30">
                   <path d="M2 18C10 18 30 18 38 2M38 2L32 2M38 2L38 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
               
               <Button 
                 onClick={() => setIsLogOpen(true)}
-                className="size-14 rounded-full bg-[var(--mf-accent)] hover:bg-[var(--mf-accent-hover)] text-white p-0 flex items-center justify-center border-none transition-transform hover:scale-105 active:scale-95"
+                className="size-12 rounded-full bg-[var(--mf-accent)] hover:bg-[var(--mf-accent)]/90 text-white p-0 flex items-center justify-center transition-transform hover:scale-105 active:scale-95"
+                size="icon"
               >
-                <Plus size={32} strokeWidth={2.5} />
+                <Plus size={24} strokeWidth={2.5} />
               </Button>
             </div>
           )}

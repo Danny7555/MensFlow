@@ -10,6 +10,7 @@ import { useAuth } from "@/context/useAuth"
 import { useStore } from "@/store/useStore"
 import { TrackerSkeleton } from "@/components/skeletons/TrackerSkeleton"
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 
 type TrackerState = {
   isLoading: boolean
@@ -115,17 +116,17 @@ export function TrackerView() {
   if (isPartner && !partnerStatus?.paired) {
     return (
       <div className="flex flex-col h-full bg-background overflow-auto items-center justify-center p-6 min-h-[80vh]">
-        <div className="max-w-[420px] w-full text-center bg-card border border-border p-8 sm:p-10 rounded-[2.5rem] shadow-xl gap-6 relative overflow-hidden flex flex-col items-center">
-          <div className="absolute top-0 right-0 size-32 bg-[var(--mf-accent)]/5 rounded-full blur-2xl pointer-events-none" />
+        <div className="max-w-[400px] w-full text-center bg-card border border-border p-6 rounded-2xl gap-5 relative overflow-hidden flex flex-col items-center">
+          <div className="absolute top-0 right-0 size-28 bg-[var(--mf-accent)]/5 rounded-full blur-2xl pointer-events-none" />
           
-          <div className="size-16 rounded-3xl bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] flex items-center justify-center mx-auto border border-[var(--mf-accent)]/10">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-8">
+          <div className="size-14 rounded-2xl bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] flex items-center justify-center mx-auto border border-[var(--mf-accent)]/10">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-7">
               <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clipRule="evenodd" />
             </svg>
           </div>
 
-          <div className="space-y-2">
-            <h2 className="text-2xl font-normal tracking-tight text-[var(--mf-text-strong)]">
+          <div className="space-y-1.5">
+            <h2 className="text-xl font-normal tracking-tight text-[var(--mf-text-strong)]">
               Not Connected Yet
             </h2>
             <p className="text-xs text-[var(--mf-muted)] leading-relaxed max-w-sm mx-auto">
@@ -140,20 +141,20 @@ export function TrackerView() {
   if (showRestrictedView) {
     return (
       <div className="flex flex-col h-full bg-background overflow-auto items-center justify-center p-6 min-h-[80vh]">
-        <div className="max-w-[420px] w-full text-center bg-card border border-border p-8 sm:p-10 rounded-[2.5rem] shadow-xl gap-6 relative overflow-hidden flex flex-col items-center">
-          <div className="absolute top-0 right-0 size-32 bg-[var(--mf-accent)]/5 rounded-full blur-2xl pointer-events-none" />
+        <div className="max-w-[400px] w-full text-center bg-card border border-border p-6 rounded-2xl gap-5 relative overflow-hidden flex flex-col items-center">
+          <div className="absolute top-0 right-0 size-28 bg-[var(--mf-accent)]/5 rounded-full blur-2xl pointer-events-none" />
           
-          <div className="size-16 rounded-3xl bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] flex items-center justify-center mx-auto border border-[var(--mf-accent)]/10">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-8">
+          <div className="size-14 rounded-2xl bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] flex items-center justify-center mx-auto border border-[var(--mf-accent)]/10">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-7">
               <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clipRule="evenodd" />
             </svg>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <span className="text-[10px] font-semibold uppercase tracking-[0.2em] bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] px-3 py-1 rounded-full border border-[var(--mf-accent)]/20 inline-block">
               Privacy Settings Active
             </span>
-            <h2 className="text-2xl font-normal tracking-tight text-[var(--mf-text-strong)]">
+            <h2 className="text-xl font-normal tracking-tight text-[var(--mf-text-strong)]">
               Detailed Cycle Logs Private
             </h2>
             <p className="text-xs text-[var(--mf-muted)] leading-relaxed max-w-sm mx-auto">
@@ -161,28 +162,27 @@ export function TrackerView() {
             </p>
           </div>
 
-          <div className="w-full flex flex-col gap-3">
-            <button
-              type="button"
+          <div className="w-full flex flex-col gap-2.5">
+            <Button
               onClick={handleOpenModal}
               disabled={requestSent}
               className={cn(
-                "w-full py-3 text-white rounded-2xl text-xs font-semibold transition-all border-0 outline-none",
+                "w-full rounded-2xl text-xs h-11",
                 requestSent 
-                  ? "bg-emerald-500 cursor-default animate-in fade-in" 
-                  : "bg-[var(--mf-accent)] hover:opacity-95 active:scale-98 cursor-pointer"
+                  ? "bg-emerald-500 hover:bg-emerald-500 text-white cursor-default" 
+                  : "bg-[var(--mf-accent)] hover:bg-[var(--mf-accent)]/90 text-white"
               )}
             >
               {requestSent ? "Access Request Sent ✔" : "Request Detailed Access"}
-            </button>
+            </Button>
 
-            <button 
-              type="button"
+            <Button
               onClick={() => navigate('/dashboard')}
-              className="w-full py-3 bg-muted text-[var(--mf-text-strong)] hover:bg-muted/80 rounded-2xl text-xs font-semibold transition-all active:scale-98 cursor-pointer border-0 outline-none"
+              variant="secondary"
+              className="w-full rounded-2xl text-xs h-11"
             >
               Go to Dashboard
-            </button>
+            </Button>
           </div>
         </div>
         <RequestAccessModal
@@ -198,18 +198,17 @@ export function TrackerView() {
   return (
     <div className="flex flex-col h-full bg-background overflow-auto relative">
       <div className="flex-1 w-full max-w-[1200px] mx-auto p-4 md:p-6 lg:p-8 animate-in fade-in duration-500">
-        <div className="flex items-center justify-end mb-4">
-           <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-card border border-border sync-pill">
-            <span className="text-[10px] font-normal uppercase tracking-wider text-muted-foreground">
-              {isSaving ? 'Syncing with cloud' : 'All data synced'}
+        <div className="flex items-center justify-end mb-3">
+          <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-card border border-border/50">
+            <span className="text-[9px] font-normal uppercase tracking-wider text-muted-foreground">
+              {isSaving ? 'Syncing…' : 'All synced'}
             </span>
           </div>
         </div>
 
-        
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-10 items-start mt-4">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8 lg:gap-10 items-start">
           {/* Main Column */}
-          <div className="space-y-12">
+          <div className="space-y-10 lg:space-y-12">
             <CycleTrackerHero 
               data={data}
               selectedDay={selectedDay}
@@ -225,15 +224,15 @@ export function TrackerView() {
               {!isAuthenticated && (
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/80 to-background pointer-events-none z-20 flex flex-col items-center justify-center">
                   <div className="absolute inset-0 backdrop-blur-[6px]" style={{ maskImage: 'linear-gradient(to bottom, transparent, black 150px)' }} />
-                  <div className="relative z-30 pointer-events-auto bg-card border border-border p-8 rounded-3xl text-center max-w-[400px] mx-auto mt-24">
-                    <h3 className="text-xl font-normal mb-2">Unlock your full history</h3>
-                    <p className="text-muted-foreground text-sm mb-6">Log in to see your past cycles, personalized tips, and partner sharing features.</p>
-                    <button type="button" 
-                       onClick={() => openAuthModal()}
-                      className="btn btn-primary px-8 py-3 rounded-full"
+                  <div className="relative z-30 pointer-events-auto bg-card border border-border p-6 rounded-2xl text-center max-w-[360px] mx-auto mt-20">
+                    <h3 className="text-base font-normal mb-1.5">Unlock your full history</h3>
+                    <p className="text-muted-foreground text-xs mb-4">Log in to see past cycles, personalized tips, and partner sharing.</p>
+                    <Button
+                      onClick={() => openAuthModal()}
+                      className="bg-[var(--mf-accent)] hover:bg-[var(--mf-accent)]/90 text-white rounded-full px-8"
                     >
                       Log in to access
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}
@@ -241,14 +240,11 @@ export function TrackerView() {
           </div>
 
           {/* Sidebar */}
-          <aside className="space-y-10">
+          <aside className="space-y-8 lg:space-y-10">
             <CycleStatsHero />
             <CycleTips activeDay={state.hoveredDay ?? selectedDay} />
           </aside>
         </div>
-
-
-
 
       </div>
     </div>
