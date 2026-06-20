@@ -6,6 +6,8 @@ import {
   Question, 
   Lock, 
   LockOpen,
+  LockKey,
+  ShieldCheck,
   Trash, 
   SidebarSimple, 
   X, 
@@ -28,7 +30,7 @@ import { toast } from 'sonner'
 import { cn } from '../lib/utils'
 import { computeCycleDay } from '../lib/cycleUtils'
 import { MarkdownText } from '../components/MarkdownText'
-import { getPasswordStrength as _getPasswordStrength } from '../lib/passwordStrength'
+import { SECURITY_QUESTIONS } from '../lib/constants'
 
 type Msg = {
   id: string
@@ -195,7 +197,6 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
   const { temporaryChat, setTemporaryChat } = useChatSession()
   const { chatShowTimestamps, privacyLockChats: rawPrivacyLockChats } = useStore((state) => state.settings)
   const { dashboard: data, user, logs, customSymptoms, showConfirm, hydrate, fetchLogs } = useStore()
-  const privacyLockChats = rawPrivacyLockChats && user?.role !== 'partner'
 
   const threadEndRef = useRef<HTMLDivElement>(null)
   // Capture the static prop in a ref so the initial-load effect doesn't
@@ -244,6 +245,13 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
   const [permanentUnlockSessionId, setPermanentUnlockSessionId] = useState<string | null>(null)
   const [permanentUnlockPasscode, setPermanentUnlockPasscode] = useState('')
   const [isLockingSession, setIsLockingSession] = useState(false)
+
+  // Lock-setup state (when no global privacy password exists)
+  const [lockSetupSessionId, setLockSetupSessionId] = useState<string | null>(null)
+  const [lockSetupPasscode, setLockSetupPasscode] = useState('')
+  const [lockSetupQuestionId, setLockSetupQuestionId] = useState(SECURITY_QUESTIONS[0].id)
+  const [lockSetupAnswer, setLockSetupAnswer] = useState('')
+  const [isSettingUpLock, setIsSettingUpLock] = useState(false)
 
   const generateNewSessionId = () => `chat-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
 
@@ -544,25 +552,56 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
     })
   }
 
-  // Lock Actions — one-click, uses settings credentials automatically
+  // Lock Actions
   const openLockModal = async (sessionId: string, e: React.MouseEvent) => {
     e.stopPropagation()
-    if (isLockingSession) return
-    setIsLockingSession(true)
+    if (isLockingSession || isSettingUpLock) return
+
+    // If global privacy password is set, one-click lock
+    if (rawPrivacyLockChats) {
+      setIsLockingSession(true)
+      try {
+        await chatApi.lock(sessionId) // backend reads settings credentials
+        toast.success('Chat locked!')
+        setSessions((prev) => prev.map((s) => s.sessionId === sessionId ? { ...s, isLocked: true } : s))
+        if (activeSessionId === sessionId) {
+          setActiveSessionId(generateNewSessionId())
+          setMessages([{ id: 'welcome', role: 'assistant', text: welcomeText, createdAt: Date.now() }])
+        }
+      } catch (err: unknown) {
+        toast.error(err instanceof Error ? err.message : 'Failed to lock session')
+      } finally {
+        setIsLockingSession(false)
+      }
+      return
+    }
+
+    // No global password — show lock-setup modal with passcode/security question
+    setLockSetupSessionId(sessionId)
+    setLockSetupPasscode('')
+    setLockSetupQuestionId(SECURITY_QUESTIONS[0].id)
+    setLockSetupAnswer('')
+  }
+
+  const handleLockSetupSubmit = async () => {
+    if (!lockSetupSessionId || !lockSetupPasscode.trim()) return
+    setIsSettingUpLock(true)
     try {
-      await chatApi.lock(sessionId) // backend reads settings credentials
+      const activeQuestion = SECURITY_QUESTIONS.find(q => q.id === lockSetupQuestionId)!
+      await chatApi.lock(lockSetupSessionId, lockSetupPasscode, activeQuestion.label, lockSetupAnswer)
       toast.success('Chat locked!')
-      // Remove from visible list immediately (optimistic)
-      setSessions((prev) => prev.map((s) => s.sessionId === sessionId ? { ...s, isLocked: true } : s))
-      // If this was the active session, start a new one
-      if (activeSessionId === sessionId) {
+      setSessions((prev) => prev.map((s) => s.sessionId === lockSetupSessionId ? { ...s, isLocked: true } : s))
+      if (activeSessionId === lockSetupSessionId) {
         setActiveSessionId(generateNewSessionId())
         setMessages([{ id: 'welcome', role: 'assistant', text: welcomeText, createdAt: Date.now() }])
       }
+      setLockSetupSessionId(null)
+      setLockSetupPasscode('')
+      setLockSetupAnswer('')
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Failed to lock session')
     } finally {
-      setIsLockingSession(false)
+      setIsSettingUpLock(false)
     }
   }
 
@@ -594,8 +633,14 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
         }
         const res = await chatApi.unlock(sid, undefined, unlockSecurityAnsVal)
         if (res.success && res.passcode) {
-          toast.success(`Success! Your passcode was retrieved.`)
+          toast.success(`Passcode retrieved! Unlocking chat.`)
           setUnlockedPasscodes((prev) => ({ ...prev, [sid]: res.passcode! }))
+          setLockedSessionToUnlock(null)
+          setUnlockPasscodeVal('')
+          setUnlockSecurityAnsVal('')
+          setShowSecurityQuestionReset(false)
+        } else if (res.success) {
+          toast.success('Security answer verified. Chat unlocked.')
           setLockedSessionToUnlock(null)
           setUnlockPasscodeVal('')
           setUnlockSecurityAnsVal('')
@@ -696,7 +741,7 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
                 </div>
                 
                 <div className="chat-session-actions">
-                  {privacyLockChats && !s.isLocked && (
+                  {!s.isLocked && (
                     <button
                       type="button"
                       className="chat-session-action-btn"
@@ -740,12 +785,12 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
           </div>
 
           <div className="flex items-center gap-2">
-            {privacyLockChats && activeSessionId && !sessions.find((s) => s.sessionId === activeSessionId)?.isLocked && (
+            {activeSessionId && !sessions.find((s) => s.sessionId === activeSessionId)?.isLocked && (
               <button
                 type="button"
                 className="text-xs text-muted-foreground flex items-center gap-1 hover:text-[var(--mf-accent)] px-2 py-1.5 rounded-lg border border-border bg-card transition-colors cursor-pointer disabled:opacity-50"
                 onClick={(e) => openLockModal(activeSessionId, e)}
-                disabled={isLockingSession}
+                disabled={isLockingSession || isSettingUpLock}
               >
                 <Lock size={14} />
                 <span>{isLockingSession ? 'Locking…' : 'Lock Chat'}</span>
@@ -1104,6 +1149,76 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
             >
               <LockOpen size={16} weight="bold" />
               Unlock & Make Public
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Lock Setup Modal Overlay */}
+      {lockSetupSessionId && (
+        <div className="chat-modal-overlay">
+          <div className="chat-modal-card animate-in zoom-in-95 duration-200">
+            <div className="chat-modal-header">
+              <h3 className="chat-modal-title flex items-center gap-2">
+                <Lock size={18} /> Lock Chat
+              </h3>
+              <button
+                type="button"
+                className="chat-modal-close"
+                onClick={() => setLockSetupSessionId(null)}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Set a passcode to protect this conversation. You will need it to view or continue the chat.
+            </p>
+            <div className="flex flex-col gap-3 text-left mt-3">
+              <div>
+                <label className="text-xs font-semibold text-[var(--mf-text)] mb-1.5 block">Passcode</label>
+                <div className="relative">
+                  <LockKey size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="password"
+                    placeholder="Enter a passcode"
+                    className="chat-lock-input pl-9"
+                    value={lockSetupPasscode}
+                    onChange={(e) => setLockSetupPasscode(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-[var(--mf-text)] mb-1.5 block">Security Question <span className="text-muted-foreground font-normal">(optional — for recovery)</span></label>
+                <select
+                  className="w-full h-10 px-3 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-1 focus:ring-[var(--mf-accent)] outline-none text-sm"
+                  value={lockSetupQuestionId}
+                  onChange={(e) => setLockSetupQuestionId(e.target.value)}
+                >
+                  {SECURITY_QUESTIONS.map((q) => (
+                    <option key={q.id} value={q.id}>{q.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-[var(--mf-text)] mb-1.5 block">Answer <span className="text-muted-foreground font-normal">(optional)</span></label>
+                <input
+                  type="text"
+                  placeholder="Your answer"
+                  className="chat-lock-input"
+                  value={lockSetupAnswer}
+                  onChange={(e) => setLockSetupAnswer(e.target.value)}
+                />
+              </div>
+            </div>
+            <button
+              type="button"
+              className="chat-lock-btn mt-4"
+              onClick={handleLockSetupSubmit}
+              disabled={!lockSetupPasscode.trim() || isSettingUpLock}
+            >
+              <ShieldCheck size={16} weight="bold" />
+              {isSettingUpLock ? 'Locking…' : 'Lock Chat'}
             </button>
           </div>
         </div>

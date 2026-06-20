@@ -8,6 +8,7 @@ export interface ChatMessageDocument extends Document {
   text: string;
   isLocked: boolean;
   passcode: string | null;
+  passcodeEncrypted: string | null;
   securityQuestion: string | null;
   securityAnswerHash: string | null;
   createdAt: number;
@@ -20,6 +21,7 @@ const ChatMessageSchema = new Schema<ChatMessageDocument>({
   text: { type: String, required: true, maxlength: 8000 },
   isLocked: { type: Boolean, default: false },
   passcode: { type: String, default: null, maxlength: 80 },
+  passcodeEncrypted: { type: String, default: null },
   securityQuestion: { type: String, default: null, maxlength: 200 },
   securityAnswerHash: { type: String, default: null },
   createdAt: { type: Number, required: true },
