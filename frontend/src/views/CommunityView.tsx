@@ -11,6 +11,7 @@ import { useCommunityPosts, useCommunityPost, useCreatePost, useAddComment, comm
 import { cn } from '../lib/utils'
 import { resolveAssetUrl } from '../lib/apiClient'
 import { useQueryClient } from '@tanstack/react-query'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -43,7 +44,7 @@ function AvatarCircle({ name, avatar, size = 'md' }: { name: string; avatar?: st
   const src = resolveAssetUrl(avatar)
 
   if (src) {
-    return <img src={src} alt={name} className={`${dim} rounded-full object-cover shrink-0 border-2 border-white dark:border-gray-800`} />
+    return <img loading="lazy" src={src} alt={name} className={`${dim} rounded-full object-cover shrink-0 border-2 border-white dark:border-gray-800`} />
   }
 
   const hash = name.split('').reduce((a, c) => a + c.charCodeAt(0), 0)
@@ -587,6 +588,41 @@ function commentReducer(state: CommentState, action: CommentAction): CommentStat
   }
 }
 
+function VirtualizedPostList({ posts, scrollRef, onPostClick }: {
+  posts: import('../services/communityService').ApiCommunityPost[]
+  scrollRef: React.RefObject<HTMLDivElement | null>
+  onPostClick: (id: string) => void
+}) {
+  const virtualizer = useVirtualizer({
+    count: posts.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => 180,
+    overscan: 5,
+  })
+
+  return (
+    <div style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative' }}>
+      {virtualizer.getVirtualItems().map((item) => (
+        <div
+          key={item.key}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: `${item.size}px`,
+            transform: `translateY(${item.start}px)`,
+          }}
+        >
+          <div className="pr-1">
+            <PostCard post={posts[item.index]} onClick={() => onPostClick(posts[item.index]._id)} />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export function CommunityView() {
   const { user } = useStore()
   const qc = useQueryClient()
@@ -597,6 +633,7 @@ export function CommunityView() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [comment, commentDispatch] = useReducer(commentReducer, initialCommentState)
   const mentionRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!comment.showMentions || !comment.mentionQuery) return
@@ -742,10 +779,8 @@ export function CommunityView() {
               <div className="size-10 rounded-full border-3 border-[var(--mf-border)] border-t-[var(--mf-accent)] animate-spin" />
             </div>
           ) : list && list.posts.length > 0 ? (
-            <div className="space-y-3 pb-4">
-              {list.posts.map(post => (
-                <PostCard key={post._id} post={post} onClick={() => handlePostClick(post._id)} />
-              ))}
+            <div ref={scrollRef} className="overflow-y-auto pb-4" style={{ contain: 'strict' }}>
+              <VirtualizedPostList posts={list.posts} scrollRef={scrollRef} onPostClick={handlePostClick} />
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-20 gap-5 px-4">

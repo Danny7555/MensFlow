@@ -74,7 +74,7 @@ export function LandingView() {
         {messages.length === 0 ? (
           <>
             <div className="landing-hero-image-wrap">
-              <img src="/images/lady.jpg" alt="" className="landing-hero-image" />
+              <img loading="lazy" src="/images/lady.jpg" alt="" className="landing-hero-image" />
             </div>
             <h1 className="landing-title">Ask MensFlow about your cycle?</h1>
             <p className="landing-sub">

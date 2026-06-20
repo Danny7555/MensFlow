@@ -181,7 +181,7 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
                           )}
                         >
                           {imgSrc ? (
-                            <img src={imgSrc} alt="" className="size-6 rounded-full object-cover" />
+                            <img loading="lazy" src={imgSrc} alt="" className="size-6 rounded-full object-cover" />
                           ) : (
                             <div className={cn("size-6 rounded-full flex items-center justify-center bg-muted/50")}>
                                {(() => {

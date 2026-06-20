@@ -101,7 +101,7 @@ function SupportHistory() {
         {completed.slice(-3).reverse().map((task) => (
           <div key={task.id} className="flex items-center justify-between text-[11.5px] py-2 border-b border-border/40 last:border-0">
             <div className="flex items-center gap-2.5">
-              <img src="/images/heart.png" alt="" className="size-3.5 object-contain shrink-0" />
+              <img loading="lazy" src="/images/heart.png" alt="" className="size-3.5 object-contain shrink-0" />
               <span className="text-[var(--mf-text)]">{task.label}</span>
             </div>
             <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Completed</span>
@@ -419,7 +419,7 @@ export function SyncView() {
                     Invite Partner
                   </span>
                   <div className="absolute right-[-20px] top-[-20px] opacity-10 group-hover:scale-110 transition-transform duration-700">
-                     <img src="/images/girl.jpg" alt="" className="size-40 sm:size-48 object-contain rotate-[-15deg]" />
+                     <img loading="lazy" src="/images/girl.jpg" alt="" className="size-40 sm:size-48 object-contain rotate-[-15deg]" />
                   </div>
                 </Button>
               </m.div>
@@ -552,9 +552,9 @@ export function SyncView() {
                     <div className="flex items-center gap-2">
                       <div className="size-7 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center overflow-hidden border border-[var(--mf-border)] shrink-0">
                         {partnerStatus.partner.avatar ? (
-                          <img src={resolveAssetUrl(partnerStatus.partner.avatar)} alt="" className="size-full object-cover" />
+                          <img loading="lazy" src={resolveAssetUrl(partnerStatus.partner.avatar)} alt="" className="size-full object-cover" />
                         ) : (
-                          <img src="/images/girl.jpg" alt="" className="size-full object-cover" />
+                          <img loading="lazy" src="/images/girl.jpg" alt="" className="size-full object-cover" />
                         )}
                       </div>
                       <span className="text-xs font-medium text-[var(--mf-text-strong)]">
@@ -567,7 +567,7 @@ export function SyncView() {
                 )}
               </div>
               <div className="hidden md:block shrink-0">
-                <img src="/images/lady.jpg" alt="Empathy Hub Illustration" className="h-28 lg:h-32 object-cover rounded-full opacity-95" />
+                <img loading="lazy" src="/images/lady.jpg" alt="Empathy Hub Illustration" className="h-28 lg:h-32 object-cover rounded-full opacity-95" />
               </div>
             </div>
           </m.div>
@@ -584,7 +584,7 @@ export function SyncView() {
                     transition={{ duration: 2, repeat: Infinity }}
                     className="mb-3 size-12 rounded-full bg-rose-500/10 flex items-center justify-center text-rose-500"
                   >
-                    <img src="/images/heart.png" alt="" className="size-6 object-contain" />
+                    <img loading="lazy" src="/images/heart.png" alt="" className="size-6 object-contain" />
                   </m.div>
 
                   <h2 className="text-base font-normal tracking-tight text-[var(--mf-text-strong)]">
@@ -643,7 +643,7 @@ export function SyncView() {
                             )}
                           >
                             <div className="absolute inset-0 bg-black/45 group-hover:bg-black/50 transition-colors z-10" />
-                            <img src={opt.image} alt={opt.label} className="absolute inset-0 size-full object-cover z-0 transition-transform duration-700 group-hover:scale-110" />
+                            <img loading="lazy" src={opt.image} alt={opt.label} className="absolute inset-0 size-full object-cover z-0 transition-transform duration-700 group-hover:scale-110" />
                             
                             <div className="flex justify-end w-full z-20">
                               <div className={cn(

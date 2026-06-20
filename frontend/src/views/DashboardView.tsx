@@ -94,7 +94,7 @@ function QuickEmpathyBoostCard({ ladyName, isAuthenticated }: QuickEmpathyBoostC
         <div>
           <span className="text-[9px] font-normal text-[var(--mf-accent)] uppercase tracking-[0.2em] block mb-0.5">Quick Actions</span>
           <h3 className="text-base font-normal text-[var(--mf-text-strong)] flex items-center gap-1.5">
-            Send Empathy Boost <img src="/images/heart.png" alt="" className="size-4.5 object-contain inline-block ml-1" />
+            Send Empathy Boost <img loading="lazy" src="/images/heart.png" alt="" className="size-4.5 object-contain inline-block ml-1" />
           </h3>
         </div>
       </div>
@@ -114,7 +114,7 @@ function QuickEmpathyBoostCard({ ladyName, isAuthenticated }: QuickEmpathyBoostC
             >
               <div className="flex items-center justify-between w-full">
                 {opt.Icon === Heart ? (
-                  <img src="/images/heart.png" alt="" className="size-6 object-contain" />
+                  <img loading="lazy" src="/images/heart.png" alt="" className="size-6 object-contain" />
                 ) : (
                   <opt.Icon size={24} className={opt.color} weight="bold" />
                 )}

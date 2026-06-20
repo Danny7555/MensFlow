@@ -74,7 +74,7 @@ export function PrimaryInsightCard({ label, currentDay, trend }: { label: string
       <div className="flex flex-col h-full">
         <div className={`-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden bg-gradient-to-r ${gradient}`}>
           {!imgError && (
-            <img 
+            <img loading="lazy"
               src="/images/track.png" alt="Phase" className="w-full h-full object-cover object-center"
               onError={() => setImgError(true)}
             />
@@ -133,7 +133,7 @@ export function BodySignalsCard({ signals, currentDay, phaseLabel }: { signals: 
       <div className="flex flex-col h-full">
         <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden bg-gradient-to-br from-blue-500/20 to-cyan-500/10">
           {!imgError && (
-            <img 
+            <img loading="lazy"
               src="/images/calm.jpg" alt="Body Signals" className="w-full h-full object-cover"
               onError={() => setImgError(true)}
             />
@@ -187,11 +187,11 @@ export function WellnessScoreCard() {
       <m.div variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
         <div className="flex flex-col h-full">
           <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden bg-gradient-to-br from-rose-500/15 to-pink-500/5">
-            <img src="/images/heart.png" alt="Wellness" className="w-full h-full object-cover opacity-60" />
+            <img loading="lazy" src="/images/heart.png" alt="Wellness" className="w-full h-full object-cover opacity-60" />
           </div>
           <div className="flo-card-top relative z-10">
             <div className="flo-card-icon flo-card-icon--pink flex items-center justify-center">
-              <img src="/images/heart.png" alt="" className="size-5 object-contain" />
+              <img loading="lazy" src="/images/heart.png" alt="" className="size-5 object-contain" />
             </div>
           </div>
           <div className="mt-2 relative z-10 flex flex-col flex-1">
@@ -255,11 +255,11 @@ export function WellnessScoreCard() {
     <m.div variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
       <div className="flex flex-col h-full">
         <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden bg-gradient-to-br from-rose-500/15 to-pink-500/5">
-          <img src="/images/heart.png" alt="Wellness" className="w-full h-full object-cover opacity-60" />
+          <img loading="lazy" src="/images/heart.png" alt="Wellness" className="w-full h-full object-cover opacity-60" />
         </div>
         <div className="flo-card-top relative z-10">
           <div className="flo-card-icon flo-card-icon--pink flex items-center justify-center">
-            <img src="/images/heart.png" alt="" className="size-5 object-contain" />
+            <img loading="lazy" src="/images/heart.png" alt="" className="size-5 object-contain" />
           </div>
         </div>
         <div className="mt-2 relative z-10 flex flex-col flex-1">
@@ -344,7 +344,7 @@ export function PartnerTranslationCard({ label, onCopy }: {
                 className="px-3.5 py-2 rounded-xl bg-[var(--mf-card)] text-xs font-normal text-[var(--mf-text-strong)] border border-[var(--mf-border-strong)] hover:border-[var(--mf-accent-border)] transition-all flex items-center gap-1.5 "
               >
                 {g.Icon === Heart ? (
-                  <img src="/images/heart.png" alt="" className="size-3.5 object-contain" />
+                  <img loading="lazy" src="/images/heart.png" alt="" className="size-3.5 object-contain" />
                 ) : (
                   <g.Icon size={14} className={cn(g.color)} weight="bold" />
                 )}
@@ -386,7 +386,7 @@ export function QuickLogCard({ onViewAll }: { onViewAll: () => void }) {
             >
               <div className="size-12 flex items-center justify-center rounded-full bg-[var(--mf-card)] border border-[var(--mf-border)] overflow-hidden transition-all group-hover:border-[var(--mf-accent)]">
                 {action.img ? (
-                  <img src={action.img} alt="" className="w-full h-full object-cover" />
+                  <img loading="lazy" src={action.img} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="text-[var(--mf-muted)] group-hover:text-[var(--mf-accent)] transition-colors">
                     {action.icon}
@@ -466,7 +466,7 @@ export function ConnectionChecklistCard() {
     toggleSupportAction(id)
     if (!wasCompleted) {
       toast.success(`Completed: "${label}"!`, {
-        icon: <img src="/images/heart.png" alt="" className="size-4.5 object-contain" />,
+        icon: <img loading="lazy" src="/images/heart.png" alt="" className="size-4.5 object-contain" />,
         duration: 3000
       })
     }
@@ -477,7 +477,7 @@ export function ConnectionChecklistCard() {
       <div className="flo-card-top relative z-10">
         <p className="flo-card-title">Daily Connection</p>
         <div className="flo-card-icon text-teal-500 flex items-center justify-center">
-          <img src="/images/heart.png" alt="" className="size-5 object-contain" />
+          <img loading="lazy" src="/images/heart.png" alt="" className="size-5 object-contain" />
         </div>
       </div>
       <div className="mt-2 relative z-10 flex flex-col flex-1">

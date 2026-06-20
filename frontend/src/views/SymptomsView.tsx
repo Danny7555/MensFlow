@@ -70,13 +70,13 @@ function SymptomCategoryList({
   return (
     <div className="dash-panel flex flex-col overflow-hidden">
       {category === 'Physical' && (
-        <img src="/images/ovary.jpg" alt="" className="w-full h-32 object-cover object-[center_30%]" />
+        <img loading="lazy" src="/images/ovary.jpg" alt="" className="w-full h-32 object-cover object-[center_30%]" />
       )}
       {category === 'Mood' && (
-        <img src="/images/happy.jpg" alt="" className="w-full h-32 object-cover object-[center_30%]" />
+        <img loading="lazy" src="/images/happy.jpg" alt="" className="w-full h-32 object-cover object-[center_30%]" />
       )}
       {category === 'Flow' && (
-        <img src="/images/flow.jpg" alt="" className="w-full h-32 object-cover object-[center_30%]" />
+        <img loading="lazy" src="/images/flow.jpg" alt="" className="w-full h-32 object-cover object-[center_30%]" />
       )}
       <div className="p-6 flex flex-col gap-6">
         <div className="flex items-center justify-between">
@@ -122,7 +122,7 @@ function SymptomCategoryList({
                   'phys-tender': '/images/tender.jpg',
                 }
                 if (imgMap[symptom.id]) {
-                  return <img src={imgMap[symptom.id]} alt="" className="size-6 rounded-full object-cover" />
+                  return <img loading="lazy" src={imgMap[symptom.id]} alt="" className="size-6 rounded-full object-cover" />
                 }
                 if (SYMPTOM_ICONS[symptom.id]) {
                   const Icon = SYMPTOM_ICONS[symptom.id]
@@ -232,7 +232,7 @@ export function SymptomsView() {
     <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <header className="dash-header">
         <div className="dash-header-left">
-          <img src="/images/girl.jpg" alt="" className="dash-avatar" />
+          <img loading="lazy" src="/images/girl.jpg" alt="" className="dash-avatar" />
           <div>
             <p className="dash-kicker">{isPartner ? "Partner's Cycle" : "Tracking"}</p>
             <div className="flex items-center gap-3">
@@ -247,7 +247,7 @@ export function SymptomsView() {
         </div>
         <div className="dash-header-meta">
           <span className="dash-pill">
-            <img src="/images/cal.png" alt="" width={16} height={16} className="object-contain mr-1.5" aria-hidden />
+            <img loading="lazy" src="/images/cal.png" alt="" width={16} height={16} className="object-contain mr-1.5" aria-hidden />
             Today, {todayStr}
           </span>
         </div>
@@ -395,7 +395,7 @@ export function SymptomsView() {
                     )}
                   </div>
                   <div className="size-10 flex items-center justify-center shrink-0">
-                    <img src="/images/water.png" alt="" className="size-8 object-contain" />
+                    <img loading="lazy" src="/images/water.png" alt="" className="size-8 object-contain" />
                   </div>
                 </div>
               </div>
@@ -464,7 +464,7 @@ export function SymptomsView() {
                                   className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-card border border-border text-sm font-normal text-[var(--mf-text-strong)]"
                                 >
                                   {imgMap[symptom.id] ? (
-                                    <img src={imgMap[symptom.id]} alt="" className="size-6 rounded-full object-cover" />
+                                    <img loading="lazy" src={imgMap[symptom.id]} alt="" className="size-6 rounded-full object-cover" />
                                   ) : SYMPTOM_ICONS[symptom.id] ? (
                                     (() => {
                                       const Icon = SYMPTOM_ICONS[symptom.id]

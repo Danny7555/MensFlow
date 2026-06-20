@@ -64,7 +64,7 @@ export function CycleStatsHero() {
   return (
     <div className="cycle-stats-hero">
       <div className="stats-banner">
-        <img src="/images/mens.jpg" alt="" className="stats-banner-img" />
+        <img loading="lazy" src="/images/mens.jpg" alt="" className="stats-banner-img" />
         <div className="stats-banner-overlay">
           <h2 className="stats-title">Cycle statistics</h2>
           <p className="stats-subtitle">Averages based on your last 6 cycles</p>

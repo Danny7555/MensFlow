@@ -10,7 +10,7 @@ export function NotFoundView() {
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background">
       {/* Immersive Background */}
       <div className="absolute inset-0">
-        <img 
+        <img loading="lazy"
           src="/images/lady.jpg" 
           alt="Brand Background" 
           className="w-full h-full object-cover"

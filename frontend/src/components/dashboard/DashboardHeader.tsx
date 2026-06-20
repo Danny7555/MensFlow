@@ -63,7 +63,7 @@ export function DashboardHeader({
           whileTap={{ scale: 0.95 }}
           className="flo-avatar-wrap"
         >
-          <img 
+          <img loading="lazy"
             src={resolveAssetUrl(user.avatar) || (user.role === 'partner' ? '/images/mens.jpg' : '/images/girl.jpg')} 
             alt="Profile" 
             className="flo-avatar" 

@@ -329,7 +329,7 @@ function CycleTrackerHeroInner({
             onClick={() => dispatch({ type: 'SET_LOG_MODAL_OPEN', payload: true })}
             className="w-full text-left p-0 border-none outline-none bg-transparent mood-cta-card cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mf-accent)] rounded-2xl"
           >
-            <img src="/images/exp.jpg" alt="" className="mood-cta-bg" />
+            <img loading="lazy" src="/images/exp.jpg" alt="" className="mood-cta-bg" />
             <div className="mood-cta-overlay" />
             <span className="mood-text pl-4">Log your first cycle entry</span>
             <CaretRight size={20} className="caret-right group-hover:translate-x-1 transition-transform" />
@@ -351,7 +351,7 @@ function CycleTrackerHeroInner({
       <div className="cycle-tracker-mode flex flex-wrap items-center gap-2">
         {isPartner ? (
           <div className="mode-chip cursor-default bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 font-normal text-xs tracking-wider flex items-center gap-1.5">
-            <img src="/images/heart.png" alt="" className="size-3.5 object-contain animate-pulse" />
+            <img loading="lazy" src="/images/heart.png" alt="" className="size-3.5 object-contain animate-pulse" />
             <span>Partner Empathy Mode</span>
           </div>
         ) : (
@@ -470,7 +470,7 @@ function CycleTrackerHeroInner({
                 )}
                 {activeLog.mucus && (
                   <span className="text-[10px] font-medium bg-[#26899e]/15 text-[#26899e] border border-[#26899e]/25 px-2 py-0.5 rounded-full flex items-center gap-1.5 capitalize">
-                    <img src="/images/water.png" alt="" className="size-3 object-contain shrink-0" />
+                    <img loading="lazy" src="/images/water.png" alt="" className="size-3 object-contain shrink-0" />
                     <span>{activeLog.mucus.replace('-', ' ')}</span>
                   </span>
                 )}
@@ -525,10 +525,10 @@ function CycleTrackerHeroInner({
             }}
             className="w-full text-left p-0 border-none outline-none bg-transparent mood-cta-card cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mf-accent)] rounded-2xl"
           >
-             <img src="/images/calm.jpg" alt="" className="mood-cta-bg opacity-80" />
+             <img loading="lazy" src="/images/calm.jpg" alt="" className="mood-cta-bg opacity-80" />
              <div className="mood-cta-overlay bg-gradient-to-r from-teal-900/60 to-indigo-900/50" />
              <span className="mood-text pl-4 flex items-center gap-2">
-                <img src="/images/heart.png" alt="" className="size-4 object-contain animate-pulse shrink-0" />
+                <img loading="lazy" src="/images/heart.png" alt="" className="size-4 object-contain animate-pulse shrink-0" />
                 <span>View Empathy Decoder & Playbook</span>
              </span>
              <CaretRight size={20} className="caret-right group-hover:translate-x-1 transition-transform text-teal-400" />
@@ -539,7 +539,7 @@ function CycleTrackerHeroInner({
             onClick={() => dispatch({ type: 'SET_LOG_MODAL_OPEN', payload: true })}
             className="w-full text-left p-0 border-none outline-none bg-transparent mood-cta-card cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mf-accent)] rounded-2xl"
           >
-             <img src="/images/exp.jpg" alt="" className="mood-cta-bg" />
+             <img loading="lazy" src="/images/exp.jpg" alt="" className="mood-cta-bg" />
              <div className="mood-cta-overlay" />
              <span className="mood-text pl-4">
                 Log symptoms for Day {activeDay}

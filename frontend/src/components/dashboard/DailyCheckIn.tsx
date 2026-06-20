@@ -53,7 +53,7 @@ function SymptomBubble({ sym, active, onClick }: SymptomBubbleProps) {
         active ? "border-[var(--mf-accent)]" : "border-transparent group-hover:border-[var(--mf-accent)]"
       )}>
         {imgUrl ? (
-          <img src={imgUrl} alt={sym.label} className="w-full h-full object-cover" />
+          <img loading="lazy" src={imgUrl} alt={sym.label} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full bg-muted flex items-center justify-center font-normal text-xs uppercase text-muted-foreground group-hover:text-[var(--mf-accent)] transition-colors">
             {sym.label.substring(0, 2)}
@@ -261,7 +261,7 @@ export function SymptomLogger() {
                     )}
                   >
                     {imgUrl ? (
-                      <img src={imgUrl} alt="" className="size-4 rounded-full object-cover shrink-0" />
+                      <img loading="lazy" src={imgUrl} alt="" className="size-4 rounded-full object-cover shrink-0" />
                     ) : (
                       <span className="size-1.5 rounded-full bg-[var(--mf-accent)] shrink-0" />
                     )}

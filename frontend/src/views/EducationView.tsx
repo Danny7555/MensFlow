@@ -50,7 +50,7 @@ function ArticleCard({ article, isFeatured }: ArticleCardProps) {
         {isFeatured ? (
           <div className="absolute -right-8 -bottom-8 opacity-[0.15] pointer-events-none rotate-6">
             {article.image && !imageError ? (
-              <img src={resolveAssetUrl(article.image)} alt="" className="size-[300px] object-cover rounded-full" onError={() => setImageError(true)} />
+              <img loading="lazy" src={resolveAssetUrl(article.image)} alt="" className="size-[300px] object-cover rounded-full" onError={() => setImageError(true)} />
             ) : (
               <IconComponent size={340} weight="duotone" className="text-[var(--mf-accent)]" />
             )}
@@ -58,7 +58,7 @@ function ArticleCard({ article, isFeatured }: ArticleCardProps) {
         ) : (
           <div className="absolute -right-4 -bottom-4 opacity-[0.1] pointer-events-none">
             {article.image && !imageError ? (
-              <img src={resolveAssetUrl(article.image)} alt="" className="size-[120px] object-cover rounded-full" onError={() => setImageError(true)} />
+              <img loading="lazy" src={resolveAssetUrl(article.image)} alt="" className="size-[120px] object-cover rounded-full" onError={() => setImageError(true)} />
             ) : (
               <IconComponent size={180} weight="duotone" />
             )}
@@ -71,7 +71,7 @@ function ArticleCard({ article, isFeatured }: ArticleCardProps) {
               <div className={cn('text-foreground', isFeatured && 'text-[var(--mf-accent)]')}>
                 {article.image && !imageError ? (
                   <div className="size-12 rounded-xl overflow-hidden border border-border/30">
-                    <img src={resolveAssetUrl(article.image)} alt="" className="size-full object-cover" onError={() => setImageError(true)} />
+                    <img loading="lazy" src={resolveAssetUrl(article.image)} alt="" className="size-full object-cover" onError={() => setImageError(true)} />
                   </div>
                 ) : (
                   <IconComponent size={isFeatured ? 44 : 32} weight="duotone" />

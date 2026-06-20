@@ -68,7 +68,7 @@ export function HealthMetrics() {
           }`}
         >
           <div className="flex items-center gap-3">
-            <img src="/images/water.png" alt="" className="size-10 object-contain" />
+            <img loading="lazy" src="/images/water.png" alt="" className="size-10 object-contain" />
             <div>
               <h3 className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Water</h3>
               <div className="flex items-baseline gap-1">
@@ -100,7 +100,7 @@ export function HealthMetrics() {
           }`}
         >
           <div className="flex items-center gap-3">
-            <img src="/images/weight.png" alt="" className="size-10 object-cover rounded-xl" />
+            <img loading="lazy" src="/images/weight.png" alt="" className="size-10 object-cover rounded-xl" />
             <div>
               <h3 className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Weight</h3>
               <div className="flex items-baseline gap-1">

@@ -206,7 +206,7 @@ export function CycleTips({ activeDay }: CycleTipsProps) {
                 <div className="flex items-center gap-2 mb-3">
                   <div className={cn("p-1.5 rounded-xl border border-transparent", tip.bgClass, tip.borderClass)}>
                     {TipIcon === Heart ? (
-                      <img src="/images/heart.png" alt="" className="size-4 object-contain" />
+                      <img loading="lazy" src="/images/heart.png" alt="" className="size-4 object-contain" />
                     ) : (
                       <TipIcon size={16} className={tip.colorClass} weight="fill" />
                     )}

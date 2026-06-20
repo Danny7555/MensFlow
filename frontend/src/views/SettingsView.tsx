@@ -583,7 +583,7 @@ function GeneralPanel({
                 <div className="flex items-center gap-3">
                   <div className="size-10 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center overflow-hidden border border-[var(--mf-border)]">
                     {partnerStatus.partner?.avatar ? (
-                      <img src={resolveAssetUrl(partnerStatus.partner.avatar)} alt="" className="w-full h-full object-cover" />
+                      <img loading="lazy" src={resolveAssetUrl(partnerStatus.partner.avatar)} alt="" className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-base font-normal text-[var(--mf-accent)]">
                         {partnerStatus.partner?.name?.charAt(0).toUpperCase()}
@@ -1636,7 +1636,7 @@ function AccountPanel({
             <div className="flex flex-col items-center gap-2 mr-4">
               <div className="size-20 rounded-full bg-muted border border-border flex items-center justify-center overflow-hidden shrink-0 relative group">
                 {user?.avatar ? (
-                  <img src={resolveAssetUrl(user.avatar)} alt="Profile" className="w-full h-full object-cover" />
+                  <img loading="lazy" src={resolveAssetUrl(user.avatar)} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
                   <UserCircle size={48} weight="duotone" className="text-muted-foreground" aria-hidden />
                 )}
@@ -1805,7 +1805,7 @@ function AccountPanel({
                   className={`size-16 rounded-full border-2 overflow-hidden transition-all hover:scale-105 active:scale-95 ${user?.avatar === avatar.src ? 'border-[var(--mf-accent)] ring-2 ring-[var(--mf-accent-soft)]' : 'border-transparent'}`}
                   title={avatar.label}
                 >
-                  <img src={avatar.src} alt={avatar.label} className="w-full h-full object-cover" />
+                  <img loading="lazy" src={avatar.src} alt={avatar.label} className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>

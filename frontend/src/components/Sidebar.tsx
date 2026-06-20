@@ -50,7 +50,7 @@ const authItems: NavItem[] = [
   { id: 'ask', label: 'Ask MensFlow', Icon: ChatCircle },
   { id: 'symptoms', label: 'Symptoms', Icon: Pulse },
   { id: 'insights', label: 'Health insights', Icon: Target },
-  { id: 'community', label: 'Community', Icon: FlowerLotus },
+  // { id: 'community', label: 'Community', Icon: FlowerLotus },
   { id: 'cycle-history', label: 'Cycle History', Icon: ClockClockwise, children: [
     { id: 'cycle-compare', label: 'Compare Cycles', Icon: ChartBar },
     { id: 'medications', label: 'Medications', Icon: Pill },
@@ -189,15 +189,15 @@ export function Sidebar({
                 >
                   {user?.role === 'partner' ? (
                     partnerStatus?.partner?.avatar ? (
-                      <img src={resolveAssetUrl(partnerStatus.partner.avatar)} alt="Partner" className="w-full h-full object-cover" />
+                      <img loading="lazy" src={resolveAssetUrl(partnerStatus.partner.avatar)} alt="Partner" className="w-full h-full object-cover" />
                     ) : (
-                      <img src="/images/girl.jpg" alt="Partner" className="w-full h-full object-cover" />
+                      <img loading="lazy" src="/images/girl.jpg" alt="Partner" className="w-full h-full object-cover" />
                     )
                   ) : (
                     user?.avatar ? (
-                      <img src={resolveAssetUrl(user.avatar)} alt="You" className="w-full h-full object-cover" />
+                      <img loading="lazy" src={resolveAssetUrl(user.avatar)} alt="You" className="w-full h-full object-cover" />
                     ) : (
-                      <img src="/images/girl.jpg" alt="You" className="w-full h-full object-cover" />
+                      <img loading="lazy" src="/images/girl.jpg" alt="You" className="w-full h-full object-cover" />
                     )
                   )}
                 </div>
