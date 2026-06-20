@@ -22,7 +22,7 @@ const getDayInsight = (activeDay: number, cycleLen: number = 28) => {
       phase: `Your Period`,
       estrogen: { label: 'Low', detail: 'At its lowest' },
       progesterone: { label: 'Low', detail: 'Bottomed out' },
-      accentColor: '#f43f5e',
+      accentColor: 'var(--mf-phase-menstrual)',
       description: 'Your body is shedding the uterine lining. Energy is naturally at its lowest right now.',
       supportTip: 'Rest up — warm teas, a heating pad, and early nights. You deserve the break.',
     }
@@ -33,7 +33,7 @@ const getDayInsight = (activeDay: number, cycleLen: number = 28) => {
       phase: `Follicular`,
       estrogen: { label: 'Rising', detail: 'Energy lifting' },
       progesterone: { label: 'Low', detail: 'Stays low' },
-      accentColor: '#0d9488',
+      accentColor: 'var(--mf-phase-follicular)',
       description: 'Estrogen is climbing — you are getting your spark back.',
       supportTip: 'Great time to try something new, make plans, or start that project you have been thinking about.',
     }
@@ -44,7 +44,7 @@ const getDayInsight = (activeDay: number, cycleLen: number = 28) => {
       phase: `Ovulation`,
       estrogen: { label: 'Peak', detail: 'Highest all month' },
       progesterone: { label: 'Rising', detail: 'Gradually climbing' },
-      accentColor: '#0ea5e9',
+      accentColor: 'var(--mf-phase-ovulatory)',
       description: 'Estrogen peaks — confidence and energy are at their monthly high.',
       supportTip: 'Schedule important chats, date nights, or anything that needs your A-game.',
     }
@@ -55,7 +55,7 @@ const getDayInsight = (activeDay: number, cycleLen: number = 28) => {
       phase: `Luteal`,
       estrogen: { label: 'Moderate', detail: 'Stable' },
       progesterone: { label: 'Peak', detail: 'Highest all month' },
-      accentColor: '#d97706',
+      accentColor: 'var(--mf-phase-luteal)',
       description: 'Progesterone peaks — you may feel calm, sleepy, or want to nest.',
       supportTip: 'Keep it cozy — comfort food, a good show, and quiet nights are perfect.',
     }
@@ -65,7 +65,7 @@ const getDayInsight = (activeDay: number, cycleLen: number = 28) => {
     phase: `Pre-Menstrual`,
     estrogen: { label: 'Falling', detail: 'Dropping quickly' },
     progesterone: { label: 'Falling', detail: 'Dropping quickly' },
-    accentColor: '#6b7280',
+    accentColor: 'var(--mf-phase-premenstrual)',
     description: 'Both hormones drop sharply — fatigue, cravings, and mood shifts are totally normal.',
     supportTip: 'Be gentle with yourself. Eat what sounds good, rest extra, and skip what you can.',
   }
@@ -89,6 +89,11 @@ function Bar({ label, detail, level, color }: {
           className="h-full rounded-full transition-all duration-700 ease-out"
           style={{ width: `${pct}%`, backgroundColor: color }}
         />
+      </div>
+      <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
+        <span>Low</span>
+        <span>Med</span>
+        <span>High</span>
       </div>
     </div>
   )
@@ -133,7 +138,7 @@ export function HormoneWave() {
   const icon = phaseIcons[dayInsight.key]
 
   const createSliderBg = (val: number, max: number, color: string) =>
-    `linear-gradient(to right, ${color}30 0%, ${color}30 ${(val / max) * 100}%, var(--mf-border) ${(val / max) * 100}%, var(--mf-border) 100%)`
+    `linear-gradient(to right, color-mix(in srgb, ${color} 19%, transparent) 0%, color-mix(in srgb, ${color} 19%, transparent) ${(val / max) * 100}%, var(--mf-border) ${(val / max) * 100}%, var(--mf-border) 100%)`
 
   return (
     <div className="space-y-5 p-5 bg-card rounded-2xl border border-border">
@@ -145,7 +150,7 @@ export function HormoneWave() {
         </h2>
         <span
           className="text-xs font-medium px-2.5 py-1 rounded-full shrink-0"
-          style={{ backgroundColor: `${dayInsight.accentColor}14`, color: dayInsight.accentColor }}
+          style={{ backgroundColor: `color-mix(in srgb, ${dayInsight.accentColor} 8%, transparent)`, color: dayInsight.accentColor }}
         >
           {dayInsight.phase}
         </span>

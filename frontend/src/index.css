@@ -131,6 +131,11 @@
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  --mf-phase-menstrual: #f43f5e;
+  --mf-phase-follicular: #0d9488;
+  --mf-phase-ovulatory: #0ea5e9;
+  --mf-phase-luteal: #d97706;
+  --mf-phase-premenstrual: #6b7280;
 }
 
 [data-theme='light'] {
