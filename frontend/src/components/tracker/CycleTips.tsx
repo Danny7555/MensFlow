@@ -197,7 +197,7 @@ export function CycleTips({ activeDay }: CycleTipsProps) {
             <div 
               key={tip.title} 
               className={cn(
-                "flo-card relative overflow-hidden group transition-all duration-500 border border-[var(--mf-border)] !shadow-none p-5 flex flex-col justify-between",
+                "flo-card relative overflow-hidden group transition-all duration-500 border border-[var(--mf-border)] p-5 flex flex-col justify-between",
                 idx === 0 && "bg-gradient-to-br"
               )}
               style={idx === 0 ? { backgroundImage: `linear-gradient(135deg, var(--mf-card), rgba(${isMenstrual ? '239, 68, 68' : isFollicular ? '245, 158, 11' : isFertile ? '20, 184, 166' : '236, 72, 153'}, 0.04))` } : undefined}

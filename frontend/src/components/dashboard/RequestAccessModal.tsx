@@ -76,7 +76,7 @@ export function RequestAccessModal({ open, onClose, onConfirm, isLoading }: Requ
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 8 }}
             transition={{ type: 'spring', stiffness: 320, damping: 28 }}
-            className="relative w-full max-w-md bg-[var(--mf-card)] border border-[var(--mf-border)] rounded-[2rem] shadow-2xl overflow-hidden"
+            className="relative w-full max-w-md bg-[var(--mf-card)] border border-[var(--mf-border)] rounded-[2rem] overflow-hidden"
           >
             {/* Close button */}
             <button

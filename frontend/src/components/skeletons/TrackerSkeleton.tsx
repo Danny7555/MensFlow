@@ -8,14 +8,14 @@ export function TrackerSkeleton() {
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="premium-skeleton-card rounded-[32px] p-6 flex flex-col gap-y-3 min-h-[112px] shadow-sm justify-center">
+          <div key={i} className="premium-skeleton-card rounded-[32px] p-6 flex flex-col gap-y-3 min-h-[112px] justify-center">
             <div className="h-4 w-20 premium-shimmer rounded-full" />
             <div className="h-6 w-32 premium-shimmer rounded-full pt-1" />
           </div>
         ))}
       </div>
       
-      <div className="premium-skeleton-card rounded-[32px] p-6 min-h-[350px] flex flex-col gap-y-6 shadow-sm">
+      <div className="premium-skeleton-card rounded-[32px] p-6 min-h-[350px] flex flex-col gap-y-6">
         <div className="h-6 w-44 premium-shimmer rounded-full pb-2" />
         <div className="flex flex-col gap-y-4 pt-4">
           {Array.from({ length: 3 }).map((_, i) => (

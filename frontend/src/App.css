@@ -1035,7 +1035,7 @@
 .chat-bubble--assistant {
   align-self: flex-start;
   max-width: 85%;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  box-shadow: none;
 }
 
 .chat-role {
@@ -1348,7 +1348,7 @@
   height: 8px;
   -webkit-appearance: none;
   appearance: none;
-  background: #e5e7eb;
+  background: var(--mf-border);
   border-radius: 4px;
   outline: none;
   margin: 0;
@@ -1361,7 +1361,7 @@
   height: 24px;
   border-radius: 50%;
   background: white;
-  border: 3px solid #ec4899;
+  border: 3px solid var(--mf-accent);
   cursor: pointer;
 }
 
@@ -3247,14 +3247,7 @@
   animation: fade-in-up 0.8s ease-out;
 }
 
-.landing-hero-glow {
-  position: absolute;
-  width: clamp(130px, 28vw, 180px);
-  height: clamp(130px, 28vw, 180px);
-  border-radius: 50%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--mf-accent) 15%, transparent) 0%, transparent 70%);
-  pointer-events: none;
-}
+
 
 .landing-hero-image {
   width: clamp(88px, 22vw, 130px);
@@ -3262,13 +3255,13 @@
   object-fit: cover;
   border-radius: 50%;
   border: 3px solid var(--mf-accent-soft);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+  box-shadow: none;
   transition: box-shadow 0.3s ease, transform 0.3s ease;
   position: relative;
 }
 
 .landing-hero-image:hover {
-  box-shadow: 0 12px 40px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06);
+  box-shadow: none;
   transform: scale(1.02);
 }
 
@@ -4753,9 +4746,7 @@
   margin-top: 0.4rem;
 }
 
-.active-badge-glow {
-  box-shadow: none;
-}
+
 
 @media (max-width: 1024px) {
   .flo-masonry-grid {
@@ -5409,7 +5400,7 @@
   background: var(--mf-card);
   gap: 1rem;
   z-index: 10;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  box-shadow: none;
 }
 
 .chat-header-left {
@@ -5460,7 +5451,7 @@
   border-radius: 20px;
   border: 1px solid var(--mf-border);
   background: var(--mf-card);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+  box-shadow: none;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -5500,7 +5491,7 @@
 .chat-lock-input:focus {
   outline: none;
   border-color: var(--mf-accent);
-  box-shadow: 0 0 0 3px rgba(var(--mf-accent-rgb), 0.08);
+  box-shadow: none;
 }
 
 .chat-lock-btn {
@@ -5780,7 +5771,7 @@
   color: var(--foreground);
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  box-shadow: none;
   line-height: 1.4;
   height: 100%;
   box-sizing: border-box;
@@ -5788,7 +5779,7 @@
 
 .chat-suggestion-chip:hover {
   border-color: var(--mf-accent-border);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow: none;
   background: var(--mf-hover);
 }
 
@@ -5946,32 +5937,6 @@
   select:focus {
     font-size: 16px;
     zoom: 1;
-  }
-
-  /* iOS-style shadows */
-  .shadow-sm,
-  .shadow,
-  .shadow-md,
-  .shadow-lg,
-  .shadow-xl,
-  .shadow-2xl,
-  .shadow-xs {
-    box-shadow: none;
-  }
-
-  [class*="shadow-["] {
-    box-shadow: none !important;
-  }
-
-  [class*="hover:shadow"] {
-    box-shadow: none !important;
-  }
-
-  .drop-shadow-sm,
-  .drop-shadow-md,
-  .drop-shadow-lg,
-  [class*="drop-shadow-["] {
-    filter: none !important;
   }
 
   /* iOS transition improvements */
@@ -6139,3 +6104,10 @@
     display: none !important;
   }
 }
+
+/* ─── Global shadow/glow kill ───────────────────────────────────────────── */
+
+.shadow-sm, .shadow, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl, .shadow-xs { box-shadow: none; }
+[class*="shadow-["] { box-shadow: none !important; }
+[class*="hover:shadow"] { box-shadow: none !important; }
+.drop-shadow-sm, .drop-shadow-md, .drop-shadow-lg, [class*="drop-shadow-["] { filter: none !important; }

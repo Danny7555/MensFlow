@@ -41,7 +41,7 @@ export function GlobalModalContainer() {
           }
         }}
       >
-        <DialogContent className="sm:max-w-[420px] bg-card border border-border p-6 rounded-[28px] overflow-hidden shadow-2xl backdrop-blur-md">
+        <DialogContent className="sm:max-w-[420px] bg-card border border-border p-6 rounded-[28px] overflow-hidden backdrop-blur-md">
           <DialogHeader className="mb-4">
             <DialogTitle className="text-xl font-medium tracking-tight flex items-center gap-3 text-foreground">
               {getConfirmIcon(confirmDialog.title)}
@@ -68,7 +68,7 @@ export function GlobalModalContainer() {
                 if (confirmDialog.onConfirm) confirmDialog.onConfirm()
                 closeConfirm()
               }}
-              className="btn bg-gradient-to-r from-[var(--mf-accent)] to-[#be185d] text-white hover:opacity-90 px-6 py-2.5 rounded-full font-medium transition-all text-sm shadow-md"
+              className="btn bg-gradient-to-r from-[var(--mf-accent)] to-[#be185d] text-white hover:opacity-90 px-6 py-2.5 rounded-full font-medium transition-all text-sm"
             >
               Confirm
             </button>
@@ -83,7 +83,7 @@ export function GlobalModalContainer() {
           if (!open) closeAlert()
         }}
       >
-        <DialogContent className="sm:max-w-[420px] bg-card border border-border p-6 rounded-[28px] overflow-hidden shadow-2xl backdrop-blur-md">
+        <DialogContent className="sm:max-w-[420px] bg-card border border-border p-6 rounded-[28px] overflow-hidden backdrop-blur-md">
           <DialogHeader className="mb-4">
             <DialogTitle className="text-xl font-medium tracking-tight flex items-center gap-3 text-foreground">
               <Warning className="size-6 text-amber-500" weight="duotone" />
@@ -97,7 +97,7 @@ export function GlobalModalContainer() {
             <button
               type="button"
               onClick={closeAlert}
-              className="btn bg-gradient-to-r from-[var(--mf-accent)] to-[#be185d] text-white hover:opacity-90 px-6 py-2.5 rounded-full font-medium transition-all text-sm shadow-md"
+              className="btn bg-gradient-to-r from-[var(--mf-accent)] to-[#be185d] text-white hover:opacity-90 px-6 py-2.5 rounded-full font-medium transition-all text-sm"
             >
               Dismiss
             </button>

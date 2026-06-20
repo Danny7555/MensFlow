@@ -59,7 +59,7 @@ export function CustomizePlanModal({
                 item.active ? "bg-[var(--mf-accent)]" : "bg-muted"
               )}>
                 <div className={cn(
-                  "size-4 bg-white rounded-full shadow-sm transition-transform",
+                  "size-4 bg-white rounded-full transition-transform",
                   item.active && "translate-x-4"
                 )} />
               </div>

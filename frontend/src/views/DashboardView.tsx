@@ -472,7 +472,7 @@ export function DashboardView() {
 
   if (user?.role === 'partner' && (!partnerStatus || !partnerStatus.paired)) {
     return (
-      <div className="dashboard-flo-theme relative overflow-hidden min-h-screen animate-in fade-in duration-700">
+      <div className="dashboard-flo-theme relative overflow-hidden min-h-screen animate-in fade-in duration-500">
         <AmbientBackground phase="follicular" isPartner={true} />
         {!isAuthenticated && (
           <div className="bg-gradient-to-r from-[var(--mf-accent)] to-[#f472b6] text-white py-2.5 px-4 text-center text-xs font-normal flex items-center justify-center gap-2 relative z-50 animate-in slide-in-from-top duration-500">
@@ -498,7 +498,7 @@ export function DashboardView() {
           notificationCount={dashboardNotificationCount}
         />
 
-        <main className="flo-main-container pb-32 px-4 md:px-0 relative z-10 flex items-center justify-center">
+        <main className="flo-main-container pb-24 md:pb-32 px-4 md:px-0 relative z-10 flex items-center justify-center">
           <div className="flo-content-inner max-w-2xl w-full mx-auto">
             
             <m.div
@@ -670,7 +670,7 @@ export function DashboardView() {
         notificationCount={dashboardNotificationCount}
       />
 
-      <main className="flo-main-container pb-32 px-4 md:px-0">
+      <main className="flo-main-container pb-24 md:pb-32 px-4 md:px-0">
         <div className="flo-content-inner">
           <div className="flo-dashboard-top mb-6 md:mb-8">
             {!settings.hideDailyStoriesAndTips && <StoriesSection />}
@@ -757,8 +757,8 @@ export function DashboardView() {
                 </div>
 
                 {(shareDetails || shareSymptoms) && (
-                  <div className="flex flex-col gap-6 md:gap-8 min-w-0 mt-2">
-                    <div className="flex items-center gap-2 border-b border-[var(--mf-border)] pb-2">
+                  <div className="flex flex-col gap-6 md:gap-8 min-w-0">
+                    <div className="flex items-center gap-2 border-b border-[var(--mf-border)] pb-1">
                       <Sparkle size={18} className="text-teal-500" weight="fill" />
                       <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--mf-text-strong)]">Her Cycle Insights</h3>
                     </div>

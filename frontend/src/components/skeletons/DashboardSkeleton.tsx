@@ -21,7 +21,7 @@ export function DashboardSkeleton() {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8">
         <div className="flex flex-col gap-y-6">
           {/* Wheel/Circular Gauge Shimmer */}
-          <div className="premium-skeleton-card rounded-[32px] p-8 flex flex-col items-center justify-center min-h-[340px] gap-y-6 shadow-sm">
+          <div className="premium-skeleton-card rounded-[32px] p-8 flex flex-col items-center justify-center min-h-[340px] gap-y-6">
             <div className="size-48 rounded-full border-4 border-dashed border-[var(--mf-skeleton-border)] flex items-center justify-center animate-pulse">
               <div className="size-36 rounded-full premium-shimmer flex flex-col items-center justify-center gap-y-2">
                 <div className="h-4 w-12 bg-[var(--mf-card)]/50 rounded-full animate-pulse" />
@@ -32,7 +32,7 @@ export function DashboardSkeleton() {
           </div>
           
           {/* Check-in Card placeholder */}
-          <div className="premium-skeleton-card rounded-[32px] p-6 flex flex-col gap-y-4 shadow-sm min-h-[192px]">
+          <div className="premium-skeleton-card rounded-[32px] p-6 flex flex-col gap-y-4 min-h-[192px]">
             <div className="h-6 w-28 premium-shimmer rounded-full" />
             <div className="flex flex-col gap-y-3 pt-2">
               <div className="h-3.5 w-full premium-shimmer rounded-full" />
@@ -42,7 +42,7 @@ export function DashboardSkeleton() {
         </div>
         
         {/* Right side Feed Section Placeholder */}
-        <div className="premium-skeleton-card rounded-[32px] p-6 flex flex-col gap-y-6 min-h-[480px] shadow-sm">
+        <div className="premium-skeleton-card rounded-[32px] p-6 flex flex-col gap-y-6 min-h-[480px]">
           <div className="flex items-center gap-3 pb-3 border-b border-[var(--mf-skeleton-border)]/30">
             <div className="size-10 rounded-2xl premium-shimmer" />
             <div className="h-6 w-32 premium-shimmer rounded-full" />

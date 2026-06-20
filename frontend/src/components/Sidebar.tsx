@@ -178,12 +178,14 @@ export function Sidebar({
               layout
               className={cn(
                 "transition-all duration-500 overflow-hidden border border-[var(--mf-border)] bg-white dark:bg-white/5 rounded-[2rem]",
-                collapsed ? "p-2" : "py-5 px-6"
+                collapsed ? "p-1.5" : "py-5 px-6"
               )}
             >
               <div className={cn("flex items-center gap-4", collapsed && "justify-center")}>
                 <div 
-                  className={cn("size-12 rounded-full flex items-center justify-center shrink-0 border border-[var(--mf-border)] shadow-sm overflow-hidden",
+                  className={cn(
+                    "rounded-full flex items-center justify-center shrink-0 border border-[var(--mf-border)] overflow-hidden",
+                    collapsed ? "size-10" : "size-12",
                     (user?.role === 'partner' ? partnerStatus?.partner?.avatar : user?.avatar) ? "bg-transparent" : "bg-white dark:bg-transparent"
                   )}
                 >

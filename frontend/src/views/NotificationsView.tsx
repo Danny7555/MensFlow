@@ -458,7 +458,7 @@ export function NotificationsView() {
                 <button type="button"
                   onClick={handleApproveRequest}
                   disabled={isProcessing || (!approveCycle && !approveSymptoms && !approveCharts)}
-                  className="px-5 py-2 text-xs font-medium rounded-xl bg-pink-500 hover:bg-pink-600 text-white shadow-lg shadow-pink-500/20 hover:shadow-pink-500/35 transition-all cursor-pointer disabled:opacity-50 active-squish"
+                  className="px-5 py-2 text-xs font-medium rounded-xl bg-pink-500 hover:bg-pink-600 text-white hover:shadow-pink-500/35 transition-all cursor-pointer disabled:opacity-50 active-squish"
                 >
                   Approve &amp; Share
                 </button>
@@ -558,7 +558,7 @@ export function NotificationsView() {
                   className={`group p-5 rounded-[24px] border transition-all animate-in fade-in slide-in-from-bottom-3 duration-300 cursor-pointer ${
                     readIds.has(notification.id) 
                       ? 'bg-[var(--mf-card)]/50 border-[var(--mf-border)]/30 opacity-60' 
-                      : 'bg-[var(--mf-card)] border-[var(--mf-border)]/50 hover:border-[var(--mf-border)] hover:shadow-xs'
+                      : 'bg-[var(--mf-card)] border-[var(--mf-border)]/50 hover:border-[var(--mf-border)]'
                   }`}
                   style={{ animationDelay: `${idx * 0.05}s` }}
                 >

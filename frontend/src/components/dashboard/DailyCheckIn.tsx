@@ -61,7 +61,7 @@ function SymptomBubble({ sym, active, onClick }: SymptomBubbleProps) {
         )}
         {active && (
           <div className="absolute inset-0 bg-[var(--mf-accent)]/20 flex items-center justify-center">
-            <div className="bg-white text-[var(--mf-accent)] rounded-full p-0.5 shadow-sm">
+            <div className="bg-white text-[var(--mf-accent)] rounded-full p-0.5">
               <Check size={10} weight="bold" />
             </div>
           </div>

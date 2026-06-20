@@ -35,7 +35,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
       return (
         <div className="min-h-screen flex items-center justify-center bg-[var(--mf-main-bg)] p-4">
-          <div className="bg-[var(--mf-card)] border border-[var(--mf-border)] rounded-2xl sm:rounded-3xl p-6 sm:p-8 max-w-[440px] w-full flex flex-col items-center gap-4 text-center shadow-xl">
+          <div className="bg-[var(--mf-card)] border border-[var(--mf-border)] rounded-2xl sm:rounded-3xl p-6 sm:p-8 max-w-[440px] w-full flex flex-col items-center gap-4 text-center">
             <div className="size-14 rounded-2xl bg-[var(--mf-danger-soft)] flex items-center justify-center text-[var(--mf-danger)]">
               <WarningCircle size={28} weight="duotone" />
             </div>

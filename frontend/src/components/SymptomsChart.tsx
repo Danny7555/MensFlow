@@ -128,7 +128,7 @@ export function SymptomsChart() {
   }, [logsByMonth])
 
   return (
-    <Card className="border-none shadow-none ring-0 bg-transparent">
+    <Card className="border-none ring-0 bg-transparent">
       <CardHeader className="p-4 pb-2">
         <div className="flex items-center justify-between">
           <div>
@@ -143,7 +143,7 @@ export function SymptomsChart() {
               onClick={() => setViewMode('7days')}
               className={cn(
                 "px-3 py-1 text-xs font-medium rounded-md transition-all",
-                viewMode === '7days' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                viewMode === '7days' ? "bg-background text-foreground" : "text-muted-foreground hover:text-foreground"
               )}
             >
               7 Days
@@ -153,7 +153,7 @@ export function SymptomsChart() {
               onClick={() => setViewMode('6months')}
               className={cn(
                 "px-3 py-1 text-xs font-medium rounded-md transition-all",
-                viewMode === '6months' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                viewMode === '6months' ? "bg-background text-foreground" : "text-muted-foreground hover:text-foreground"
               )}
             >
               6 Months

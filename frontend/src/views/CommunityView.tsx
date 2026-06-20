@@ -476,11 +476,11 @@ function PostDetailView({
                     }
                   }}
                   placeholder="Write a reply..."
-                  className="w-full min-h-[80px] px-4 py-3 rounded-2xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm text-[var(--mf-text-strong)] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[var(--mf-ring)] resize-none transition-all"
+                  className="w-full min-h-[44px] px-4 py-2 rounded-2xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm text-[var(--mf-text-strong)] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[var(--mf-ring)] resize-none transition-all"
                   maxLength={5000}
                 />
                 {showMentions && mentionResults.length > 0 && (
-                  <div ref={mentionRef} className="absolute bottom-full left-0 right-0 mb-1 bg-white dark:bg-gray-800 border border-[var(--mf-border)] rounded-xl shadow-lg overflow-hidden z-20 max-h-36 overflow-y-auto">
+                  <div ref={mentionRef} className="absolute bottom-full left-0 right-0 mb-1 bg-white dark:bg-gray-800 border border-[var(--mf-border)] rounded-xl overflow-hidden z-20 max-h-36 overflow-y-auto">
                     {mentionResults.map(u => (
                       <button
                         key={u.id}
@@ -503,7 +503,7 @@ function PostDetailView({
                   </div>
                 )}
                 {commentText.toLowerCase().includes('@men') && !commentText.toLowerCase().includes('@mensflow') && (
-                  <div className="absolute -bottom-2 left-3 translate-y-full bg-white dark:bg-gray-800 border border-[var(--mf-border)] rounded-xl shadow-lg px-3 py-2 text-xs text-muted-foreground flex items-center gap-2 z-10 animate-in fade-in slide-in-from-top-1">
+                  <div className="absolute -bottom-2 left-3 translate-y-full bg-white dark:bg-gray-800 border border-[var(--mf-border)] rounded-xl px-3 py-2 text-xs text-muted-foreground flex items-center gap-2 z-10 animate-in fade-in slide-in-from-top-1">
                     <span className="text-purple-500 font-semibold">@mensflow</span>
                     <span>— Ask MensFlow AI to answer</span>
                   </div>

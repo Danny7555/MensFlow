@@ -43,7 +43,7 @@ export function LockedChatsView() {
     if (mode === 'reset-security') {
       return (
         <div className="flex flex-col items-center justify-center min-h-[70vh] p-6 text-center">
-          <div className="size-20 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-6 shadow-sm">
+          <div className="size-20 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-6">
             <ShieldCheck size={40} weight="duotone" />
           </div>
           <h2 className="text-2xl font-medium tracking-tight mb-2 text-foreground">Security Question</h2>
@@ -108,7 +108,7 @@ export function LockedChatsView() {
     if (mode === 'reset-password') {
       return (
         <div className="flex flex-col items-center justify-center min-h-[70vh] p-6 text-center">
-          <div className="size-20 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-6 shadow-sm">
+          <div className="size-20 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-6">
             <Lock size={40} weight="duotone" />
           </div>
           <h2 className="text-2xl font-medium tracking-tight mb-2 text-foreground">New Password</h2>
@@ -208,7 +208,7 @@ export function LockedChatsView() {
 
     return (
       <div className="flex flex-col items-center justify-center min-h-[70vh] p-6 text-center">
-        <div className="size-20 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-6 shadow-sm">
+        <div className="size-20 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-6">
           <Lock size={40} weight="duotone" />
         </div>
         <h2 className="text-2xl font-medium tracking-tight mb-2 text-foreground">Locked Chats</h2>

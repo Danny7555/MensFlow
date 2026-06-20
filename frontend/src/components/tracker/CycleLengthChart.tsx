@@ -84,7 +84,7 @@ export function CycleLengthChart() {
   const averageLineValue = chartData.length > 0 ? chartData[chartData.length - 1].average : typicalCycleDays
 
   return (
-    <Card className="border-none shadow-none ring-0 bg-transparent">
+    <Card className="border-none ring-0 bg-transparent">
       <CardHeader className="p-4 pb-2">
         <CardTitle>Cycle Length Variation</CardTitle>
         <CardDescription>

@@ -89,7 +89,7 @@ function SupportHistory() {
     <m.div 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flo-card p-6 border border-[var(--mf-border)] !shadow-none"
+      className="flo-card p-6 border border-[var(--mf-border)]"
     >
       <div className="flex items-center gap-2 mb-4">
         <div className="size-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
@@ -271,7 +271,7 @@ export function SyncView() {
 
             {/* How it works — role-aware */}
             <m.div variants={itemVariants} className="mb-8">
-              <div className="flo-card p-5 border border-[var(--mf-border)] !shadow-none">
+              <div className="flo-card p-5 border border-[var(--mf-border)]">
                 <h3 className="text-[10px] font-normal uppercase tracking-[0.2em] text-muted-foreground mb-5 text-center">
                   How it works
                 </h3>
@@ -302,7 +302,7 @@ export function SyncView() {
 
             {/* Pairing card — role-aware */}
             {!isAuthenticated ? (
-              <div className="flo-card p-6 border border-[var(--mf-border)] !shadow-none text-center space-y-5 relative overflow-hidden max-w-xl mx-auto">
+              <div className="flo-card p-6 border border-[var(--mf-border)] text-center space-y-5 relative overflow-hidden max-w-xl mx-auto">
                 <div className="relative z-10 space-y-4">
                   <div className="size-10 rounded-xl bg-pink-500/10 flex items-center justify-center mx-auto text-pink-500">
                     <Users size={20} weight="bold" />
@@ -323,7 +323,7 @@ export function SyncView() {
             ) : user?.role === 'partner' ? (
               /* ── Partner: enter lady's code ── */
               <m.div variants={itemVariants} className="max-w-md mx-auto">
-                <div className="flo-card p-5 border border-[var(--mf-border)] !shadow-none space-y-3.5">
+                <div className="flo-card p-5 border border-[var(--mf-border)] space-y-3.5">
                   <div className="flex items-center gap-2">
                     <div className="size-7 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 shrink-0">
                       <LinkSimple size={14} weight="bold" />
@@ -366,7 +366,7 @@ export function SyncView() {
             ) : (
               /* ── Lady: show her code to share ── */
               <m.div variants={itemVariants} className="max-w-md mx-auto">
-                <div className="flo-card p-5 border border-[var(--mf-border)] !shadow-none space-y-3.5">
+                <div className="flo-card p-5 border border-[var(--mf-border)] space-y-3.5">
                   <div className="flex items-center gap-2">
                     <div className="size-7 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-500 shrink-0">
                       <Copy size={14} weight="bold" />
@@ -656,7 +656,7 @@ export function SyncView() {
                               </div>
                             </div>
                             
-                            <span className="text-white text-[11px] font-normal tracking-wide z-20 mt-auto drop-shadow-sm">
+                            <span className="text-white text-[11px] font-normal tracking-wide z-20 mt-auto">
                               {opt.label}
                             </span>
                           </button>

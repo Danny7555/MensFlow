@@ -42,7 +42,7 @@ export function NotFoundView() {
               variant="default" 
               size="lg" 
               onClick={() => navigate('/')}
-              className="rounded-full h-11 px-6 bg-[var(--mf-accent)] hover:bg-[var(--mf-accent-hover)] text-white min-w-[130px] font-medium text-xs transition-transform active:scale-95 shadow-none"
+              className="rounded-full h-11 px-6 bg-[var(--mf-accent)] hover:bg-[var(--mf-accent-hover)] text-white min-w-[130px] font-medium text-xs transition-transform active:scale-95"
             >
               <House className="mr-2 size-4" />
               Go Home
@@ -51,7 +51,7 @@ export function NotFoundView() {
               variant="outline" 
               size="lg" 
               onClick={() => navigate(-1)}
-              className="rounded-full h-11 px-6 border-border bg-white/5 hover:bg-white/10 text-foreground min-w-[130px] font-medium text-xs transition-transform active:scale-95 shadow-none"
+              className="rounded-full h-11 px-6 border-border bg-white/5 hover:bg-white/10 text-foreground min-w-[130px] font-medium text-xs transition-transform active:scale-95"
             >
               <ArrowLeft className="mr-2 size-4" />
               Go Back

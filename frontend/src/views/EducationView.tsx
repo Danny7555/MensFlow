@@ -214,7 +214,7 @@ export function EducationView() {
           <button
             type="button"
             onClick={() => { setEditingArticle(null); setIsModalOpen(true) }}
-            className="px-5 py-2 rounded-full text-sm font-medium bg-[var(--mf-accent)] text-white hover:bg-[var(--mf-accent-hover)] transition-all cursor-pointer flex items-center gap-1.5 shadow-sm active-squish"
+            className="px-5 py-2 rounded-full text-sm font-medium bg-[var(--mf-accent)] text-white hover:bg-[var(--mf-accent-hover)] transition-all cursor-pointer flex items-center gap-1.5 active-squish"
           >
             <Plus size={16} weight="bold" />
             <span>Add Guide</span>

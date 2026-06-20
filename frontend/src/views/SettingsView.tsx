@@ -114,7 +114,7 @@ function SelectRow({
         )}
       </div>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="settings-select flex items-center justify-between bg-none shadow-none min-w-[120px] sm:min-w-[150px] h-9 pr-2 pl-3 cursor-pointer">
+        <SelectTrigger className="settings-select flex items-center justify-between bg-none min-w-[120px] sm:min-w-[150px] h-9 pr-2 pl-3 cursor-pointer">
           <SelectValue />
         </SelectTrigger>
         <SelectContent className="rounded-xl border border-border bg-card">
@@ -1479,7 +1479,7 @@ function ParentalPanel({
             onChange={(e) => setGuardianEmail(e.target.value)}
             placeholder="guardian@example.com"
             disabled={!settings.parentalControlsEnabled}
-            className="settings-select bg-none shadow-none w-[320px] sm:w-[380px] max-w-none h-9 px-3 disabled:opacity-50 cursor-text"
+            className="settings-select bg-none w-full max-w-[280px] sm:max-w-[320px] h-9 px-3 disabled:opacity-50 cursor-text"
             aria-label="Guardian email"
           />
           <Button
@@ -1527,7 +1527,7 @@ function ParentalPanel({
             value={settings.parentalQuietHoursStart}
             disabled={!settings.parentalControlsEnabled || !settings.parentalQuietHoursEnabled}
             onChange={(e) => updateSettings({ parentalQuietHoursStart: e.target.value })}
-            className="settings-select bg-none shadow-none h-9 px-3 disabled:opacity-50"
+            className="settings-select bg-none h-9 px-3 disabled:opacity-50"
             aria-label="Quiet hours start"
           />
           <span className="text-xs text-muted-foreground">to</span>
@@ -1536,7 +1536,7 @@ function ParentalPanel({
             value={settings.parentalQuietHoursEnd}
             disabled={!settings.parentalControlsEnabled || !settings.parentalQuietHoursEnabled}
             onChange={(e) => updateSettings({ parentalQuietHoursEnd: e.target.value })}
-            className="settings-select bg-none shadow-none h-9 px-3 disabled:opacity-50"
+            className="settings-select bg-none h-9 px-3 disabled:opacity-50"
             aria-label="Quiet hours end"
           />
         </div>

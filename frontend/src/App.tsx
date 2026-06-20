@@ -70,7 +70,7 @@ function ChatLockGate({ children }: { children: React.ReactNode }) {
     if (mode === 'reset-security') {
       return (
         <div className="flex flex-col items-center justify-center min-h-[70vh] p-6 text-center">
-          <div className="size-20 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-6 shadow-sm">
+          <div className="size-20 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-6">
             <ShieldCheck size={40} weight="duotone" />
           </div>
           <h2 className="text-2xl font-medium tracking-tight mb-2 text-foreground">Security Question</h2>
@@ -135,7 +135,7 @@ function ChatLockGate({ children }: { children: React.ReactNode }) {
     if (mode === 'reset-password') {
       return (
         <div className="flex flex-col items-center justify-center min-h-[70vh] p-6 text-center">
-          <div className="size-20 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-6 shadow-sm">
+          <div className="size-20 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-6">
             <Lock size={40} weight="duotone" />
           </div>
           <h2 className="text-2xl font-medium tracking-tight mb-2 text-foreground">New Password</h2>
@@ -235,7 +235,7 @@ function ChatLockGate({ children }: { children: React.ReactNode }) {
 
     return (
       <div className="flex flex-col items-center justify-center min-h-[70vh] p-6 text-center">
-        <div className="size-20 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-6 shadow-sm">
+        <div className="size-20 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-6">
           <Lock size={40} weight="duotone" />
         </div>
         <h2 className="text-2xl font-medium tracking-tight mb-2 text-foreground">Privacy Lock</h2>
@@ -618,7 +618,7 @@ function MainShell() {
                   <div className="relative">
                     <Bell size={24} weight={location.pathname === '/notifications' ? "fill" : "light"} />
                     {dashboardNotificationCount > 0 && (
-                      <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-[var(--mf-accent)] text-white text-[9px] font-bold flex items-center justify-center shadow-md animate-in fade-in zoom-in-95 duration-200">
+                      <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-[var(--mf-accent)] text-white text-[9px] font-bold flex items-center justify-center animate-in fade-in zoom-in-95 duration-200">
                         {dashboardNotificationCount > 99 ? '99+' : dashboardNotificationCount}
                       </span>
                     )}

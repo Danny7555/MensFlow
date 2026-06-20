@@ -230,7 +230,6 @@ export function ChatComposer({
       <form
         className={cn(
           "composer glass-morphism transition-all duration-300 focus-within:ring-2 focus-within:ring-[var(--mf-accent)]",
-          "border-2 border-dotted border-[#d1d5db] dark:border-muted-foreground/30 bg-muted/20",
           minimal && "composer--minimal",
           disabled && "opacity-60 pointer-events-none"
         )}
@@ -306,8 +305,8 @@ export function ChatComposer({
         <div className="flex items-center gap-1">
           <button
             type="button"
-            className="composer-icon-btn hidden sm:flex"
-            aria-label="Voice input"
+            className="composer-icon-btn opacity-40 cursor-not-allowed"
+            aria-label="Voice input (coming soon)"
             title="Voice (coming soon)"
           >
             <Microphone size={21} aria-hidden />

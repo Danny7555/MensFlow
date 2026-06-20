@@ -132,7 +132,7 @@ export function MedicationsView() {
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         onClick={e => e.stopPropagation()}
-                        className="bg-[var(--mf-card)] border border-[var(--mf-border)] rounded-xl p-4 shadow-lg min-w-[200px]"
+                        className="bg-[var(--mf-card)] border border-[var(--mf-border)] rounded-xl p-4 min-w-[200px]"
                       >
                         <p className="text-sm text-[var(--mf-text)] mb-3">Remove this medication?</p>
                         <div className="flex gap-2">
