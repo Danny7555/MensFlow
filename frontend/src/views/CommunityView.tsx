@@ -370,7 +370,7 @@ function PostDetailView({
   confirmDeleteId: string | null
   setConfirmDeleteId: (id: string | null) => void
   commentText: string
-  setCommentText: React.Dispatch<React.SetStateAction<string>>
+  setCommentText: (val: string) => void
   commentAnonymous: boolean
   setCommentAnonymous: (val: boolean) => void
   showMentions: boolean
@@ -486,10 +486,7 @@ function PostDetailView({
                         type="button"
                         onMouseDown={e => {
                           e.preventDefault()
-                          setCommentText(prev => {
-                            const before = prev.replace(/@\w*$/, `@${u.name} `)
-                            return before
-                          })
+                          setCommentText(commentText.replace(/@\w*$/, `@${u.name} `))
                           setShowMentions(false)
                           setMentionQuery('')
                         }}
@@ -556,6 +553,40 @@ function PostDetailView({
   )
 }
 
+type CommentState = {
+  text: string
+  isAnonymous: boolean
+  mentionQuery: string
+  mentionResults: Array<{ id: string; name: string; role: string }>
+  showMentions: boolean
+}
+
+const initialCommentState: CommentState = {
+  text: '', isAnonymous: false, mentionQuery: '', mentionResults: [], showMentions: false,
+}
+
+type CommentAction =
+  | { type: 'SET_TEXT'; text: string }
+  | { type: 'SET_ANONYMOUS'; isAnonymous: boolean }
+  | { type: 'SET_MENTION_QUERY'; query: string }
+  | { type: 'SET_MENTION_RESULTS'; results: Array<{ id: string; name: string; role: string }> }
+  | { type: 'SET_SHOW_MENTIONS'; show: boolean }
+  | { type: 'SELECT_MENTION'; name: string }
+  | { type: 'RESET' }
+
+function commentReducer(state: CommentState, action: CommentAction): CommentState {
+  switch (action.type) {
+    case 'SET_TEXT': return { ...state, text: action.text }
+    case 'SET_ANONYMOUS': return { ...state, isAnonymous: action.isAnonymous }
+    case 'SET_MENTION_QUERY': return { ...state, mentionQuery: action.query }
+    case 'SET_MENTION_RESULTS': return { ...state, mentionResults: action.results }
+    case 'SET_SHOW_MENTIONS': return { ...state, showMentions: action.show }
+    case 'SELECT_MENTION': return { ...state, text: state.text.replace(/@\w*$/, `@${action.name} `), showMentions: false, mentionQuery: '' }
+    case 'RESET': return initialCommentState
+    default: return state
+  }
+}
+
 export function CommunityView() {
   const { user } = useStore()
   const qc = useQueryClient()
@@ -563,33 +594,29 @@ export function CommunityView() {
   const [page, setPage] = useState(1)
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null)
   const [showCreate, setShowCreate] = useState(false)
-  const [commentText, setCommentText] = useState('')
-  const [commentAnonymous, setCommentAnonymous] = useState(false)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
-  const [mentionQuery, setMentionQuery] = useState('')
-  const [mentionResults, setMentionResults] = useState<Array<{ id: string; name: string; role: string }>>([])
-  const [showMentions, setShowMentions] = useState(false)
+  const [comment, commentDispatch] = useReducer(commentReducer, initialCommentState)
   const mentionRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!showMentions || !mentionQuery) return
+    if (!comment.showMentions || !comment.mentionQuery) return
     const t = setTimeout(async () => {
       try {
-        const data = await communityApi.searchUsers(mentionQuery)
-        if (mentionQuery && showMentions) {
-          setMentionResults(data.users)
+        const data = await communityApi.searchUsers(comment.mentionQuery)
+        if (comment.mentionQuery && comment.showMentions) {
+          commentDispatch({ type: 'SET_MENTION_RESULTS', results: data.users })
         }
       } catch {
-        setMentionResults([])
+        commentDispatch({ type: 'SET_MENTION_RESULTS', results: [] })
       }
     }, 200)
-    return () => { clearTimeout(t); setMentionResults([]) }
-  }, [mentionQuery, showMentions])
+    return () => { clearTimeout(t); commentDispatch({ type: 'SET_MENTION_RESULTS', results: [] }) }
+  }, [comment.mentionQuery, comment.showMentions])
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (mentionRef.current && !mentionRef.current.contains(e.target as Node)) {
-        setShowMentions(false)
+        commentDispatch({ type: 'SET_SHOW_MENTIONS', show: false })
       }
     }
     document.addEventListener('mousedown', handler)
@@ -602,14 +629,14 @@ export function CommunityView() {
 
   const handlePostClick = (id: string) => {
     setSelectedPostId(id)
-    setCommentText('')
+    commentDispatch({ type: 'RESET' })
   }
 
   const handleSubmitComment = async () => {
-    if (!commentText.trim() || !selectedPostId) return
+    if (!comment.text.trim() || !selectedPostId) return
     try {
-      await addComment.mutateAsync({ postId: selectedPostId, data: { body: commentText.trim(), isAnonymous: commentAnonymous } })
-      setCommentText('')
+      await addComment.mutateAsync({ postId: selectedPostId, data: { body: comment.text.trim(), isAnonymous: comment.isAnonymous } })
+      commentDispatch({ type: 'RESET' })
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to add comment')
     }
@@ -646,14 +673,14 @@ export function CommunityView() {
         confirmDelete={confirmDelete}
         confirmDeleteId={confirmDeleteId}
         setConfirmDeleteId={setConfirmDeleteId}
-        commentText={commentText}
-        setCommentText={setCommentText}
-        commentAnonymous={commentAnonymous}
-        setCommentAnonymous={setCommentAnonymous}
-        showMentions={showMentions}
-        setShowMentions={setShowMentions}
-        setMentionQuery={setMentionQuery}
-        mentionResults={mentionResults}
+        commentText={comment.text}
+        setCommentText={val => commentDispatch({ type: 'SET_TEXT', text: val })}
+        commentAnonymous={comment.isAnonymous}
+        setCommentAnonymous={val => commentDispatch({ type: 'SET_ANONYMOUS', isAnonymous: val })}
+        showMentions={comment.showMentions}
+        setShowMentions={val => commentDispatch({ type: 'SET_SHOW_MENTIONS', show: val })}
+        setMentionQuery={val => commentDispatch({ type: 'SET_MENTION_QUERY', query: val })}
+        mentionResults={comment.mentionResults}
         mentionRef={mentionRef}
         handleSubmitComment={handleSubmitComment}
         isSending={addComment.isPending}
