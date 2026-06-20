@@ -102,7 +102,7 @@ function QuickEmpathyBoostCard({ ladyName, isAuthenticated }: QuickEmpathyBoostC
         Tap to send an instant real-time notification to her phone:
       </p>
       
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {options.map((opt) => {
           const isPending = activePing === opt.id
           return (

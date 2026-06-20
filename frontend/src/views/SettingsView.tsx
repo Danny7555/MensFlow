@@ -867,7 +867,7 @@ function DataControlsPanel({
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div className="p-3 rounded-xl bg-[var(--mf-accent-soft)]/20 border border-[var(--mf-accent-border)]">
               <span className="text-[10px] tracking-wider text-[var(--mf-muted)] block">Tokens Used</span>
               <p className="text-lg text-[var(--mf-text-strong)] mt-0.5">{(aiStats.totalTokens / 1000).toFixed(1)}k</p>
