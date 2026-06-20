@@ -594,14 +594,13 @@ export async function suggestReplies(userId: string): Promise<string[]> {
   const mucusText = logDoc?.mucus || 'Not logged';
   const lhText = logDoc?.lhLevel || 'Not logged';
 
-  // Local fallback templates
+
   const fallbackSuggestions: string[] = [];
 
-  // Fetch lady's custom symptom definitions to check custom labels
+
   const customDefs = await CustomSymptom.find({ userId: ladyId }).lean();
   const loggedCustomLabels = symptomsList
-    .map(id => customDefs.find(c => String(c._id) === id)?.label.toLowerCase() || '')
-    .filter(Boolean);
+    .flatMap(id => { const c = customDefs.find(c => String(c._id) === id); return c ? [c.label.toLowerCase()] : []; });
 
   const hasCramps = symptomsList.some(s => s === 'phys-cramps' || s === 'endo-pelvicpain' || s === 'endo-backache') ||
     loggedCustomLabels.some(l => l.includes('cramp') || l.includes('pain') || l.includes('ache'));
@@ -657,14 +656,15 @@ export async function suggestReplies(userId: string): Promise<string[]> {
     "Can I bring you a warm cup of tea? ☕"
   ];
 
-  while (fallbackSuggestions.length < 3) {
-    const nextDefault = defaultSuggestions.find(d => !fallbackSuggestions.includes(d));
-    if (nextDefault) {
-      fallbackSuggestions.push(nextDefault);
-    } else {
-      fallbackSuggestions.push(defaultSuggestions[0]);
+  const used = new Set(fallbackSuggestions);
+  for (const d of defaultSuggestions) {
+    if (fallbackSuggestions.length >= 3) break;
+    if (!used.has(d)) {
+      fallbackSuggestions.push(d);
+      used.add(d);
     }
   }
+  while (fallbackSuggestions.length < 3) fallbackSuggestions.push(defaultSuggestions[0]);
 
   const prompt = `You are an expert menstrual cycle empathy translator. Your job is to suggest exactly 3 short, comforting, warm, and highly empathetic chat replies (maximum 12 words each) that a partner can type to send to their lady (named ${ladyName}).
 The lady's current cycle context:

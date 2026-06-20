@@ -16,16 +16,18 @@ export async function getUserProfile(
     throw Object.assign(new Error('User not found'), { status: 404 });
   }
 
-  const settings = await Settings.findOneAndUpdate(
-    { userId },
-    { $setOnInsert: { userId } },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
-  );
-  const dashboard = await Dashboard.findOneAndUpdate(
-    { userId },
-    { $setOnInsert: { userId, lastPeriodStart: defaultLastPeriodStart() } },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
-  );
+  const [settings, dashboard] = await Promise.all([
+    Settings.findOneAndUpdate(
+      { userId },
+      { $setOnInsert: { userId } },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    ),
+    Dashboard.findOneAndUpdate(
+      { userId },
+      { $setOnInsert: { userId, lastPeriodStart: defaultLastPeriodStart() } },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    ),
+  ]);
   if (!settings || !dashboard) {
     throw Object.assign(new Error('Unable to prepare profile data'), { status: 500 });
   }
@@ -141,14 +143,17 @@ export async function updateUserSettings(
   userId: string,
   patch: Partial<ISettings>
 ): Promise<ISettings> {
-  const previousSettings = await Settings.findOne({ userId }).lean();
-  const settings = await Settings.findOneAndUpdate(
+  const previousSettings = await Settings.findOneAndUpdate(
     { userId },
     { $set: patch, $setOnInsert: { userId } },
-    { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true }
+    { upsert: true, returnDocument: 'before', runValidators: true, setDefaultsOnInsert: true }
   );
-  if (!settings) {
-    throw Object.assign(new Error('Unable to update settings'), { status: 500 });
+
+  let settings: SettingsDocument;
+  if (previousSettings) {
+    settings = { ...previousSettings, ...patch } as unknown as SettingsDocument;
+  } else {
+    settings = await Settings.findOne({ userId }).orFail().lean() as unknown as SettingsDocument;
   }
 
   if (
@@ -169,7 +174,6 @@ export async function updateUserSettings(
     patch.parentalGuardianEmail &&
     patch.parentalGuardianEmail !== previousSettings?.parentalGuardianEmail
   ) {
-    // Send email to new guardian notifying them of setup
     const newEmail = patch.parentalGuardianEmail;
     User.findById(userId).lean()
       .then((user) => {

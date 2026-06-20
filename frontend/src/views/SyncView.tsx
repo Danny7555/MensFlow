@@ -21,6 +21,7 @@ import { useAuth } from '../context/useAuth'
 import { partnerApi } from '../services/partnerService'
 import { cn } from '../lib/utils'
 import { getPhaseTasks } from '../lib/cycleUtils'
+import { Button } from '@/components/ui/button'
 
 interface StatusOption {
   id: string
@@ -241,43 +242,40 @@ export function SyncView() {
         <main ref={mainRef} className="flo-main-container pb-32 relative z-10">
           <div className="flo-content-inner max-w-3xl mx-auto">
             {/* Hero Header */}
-            <m.div variants={itemVariants} className="text-center pt-10 pb-8 space-y-4">
-              <div className="inline-block mb-2">
-                <div className="relative">
-                  <div className="size-24 rounded-full bg-gradient-to-br from-pink-400 to-rose-600 flex items-center justify-center">
-                    <Users size={40} weight="duotone" className="text-white" />
-                  </div>
-                  <div className="absolute -right-1 -bottom-1 size-7 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center border-2 border-white dark:border-gray-900">
-                    <LinkSimple size={14} weight="bold" className="text-white" />
+              <m.div variants={itemVariants} className="text-center pt-8 pb-6 space-y-4">
+                <div className="inline-block">
+                  <div className="relative inline-flex">
+                    <div className="size-20 rounded-full bg-gradient-to-br from-pink-400 to-rose-600 flex items-center justify-center">
+                      <Users size={32} weight="duotone" className="text-white" />
+                    </div>
+                    <div className="absolute -right-0.5 -bottom-0.5 size-6 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center border-2 border-white dark:border-gray-900">
+                      <LinkSimple size={12} weight="bold" className="text-white" />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div>
-                <span className="text-[10px] font-normal uppercase tracking-[0.2em] bg-pink-500/10 text-pink-500 dark:text-pink-400 px-3 py-1 rounded-full border border-pink-500/20">
-                  Partner Sync
-                </span>
-              </div>
-              <h1 className="text-3xl md:text-4xl font-normal tracking-tight text-[var(--mf-text-strong)] leading-tight">
-                Connect with your partner
-              </h1>
-              <p className="text-sm text-[var(--mf-muted)] max-w-md mx-auto leading-relaxed">
-                {user?.role === 'partner'
-                  ? 'Enter the code your partner shared with you to sync cycles and start receiving daily care checklists.'
-                  : 'Share your unique code with your partner so they can sync with your cycle and support you better.'}
-              </p>
-            </m.div>
+                <div>
+                  <span className="text-[10px] font-normal uppercase tracking-[0.2em] bg-pink-500/10 text-pink-500 dark:text-pink-400 px-3 py-1 rounded-full border border-pink-500/20">
+                    Partner Sync
+                  </span>
+                </div>
+                <h1 className="text-2xl md:text-3xl font-normal tracking-tight text-[var(--mf-text-strong)] leading-tight">
+                  Connect with your partner
+                </h1>
+                <p className="text-sm text-[var(--mf-muted)] max-w-md mx-auto leading-relaxed">
+                  {user?.role === 'partner'
+                    ? 'Enter the code your partner shared with you to sync cycles and start receiving daily care checklists.'
+                    : 'Share your unique code with your partner so they can sync with your cycle and support you better.'}
+                </p>
+              </m.div>
 
             {/* How it works — role-aware */}
             <m.div variants={itemVariants} className="mb-8">
-              <div className="flo-card p-6 border border-[var(--mf-border)] !shadow-none">
-                <h3 className="text-xs font-normal uppercase tracking-[0.15em] text-muted-foreground mb-6 text-center">
+              <div className="flo-card p-5 border border-[var(--mf-border)] !shadow-none">
+                <h3 className="text-[10px] font-normal uppercase tracking-[0.2em] text-muted-foreground mb-5 text-center">
                   How it works
                 </h3>
-                <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 relative">
-                  {/* Decorative connecting line for desktop */}
-                  <div className="hidden md:block absolute top-7 left-[15%] right-[15%] h-[1px] bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-pink-500/20 z-0" />
-
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-5 relative">
                   {(user?.role === 'partner' ? [
                     { step: '1', title: 'Get the code', desc: "Ask your partner to open her Sync page and copy her code", icon: Copy },
                     { step: '2', title: 'Enter it below', desc: 'Paste or type the 6-character code in the field below', icon: LinkSimple },
@@ -288,14 +286,14 @@ export function SyncView() {
                     { step: '3', title: 'They connect', desc: 'Your partner enters it on their Sync page — done!', icon: LinkSimple },
                   ]).map(({ step, title, desc, icon: Icon }) => (
                     <div key={step} className="flex-1 flex flex-col items-center text-center relative z-10 group">
-                      <div className="size-14 rounded-2xl bg-[var(--mf-card)] border border-[var(--mf-border)] text-[var(--mf-accent)] flex items-center justify-center mb-3">
-                        <Icon size={20} weight="bold" />
+                      <div className="size-12 rounded-2xl bg-[var(--mf-card)] border border-[var(--mf-border)] text-[var(--mf-accent)] flex items-center justify-center mb-2.5">
+                        <Icon size={18} weight="bold" />
                       </div>
-                      <div className="size-5 rounded-full bg-pink-500/10 text-pink-500 text-[10px] font-normal flex items-center justify-center mb-2">
+                      <div className="size-5 rounded-full bg-pink-500/10 text-pink-500 text-[10px] font-normal flex items-center justify-center mb-1.5">
                         {step}
                       </div>
                       <p className="text-xs font-normal text-[var(--mf-text-strong)]">{title}</p>
-                      <p className="text-[11px] text-[var(--mf-muted)] leading-relaxed max-w-[180px] mt-1">{desc}</p>
+                      <p className="text-[11px] text-[var(--mf-muted)] leading-relaxed max-w-[180px] mt-0.5">{desc}</p>
                     </div>
                   ))}
                 </div>
@@ -304,30 +302,30 @@ export function SyncView() {
 
             {/* Pairing card — role-aware */}
             {!isAuthenticated ? (
-              <div className="flo-card p-8 border border-[var(--mf-border)] !shadow-none text-center space-y-6 relative overflow-hidden max-w-xl mx-auto">
+              <div className="flo-card p-6 border border-[var(--mf-border)] !shadow-none text-center space-y-5 relative overflow-hidden max-w-xl mx-auto">
                 <div className="relative z-10 space-y-4">
-                  <div className="size-12 rounded-2xl bg-pink-500/10 flex items-center justify-center mx-auto text-pink-500 animate-pulse">
-                    <Users size={24} weight="bold" />
+                  <div className="size-10 rounded-xl bg-pink-500/10 flex items-center justify-center mx-auto text-pink-500">
+                    <Users size={20} weight="bold" />
                   </div>
-                  <h3 className="text-lg font-normal text-[var(--mf-text-strong)]">Sign in to connect</h3>
+                  <h3 className="text-base font-normal text-[var(--mf-text-strong)]">Sign in to connect</h3>
                   <p className="text-xs text-[var(--mf-muted)] max-w-sm mx-auto leading-relaxed">
                     Sign in or create an account to sync cycles with your partner.
                   </p>
-                  <button type="button"
+                  <Button
                     onClick={() => openAuthModal(window.location.search.includes('code') ? 'register' : 'login')}
-                    className="inline-flex items-center gap-2 bg-[var(--mf-accent)] text-white hover:opacity-95 px-6 py-3 rounded-xl text-xs font-normal transition-all cursor-pointer border-0 outline-none"
+                    className="bg-[var(--mf-accent)] hover:bg-[var(--mf-accent)]/90 text-white rounded-xl text-xs"
                   >
-                    <span>Sign In or Sign Up</span>
+                    Sign In or Sign Up
                     <ArrowRight size={14} weight="bold" />
-                  </button>
+                  </Button>
                 </div>
               </div>
             ) : user?.role === 'partner' ? (
               /* ── Partner: enter lady's code ── */
               <m.div variants={itemVariants} className="max-w-md mx-auto">
-                <div className="flo-card p-6 border border-[var(--mf-border)] !shadow-none space-y-4">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="size-7 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500">
+                <div className="flo-card p-5 border border-[var(--mf-border)] !shadow-none space-y-3.5">
+                  <div className="flex items-center gap-2">
+                    <div className="size-7 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 shrink-0">
                       <LinkSimple size={14} weight="bold" />
                     </div>
                     <span className="text-xs font-normal text-[var(--mf-text-strong)]">Enter your partner's code</span>
@@ -342,14 +340,13 @@ export function SyncView() {
                       value={partnerCodeInput}
                       onChange={(e) => setPartnerCodeInput(e.target.value.toUpperCase())}
                       aria-label="Partner pairing code"
-                      className="w-full bg-[var(--mf-composer-bg)] border border-[var(--mf-border)] rounded-xl px-4 py-3 text-base font-mono tracking-[0.3em] text-center font-normal focus:outline-none focus:ring-2 focus:ring-[var(--mf-accent)]/50 focus:border-[var(--mf-accent)] uppercase text-[var(--mf-text-strong)] transition-all text-sm"
+                      className="w-full bg-[var(--mf-composer-bg)] border border-[var(--mf-border)] rounded-xl px-4 py-2.5 text-base font-mono tracking-[0.3em] text-center focus:outline-none focus:ring-2 focus:ring-[var(--mf-accent)]/50 focus:border-[var(--mf-accent)] uppercase text-[var(--mf-text-strong)] transition-all text-sm"
                       maxLength={6}
                     />
-                    <button
-                      type="button"
+                    <Button
                       disabled={isPairing || !partnerCodeInput.trim()}
                       onClick={handlePair}
-                      className="w-full h-11 bg-[var(--mf-accent)] text-white rounded-xl font-normal text-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:opacity-95 border-0 cursor-pointer"
+                      className="w-full bg-[var(--mf-accent)] hover:bg-[var(--mf-accent)]/90 text-white rounded-xl text-xs h-11"
                     >
                       {isPairing ? (
                         <m.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
@@ -362,16 +359,16 @@ export function SyncView() {
                           <ArrowRight size={14} weight="bold" />
                         </>
                       )}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </m.div>
             ) : (
               /* ── Lady: show her code to share ── */
               <m.div variants={itemVariants} className="max-w-md mx-auto">
-                <div className="flo-card p-6 border border-[var(--mf-border)] !shadow-none space-y-4">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="size-7 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-500">
+                <div className="flo-card p-5 border border-[var(--mf-border)] !shadow-none space-y-3.5">
+                  <div className="flex items-center gap-2">
+                    <div className="size-7 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-500 shrink-0">
                       <Copy size={14} weight="bold" />
                     </div>
                     <span className="text-xs font-normal text-[var(--mf-text-strong)]">Your Pairing Code</span>
@@ -379,12 +376,11 @@ export function SyncView() {
                   <p className="text-[11px] text-[var(--mf-muted)] leading-relaxed">
                     Share this code with your partner. They'll enter it on their Partner Sync page to connect with you.
                   </p>
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl font-mono font-normal tracking-[0.3em] text-[var(--mf-text-strong)] bg-[var(--mf-composer-bg)] px-4 py-2.5 rounded-xl border border-[var(--mf-border)] select-all flex-1 text-center">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-xl font-mono tracking-[0.3em] text-[var(--mf-text-strong)] bg-[var(--mf-composer-bg)] px-4 py-2.5 rounded-xl border border-[var(--mf-border)] select-all flex-1 text-center">
                       {user?.partnerCode ?? '— — — — — —'}
                     </span>
-                    <button
-                      type="button"
+                    <Button
                       onClick={() => {
                         if (user?.partnerCode) {
                           navigator.clipboard.writeText(user.partnerCode)
@@ -393,10 +389,11 @@ export function SyncView() {
                           })
                         }
                       }}
-                      className="size-11 shrink-0 rounded-xl bg-[var(--mf-accent)] text-white hover:opacity-90 flex items-center justify-center transition-all active:scale-95 border-0 cursor-pointer"
+                      className="size-11 shrink-0 rounded-xl bg-[var(--mf-accent)] hover:bg-[var(--mf-accent)]/90 text-white"
+                      size="icon"
                     >
                       <Copy size={18} weight="bold" />
-                    </button>
+                    </Button>
                   </div>
                   <p className="text-[10.5px] text-[var(--mf-muted)] text-center pt-1">
                     Once your partner enters this code, you'll both be connected automatically.
@@ -407,31 +404,30 @@ export function SyncView() {
 
             {/* Invite partner banner — lady only, authenticated, unpaired */}
             {isAuthenticated && user?.role === 'lady' && (
-              <m.div variants={itemVariants} className="mt-10 w-full max-w-2xl mx-auto px-4 sm:px-0">
-                <button 
-                  type="button"
+              <m.div variants={itemVariants} className="mt-8 w-full max-w-2xl mx-auto px-4 sm:px-0">
+                <Button
                   onClick={() => setIsInviteModalOpen(true)}
-                  className="w-full text-left border-none outline-none bg-gradient-to-r from-[var(--mf-accent)] to-[#be185d] rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 text-white flex flex-col items-center sm:flex-row justify-between gap-4 sm:gap-6 overflow-hidden relative group cursor-pointer font-inherit"
+                  className="w-full text-left bg-gradient-to-r from-[var(--mf-accent)] to-[#be185d] rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-8 text-white flex flex-col items-center sm:flex-row justify-between gap-4 sm:gap-6 overflow-hidden relative group cursor-pointer h-auto border-0"
                 >
-                  <div className="z-10 text-center sm:text-left space-y-2 sm:space-y-3">
-                    <h3 className="text-lg sm:text-xl md:text-2xl font-semibold tracking-tight leading-snug">Share your cycle with a partner</h3>
-                    <p className="text-white/80 text-sm max-w-[460px] leading-relaxed">
+                  <div className="z-10 text-center sm:text-left space-y-1.5">
+                    <h3 className="text-base sm:text-lg font-semibold tracking-tight leading-snug">Share your cycle with a partner</h3>
+                    <p className="text-white/80 text-xs sm:text-sm max-w-[460px] leading-relaxed">
                       Invite your partner to view your cycle phases and symptoms to improve communication and support.
                     </p>
                   </div>
-                  <span className="z-10 w-full sm:w-auto px-6 sm:px-8 py-3 bg-white text-[var(--mf-accent)] rounded-xl font-semibold text-sm hover:brightness-95 transition-all shrink-0 text-center block">
+                  <span className="z-10 w-full sm:w-auto px-5 py-2.5 bg-white text-[var(--mf-accent)] rounded-xl text-sm font-semibold shrink-0 text-center">
                     Invite Partner
                   </span>
                   <div className="absolute right-[-20px] top-[-20px] opacity-10 group-hover:scale-110 transition-transform duration-700">
-                     <img src="/images/girl.jpg" alt="" className="size-48 sm:size-64 object-contain rotate-[-15deg]" />
+                     <img src="/images/girl.jpg" alt="" className="size-40 sm:size-48 object-contain rotate-[-15deg]" />
                   </div>
-                </button>
+                </Button>
               </m.div>
             )}
 
             {/* Trust note */}
-            <m.p variants={itemVariants} className="text-center text-[10px] text-muted-foreground mt-6">
-              <Lock size={12} aria-hidden="true" className="inline-block mr-1" />
+            <m.p variants={itemVariants} className="text-center text-[10px] text-muted-foreground mt-5">
+              <Lock size={10} aria-hidden="true" className="inline mr-0.5" />
               Your health data is always private. Only aggregated cycle phase info is shared with your partner.
             </m.p>
 
@@ -470,13 +466,13 @@ export function SyncView() {
                         disabled={isInviting}
                         className="flex-1 h-12 px-4 rounded-xl bg-muted/50 border border-border focus:border-[var(--mf-accent-border)] focus:bg-background transition-all outline-none text-sm"
                       />
-                      <button type="button" 
+                      <Button 
                         onClick={handleSendInvite}
                         disabled={isInviting || !inviteEmail.trim()}
-                        className="h-12 px-6 bg-[var(--mf-accent)] text-white rounded-xl text-sm font-medium hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                        className="h-12 px-6 bg-[var(--mf-accent)] hover:bg-[var(--mf-accent)]/90 text-white rounded-xl shrink-0"
                       >
                         {isInviting ? 'Inviting...' : 'Invite'}
-                      </button>
+                      </Button>
                     </div>
                   </div>
 
@@ -494,9 +490,10 @@ export function SyncView() {
                       <span className="w-full sm:flex-1 text-[11px] sm:text-xs text-muted-foreground font-mono select-all break-words overflow-wrap-anywhere">
                         {inviteUrl}
                       </span>
-                      <button type="button" 
+                      <Button
                         onClick={copyLink}
-                        className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3 py-1.5 bg-background border rounded-lg text-xs font-medium hover:bg-muted transition-colors shrink-0"
+                        variant="outline"
+                        className="w-full sm:w-auto rounded-lg text-xs gap-1.5 shrink-0"
                       >
                         {copied ? (
                           <>
@@ -509,7 +506,7 @@ export function SyncView() {
                             <span>Copy</span>
                           </>
                         )}
-                      </button>
+                      </Button>
                     </div>
                     <p className="text-xs text-muted-foreground text-center">
                       This link expires in 24 hours. Your partner will need their own account.
@@ -540,20 +537,20 @@ export function SyncView() {
       <main ref={mainRef} className="flo-main-container pb-32 relative z-10">
         <div className="flo-content-inner">
           
-          <m.div variants={itemVariants} className="flo-dashboard-top mb-6 md:mb-10 lg:mb-12">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <m.div variants={itemVariants} className="flo-dashboard-top mb-6 md:mb-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="max-w-xl">
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-normal tracking-tight text-[var(--mf-text-strong)] leading-[1.1]">
+                <h1 className="text-2xl sm:text-3xl font-normal tracking-tight text-[var(--mf-text-strong)] leading-[1.1]">
                   Partner Sync & <br />
                   <span className="text-[var(--mf-accent)]">Empathy Hub</span>
                 </h1>
-                <p className="text-sm text-[var(--mf-muted)] mt-4 leading-relaxed max-w-lg">
+                <p className="text-sm text-[var(--mf-muted)] mt-2 leading-relaxed max-w-lg">
                   Strengthen your relationship with real-time status pings, hormone decoding translators, and empathetic task sheets aligned with her cycle.
                 </p>
                 {partnerStatus?.partner && (
-                  <div className="flex items-center gap-3 mt-4 pt-3">
+                  <div className="flex items-center gap-3 mt-3">
                     <div className="flex items-center gap-2">
-                      <div className="size-7 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center overflow-hidden border border-[var(--mf-border)]">
+                      <div className="size-7 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center overflow-hidden border border-[var(--mf-border)] shrink-0">
                         {partnerStatus.partner.avatar ? (
                           <img src={resolveAssetUrl(partnerStatus.partner.avatar)} alt="" className="size-full object-cover" />
                         ) : (
@@ -570,7 +567,7 @@ export function SyncView() {
                 )}
               </div>
               <div className="hidden md:block shrink-0">
-                <img src="/images/lady.jpg" alt="Empathy Hub Illustration" className="h-32 lg:h-40 object-cover rounded-full opacity-95" />
+                <img src="/images/lady.jpg" alt="Empathy Hub Illustration" className="h-28 lg:h-32 object-cover rounded-full opacity-95" />
               </div>
             </div>
           </m.div>
@@ -579,24 +576,24 @@ export function SyncView() {
             
             {/* Left Column: Real-Time Ping Card */}
             <m.section variants={itemVariants} className="flex flex-col gap-6 self-start">
-              <div className="flo-card p-6 sm:p-8 relative overflow-hidden transition-all duration-300">
+              <div className="flo-card p-5 relative overflow-hidden transition-all duration-300">
                 
                 <div className="flex flex-col items-center text-center">
                   <m.div 
                     animate={{ scale: [1, 1.05, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
-                    className="mb-4 size-14 rounded-full bg-rose-500/10 flex items-center justify-center text-rose-500"
+                    className="mb-3 size-12 rounded-full bg-rose-500/10 flex items-center justify-center text-rose-500"
                   >
-                    <img src="/images/heart.png" alt="" className="size-8 object-contain" />
+                    <img src="/images/heart.png" alt="" className="size-6 object-contain" />
                   </m.div>
 
-                  <h2 className="text-lg sm:text-xl font-normal tracking-tight text-[var(--mf-text-strong)]">
+                  <h2 className="text-base font-normal tracking-tight text-[var(--mf-text-strong)]">
                     {user?.role === 'partner' ? 'Send supportive update' : 'Send Real-Time Check-In'}
                   </h2>
-                  <p className="text-[11.5px] text-[var(--mf-muted)] mt-2 max-w-xs leading-relaxed">
+                  <p className="text-[11px] text-[var(--mf-muted)] mt-1.5 max-w-xs leading-relaxed">
                     {user?.role === 'partner' 
-                      ? 'Let your partner know how you are supporting her today. This sends an instant notification to her phone.'
-                      : 'Let your partner know how your body feels today. This sends an instant notification to coordinate care plans.'}
+                      ? 'Let your partner know how you are supporting her today.'
+                      : 'Let your partner know how your body feels today.'}
                   </p>
                 </div>
 
@@ -604,41 +601,42 @@ export function SyncView() {
                   <m.div 
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="mt-8 flex flex-col items-center text-center py-8 bg-[var(--mf-composer-bg)] border border-[var(--mf-border)] rounded-2xl"
+                    className="mt-6 flex flex-col items-center text-center py-6 bg-[var(--mf-composer-bg)] border border-[var(--mf-border)] rounded-2xl"
                   >
-                    <div className="mb-4">
-                      <Sparkle size={48} weight="fill" className="text-pink-400 animate-pulse" />
+                    <div className="mb-3">
+                      <Sparkle size={40} weight="fill" className="text-pink-400" />
                     </div>
-                    <h3 className="text-base font-medium text-[var(--mf-text-strong)]">
+                    <h3 className="text-sm font-medium text-[var(--mf-text-strong)]">
                       {user?.role === 'partner' ? 'Support Update Sent!' : 'Check-in Sent!'}
                     </h3>
-                    <p className="text-[11px] text-[var(--mf-muted)] mt-1.5 max-w-xs px-4 leading-relaxed">
+                    <p className="text-[11px] text-[var(--mf-muted)] mt-1 max-w-xs px-4 leading-relaxed">
                       {user?.role === 'partner'
                         ? 'Your partner has been notified. Keep up the supportive gestures!'
-                        : 'Your partner has been notified. They can now view actions to support you during your phase.'}
+                        : 'Your partner has been notified.'}
                     </p>
-                    <button type="button" 
+                    <Button
                       onClick={() => { setSent(false); setSelected(null); }}
-                      className="mt-5 text-xs text-[var(--mf-accent)] hover:underline font-normal bg-transparent border-0 cursor-pointer"
+                      variant="link"
+                      className="mt-5 text-xs text-[var(--mf-accent)]"
                     >
                       Send another update
-                    </button>
+                    </Button>
                   </m.div>
                 ) : (
-                  <div className="mt-8 space-y-6">
-                    <div className="space-y-3">
+                  <div className="mt-5 space-y-4">
+                    <div className="space-y-2.5">
                       <span className="text-[10px] font-normal text-[var(--mf-text-strong)] uppercase tracking-wider block">
                         {user?.role === 'partner' ? 'Choose Your Supportive Action:' : 'Choose Your Current Feeling:'}
                       </span>
                       
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         {options.map((opt) => (
                           <button
                             key={opt.id}
                             onClick={() => setSelected(opt.id)}
                             type="button"
                             className={cn(
-                              "relative overflow-hidden aspect-[4/3] rounded-2xl border text-left p-3 sm:p-3.5 transition-all flex flex-col justify-between outline-none group",
+                              "relative overflow-hidden aspect-[4/3] rounded-xl border text-left p-2.5 transition-all flex flex-col justify-between outline-none group cursor-pointer",
                               selected === opt.id
                                 ? "border-[var(--mf-accent)] ring-1 ring-[var(--mf-accent)]"
                                 : "border-[var(--mf-border)] hover:border-[var(--mf-accent-border)]"
@@ -666,28 +664,28 @@ export function SyncView() {
                       </div>
                     </div>
 
-                    <button type="button"
+                    <Button
                       onClick={handleSendPing}
                       disabled={!selected || isSending}
-                      className="w-full h-12 bg-[var(--mf-accent)] text-white rounded-2xl font-normal flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-xs transition-all !shadow-none border-0 cursor-pointer"
+                      className="w-full h-12 bg-[var(--mf-accent)] hover:bg-[var(--mf-accent)]/90 text-white rounded-2xl text-xs"
                     >
                       {isSending ? (
-                        <div className="flex items-center gap-2">
+                        <span className="flex items-center gap-2">
                           <m.div 
                             animate={{ rotate: 360 }}
                             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                           >
                             <Sparkle size={16} weight="bold" />
                           </m.div>
-                          <span>Sending Check-in…</span>
-                        </div>
+                          Sending Check-in…
+                        </span>
                       ) : (
                         <>
                           <PaperPlaneTilt size={16} weight="bold" />
-                          <span>Send Instant Ping</span>
+                          Send Instant Ping
                         </>
                       )}
-                    </button>
+                    </Button>
                   </div>
                 )}
               </div>

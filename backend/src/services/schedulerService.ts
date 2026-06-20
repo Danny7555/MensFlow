@@ -104,20 +104,14 @@ export async function runDailyReminderJob(): Promise<void> {
   const todayStr = new Date().toISOString().slice(0, 10);
 
   try {
-    // Fetch all lady users who have email notifications enabled
     const users = await User.find({ role: { $in: ['lady', 'partner'] } }).lean();
 
-    let emailsSent = 0;
-
-    for (const user of users) {
+    const results = await Promise.all(users.map(async (user) => {
       try {
         const settings = await Settings.findOne({ userId: user._id }).lean();
-        if (!settings) continue;
+        if (!settings) return 0;
+        if (!settings.notificationsEmail || !settings.notificationsCycleReminders) return 0;
 
-        // Skip users who have disabled email notifications
-        if (!settings.notificationsEmail || !settings.notificationsCycleReminders) continue;
-
-        // email = user.email (fallback to username for legacy accounts)
         const toEmail = user.email || user.username;
         const toName = user.name;
 
@@ -127,38 +121,39 @@ export async function runDailyReminderJob(): Promise<void> {
         const isPartner = user.role === 'partner';
 
         if (isPartner && user.partnerId) {
-          // Get the lady's dashboard
           const partnerDashboard = await Dashboard.findOne({ userId: user.partnerId }).lean();
-          if (!partnerDashboard?.lastPeriodStart) continue;
+          if (!partnerDashboard?.lastPeriodStart) return 0;
           cycleLen = partnerDashboard.typicalCycleDays || 28;
           cycleDay = computeCycleDay(partnerDashboard.lastPeriodStart, cycleLen);
         } else if (!isPartner) {
           const dashboard = await Dashboard.findOne({ userId: user._id }).lean();
-          if (!dashboard?.lastPeriodStart) continue;
+          if (!dashboard?.lastPeriodStart) return 0;
           cycleLen = dashboard.typicalCycleDays || 28;
           cycleDay = computeCycleDay(dashboard.lastPeriodStart, cycleLen);
 
-          // Check if user already logged today
           const todayLog = await SymptomLog.findOne({ userId: user._id, date: todayStr }).lean();
           todayLogged = !!todayLog && (todayLog.symptoms?.length ?? 0) > 0;
         }
 
         const events = buildReminderEvents(cycleDay, cycleLen, toName, todayLogged, isPartner);
 
-        for (const event of events) {
-          await sendReminderEmail({
+        await Promise.all(events.map(event =>
+          sendReminderEmail({
             toEmail,
             toName,
             reminderTitle: event.title,
             reminderMessage: event.message,
-          });
-          emailsSent++;
-        }
+          })
+        ));
+
+        return events.length;
       } catch (userErr) {
         console.error(`[Scheduler] Error processing user ${user._id}:`, userErr);
+        return 0;
       }
-    }
+    }));
 
+    const emailsSent = results.reduce((a, b) => a + b, 0);
     console.log(`[Scheduler] Daily reminder job complete — ${emailsSent} email(s) sent.`);
   } catch (err) {
     console.error('[Scheduler] Job failed:', err);

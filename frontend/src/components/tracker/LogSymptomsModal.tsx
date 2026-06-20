@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import { SYMPTOM_DEFS, type SymptomCategory } from "@/data/symptomsData"
-import { Drop, Smiley, Pulse, Bed, Check, Sparkle, Waves, Moon, HandHeart, Brain, Fire } from "@phosphor-icons/react"
+import { Drop, Smiley, Pulse, Bed, Check, Sparkle, Waves, Moon, HandHeart, Brain, Fire, CaretDown, Plus } from "@phosphor-icons/react"
 import { useStore } from "@/store/useStore"
 import { toast } from "sonner"
 
@@ -171,12 +171,12 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
                           onClick={() => toggleSymptom(s.id)}
                           disabled={isSaving || isPartner}
                           className={cn(
-                            "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 border",
+                            "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border",
                             isActive 
-                              ? (s.id === 'flow-medium' ? "bg-rose-100 text-rose-600 border-rose-300 scale-[1.02] dark:bg-rose-500/20 dark:text-rose-400 dark:border-rose-500/40" : 
-                                 s.id === 'flow-heavy' ? "bg-red-100 text-red-700 border-red-400 scale-[1.02] dark:bg-red-500/30 dark:text-red-400 dark:border-red-500/50" : 
-                                 "bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] border-[var(--mf-accent-border)] scale-[1.02]") 
-                              : "bg-card text-muted-foreground border-border hover:border-[var(--mf-accent-border)] hover:text-foreground",
+                              ? (s.id === 'flow-medium' ? "bg-rose-100 text-rose-600 border-rose-300 shadow-sm shadow-rose-500/10 scale-[1.02] dark:bg-rose-500/20 dark:text-rose-400 dark:border-rose-500/40" : 
+                                 s.id === 'flow-heavy' ? "bg-red-100 text-red-700 border-red-400 shadow-sm shadow-red-500/10 scale-[1.02] dark:bg-red-500/30 dark:text-red-400 dark:border-red-500/50" : 
+                                 "bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] border-[var(--mf-accent-border)] shadow-sm shadow-[var(--mf-accent)]/5 scale-[1.02]") 
+                              : "bg-card text-muted-foreground border-border hover:border-[var(--mf-accent-border)] hover:text-foreground hover:bg-[var(--mf-hover)]",
                             isPartner && "cursor-default hover:border-border"
                           )}
                         >
@@ -222,16 +222,19 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
                       {lhLevelVal !== null ? lhLevelVal : <span className="text-muted-foreground/60 italic">Not logged</span>}
                     </div>
                   ) : (
-                    <select
-                      id="lh-select"
-                      value={lhLevelVal ?? ''}
-                      onChange={(e) => setLhLevelVal(e.target.value || null)}
-                      className="w-full h-10 px-3 rounded-xl bg-muted/50 border-none outline-none text-sm text-[var(--mf-text-strong)] focus:ring-1 ring-[var(--mf-accent)] capitalize"
-                    >
-                      <option value="">Select Result</option>
-                      <option value="negative">Negative</option>
-                      <option value="positive">Positive</option>
-                    </select>
+                    <div className="relative">
+                      <select
+                        id="lh-select"
+                        value={lhLevelVal ?? ''}
+                        onChange={(e) => setLhLevelVal(e.target.value || null)}
+                        className="w-full h-10 pl-3 pr-10 rounded-xl bg-muted/50 border border-border text-sm text-[var(--mf-text-strong)] appearance-none outline-none focus:border-[var(--mf-accent-border)] focus:bg-[var(--mf-accent-soft)]/20 transition-all capitalize cursor-pointer"
+                      >
+                        <option value="" disabled>Select Result</option>
+                        <option value="negative">Negative</option>
+                        <option value="positive">Positive</option>
+                      </select>
+                      <CaretDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" weight="bold" />
+                    </div>
                   )}
                 </div>
                 {/* Cervical Mucus */}
@@ -242,19 +245,22 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
                       {mucusVal !== null ? mucusVal.replace('-', ' ') : <span className="text-muted-foreground/60 italic">Not logged</span>}
                     </div>
                   ) : (
-                    <select
-                      id="mucus-select"
-                      value={mucusVal ?? ''}
-                      onChange={(e) => setMucusVal(e.target.value || null)}
-                      className="w-full h-10 px-3 rounded-xl bg-muted/50 border-none outline-none text-sm text-[var(--mf-text-strong)] focus:ring-1 ring-[var(--mf-accent)]"
-                    >
-                      <option value="">Select Consistency</option>
-                      <option value="dry">Dry</option>
-                      <option value="sticky">Sticky</option>
-                      <option value="creamy">Creamy</option>
-                      <option value="egg-white">Egg White (Fertile)</option>
-                      <option value="watery">Watery</option>
-                    </select>
+                    <div className="relative">
+                      <select
+                        id="mucus-select"
+                        value={mucusVal ?? ''}
+                        onChange={(e) => setMucusVal(e.target.value || null)}
+                        className="w-full h-10 pl-3 pr-10 rounded-xl bg-muted/50 border border-border text-sm text-[var(--mf-text-strong)] appearance-none outline-none focus:border-[var(--mf-accent-border)] focus:bg-[var(--mf-accent-soft)]/20 transition-all capitalize cursor-pointer"
+                      >
+                        <option value="" disabled>Select Consistency</option>
+                        <option value="dry">Dry</option>
+                        <option value="sticky">Sticky</option>
+                        <option value="creamy">Creamy</option>
+                        <option value="egg-white">Egg White (Fertile)</option>
+                        <option value="watery">Watery</option>
+                      </select>
+                      <CaretDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" weight="bold" />
+                    </div>
                   )}
                 </div>
               </div>
@@ -263,29 +269,38 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
             {/* Add Custom Symptom Form */}
             {!isPartner && (
               <form onSubmit={handleAddSymptom} className="pt-4 border-t border-border mt-2 space-y-3">
-                <span className="text-xs font-normal uppercase tracking-widest text-muted-foreground block">Create Custom Tracker</span>
+                <div className="flex items-center gap-2 px-1">
+                  <Sparkle className="size-4 text-muted-foreground" weight="regular" />
+                  <span className="text-xs font-normal uppercase tracking-widest text-muted-foreground">Create Custom Tracker</span>
+                </div>
                 <div className="flex flex-col sm:flex-row gap-2">
-                  <input
-                    type="text"
-                    placeholder="e.g. Backache, Caffeine log..."
-                    value={newSymptomName}
-                    onChange={(e) => setNewSymptomName(e.target.value)}
-                    aria-label="Custom symptom name"
-                    className="flex-1 h-10 px-4 rounded-xl bg-muted/50 border-none outline-none focus:ring-1 ring-[var(--mf-accent)] text-sm transition-all"
-                  />
-                  <select
-                    value={newSymptomCat}
-                    onChange={(e) => setNewSymptomCat(e.target.value as SymptomCategory)}
-                    className="h-10 px-3 rounded-xl bg-muted/50 border-none outline-none text-sm text-muted-foreground focus:ring-1 ring-[var(--mf-accent)]"
-                  >
-                    <option value="Physical">Physical</option>
-                    <option value="Mood">Mood</option>
-                    <option value="Lifestyle">Lifestyle</option>
-                  </select>
+                  <div className="relative flex-1">
+                    <input
+                      type="text"
+                      placeholder="e.g. Backache, Caffeine log..."
+                      value={newSymptomName}
+                      onChange={(e) => setNewSymptomName(e.target.value)}
+                      aria-label="Custom symptom name"
+                      className="w-full h-10 pl-4 pr-4 rounded-xl bg-muted/50 border border-border outline-none focus:border-[var(--mf-accent-border)] text-sm transition-all"
+                    />
+                  </div>
+                  <div className="relative min-w-[130px]">
+                    <select
+                      value={newSymptomCat}
+                      onChange={(e) => setNewSymptomCat(e.target.value as SymptomCategory)}
+                      className="w-full h-10 pl-3 pr-8 rounded-xl bg-muted/50 border border-border text-sm text-muted-foreground appearance-none outline-none focus:border-[var(--mf-accent-border)] transition-all cursor-pointer"
+                    >
+                      <option value="Physical">Physical</option>
+                      <option value="Mood">Mood</option>
+                      <option value="Lifestyle">Lifestyle</option>
+                    </select>
+                    <CaretDown size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" weight="bold" />
+                  </div>
                   <button
                     type="submit"
-                    className="h-10 px-4 rounded-xl bg-[var(--mf-accent)] text-white text-sm font-normal hover:brightness-105 active:scale-95 transition-all"
+                    className="h-10 px-5 rounded-xl bg-[var(--mf-accent)] text-white text-sm font-normal hover:brightness-105 active:scale-95 transition-all flex items-center gap-1.5 shrink-0"
                   >
+                    <Plus size={14} weight="bold" />
                     Add
                   </button>
                 </div>
@@ -308,7 +323,7 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
                 onClick={handleSave}
                 disabled={isSaving}
                 className={cn(
-                  "flex-1 h-12 rounded-2xl bg-[var(--mf-accent)] text-white font-normal hover:brightness-110 transition-all shadow-none flex items-center justify-center gap-2",
+                  "flex-1 h-12 rounded-2xl bg-[var(--mf-accent)] text-white font-normal hover:brightness-110 transition-all flex items-center justify-center gap-2",
                   isSaving && "opacity-80 cursor-not-allowed"
                 )}
               >
@@ -318,7 +333,10 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
                     <span>Syncing…</span>
                   </>
                 ) : (
-                  "Save Log"
+                  <>
+                    <Check size={16} weight="bold" />
+                    Save Log
+                  </>
                 )}
               </button>
             )}

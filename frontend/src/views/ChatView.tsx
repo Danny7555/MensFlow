@@ -6,6 +6,8 @@ import {
   Question, 
   Lock, 
   LockOpen,
+  LockKey,
+  ShieldCheck,
   Trash, 
   SidebarSimple, 
   X, 
@@ -28,7 +30,9 @@ import { toast } from 'sonner'
 import { cn } from '../lib/utils'
 import { computeCycleDay } from '../lib/cycleUtils'
 import { MarkdownText } from '../components/MarkdownText'
-import { getPasswordStrength as _getPasswordStrength } from '../lib/passwordStrength'
+import { SECURITY_QUESTIONS } from '../lib/constants'
+import { getPasswordStrength } from '../lib/passwordStrength'
+import { Button } from '@/components/ui/button'
 
 type Msg = {
   id: string
@@ -195,7 +199,6 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
   const { temporaryChat, setTemporaryChat } = useChatSession()
   const { chatShowTimestamps, privacyLockChats: rawPrivacyLockChats } = useStore((state) => state.settings)
   const { dashboard: data, user, logs, customSymptoms, showConfirm, hydrate, fetchLogs } = useStore()
-  const privacyLockChats = rawPrivacyLockChats && user?.role !== 'partner'
 
   const threadEndRef = useRef<HTMLDivElement>(null)
   // Capture the static prop in a ref so the initial-load effect doesn't
@@ -244,6 +247,13 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
   const [permanentUnlockSessionId, setPermanentUnlockSessionId] = useState<string | null>(null)
   const [permanentUnlockPasscode, setPermanentUnlockPasscode] = useState('')
   const [isLockingSession, setIsLockingSession] = useState(false)
+
+  // Lock-setup state (when no global privacy password exists)
+  const [lockSetupSessionId, setLockSetupSessionId] = useState<string | null>(null)
+  const [lockSetupPasscode, setLockSetupPasscode] = useState('')
+  const [lockSetupQuestionId, setLockSetupQuestionId] = useState(SECURITY_QUESTIONS[0].id)
+  const [lockSetupAnswer, setLockSetupAnswer] = useState('')
+  const [isSettingUpLock, setIsSettingUpLock] = useState(false)
 
   const generateNewSessionId = () => `chat-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
 
@@ -544,25 +554,56 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
     })
   }
 
-  // Lock Actions — one-click, uses settings credentials automatically
+  // Lock Actions
   const openLockModal = async (sessionId: string, e: React.MouseEvent) => {
     e.stopPropagation()
-    if (isLockingSession) return
-    setIsLockingSession(true)
+    if (isLockingSession || isSettingUpLock) return
+
+    // If global privacy password is set, one-click lock
+    if (rawPrivacyLockChats) {
+      setIsLockingSession(true)
+      try {
+        await chatApi.lock(sessionId) // backend reads settings credentials
+        toast.success('Chat locked!')
+        setSessions((prev) => prev.map((s) => s.sessionId === sessionId ? { ...s, isLocked: true } : s))
+        if (activeSessionId === sessionId) {
+          setActiveSessionId(generateNewSessionId())
+          setMessages([{ id: 'welcome', role: 'assistant', text: welcomeText, createdAt: Date.now() }])
+        }
+      } catch (err: unknown) {
+        toast.error(err instanceof Error ? err.message : 'Failed to lock session')
+      } finally {
+        setIsLockingSession(false)
+      }
+      return
+    }
+
+    // No global password — show lock-setup modal with passcode/security question
+    setLockSetupSessionId(sessionId)
+    setLockSetupPasscode('')
+    setLockSetupQuestionId(SECURITY_QUESTIONS[0].id)
+    setLockSetupAnswer('')
+  }
+
+  const handleLockSetupSubmit = async () => {
+    if (!lockSetupSessionId || !lockSetupPasscode.trim()) return
+    setIsSettingUpLock(true)
     try {
-      await chatApi.lock(sessionId) // backend reads settings credentials
+      const activeQuestion = SECURITY_QUESTIONS.find(q => q.id === lockSetupQuestionId)!
+      await chatApi.lock(lockSetupSessionId, lockSetupPasscode, activeQuestion.label, lockSetupAnswer)
       toast.success('Chat locked!')
-      // Remove from visible list immediately (optimistic)
-      setSessions((prev) => prev.map((s) => s.sessionId === sessionId ? { ...s, isLocked: true } : s))
-      // If this was the active session, start a new one
-      if (activeSessionId === sessionId) {
+      setSessions((prev) => prev.map((s) => s.sessionId === lockSetupSessionId ? { ...s, isLocked: true } : s))
+      if (activeSessionId === lockSetupSessionId) {
         setActiveSessionId(generateNewSessionId())
         setMessages([{ id: 'welcome', role: 'assistant', text: welcomeText, createdAt: Date.now() }])
       }
+      setLockSetupSessionId(null)
+      setLockSetupPasscode('')
+      setLockSetupAnswer('')
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Failed to lock session')
     } finally {
-      setIsLockingSession(false)
+      setIsSettingUpLock(false)
     }
   }
 
@@ -594,8 +635,14 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
         }
         const res = await chatApi.unlock(sid, undefined, unlockSecurityAnsVal)
         if (res.success && res.passcode) {
-          toast.success(`Success! Your passcode was retrieved.`)
+          toast.success(`Passcode retrieved! Unlocking chat.`)
           setUnlockedPasscodes((prev) => ({ ...prev, [sid]: res.passcode! }))
+          setLockedSessionToUnlock(null)
+          setUnlockPasscodeVal('')
+          setUnlockSecurityAnsVal('')
+          setShowSecurityQuestionReset(false)
+        } else if (res.success) {
+          toast.success('Security answer verified. Chat unlocked.')
           setLockedSessionToUnlock(null)
           setUnlockPasscodeVal('')
           setUnlockSecurityAnsVal('')
@@ -696,7 +743,7 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
                 </div>
                 
                 <div className="chat-session-actions">
-                  {privacyLockChats && !s.isLocked && (
+                  {!s.isLocked && (
                     <button
                       type="button"
                       className="chat-session-action-btn"
@@ -740,16 +787,17 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
           </div>
 
           <div className="flex items-center gap-2">
-            {privacyLockChats && activeSessionId && !sessions.find((s) => s.sessionId === activeSessionId)?.isLocked && (
-              <button
-                type="button"
-                className="text-xs text-muted-foreground flex items-center gap-1 hover:text-[var(--mf-accent)] px-2 py-1.5 rounded-lg border border-border bg-card transition-colors cursor-pointer disabled:opacity-50"
+            {activeSessionId && !sessions.find((s) => s.sessionId === activeSessionId)?.isLocked && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-lg h-8 text-xs gap-1.5"
                 onClick={(e) => openLockModal(activeSessionId, e)}
-                disabled={isLockingSession}
+                disabled={isLockingSession || isSettingUpLock}
               >
                 <Lock size={14} />
-                <span>{isLockingSession ? 'Locking…' : 'Lock Chat'}</span>
-              </button>
+                {isLockingSession ? 'Locking…' : 'Lock Chat'}
+              </Button>
             )}
             {activeSessionId && sessions.find((s) => s.sessionId === activeSessionId)?.isLocked && (
               <div className="flex items-center gap-1.5">
@@ -757,18 +805,19 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
                   <Lock size={10} weight="fill" />
                   Locked
                 </span>
-                <button
-                  type="button"
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-lg h-8 text-xs gap-1.5 hover:text-emerald-500 hover:border-emerald-500/30"
                   title="Remove password protection and make this chat public"
-                  className="text-xs text-muted-foreground flex items-center gap-1 hover:text-emerald-500 px-2 py-1.5 rounded-lg border border-border bg-card transition-colors cursor-pointer"
                   onClick={() => {
                     setPermanentUnlockSessionId(activeSessionId)
                     setPermanentUnlockPasscode('')
                   }}
                 >
                   <LockOpen size={14} />
-                  <span>Unlock Chat</span>
-                </button>
+                  Unlock
+                </Button>
               </div>
             )}
           </div>
@@ -791,16 +840,16 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
               <h2 className="font-semibold text-lg text-[var(--mf-text-strong)]">
                 {showSecurityQuestionReset ? "Unlock via Question" : "This chat is locked"}
               </h2>
-              <p className="text-xs text-muted-foreground -mt-2 max-w-[280px]">
+              <p className="text-xs text-muted-foreground -mt-1 max-w-[280px]">
                 {showSecurityQuestionReset 
-                  ? "Answer the security question configured for this chat to retrieve your passcode."
+                  ? "Answer the security question to retrieve your passcode."
                   : "Enter the passcode to view and continue this conversation."}
               </p>
 
               <div className="chat-lock-inputs">
                 {showSecurityQuestionReset ? (
                   <>
-                    <div className="text-xs font-semibold text-[var(--mf-text)] mb-1">
+                    <div className="text-xs font-medium text-[var(--mf-text)] mb-0.5">
                       Question: <span className="text-muted-foreground font-normal italic">{lockedSessionToUnlock.securityQuestion}</span>
                     </div>
                     <input
@@ -826,17 +875,23 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
                 )}
               </div>
 
-              <button type="submit" className="chat-lock-btn mt-2">
-                {showSecurityQuestionReset ? "Retrieve Passcode" : "Unlock Chat"}
-              </button>
-
-              <button
-                type="button"
-                className="chat-lock-forgot"
-                onClick={() => setShowSecurityQuestionReset(!showSecurityQuestionReset)}
+              <Button
+                type="submit"
+                className="w-full rounded-xl h-11 text-sm font-medium"
+                disabled={showSecurityQuestionReset ? !unlockSecurityAnsVal.trim() : !unlockPasscodeVal.trim()}
               >
-                {showSecurityQuestionReset ? "Back to Passcode Input" : "Forgot passcode? Answer security question"}
-              </button>
+                {showSecurityQuestionReset ? "Retrieve Passcode" : "Unlock Chat"}
+              </Button>
+
+              {lockedSessionToUnlock?.securityQuestion && (
+                <button
+                  type="button"
+                  className="chat-lock-forgot"
+                  onClick={() => setShowSecurityQuestionReset(!showSecurityQuestionReset)}
+                >
+                  {showSecurityQuestionReset ? "Back to passcode" : "Forgot passcode?"}
+                </button>
+              )}
             </form>
           </div>
         ) : showOnlyLocked && filteredSessions.length === 0 ? (
@@ -853,29 +908,33 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
           </div>
         ) : isInitialState ? (
           /* Render Landing view */
-          <div className="flex-1 overflow-y-auto flex items-center justify-center p-4">
-            <div className="landing-center animate-in fade-in zoom-in duration-700 max-w-[800px] w-full px-4 mx-auto">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-5 flex flex-col">
+            <div className="landing-center animate-in fade-in zoom-in duration-700 w-full mx-auto my-auto">
               <div className="landing-hero-image-wrap">
+                <div className="landing-hero-glow" />
                 <img src="/images/lady.jpg" alt="" className="landing-hero-image" />
               </div>
-              <h1 className="landing-title">Ask MensFlow about your cycle?</h1>
-              <div className="landing-sub flex items-center gap-1 justify-center max-w-[500px] mx-auto text-center leading-relaxed">
-                Education, tracking context, and supportive guidance; <strong className="font-semibold text-rose-600 dark:text-rose-400">not a substitute for medical care.</strong>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button type="button" className="p-1 hover:bg-black/5 rounded-full transition-colors inline-flex items-center justify-center cursor-help" aria-label="Medical disclaimer information">
-                      <Question size={14} weight="bold" className="opacity-40" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="text-center">
-                    <p className="max-w-[240px]">
-                      MensFlow is an educational tool. Always consult a healthcare professional for medical advice, diagnosis, or treatment.
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
+              <div className="w-full max-w-[500px] mx-auto space-y-1 sm:space-y-1.5">
+                <h1 className="landing-title">Ask MensFlow about your cycle?</h1>
+                <p className="landing-sub">
+                  <span>Education, tracking context, and supportive guidance; </span>
+                  <strong className="font-semibold text-rose-600 dark:text-rose-400">not a substitute for medical care.</strong>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button type="button" className="p-1 hover:bg-black/5 rounded-full transition-colors inline-flex items-center justify-center cursor-help align-middle ml-0.5" aria-label="Medical disclaimer information">
+                        <Question size={14} weight="bold" className="opacity-40" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="text-center">
+                      <p className="max-w-[240px]">
+                        MensFlow is an educational tool. Always consult a healthcare professional for medical advice, diagnosis, or treatment.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </p>
               </div>
 
-              <div className="landing-composer-wrap mt-8">
+              <div className="landing-composer-wrap mt-5 sm:mt-7">
                 {!suggestionsLoading && suggestions && suggestions.length > 0 && !isTyping && !isLoading && (
                   <div className="chat-suggestions-container">
                     <div className="chat-suggestions-label">
@@ -1081,30 +1140,132 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
                 <X size={18} />
               </button>
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground leading-relaxed">
               This will permanently remove password protection and move the conversation back into your main chat history.
             </p>
-            <div className="flex flex-col gap-3 text-left mt-3">
-              <div>
-                <label className="text-xs font-semibold text-[var(--mf-text)] mb-1 block">Confirm with your passcode or login password</label>
+            <div className="flex flex-col gap-1.5 text-left">
+              <label className="text-xs font-medium text-[var(--mf-text)]">Enter your passcode or account password</label>
+              <input
+                type="password"
+                placeholder="Enter passcode / account password"
+                className="chat-lock-input"
+                value={permanentUnlockPasscode}
+                onChange={(e) => setPermanentUnlockPasscode(e.target.value)}
+                autoFocus
+              />
+            </div>
+            <div className="flex items-center gap-2 pt-1">
+              <Button
+                variant="outline"
+                className="flex-1 rounded-xl h-11 text-sm"
+                onClick={() => { setPermanentUnlockSessionId(null); setPermanentUnlockPasscode('') }}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="flex-1 rounded-xl h-11 text-sm bg-emerald-600 hover:bg-emerald-700 border-emerald-600"
+                onClick={handlePermanentUnlock}
+                disabled={!permanentUnlockPasscode.trim()}
+              >
+                <LockOpen size={16} weight="bold" />
+                Unlock & Make Public
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Lock Setup Modal Overlay */}
+      {lockSetupSessionId && (
+        <div className="chat-modal-overlay">
+          <div className="chat-modal-card animate-in zoom-in-95 duration-200">
+            <div className="chat-modal-header">
+              <h3 className="chat-modal-title flex items-center gap-2">
+                <Lock size={18} /> Lock Chat
+              </h3>
+              <button
+                type="button"
+                className="chat-modal-close"
+                onClick={() => setLockSetupSessionId(null)}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Set a passcode to protect this conversation. You'll need it to view or continue the chat.
+            </p>
+            <div className="flex flex-col gap-4 text-left">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-[var(--mf-text)]">Passcode</label>
+                <div className="relative">
+                  <LockKey size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="password"
+                    placeholder="Enter a passcode"
+                    className="chat-lock-input pl-9"
+                    value={lockSetupPasscode}
+                    onChange={(e) => setLockSetupPasscode(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+                {lockSetupPasscode && (() => {
+                  const strength = getPasswordStrength(lockSetupPasscode)
+                  if (!strength) return null
+                  return (
+                    <div className="pt-1 animate-in fade-in slide-in-from-top-1 duration-300">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Strength</span>
+                        <span className={`text-[10px] font-medium ${strength.textClass}`}>{strength.label}</span>
+                      </div>
+                      <div className="h-1 bg-muted/50 rounded-full overflow-hidden flex gap-0.5">
+                        <div className={`h-full transition-all duration-500 flex-1 rounded-full ${strength.percent >= 33 ? strength.label === 'Bad' ? 'bg-rose-500' : strength.label === 'Good' ? 'bg-amber-500' : 'bg-emerald-500' : 'bg-muted/10'}`} />
+                        <div className={`h-full transition-all duration-500 flex-1 rounded-full ${strength.percent >= 66 ? strength.label === 'Good' ? 'bg-amber-500' : 'bg-emerald-500' : 'bg-muted/10'}`} />
+                        <div className={`h-full transition-all duration-500 flex-1 rounded-full ${strength.percent >= 100 ? 'bg-emerald-500' : 'bg-muted/10'}`} />
+                      </div>
+                    </div>
+                  )
+                })()}
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-[var(--mf-text)]">Security Question <span className="text-muted-foreground font-normal">(optional)</span></label>
+                <select
+                  className="w-full h-11 px-3 rounded-xl bg-muted border border-border text-sm text-[var(--mf-text-strong)] focus:border-[var(--mf-accent-border)] focus:ring-1 focus:ring-[var(--mf-accent)] outline-none transition-all"
+                  value={lockSetupQuestionId}
+                  onChange={(e) => setLockSetupQuestionId(e.target.value)}
+                >
+                  {SECURITY_QUESTIONS.map((q) => (
+                    <option key={q.id} value={q.id}>{q.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-[var(--mf-text)]">Answer <span className="text-muted-foreground font-normal">(optional — for recovery)</span></label>
                 <input
-                  type="password"
-                  placeholder="Enter passcode / account password"
+                  type="text"
+                  placeholder="Your answer"
                   className="chat-lock-input"
-                  value={permanentUnlockPasscode}
-                  onChange={(e) => setPermanentUnlockPasscode(e.target.value)}
-                  autoFocus
+                  value={lockSetupAnswer}
+                  onChange={(e) => setLockSetupAnswer(e.target.value)}
                 />
               </div>
             </div>
-            <button
-              type="button"
-              className="chat-lock-btn mt-4 bg-emerald-600 hover:bg-emerald-700 border-emerald-600"
-              onClick={handlePermanentUnlock}
-            >
-              <LockOpen size={16} weight="bold" />
-              Unlock & Make Public
-            </button>
+            <div className="flex items-center gap-2 pt-1">
+              <Button
+                variant="outline"
+                className="flex-1 rounded-xl h-11 text-sm"
+                onClick={() => setLockSetupSessionId(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="flex-1 rounded-xl h-11 text-sm"
+                onClick={handleLockSetupSubmit}
+                disabled={!lockSetupPasscode.trim() || isSettingUpLock}
+              >
+                <ShieldCheck size={16} weight="bold" />
+                {isSettingUpLock ? 'Locking…' : 'Lock Chat'}
+              </Button>
+            </div>
           </div>
         </div>
       )}

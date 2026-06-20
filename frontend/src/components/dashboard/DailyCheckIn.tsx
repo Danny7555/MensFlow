@@ -4,11 +4,11 @@ import { useStore } from "@/store/useStore"
 import { SYMPTOM_DEFS, type SymptomDef } from "@/data/symptomsData"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
-import { Check, Question, Trophy, Drop } from "@phosphor-icons/react"
+import { Button } from "@/components/ui/button"
+import { Check, Trophy, Drop, Sparkle, SealCheck, ArrowRight, Brain, Star, Fire } from "@phosphor-icons/react"
 import { buildPersonalizationProfile } from "@/lib/personalization"
 import { computeCycleDay, getPhaseFromDay } from "@/lib/cycleUtils"
 
-// Map symptom IDs to local image assets
 const symptomImages: Record<string, string> = {
   'flow-light': '/images/flow_light.png',
   'flow-medium': '/images/flow_medium.png',
@@ -36,9 +36,6 @@ interface SymptomBubbleProps {
   onClick: () => void
 }
 
-/**
- * Individual symptom bubble button
- */
 function SymptomBubble({ sym, active, onClick }: SymptomBubbleProps) {
   const imgUrl = symptomImages[sym.id]
 
@@ -70,7 +67,7 @@ function SymptomBubble({ sym, active, onClick }: SymptomBubbleProps) {
           </div>
         )}
       </div>
-        <span className={cn(
+      <span className={cn(
         "text-[9px] md:text-[10px] font-normal text-center whitespace-normal text-balance leading-tight w-full max-w-[76px] transition-colors",
         active ? "text-[var(--mf-accent)]" : "text-[var(--mf-text-strong)] group-hover:text-[var(--mf-accent)]"
       )}>
@@ -80,9 +77,6 @@ function SymptomBubble({ sym, active, onClick }: SymptomBubbleProps) {
   )
 }
 
-/**
- * Quiz module option button
- */
 interface QuizOptionProps {
   text: string
   selected: boolean
@@ -98,19 +92,32 @@ function QuizOption({ text, selected, showResult, correct, onClick }: QuizOption
       disabled={showResult}
       onClick={onClick}
       className={cn(
-        "w-full text-left p-4 rounded-xl border text-[13px] md:text-sm font-normal transition-all duration-200 outline-none",
+        "w-full text-left p-3.5 rounded-xl border text-xs md:text-sm font-normal transition-all duration-200 outline-none flex items-start gap-2.5",
         selected
           ? correct
             ? "bg-green-50/70 dark:bg-green-950/20 border-green-500 text-green-700 dark:text-green-400"
             : "bg-red-50/70 dark:bg-red-950/20 border-red-500 text-red-700 dark:text-red-400"
-          : "bg-muted/20 border-border/50 hover:bg-muted/50 text-[var(--mf-text-strong)]"
+          : "bg-muted/20 border-border/50 hover:bg-muted/50 hover:border-[var(--mf-accent-border)] text-[var(--mf-text-strong)]"
       )}
     >
-      <div className="flex items-center justify-between">
+      <span className={cn(
+        "size-4 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-colors",
+        selected
+          ? correct
+            ? "border-green-500 bg-green-500 text-white"
+            : "border-red-500 bg-red-500 text-white"
+          : "border-[var(--mf-muted)] group-hover:border-[var(--mf-accent)]"
+      )}>
+        {selected && <Check size={10} weight="bold" />}
+      </span>
+      <div className="flex-1 min-w-0">
         <span>{text}</span>
         {selected && (
-          <span className="font-normal uppercase tracking-wider text-[9px] px-1.5 py-0.5 rounded bg-white dark:bg-muted/40">
-            {correct ? "Correct" : "Wrong"}
+          <span className={cn(
+            "inline-block ml-1.5 text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded",
+            correct ? "bg-green-500/10 text-green-600 dark:text-green-400" : "bg-red-500/10 text-red-600 dark:text-red-400"
+          )}>
+            {correct ? "Correct" : "Incorrect"}
           </span>
         )}
       </div>
@@ -129,7 +136,6 @@ export function SymptomLogger() {
   const checkInSymptoms = [...SYMPTOM_DEFS, ...customSymptoms].filter(sym => sym.category !== 'Flow')
   const displayedSymptoms = (() => {
     if (showAll) return checkInSymptoms
-    // Always keep active/logged symptoms visible first, then pad with inactive ones.
     const active = checkInSymptoms.filter(sym => currentSymptoms.includes(sym.id))
     const inactive = checkInSymptoms.filter(sym => !currentSymptoms.includes(sym.id))
     const combined = [...active, ...inactive]
@@ -161,14 +167,12 @@ export function SymptomLogger() {
     const otherFlows = ['flow-light', 'flow-medium', 'flow-heavy'].filter(id => id !== flowId)
     
     if (currentSymptoms.includes(flowId)) {
-      // Toggle off
       next = currentSymptoms.filter(s => s !== flowId)
       toast.success("Flow updated", {
         description: "Removed flow log for today.",
         duration: 3000,
       })
     } else {
-      // Toggle on, remove other flows
       next = [...currentSymptoms.filter(s => !otherFlows.includes(s)), flowId]
       toast.success("Flow updated", {
         description: `Logged ${flowId.replace('flow-', '')} flow for today.`,
@@ -197,7 +201,6 @@ export function SymptomLogger() {
         </div>
         <p className="text-xs md:text-xs text-muted-foreground mb-3 md:mb-5 leading-relaxed">Tap to record your current symptoms or moods instantly. Your daily trends will update automatically.</p>
 
-        {/* Flow Intensity Quick Log */}
         <div className="mb-5 pb-4 border-b border-[var(--mf-border)]">
           <span className="text-[10px] font-normal text-muted-foreground uppercase tracking-wider block mb-2">Today's Flow</span>
           <div className="grid grid-cols-3 gap-2">
@@ -241,7 +244,6 @@ export function SymptomLogger() {
           ))}
         </div>
 
-        {/* Today's Logged Signals Section */}
         {loggedSymptomsList.length > 0 && (
           <div className="mt-4 pt-4 border-t border-[var(--mf-border)]">
             <span className="text-[10px] font-normal text-muted-foreground uppercase tracking-wider block mb-2">Today's Logged Signals</span>
@@ -309,7 +311,7 @@ export function DailyQuiz() {
           }
         : phase === 'fertile'
           ? {
-              question: `Around Day ${cycleDay}, what signal best supports an ovulation-window estimate?`,
+              question: `Around day ${cycleDay}, what signal best supports an ovulation-window estimate?`,
               options: [
                 { id: 1, text: "Cervical mucus changes or an LH test trend", correct: true },
                 { id: 2, text: "A fixed Day 14 rule for every cycle", correct: false }
@@ -393,27 +395,59 @@ export function DailyQuiz() {
   }
 
   return (
-    <div className="flo-card border border-[var(--mf-border)] bg-gradient-to-br from-card to-[var(--mf-accent-soft)]/10 flex flex-col justify-between overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 !shadow-none">
-      <div className={cn("p-6 md:p-8", !currentQuiz && "p-5 md:p-6 pb-4")}>
-        <div className={cn("flex items-center gap-3", currentQuiz ? "mb-3" : "mb-2")}>
-          <div className="size-10 rounded-xl bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)]">
-            <Question size={22} weight="bold" />
-          </div>
-          <h3 className="text-xl font-medium text-[var(--mf-text-strong)] tracking-tight">Daily Quiz</h3>
+    <div className="flo-card border border-[var(--mf-border)] bg-card flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 !p-0">
+      {/* Header */}
+      <div className="flex items-center gap-2.5 px-5 py-4 border-b border-[var(--mf-border)]">
+        <div className="size-9 rounded-xl bg-gradient-to-br from-[var(--mf-accent-soft)] to-[var(--mf-accent-soft)]/60 flex items-center justify-center text-[var(--mf-accent)]">
+          <Brain size={18} weight="bold" />
         </div>
+        <div>
+          <h3 className="text-sm font-semibold text-[var(--mf-text-strong)] tracking-tight">Daily Quiz</h3>
+          <p className="text-[10px] text-muted-foreground">Test your cycle knowledge</p>
+        </div>
+      </div>
 
+      <div className={cn("p-5", !currentQuiz && "pb-4")}>
         {currentQuiz ? (
           <>
-            <div className="flex justify-between items-center mb-5">
-              <p className="text-sm text-muted-foreground">Learn about your body. Quiz {activeStep + 1} of 2.</p>
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[var(--mf-accent-soft)] text-[var(--mf-accent)]">
-                Attempt {activeStep + 1}
+            {/* Quiz progress + attempt indicator */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                {[0, 1].map((step) => (
+                  <div key={step} className="flex items-center gap-1.5">
+                    <div className={cn(
+                      "size-7 rounded-lg flex items-center justify-center text-[11px] font-semibold transition-all",
+                      step < activeStep
+                        ? "bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20"
+                        : step === activeStep
+                          ? "bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] border border-[var(--mf-accent-border)]"
+                          : "bg-muted/30 text-muted-foreground border border-[var(--mf-border)]"
+                    )}>
+                      {step < activeStep ? <SealCheck size={14} weight="fill" /> : step + 1}
+                    </div>
+                    {step === 0 && <ArrowRight size={14} className="text-muted-foreground/40" weight="bold" />}
+                  </div>
+                ))}
+              </div>
+              <span className={cn(
+                "text-[10px] font-semibold px-2.5 py-0.5 rounded-full border",
+                selectedQuizAnswer !== null
+                  ? "bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] border-[var(--mf-accent-border)]"
+                  : "bg-muted/30 text-muted-foreground border-[var(--mf-border)]"
+              )}>
+                {selectedQuizAnswer !== null ? "Answered" : "Attempt " + (activeStep + 1)}
               </span>
             </div>
 
-            <p className="text-[15px] font-normal text-[var(--mf-text-strong)] leading-relaxed mb-6">{currentQuiz.question}</p>
+            {/* Question */}
+            <div className="mb-4">
+              <p className="text-sm font-medium text-[var(--mf-text-strong)] leading-relaxed">
+                {currentQuiz.question}
+              </p>
+            </div>
 
-            <div className="flex flex-col gap-2.5">
+            {/* Options */}
+            <div className="flex flex-col gap-2">
               {currentQuiz.options.map((opt) => (
                 <QuizOption
                   key={opt.id}
@@ -426,67 +460,97 @@ export function DailyQuiz() {
               ))}
             </div>
 
+            {/* Explanation */}
             {selectedQuizAnswer !== null && (
-              <div className="mt-6 p-4 bg-white/50 dark:bg-black/20 border border-border/30 rounded-xl animate-in fade-in slide-in-from-bottom-2 duration-300">
-                <p className="text-[13px] leading-relaxed text-[var(--mf-text-strong)]">
-                  {selectedQuizAnswer === currentQuiz.options.find(o => o.correct)?.id 
-                    ? currentQuiz.explanation 
-                    : currentQuiz.incorrectExplanation}
-                </p>
+              <div className="mt-4 p-4 rounded-xl border bg-[var(--mf-card)] border-[var(--mf-border)] animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="flex items-start gap-2.5">
+                  <div className={cn(
+                    "size-7 rounded-lg flex items-center justify-center shrink-0",
+                    selectedQuizAnswer === currentQuiz.options.find(o => o.correct)?.id
+                      ? "bg-green-500/10 text-green-600 dark:text-green-400"
+                      : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                  )}>
+                    <Sparkle size={15} weight="fill" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-[var(--mf-text-strong)] mb-0.5">
+                      {selectedQuizAnswer === currentQuiz.options.find(o => o.correct)?.id
+                        ? "Great job!"
+                        : "Not quite — here's why:"}
+                    </p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {selectedQuizAnswer === currentQuiz.options.find(o => o.correct)?.id 
+                        ? currentQuiz.explanation 
+                        : currentQuiz.incorrectExplanation}
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
 
+            {/* Next / Finish button */}
             {selectedQuizAnswer !== null && (
-              <div className="mt-5 flex justify-end">
-                <button
-                  type="button"
+              <div className="mt-4 flex justify-end">
+                <Button
                   onClick={handleNext}
-                  className="px-4 py-2 bg-[var(--mf-accent)] text-white hover:bg-[var(--mf-accent)]/90 transition-all rounded-xl text-sm font-medium outline-none cursor-pointer"
+                  className="rounded-lg h-8 text-xs gap-1"
+                  size="sm"
                 >
-                  {activeStep === 0 ? "Take Next Quiz →" : "Finish"}
-                </button>
+                  {activeStep === 0 ? (
+                    <>Next Quiz <ArrowRight size={14} weight="bold" /></>
+                  ) : (
+                    <>Finish <SealCheck size={14} weight="bold" /></>
+                  )}
+                </Button>
               </div>
             )}
           </>
         ) : (
-          <div className="py-2 text-center animate-in fade-in zoom-in-95 duration-500">
-            <div className="size-10 rounded-full bg-green-50 dark:bg-green-950/20 flex items-center justify-center text-green-500 mx-auto mb-2">
-              <Check size={20} weight="bold" />
+          /* Completed state */
+          <div className="py-4 text-center animate-in fade-in zoom-in-95 duration-500">
+            <div className="size-12 rounded-xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 flex items-center justify-center text-green-500 mx-auto mb-3 border border-green-500/20">
+              <SealCheck size={24} weight="fill" />
             </div>
-            <h4 className="text-base font-medium text-[var(--mf-text-strong)] mb-0.5">All daily quizzes completed!</h4>
-            <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-normal">
-              You have completed both of your quizzes for today. Come back tomorrow to test your knowledge and earn more XP!
+            <h4 className="text-sm font-semibold text-[var(--mf-text-strong)] mb-0.5">All done for today!</h4>
+            <p className="text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed">
+              You completed both quizzes. Come back tomorrow to keep learning and earning XP.
             </p>
           </div>
         )}
 
-        {/* XP Progress Bar towards 100 XP */}
-        <div className={cn("pt-4 border-t border-[var(--mf-border)]/50", currentQuiz ? "mt-6" : "mt-3")}>
-          <div className="flex justify-between items-center text-xs mb-1.5">
-            <span className="font-medium text-[var(--mf-text-strong)]">AI Assistant Unlock Progress</span>
-            <span className="text-[var(--mf-accent)] font-semibold">{Math.min(user?.xp || 0, 100)} / 100 XP</span>
+        {/* XP Progress */}
+        <div className={cn("pt-4 border-t border-[var(--mf-border)]", currentQuiz ? "mt-4" : "mt-3")}>
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[10px] font-medium text-[var(--mf-text-strong)] flex items-center gap-1">
+              <Star size={12} className="text-amber-500" weight="fill" />
+              AI Assistant Unlock Progress
+            </span>
+            <span className="text-[10px] font-bold text-[var(--mf-accent)] tabular-nums">{Math.min(user?.xp || 0, 100)} / 100 XP</span>
           </div>
-          <div className="w-full bg-muted/40 h-2.5 rounded-full overflow-hidden border border-border/20 relative">
+          <div className="w-full h-2 rounded-full overflow-hidden bg-muted/40 border border-[var(--mf-border)]/20">
             <div 
-              className="bg-gradient-to-r from-pink-500 to-[var(--mf-accent)] h-full rounded-full transition-all duration-1000 ease-out"
+              className="h-full rounded-full transition-all duration-1000 ease-out bg-gradient-to-r from-pink-500 to-[var(--mf-accent)]"
               style={{ width: `${Math.min(100, ((user?.xp || 0) / 100) * 100)}%` }}
             />
           </div>
-          <p className="text-[10px] text-muted-foreground mt-1.5 leading-normal">
+          <p className="text-[9px] text-muted-foreground mt-1 leading-relaxed">
             {(user?.xp || 0) >= 100 
-              ? "🎉 Congratulations! You have unlocked unlimited AI assistant chat access." 
-              : `Earn ${100 - (user?.xp || 0)} more XP by completing quizzes to unlock full AI chat access.`
+              ? <span className="flex items-center gap-1"><Sparkle size={10} className="text-amber-500" weight="fill" /> Unlocked! Unlimited AI chat access is active.</span>
+              : <span>Earn {100 - (user?.xp || 0)} more XP from quizzes to unlock unlimited AI chat.</span>
             }
           </p>
         </div>
       </div>
 
-      <div className={cn("px-6 md:px-8 py-4 bg-muted/20 border-t border-[var(--mf-border)] flex items-center justify-between text-xs text-muted-foreground", !currentQuiz && "px-5 md:px-6 py-3")}>
-        <span className="flex items-center gap-1.5">
-          Weekly Streak: <span className="font-medium text-[var(--mf-text-strong)]">5 Days</span>
+      {/* Footer */}
+      <div className="px-5 py-3 bg-muted/20 border-t border-[var(--mf-border)] flex items-center justify-between text-[10px]">
+        <span className="flex items-center gap-1 text-muted-foreground">
+          <Fire size={12} className="text-orange-500" weight="fill" />
+          Weekly Streak: <span className="font-semibold text-[var(--mf-text-strong)]">5 Days</span>
         </span>
-        <span className="text-[var(--mf-accent)] font-medium flex items-center gap-1.5">
-          <Trophy size={14} weight="fill" /> {(user?.xp || 0)} XP Total
+        <span className="flex items-center gap-1 text-[var(--mf-accent)] font-semibold">
+          <Trophy size={12} weight="fill" />
+          {(user?.xp || 0)} XP Total
         </span>
       </div>
     </div>

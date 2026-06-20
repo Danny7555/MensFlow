@@ -120,6 +120,7 @@ export function EducationView() {
   const { isAuthenticated, openAuthModal } = useAuth()
   const [articles, setArticles] = useState<ApiEducationArticle[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [errored, setErrored] = useState(false)
 
   // Modal state — only open flag + which article is being edited
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -132,6 +133,7 @@ export function EducationView() {
     } catch (err) {
       console.error('Failed to load articles:', err)
       toast.error('Could not fetch educational guides from server.')
+      setErrored(true)
     } finally {
       setIsLoading(false)
     }
@@ -152,6 +154,29 @@ export function EducationView() {
 
   if (isLoading) {
     return <TipsSkeleton />
+  }
+
+  if (errored) {
+    return (
+      <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-8 animate-in fade-in duration-500">
+        <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="size-16 rounded-2xl bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] flex items-center justify-center">
+            <BookOpen size={32} weight="thin" />
+          </div>
+          <div className="text-center space-y-1.5 max-w-xs">
+            <p className="text-base font-semibold text-[var(--mf-text-strong)]">Could not load guides</p>
+            <p className="text-sm text-muted-foreground">Something went wrong. Please try again.</p>
+            <button
+              type="button"
+              onClick={fetchArticles}
+              className="mt-4 px-6 py-2.5 rounded-full bg-[var(--mf-accent)] text-white text-sm font-medium hover:brightness-110 transition-all cursor-pointer"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   const filteredArticles = articles.filter(
@@ -196,41 +221,52 @@ export function EducationView() {
           </button>
         )}
       </section> */}
-
       <div className="relative">
-        <section aria-label="Educational Guides" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-          {filteredArticles.map((article, index) => {
-            const isFeatured = activeCategory === 'All' && index === 0
-            return (
-              <ArticleCard
-                key={article.id || article._id}
-                article={article}
-                isFeatured={isFeatured}
-              />
-            )
-          })}
-        </section>
-
-        {!isAuthenticated && (
-          <div className="absolute inset-x-0 bottom-0 top-[200px] bg-gradient-to-t from-background via-background/90 to-transparent pointer-events-none z-20 flex flex-col items-center justify-center pt-24">
-            <div className="w-full h-full backdrop-blur-[6px] opacity-100" />
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-8 pointer-events-auto">
-              <div className="bg-card border border-border p-8 rounded-3xl text-center max-w-[400px] mx-auto">
-                <h3 className="text-xl font-normal mb-2">Read all guides</h3>
-                <p className="text-muted-foreground text-sm mb-6">
-                  Unlock our full library of expert-reviewed menstrual health guides by signing in.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => openAuthModal()}
-                  className="btn btn-primary px-8 py-3 rounded-full"
-                >
-                  Log in to access
-                </button>
-              </div>
+        {filteredArticles.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <div className="size-16 rounded-2xl bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] flex items-center justify-center">
+              <BookOpen size={32} weight="thin" />
+            </div>
+            <div className="text-center space-y-1.5 max-w-xs">
+              <p className="text-base font-semibold text-[var(--mf-text-strong)]">No guides found</p>
+              <p className="text-sm text-muted-foreground">Try selecting a different category to discover more guides.</p>
             </div>
           </div>
-        )}
+        ) : (<>
+          <section aria-label="Educational Guides" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            {filteredArticles.map((article, index) => {
+              const isFeatured = activeCategory === 'All' && index === 0
+              return (
+                <ArticleCard
+                  key={article.id || article._id}
+                  article={article}
+                  isFeatured={isFeatured}
+                />
+              )
+            })}
+          </section>
+
+          {!isAuthenticated && (
+            <div className="absolute inset-x-0 bottom-0 top-[200px] bg-gradient-to-t from-background via-background/90 to-transparent pointer-events-none z-20 flex flex-col items-center justify-center pt-24">
+              <div className="w-full h-full backdrop-blur-[6px] opacity-100" />
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-8 pointer-events-auto">
+                <div className="bg-card border border-border p-8 rounded-3xl text-center max-w-[400px] mx-auto">
+                  <h3 className="text-xl font-normal mb-2">Read all guides</h3>
+                  <p className="text-muted-foreground text-sm mb-6">
+                    Unlock our full library of expert-reviewed menstrual health guides by signing in.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => openAuthModal()}
+                    className="btn btn-primary px-8 py-3 rounded-full"
+                  >
+                    Log in to access
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>)}
       </div>
 
       <EducationFormModal

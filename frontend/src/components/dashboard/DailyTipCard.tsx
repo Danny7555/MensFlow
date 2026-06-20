@@ -1,6 +1,9 @@
+import { useState, useEffect } from "react"
 import { m } from "framer-motion"
 import type { Variants } from "framer-motion"
-import { Check, Plus } from "@phosphor-icons/react"
+import { Check, Plus, BookOpen } from "@phosphor-icons/react"
+import { toast } from "sonner"
+import { useNavigate } from "react-router-dom"
 
 interface DailyTipCardProps {
   phaseLabel: string
@@ -34,6 +37,22 @@ const TIPS_BY_PHASE: Record<string, { title: string; desc: string }> = {
 }
 
 export function DailyTipCard({ phaseLabel, tipCompleted, setTipCompleted, variants, aiTip }: DailyTipCardProps) {
+  const navigate = useNavigate()
+  const [savedTips, setSavedTips] = useState<string[]>(() => {
+    try {
+      const old = localStorage.getItem('mensflow_saved_tips')
+      if (old !== null) {
+        localStorage.setItem('mensflow_saved_tips:v1', old)
+        localStorage.removeItem('mensflow_saved_tips')
+      }
+      return JSON.parse(localStorage.getItem('mensflow_saved_tips:v1') || '[]')
+    } catch { return [] }
+  })
+
+  useEffect(() => {
+    localStorage.setItem('mensflow_saved_tips:v1', JSON.stringify(savedTips))
+  }, [savedTips])
+
   const normalized = (phaseLabel || '').toLowerCase()
   const staticTip = normalized
     ? (TIPS_BY_PHASE[normalized] || TIPS_BY_PHASE.luteal)
@@ -42,6 +61,22 @@ export function DailyTipCard({ phaseLabel, tipCompleted, setTipCompleted, varian
         desc: "Please enter your partner's last period date in Settings or Tracker to compute cycle phases and receive tailored daily recommendations."
       }
   const tip = aiTip || staticTip
+  const tipKey = `${tip.title}::${tip.desc}`
+  const isSaved = savedTips.includes(tipKey)
+
+  const handleSave = () => {
+    if (isSaved) {
+      setSavedTips(prev => prev.filter(t => t !== tipKey))
+      toast.success('Tip removed from saved')
+    } else {
+      setSavedTips(prev => [...prev, tipKey])
+      toast.success('Tip saved! View in your profile')
+    }
+  }
+
+  const handleLearnMore = () => {
+    navigate('/education')
+  }
 
   return (
     <m.div 
@@ -80,18 +115,21 @@ export function DailyTipCard({ phaseLabel, tipCompleted, setTipCompleted, varian
             <m.button 
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full px-4 xl:px-6 py-2 xl:py-2.5 rounded-full bg-[var(--mf-accent)] text-white text-[9px] xl:text-[10px] font-medium tracking-widest uppercase"
+              onClick={handleLearnMore}
+              className="w-full px-4 xl:px-6 py-2 xl:py-2.5 rounded-full bg-[var(--mf-accent)] text-white text-[9px] xl:text-[10px] font-medium tracking-widest uppercase cursor-pointer"
             >
+              <BookOpen size={12} weight="bold" className="inline-block mr-1.5 -mt-0.5" />
               Learn More
             </m.button>
             
             <m.button 
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full px-4 xl:px-6 py-2 xl:py-2.5 rounded-full border border-[var(--mf-border)] bg-[var(--mf-card)] text-[var(--mf-text-strong)] text-[9px] xl:text-[10px] font-medium tracking-widest uppercase flex items-center justify-center gap-2 hover:bg-[var(--mf-hover)] transition-all"
+              onClick={handleSave}
+              className="w-full px-4 xl:px-6 py-2 xl:py-2.5 rounded-full border border-[var(--mf-border)] bg-[var(--mf-card)] text-[var(--mf-text-strong)] text-[9px] xl:text-[10px] font-medium tracking-widest uppercase flex items-center justify-center gap-2 hover:bg-[var(--mf-hover)] transition-all cursor-pointer"
             >
               <img src="/images/heart.png" alt="" className="size-3.5 object-contain" />
-              <span>Save</span>
+              <span>{isSaved ? 'Saved' : 'Save'}</span>
             </m.button>
           </div>
           
@@ -99,13 +137,13 @@ export function DailyTipCard({ phaseLabel, tipCompleted, setTipCompleted, varian
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             type="button"
-            className="flex items-center justify-between gap-2 xl:gap-4 w-full px-3 xl:px-4 py-2 xl:py-2.5 rounded-full bg-white dark:bg-white/5 border border-[var(--mf-border)] hover:bg-gray-50 dark:hover:bg-white/10 text-[10px] xl:text-[11px] font-normal text-[var(--mf-text-strong)] transition-all mt-1"
+            className="flex items-center justify-between gap-2 xl:gap-4 w-full px-3 xl:px-4 py-2 xl:py-2.5 rounded-full bg-white dark:bg-white/5 border border-[var(--mf-border)] hover:bg-gray-50 dark:hover:bg-white/10 text-[10px] xl:text-[11px] font-normal text-[var(--mf-text-strong)] transition-all mt-1 cursor-pointer"
             onClick={() => setTipCompleted(!tipCompleted)}
           >
             <span className="font-medium tracking-wide">{tipCompleted ? 'Tip Completed' : 'Mark as done'}</span>
             <m.div 
               animate={tipCompleted ? { scale: [1, 1.2, 1], backgroundColor: "#22c55e", borderColor: "#22c55e" } : { scale: 1 }}
-              className={`size-5 xl:size-6 rounded-full border flex items-center justify-center shrink-0 transition-colors ${tipCompleted ? 'text-white' : 'border-[var(--mf-accent)] text-transparent'}`}
+              className={`size-5 xl:size-6 rounded-full border flex items-center justify-center shrink-0 transition-colors ${tipCompleted ? 'text-white bg-green-500 border-green-500' : 'border-[var(--mf-accent)] text-transparent'}`}
             >
               <Check size={12} weight="bold" />
             </m.div>

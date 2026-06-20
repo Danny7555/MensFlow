@@ -7,6 +7,7 @@ import { Dashboard } from '../models/Dashboard';
 import { SymptomLog, CustomSymptom } from '../models/Symptom';
 import { IChatMessage, ISessionSummary } from '../interfaces';
 import { httpError } from '../utils/http';
+import { encryptPasscode, decryptPasscode } from '../utils/crypto';
 import { buildCycleModel } from '../utils/cycleModel';
 import { callGroqWithLogging } from '../utils/groqClient';
 import { AILog } from '../utils/aiLogger';
@@ -195,9 +196,11 @@ export async function lockSession(
     bcrypt.hash(finalAnswer.toLowerCase().trim(), 10),
   ]);
 
+  const encryptedPasscode = encryptPasscode(finalPasscode);
+
   await ChatMessage.updateMany(
     { userId, sessionId },
-    { $set: { isLocked: true, passcode: passcodeHash, securityQuestion: finalQuestion, securityAnswerHash } }
+    { $set: { isLocked: true, passcode: passcodeHash, passcodeEncrypted: encryptedPasscode, securityQuestion: finalQuestion, securityAnswerHash } }
   );
 }
 
@@ -234,7 +237,8 @@ export async function unlockSession(
     if (!isMatch) {
       throw httpError('Security answer is incorrect', 400);
     }
-    return {};
+    const decrypted = meta.passcodeEncrypted ? decryptPasscode(meta.passcodeEncrypted) : undefined;
+    return decrypted ? { passcode: decrypted } : {};
   }
 
   throw httpError('Provide passcode or securityAnswer', 400);
@@ -791,14 +795,15 @@ export async function getSuggestions(userId?: string): Promise<string[]> {
     "How can I support my energy?"
   ];
 
-  while (localSuggestions.length < 3) {
-    const nextDefault = defaults.find(d => !localSuggestions.includes(d));
-    if (nextDefault) {
-      localSuggestions.push(nextDefault);
-    } else {
-      localSuggestions.push(defaults[0]);
+  const used = new Set(localSuggestions);
+  for (const d of defaults) {
+    if (localSuggestions.length >= 3) break;
+    if (!used.has(d)) {
+      localSuggestions.push(d);
+      used.add(d);
     }
   }
+  while (localSuggestions.length < 3) localSuggestions.push(defaults[0]);
 
   const prompt = isPartnerUser
     ? `You are a helpful assistant.

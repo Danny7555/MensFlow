@@ -12,6 +12,7 @@ export function LockedChatsView() {
   const [isUnlocked, setIsUnlocked] = useState(false)
   const [password, setPassword] = useState('')
   const [error, setError] = useState(false)
+  const [isVerifying, setIsVerifying] = useState(false)
   
   const [failedAttempts, setFailedAttempts] = useState(0)
   const [mode, setMode] = useState<'unlock' | 'reset-security' | 'reset-password'>('unlock')
@@ -219,14 +220,18 @@ export function LockedChatsView() {
           className="w-full max-w-xs space-y-4"
           onSubmit={(e) => {
             e.preventDefault()
-            if (password === settings.privacyLockChatsPassword) {
-              setIsUnlocked(true)
-              setError(false)
-              setFailedAttempts(0)
-            } else {
-              setError(true)
-              setFailedAttempts(f => f + 1)
-            }
+            setIsVerifying(true)
+            setTimeout(() => {
+              if (password === settings.privacyLockChatsPassword) {
+                setIsUnlocked(true)
+                setError(false)
+                setFailedAttempts(0)
+              } else {
+                setError(true)
+                setFailedAttempts(f => f + 1)
+              }
+              setIsVerifying(false)
+            }, 300)
           }}
         >
           <div className="relative">
@@ -252,8 +257,8 @@ export function LockedChatsView() {
             </button>
           </div>
           {error && <p className="text-xs text-red-500 text-left px-1 animate-in slide-in-from-top-1">Incorrect password. Please try again.</p>}
-          <Button type="submit" className="w-full rounded-xl h-12 font-medium">
-            Unlock
+          <Button type="submit" disabled={isVerifying} className="w-full rounded-xl h-12 font-medium">
+            {isVerifying ? 'Unlocking...' : 'Unlock'}
           </Button>
           {failedAttempts >= 3 && settings.privacyLockChatsSecurityQuestion && (
             <div className="pt-2 animate-in fade-in duration-500">

@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react'
-import { useState, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { m } from 'framer-motion'
 import type { IconProps } from '@phosphor-icons/react'
@@ -10,6 +10,7 @@ import {
   CaretDown,
   ChartBar,
   ChatCircle,
+  ClockClockwise,
   FlowerLotus,
   GearSix,
   Heart,
@@ -50,7 +51,7 @@ const authItems: NavItem[] = [
   { id: 'symptoms', label: 'Symptoms', Icon: Pulse },
   { id: 'insights', label: 'Health insights', Icon: Target },
   { id: 'community', label: 'Community', Icon: FlowerLotus },
-  { id: 'cycle-history', label: 'Cycle History', Icon: CalendarBlank, children: [
+  { id: 'cycle-history', label: 'Cycle History', Icon: ClockClockwise, children: [
     { id: 'cycle-compare', label: 'Compare Cycles', Icon: ChartBar },
     { id: 'medications', label: 'Medications', Icon: Pill },
   ] },
@@ -87,23 +88,31 @@ export function Sidebar({
   const { logout, onboardingCompleted } = useAuth()
 
   const { dashboard: data, user, partnerStatus } = useStore()
-  const location = useLocation()
+  const { pathname } = useLocation()
 
   const rawItems = isAuthenticated ? [...authItems] : [...guestItems]
 
-  // Track which parent items are expanded
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({})
-  // Auto-expand parent if currently on a child page
-  useEffect(() => {
-    for (const item of rawItems) {
+  // Track user's manual toggle for parent sections
+  const [userToggles, setUserToggles] = useState<Record<string, boolean>>({})
+  const items = isAuthenticated ? authItems : guestItems
+  // Derive auto-expanded sections from current pathname
+  const autoExpanded = useMemo(() => {
+    const auto: Record<string, boolean> = {}
+    for (const item of items) {
       if (item.children) {
-        const onChildPage = item.children.some(c => location.pathname === `/${c.id}`)
-        if (onChildPage) {
-          setExpanded(prev => ({ ...prev, [item.id]: true }))
-        }
+        auto[item.id] = item.children.some(c => pathname === `/${c.id}`)
       }
     }
-  }, [location.pathname])
+    return auto
+  }, [pathname, items])
+  // Merge: user toggle overrides, else auto-expand
+  const expanded: Record<string, boolean> = useMemo(() => {
+    const result = { ...autoExpanded }
+    for (const [id, val] of Object.entries(userToggles)) {
+      result[id] = val
+    }
+    return result
+  }, [autoExpanded, userToggles])
 
   const collapsed = !isMobile && desktopCollapsed
   const navIconSize = collapsed ? 22 : 20
@@ -234,7 +243,10 @@ export function Sidebar({
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation()
-                        setExpanded(prev => ({ ...prev, [item.id]: !prev[item.id] }))
+                        setUserToggles(prev => {
+                          const currentDisplayed = item.id in prev ? prev[item.id] : autoExpanded[item.id]
+                          return { ...prev, [item.id]: !currentDisplayed }
+                        })
                       }}
                       className="flex items-center justify-center size-8 mr-1 text-muted-foreground hover:text-[var(--mf-text-strong)] transition-colors cursor-pointer bg-transparent border-none rounded-lg hover:bg-[var(--mf-hover)]"
                       aria-label={expanded[item.id] ? 'Collapse' : 'Expand'}
