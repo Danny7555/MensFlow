@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useReducer } from 'react'
 import { m, AnimatePresence } from 'framer-motion'
 import {
   Plus, ArrowLeft, Trash,
@@ -75,13 +75,42 @@ function timeAgo(iso: string) {
   return formatDate(iso)
 }
 
+type CreatePostState = {
+  title: string
+  body: string
+  category: string
+  anonymous: boolean
+  location: string
+  locating: boolean
+}
+
+type CreatePostAction =
+  | { type: 'SET_TITLE'; payload: string }
+  | { type: 'SET_BODY'; payload: string }
+  | { type: 'SET_CATEGORY'; payload: string }
+  | { type: 'SET_ANONYMOUS'; payload: boolean }
+  | { type: 'SET_LOCATION'; payload: string }
+  | { type: 'SET_LOCATING'; payload: boolean }
+  | { type: 'RESET' }
+
+function createPostReducer(state: CreatePostState, action: CreatePostAction): CreatePostState {
+  switch (action.type) {
+    case 'SET_TITLE': return { ...state, title: action.payload }
+    case 'SET_BODY': return { ...state, body: action.payload }
+    case 'SET_CATEGORY': return { ...state, category: action.payload }
+    case 'SET_ANONYMOUS': return { ...state, anonymous: action.payload }
+    case 'SET_LOCATION': return { ...state, location: action.payload }
+    case 'SET_LOCATING': return { ...state, locating: action.payload }
+    case 'RESET': return { title: '', body: '', category: 'cycles', anonymous: false, location: '', locating: false }
+    default: return state
+  }
+}
+
 function CreatePostModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [title, setTitle] = useState('')
-  const [body, setBody] = useState('')
-  const [category, setCategory] = useState('cycles')
-  const [anonymous, setAnonymous] = useState(false)
-  const [location, setLocation] = useState('')
-  const [locating, setLocating] = useState(false)
+  const [state, dispatch] = useReducer(createPostReducer, {
+    title: '', body: '', category: 'cycles', anonymous: false, location: '', locating: false,
+  })
+  const { title, body, category, anonymous, location, locating } = state
   const createPost = useCreatePost()
 
   const handleLocate = () => {
@@ -89,7 +118,7 @@ function CreatePostModal({ open, onClose }: { open: boolean; onClose: () => void
       toast.error('Geolocation is not supported by your browser')
       return
     }
-    setLocating(true)
+    dispatch({ type: 'SET_LOCATING', payload: true })
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         try {
@@ -100,15 +129,15 @@ function CreatePostModal({ open, onClose }: { open: boolean; onClose: () => void
           const data = await res.json()
           const city = data.address?.city || data.address?.town || data.address?.village || data.address?.county || ''
           const country = data.address?.country || ''
-          setLocation(city ? `${city}, ${country}` : country)
+          dispatch({ type: 'SET_LOCATION', payload: city ? `${city}, ${country}` : country })
         } catch {
           toast.error('Could not detect your location')
         }
-        setLocating(false)
+        dispatch({ type: 'SET_LOCATING', payload: false })
       },
       () => {
         toast.error('Location permission denied')
-        setLocating(false)
+        dispatch({ type: 'SET_LOCATING', payload: false })
       },
       { timeout: 10000, enableHighAccuracy: false },
     )
@@ -125,8 +154,7 @@ function CreatePostModal({ open, onClose }: { open: boolean; onClose: () => void
         location: location || undefined,
       })
       toast.success('Posted!', { description: 'Your post is live.' })
-      setTitle('')
-      setBody('')
+      dispatch({ type: 'RESET' })
       onClose()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to create post')
@@ -136,8 +164,8 @@ function CreatePostModal({ open, onClose }: { open: boolean; onClose: () => void
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+    <div className="fixed inset-0 z-50">
+      <button type="button" aria-label="Close modal" className="absolute inset-0 bg-black/50 backdrop-blur-sm cursor-pointer border-0 p-0" onClick={onClose} onKeyDown={e => { if (e.key === 'Escape') onClose() }} />
       <m.div
         initial={{ y: '100%', opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -155,7 +183,7 @@ function CreatePostModal({ open, onClose }: { open: boolean; onClose: () => void
           <label className="text-xs font-medium text-muted-foreground">Title</label>
           <input
             value={title}
-            onChange={e => setTitle(e.target.value)}
+            onChange={e => dispatch({ type: 'SET_TITLE', payload: e.target.value })}
             placeholder="What's on your mind?"
             className="w-full h-12 px-4 rounded-2xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm text-[var(--mf-text-strong)] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[var(--mf-ring)] transition-all"
             maxLength={200}
@@ -167,7 +195,7 @@ function CreatePostModal({ open, onClose }: { open: boolean; onClose: () => void
           <div className="relative">
             <textarea
               value={body}
-              onChange={e => setBody(e.target.value)}
+              onChange={e => dispatch({ type: 'SET_BODY', payload: e.target.value })}
               placeholder="Share your experience or ask a question..."
               className="w-full h-28 px-4 py-3 rounded-2xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm text-[var(--mf-text-strong)] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[var(--mf-ring)] transition-all resize-none"
               maxLength={10000}
@@ -191,7 +219,7 @@ function CreatePostModal({ open, onClose }: { open: boolean; onClose: () => void
               <div className="flex items-center gap-2 text-xs text-muted-foreground bg-[var(--mf-elevated)] rounded-xl px-3 py-2 border border-[var(--mf-border)]">
                 <MapPin size={14} className="text-[var(--mf-accent)]" />
                 <span className="truncate">{location}</span>
-                <button type="button" onClick={() => setLocation('')} className="ml-auto text-muted-foreground hover:text-[var(--mf-text-strong)] cursor-pointer">✕</button>
+                <button type="button" onClick={() => dispatch({ type: 'SET_LOCATION', payload: '' })} className="ml-auto text-muted-foreground hover:text-[var(--mf-text-strong)] cursor-pointer">✕</button>
               </div>
             ) : (
               <button
@@ -216,7 +244,7 @@ function CreatePostModal({ open, onClose }: { open: boolean; onClose: () => void
                 <button
                   key={cat.id}
                   type="button"
-                  onClick={() => setCategory(cat.id)}
+                  onClick={() => dispatch({ type: 'SET_CATEGORY', payload: cat.id })}
                   className={cn(
                     'flex items-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-medium transition-all cursor-pointer border',
                     active
@@ -232,7 +260,7 @@ function CreatePostModal({ open, onClose }: { open: boolean; onClose: () => void
           </div>
         </div>
 
-        <label className="flex items-center gap-3 py-2 cursor-pointer" onClick={() => setAnonymous(!anonymous)}>
+        <label className="flex items-center gap-3 py-2 cursor-pointer" onClick={() => dispatch({ type: 'SET_ANONYMOUS', payload: !anonymous })}>
           <div className={cn(
             'size-5 rounded-md border-2 flex items-center justify-center transition-all',
             anonymous ? 'bg-[var(--mf-accent)] border-[var(--mf-accent)]' : 'border-[var(--mf-border)]',
