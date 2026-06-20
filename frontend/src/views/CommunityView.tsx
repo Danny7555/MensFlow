@@ -1,4 +1,3 @@
-/* eslint-disable */
 import React, { useState, useRef, useEffect } from 'react'
 import { m, AnimatePresence } from 'framer-motion'
 import {
@@ -138,7 +137,7 @@ function CreatePostModal({ open, onClose }: { open: boolean; onClose: () => void
 
   return (
     <div className="fixed inset-0 z-50" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/50" />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
       <m.div
         initial={{ y: '100%', opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -265,6 +264,52 @@ function CreatePostModal({ open, onClose }: { open: boolean; onClose: () => void
   )
 }
 
+function PostCard({ post, onClick }: { post: import('../services/communityService').ApiCommunityPost; onClick: () => void }) {
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() }
+      }}
+      className="w-full text-left bg-white dark:bg-[var(--mf-card)] rounded-2xl border border-[var(--mf-border)] p-4 md:p-5 space-y-3 cursor-pointer hover:border-[var(--mf-accent-border)] transition-all active:scale-[0.99]"
+    >
+      <div className="flex items-start gap-3">
+        <AvatarCircle name={post.author.name} avatar={post.author.avatar} />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mb-1">
+            <span className="font-semibold text-[var(--mf-text-strong)]">{post.author.name}</span>
+            <span>·</span>
+            <span>{timeAgo(post.createdAt)}</span>
+            <span className="px-2 py-0.5 rounded-full bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] font-medium capitalize text-[11px]">{post.category}</span>
+          </div>
+          <h3 className="text-[15px] font-semibold text-[var(--mf-text-strong)] leading-snug">{post.title}</h3>
+          <p className="text-sm text-[var(--mf-muted)] line-clamp-2 mt-1.5 leading-relaxed">{post.body}</p>
+          <div className="flex flex-wrap items-center gap-4 mt-3 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <ChatCircleDots size={15} weight="regular" />
+              {post.commentCount} {post.commentCount === 1 ? 'reply' : 'replies'}
+            </span>
+            {post.aiReplied && (
+              <span className="flex items-center gap-1 text-purple-500">
+                <Sparkle size={12} weight="fill" />
+                AI replied
+              </span>
+            )}
+            {post.location && (
+              <span className="flex items-center gap-1">
+                <MapPin size={12} />
+                {post.location}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function CommunityView() {
   const { user } = useStore()
   const qc = useQueryClient()
@@ -280,7 +325,6 @@ export function CommunityView() {
   const [showMentions, setShowMentions] = useState(false)
   const mentionRef = useRef<HTMLDivElement>(null)
 
-  // Debounced mention search
   useEffect(() => {
     if (!showMentions || !mentionQuery) {
       setMentionResults([])
@@ -297,7 +341,6 @@ export function CommunityView() {
     return () => clearTimeout(t)
   }, [mentionQuery, showMentions])
 
-  // Close mentions on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (mentionRef.current && !mentionRef.current.contains(e.target as Node)) {
@@ -335,7 +378,6 @@ export function CommunityView() {
     if (!confirmDeleteId) return
     try {
       await communityApi.deletePost(confirmDeleteId)
-      // Remove from cache instantly — no refetch needed
       qc.setQueryData<import('../services/communityService').ApiPostList>(['community', 'posts', undefined, 1], (old) => {
         if (!old) return old
         return { ...old, posts: old.posts.filter(p => p._id !== confirmDeleteId), total: old.total - 1 }
@@ -375,7 +417,7 @@ export function CommunityView() {
               )}
             </div>
 
-                    <div className="bg-white dark:bg-[var(--mf-card)] rounded-3xl border border-[var(--mf-border)] p-5 md:p-7 space-y-4">
+            <div className="bg-white dark:bg-[var(--mf-card)] rounded-3xl border border-[var(--mf-border)] p-5 md:p-7 space-y-4">
               <div className="flex items-center gap-3">
                 <AvatarCircle name={detail.post.author.name} avatar={detail.post.author.avatar} />
                 <div className="min-w-0">
@@ -432,7 +474,6 @@ export function CommunityView() {
                     onChange={e => {
                       const val = e.target.value
                       setCommentText(val)
-                      // Detect @mention being typed
                       const cursorPos = e.target.selectionStart
                       const textBefore = val.slice(0, cursorPos)
                       const atMatch = textBefore.match(/@(\w*)$/)
@@ -526,114 +567,83 @@ export function CommunityView() {
 
   return (
     <div className="dashboard-flo-theme relative min-h-screen">
-      <div className="relative overflow-hidden bg-gradient-to-b from-[var(--mf-accent)]/10 via-transparent to-transparent pb-4">
-        <main className="flo-main-container pt-4 md:pt-6">
-          <div className="flo-content-inner max-w-2xl mx-auto">
-            <div className="flex items-center justify-between mb-5 px-1 pt-2">
+      <main className="flo-main-container pt-6 md:pt-10 pb-24 md:pb-32">
+        <div className="flo-content-inner max-w-2xl mx-auto">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6 px-1">
+            <div className="flex items-center gap-3">
+              <div className="size-11 rounded-2xl bg-gradient-to-br from-[var(--mf-accent-soft)] to-[var(--mf-accent-soft)]/60 flex items-center justify-center text-[var(--mf-accent)]">
+                <ChatCircleDots size={22} weight="bold" />
+              </div>
               <div>
-                <h1 className="text-2xl md:text-[28px] font-semibold text-[var(--mf-text-strong)] tracking-tight">Community</h1>
-                <p className="text-sm text-muted-foreground mt-0.5">Connect with others on their journey</p>
+                <h1 className="text-xl font-semibold text-[var(--mf-text-strong)] tracking-tight">Community</h1>
+                <p className="text-xs text-muted-foreground">Connect with others on their journey</p>
               </div>
-              <m.button
-                type="button"
-                onClick={() => setShowCreate(true)}
-                whileTap={{ scale: 0.92 }}
-                className="size-11 shrink-0 rounded-2xl bg-[var(--mf-accent)] text-white flex items-center justify-center hover:brightness-110 transition-all cursor-pointer"
-              >
-                <Plus size={22} weight="bold" />
-              </m.button>
             </div>
-
-            <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 md:-mx-0 px-4 md:px-0 scrollbar-hide no-scrollbar mb-6">
-              {CATEGORIES.map(cat => {
-                const active = category === cat.id
-                return (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => { setCategory(cat.id); setPage(1) }}
-                    className={cn(
-                      'flex items-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer border shrink-0',
-                      active
-                        ? 'bg-[var(--mf-accent)] text-white border-[var(--mf-accent)]'
-                        : 'bg-white/70 dark:bg-[var(--mf-card)]/80 text-muted-foreground border-[var(--mf-border)] backdrop-blur-sm hover:border-[var(--mf-accent-border)]',
-                    )}
-                  >
-                    {React.createElement(cat.Icon, { size: 14, className: active ? 'text-white' : 'text-[var(--mf-accent)]' })}
-                    {cat.label}
-                  </button>
-                )
-              })}
-            </div>
-
-            {isLoading ? (
-              <div className="flex flex-col items-center justify-center py-20 gap-3">
-                <div className="size-10 rounded-full border-3 border-[var(--mf-border)] border-t-[var(--mf-accent)] animate-spin" />
-              </div>
-            ) : list && list.posts.length > 0 ? (
-              <div className="space-y-3 pb-4">
-                {list.posts.map(post => (
-                  <div
-                    key={post._id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => handlePostClick(post._id)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        handlePostClick(post._id);
-                      }
-                    }}
-                    className="w-full text-left bg-white dark:bg-[var(--mf-card)] rounded-2xl border border-[var(--mf-border)] p-4 md:p-5 space-y-3 cursor-pointer hover:border-[var(--mf-accent-border)] transition-all active:scale-[0.99]"
-                  >
-                    <div className="flex items-start gap-3">
-                      <AvatarCircle name={post.author.name} avatar={post.author.avatar} />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mb-1">
-                          <span className="font-semibold text-[var(--mf-text-strong)]">{post.author.name}</span>
-                          <span>·</span>
-                          <span>{timeAgo(post.createdAt)}</span>
-                          <span className="px-2 py-0.5 rounded-full bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] font-medium capitalize text-[11px]">{post.category}</span>
-                        </div>
-                        <h3 className="text-[15px] font-semibold text-[var(--mf-text-strong)] leading-snug">{post.title}</h3>
-                        <p className="text-sm text-[var(--mf-muted)] line-clamp-2 mt-1.5 leading-relaxed">{post.body}</p>
-                        <div className="flex flex-wrap items-center gap-4 mt-3 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1.5">
-                            <ChatCircleDots size={15} weight="regular" />
-                            {post.commentCount} {post.commentCount === 1 ? 'reply' : 'replies'}
-                          </span>
-                          {post.aiReplied && (
-                            <span className="flex items-center gap-1 text-purple-500">
-                              <Sparkle size={12} weight="fill" />
-                              AI replied
-                            </span>
-                          )}
-                          {post.location && (
-                            <span className="flex items-center gap-1">
-                              <MapPin size={12} />
-                              {post.location}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-20 gap-4 px-4">
-                <div className="size-16 rounded-2xl bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] flex items-center justify-center">
-                  <ChatCircleDots size={32} weight="thin" />
-                </div>
-                <div className="text-center space-y-1.5 max-w-xs">
-                  <p className="text-base font-semibold text-[var(--mf-text-strong)]">No discussions yet</p>
-                  <p className="text-sm text-muted-foreground">Be the first to start a conversation!</p>
-                </div>
-              </div>
-            )}
+            <Button
+              onClick={() => setShowCreate(true)}
+              size="sm"
+              className="rounded-xl gap-1.5 h-9 text-xs"
+            >
+              <Plus size={16} weight="bold" />
+              New Post
+            </Button>
           </div>
-        </main>
-      </div>
+
+          {/* Category Filters */}
+          <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 md:-mx-0 px-4 md:px-0 scrollbar-hide no-scrollbar mb-6">
+            {CATEGORIES.map(cat => {
+              const active = category === cat.id
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => { setCategory(cat.id); setPage(1) }}
+                  className={cn(
+                    'flex items-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer border shrink-0',
+                    active
+                      ? 'bg-[var(--mf-accent)] text-white border-[var(--mf-accent)]'
+                      : 'bg-white/70 dark:bg-[var(--mf-card)]/80 text-muted-foreground border-[var(--mf-border)] backdrop-blur-sm hover:border-[var(--mf-accent-border)]',
+                  )}
+                >
+                  {React.createElement(cat.Icon, { size: 14, className: active ? 'text-white' : 'text-[var(--mf-accent)]' })}
+                  {cat.label}
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Content */}
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-3">
+              <div className="size-10 rounded-full border-3 border-[var(--mf-border)] border-t-[var(--mf-accent)] animate-spin" />
+            </div>
+          ) : list && list.posts.length > 0 ? (
+            <div className="space-y-3 pb-4">
+              {list.posts.map(post => (
+                <PostCard key={post._id} post={post} onClick={() => handlePostClick(post._id)} />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-20 gap-5 px-4">
+              <div className="size-20 rounded-2xl bg-gradient-to-br from-[var(--mf-accent-soft)] to-[var(--mf-accent-soft)]/40 flex items-center justify-center text-[var(--mf-accent)] border border-[var(--mf-accent-border)]">
+                <ChatCircleDots size={36} weight="thin" />
+              </div>
+              <div className="text-center space-y-1.5 max-w-xs">
+                <p className="text-base font-semibold text-[var(--mf-text-strong)]">No discussions yet</p>
+                <p className="text-sm text-muted-foreground">Be the first to start a conversation!</p>
+              </div>
+              <Button
+                onClick={() => setShowCreate(true)}
+                className="rounded-xl gap-1.5"
+              >
+                <Plus size={16} weight="bold" />
+                Create a Post
+              </Button>
+            </div>
+          )}
+        </div>
+      </main>
 
       <AnimatePresence>
         {showCreate && <CreatePostModal open={showCreate} onClose={() => setShowCreate(false)} />}
