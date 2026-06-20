@@ -186,8 +186,8 @@ export function WellnessScoreCard() {
     return (
       <m.div variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
         <div className="flex flex-col h-full">
-          <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden bg-card">
-            <img src="/images/heart.png" alt="Wellness" className="w-full h-full object-cover" />
+          <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden bg-gradient-to-br from-rose-500/15 to-pink-500/5">
+            <img src="/images/heart.png" alt="Wellness" className="w-full h-full object-cover opacity-60" />
           </div>
           <div className="flo-card-top relative z-10">
             <div className="flo-card-icon flo-card-icon--pink flex items-center justify-center">
@@ -198,11 +198,22 @@ export function WellnessScoreCard() {
             <div className="flex-1">
               <p className="flo-card-title">Wellness Score</p>
               <div className="flex items-end gap-1">
-                <h3 className="flo-card-desc text-2xl font-normal text-muted-foreground">N/A</h3>
+                <m.h3 
+                  animate={{ opacity: [0.5, 1, 0.5] }}
+                  transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut' }}
+                  className="flo-card-desc text-2xl font-normal text-muted-foreground"
+                >
+                  N/A
+                </m.h3>
                 <span className="text-xs mb-1.5 font-normal text-muted-foreground opacity-60">/100</span>
               </div>
               <div className="w-full h-1.5 bg-[var(--mf-border)] rounded-full mt-3 overflow-hidden">
-                <div className="h-full bg-muted rounded-full w-0" />
+                <m.div 
+                  className="h-full bg-[var(--mf-border)] rounded-full" 
+                  initial={{ width: '0%' }}
+                  animate={{ width: '30%' }}
+                  transition={{ duration: 1.5, ease: 'easeOut' }}
+                />
               </div>
               <p className="text-xs text-[var(--mf-muted)] mt-4 leading-relaxed">
                 {user?.role === 'partner' 
@@ -213,11 +224,11 @@ export function WellnessScoreCard() {
             <div className="mt-4 pt-3 border-t border-[var(--mf-border)] relative z-10 grid grid-cols-2 gap-2 text-[10px]">
               <div>
                 <span className="opacity-80 block uppercase tracking-wider text-[8px] font-normal">Sleep Rating</span>
-                <span className="font-normal text-muted-foreground">No logs today</span>
+                <span className="font-normal text-muted-foreground italic">Awaiting data</span>
               </div>
               <div>
                 <span className="opacity-80 block uppercase tracking-wider text-[8px] font-normal">Stress level</span>
-                <span className="font-normal text-muted-foreground">No logs today</span>
+                <span className="font-normal text-muted-foreground italic">Awaiting data</span>
               </div>
             </div>
           </div>
@@ -243,8 +254,8 @@ export function WellnessScoreCard() {
   return (
     <m.div variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
       <div className="flex flex-col h-full">
-        <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden bg-card">
-          <img src="/images/heart.png" alt="Wellness" className="w-full h-full object-cover" />
+        <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden bg-gradient-to-br from-rose-500/15 to-pink-500/5">
+          <img src="/images/heart.png" alt="Wellness" className="w-full h-full object-cover opacity-60" />
         </div>
         <div className="flo-card-top relative z-10">
           <div className="flo-card-icon flo-card-icon--pink flex items-center justify-center">
