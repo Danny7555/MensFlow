@@ -2,7 +2,7 @@
 import { useCallback, useState, useMemo, lazy, Suspense, useEffect, useRef } from 'react'
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { LazyMotion, domAnimation, AnimatePresence, m } from 'framer-motion'
-import { cn } from './lib/utils'
+import { cn, hashPin } from './lib/utils'
 import { ThemeSync } from './components/ThemeSync'
 import { Toaster } from 'sonner'
 import { AuthProvider } from './context/AuthProvider'
@@ -202,7 +202,7 @@ function ChatLockGate({ children }: { children: React.ReactNode }) {
             onSubmit={(e) => {
               e.preventDefault()
               if (isStrong) {
-                useStore.getState().updateSettings({ privacyLockChatsPassword: newPassword })
+                useStore.getState().updateSettings({ privacyLockChatsPassword: hashPin(newPassword) })
                 setIsUnlocked(true)
                 setMode('unlock')
                 setPassword('')
@@ -313,7 +313,7 @@ function ChatLockGate({ children }: { children: React.ReactNode }) {
             onSubmit={(e) => {
               e.preventDefault()
               if (chatLockoutTimeLeft > 0) return
-              if (password === settings.privacyLockChatsPassword) {
+              if (hashPin(password) === settings.privacyLockChatsPassword) {
                 setIsUnlocked(true)
                 setError(false)
                 setFailedAttempts(0)
