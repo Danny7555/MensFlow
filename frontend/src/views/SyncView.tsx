@@ -24,6 +24,8 @@ import { getPhaseTasks } from '../lib/cycleUtils'
 import { Button } from '@/components/ui/button'
 import { hapticSelection, hapticMedium } from '../lib/haptics'
 import { useSEO } from '../hooks/useSEO'
+import { encryptData } from '../lib/e2e'
+import { getAudioContext } from '../lib/sound'
 
 interface StatusOption {
   id: string
@@ -111,6 +113,319 @@ function SupportHistory() {
         ))}
       </div>
     </m.div>
+  )
+}
+
+
+function RelationshipAura() {
+  const { partnerStatus, settings } = useStore()
+  const oscRef = useRef<OscillatorNode | null>(null)
+  const gainRef = useRef<GainNode | null>(null)
+  const [isHovered, setIsHovered] = useState(false)
+  const [pointerActive, setPointerActive] = useState(false)
+
+  // Get current phase details
+  const phase = partnerStatus?.cycle?.phaseLabel || 'ovulatory'
+  
+  // Set colors based on cycle phase
+  const colors = (() => {
+    switch (phase.toLowerCase()) {
+      case 'menstrual':
+        return { primary: '244, 114, 182', secondary: '244, 63, 94' } // Pink/Rose
+      case 'ovulatory':
+      case 'fertile':
+        return { primary: '236, 72, 153', secondary: '225, 29, 72' } // Vibrant Pink & Rose (Matching Sync Theme)
+      case 'luteal':
+        return { primary: '168, 85, 247', secondary: '217, 119, 6' } // Purple/Amber
+      default:
+        return { primary: '59, 130, 246', secondary: '147, 51, 234' } // Blue/Purple
+    }
+  })()
+
+  // Initialize Audio Synth Hum on drag/interaction
+  const startHum = () => {
+    if (!settings.soundEffectsEnabled) return
+    try {
+      const ctx = getAudioContext()
+      if (!ctx) return
+      
+      if (ctx.state === 'suspended') {
+        void ctx.resume()
+      }
+      
+      // Stop old if running
+      stopHum()
+
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      
+      osc.type = 'sine'
+      
+      // Base frequency based on phase
+      const baseFreq = phase.toLowerCase() === 'menstrual' ? 180 : (phase.toLowerCase() === 'fertile' || phase.toLowerCase() === 'ovulatory') ? 260 : 220
+      osc.frequency.setValueAtTime(baseFreq, ctx.currentTime)
+      
+      // Gain control for smooth entry
+      gain.gain.setValueAtTime(0, ctx.currentTime)
+      gain.gain.linearRampToValueAtTime(0.05, ctx.currentTime + 0.15)
+      
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      
+      osc.start()
+      oscRef.current = osc
+      gainRef.current = gain
+      setPointerActive(true)
+    } catch (err) {
+      console.warn("Aura hum failed to start:", err)
+    }
+  }
+
+  const updateHumFrequency = (e: React.PointerEvent<HTMLDivElement>) => {
+    const osc = oscRef.current
+    const gain = gainRef.current
+    const ctx = getAudioContext()
+    if (!osc || !gain || !ctx) return
+    
+    // Get pointer relative coordinates
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    const cx = rect.width / 2
+    const cy = rect.height / 2
+    
+    // Distance from center
+    const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2)
+    const maxDist = rect.width / 2
+    
+    // Vibe modulation
+    const baseFreq = phase.toLowerCase() === 'menstrual' ? 180 : (phase.toLowerCase() === 'fertile' || phase.toLowerCase() === 'ovulatory') ? 260 : 220
+    const targetFreq = baseFreq + (dist / maxDist) * 120 // pitch goes up as you pull away
+    
+    osc.frequency.setTargetAtTime(targetFreq, ctx.currentTime, 0.05)
+    
+    // volume matches proximity
+    const targetVolume = Math.max(0.01, (1 - dist / maxDist) * 0.08)
+    gain.gain.setTargetAtTime(targetVolume, ctx.currentTime, 0.05)
+  }
+
+  const stopHum = () => {
+    const osc = oscRef.current
+    const gain = gainRef.current
+    const ctx = getAudioContext()
+    if (osc && gain && ctx) {
+      try {
+        const now = ctx.currentTime
+        gain.gain.cancelScheduledValues(now)
+        gain.gain.setValueAtTime(gain.gain.value, now)
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25) // fade out
+        osc.stop(now + 0.3)
+      } catch {
+        // ignore
+      }
+    }
+    oscRef.current = null
+    gainRef.current = null
+    setPointerActive(false)
+  }
+
+  // Cleanup audio
+  useEffect(() => {
+    return () => {
+      stopHum()
+    }
+  }, [])
+
+  return (
+    <div 
+      className="flo-card p-6 text-center flex flex-col items-center justify-center relative overflow-hidden transition-all duration-500 border"
+      style={{
+        borderColor: isHovered ? `rgba(${colors.primary}, 0.4)` : 'var(--mf-border)',
+        boxShadow: isHovered 
+          ? `0 12px 30px -10px rgba(${colors.primary}, 0.16), 0 0 20px -5px rgba(${colors.primary}, 0.08)` 
+          : 'none'
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => { setIsHovered(false); stopHum(); }}
+    >
+      <div className="absolute top-4 left-4 text-left">
+        <span 
+          className="text-[9px] font-semibold uppercase tracking-[0.2em] block mb-1 transition-colors duration-300"
+          style={{ color: `rgb(${colors.primary})` }}
+        >
+          Live Connection
+        </span>
+        <h3 className="text-base font-normal text-[var(--mf-text-strong)] flex items-center gap-2">
+          Synced Relationship Aura
+        </h3>
+      </div>
+      
+      <div 
+        className="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border transition-all duration-300"
+        style={{
+          backgroundColor: `rgba(${colors.primary}, 0.1)`,
+          borderColor: `rgba(${colors.primary}, 0.25)`
+        }}
+      >
+        <span 
+          className="text-[10px] font-semibold uppercase tracking-wider transition-colors duration-300"
+          style={{ color: `rgb(${colors.primary})` }}
+        >
+          {phase}
+        </span>
+      </div>
+
+      <div 
+        className="relative w-full h-48 flex items-center justify-center mt-6 select-none cursor-pointer"
+        onPointerDown={startHum}
+        onPointerMove={updateHumFrequency}
+        onPointerUp={stopHum}
+        onPointerLeave={() => { stopHum(); setIsHovered(false); }}
+        onPointerEnter={() => setIsHovered(true)}
+      >
+        {/* Layer 1: Radial Ambient Glow in background */}
+        <div 
+          className="absolute inset-0 rounded-full filter blur-[40px] opacity-35 transition-all duration-700 pointer-events-none animate-pulse"
+          style={{
+            background: `radial-gradient(circle, rgba(${colors.primary}, 0.5) 0%, rgba(${colors.secondary}, 0.1) 70%, transparent 100%)`,
+            transform: isHovered ? 'scale(1.15)' : 'scale(0.95)',
+            animationDuration: '4s'
+          }}
+        />
+
+        {/* Layer 2: Concentric SVG Orbital Rings (Parallax rotation) */}
+        <svg className="absolute w-full h-full pointer-events-none max-w-[280px]" viewBox="0 0 200 200">
+          {/* Inner Orbital Ring */}
+          <m.circle
+            cx="100"
+            cy="100"
+            r="60"
+            fill="none"
+            stroke={`rgba(${colors.primary}, 0.5)`}
+            strokeWidth="1.2"
+            strokeDasharray="4 8"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 16, repeat: Infinity, ease: "linear" }}
+            style={{ transformOrigin: '100px 100px' }}
+          />
+
+          {/* Outer Orbital Ring (rotates opposite direction) */}
+          <m.circle
+            cx="100"
+            cy="100"
+            r="82"
+            fill="none"
+            stroke={`rgba(${colors.secondary}, 0.4)`}
+            strokeWidth="1.2"
+            strokeDasharray="6 12"
+            animate={{ rotate: -360 }}
+            transition={{ duration: 24, repeat: Infinity, ease: "linear" }}
+            style={{ transformOrigin: '100px 100px' }}
+          />
+
+          {/* Node 1 on inner ring */}
+          <m.circle
+            cx="160"
+            cy="100"
+            r="3"
+            fill={`rgba(${colors.primary}, 0.8)`}
+            animate={{ rotate: 360 }}
+            transition={{ duration: 16, repeat: Infinity, ease: "linear" }}
+            style={{ transformOrigin: '100px 100px' }}
+          />
+          {/* Node 2 on outer ring */}
+          <m.circle
+            cx="100"
+            cy="182"
+            r="2"
+            fill={`rgba(${colors.secondary}, 0.6)`}
+            animate={{ rotate: -360 }}
+            transition={{ duration: 24, repeat: Infinity, ease: "linear" }}
+            style={{ transformOrigin: '100px 100px' }}
+          />
+        </svg>
+
+        {/* Layer 3: Central breathing Glassmorphic glowing Orb */}
+        <m.div
+          animate={{ 
+            scale: isHovered ? 1.08 : 1.0,
+            boxShadow: pointerActive
+              ? [
+                  `0 0 20px 4px rgba(${colors.primary}, 0.3), inset 0 0 10px rgba(${colors.primary}, 0.2)`,
+                  `0 0 45px 12px rgba(${colors.primary}, 0.75), inset 0 0 15px rgba(${colors.primary}, 0.4)`,
+                  `0 0 20px 4px rgba(${colors.primary}, 0.3), inset 0 0 10px rgba(${colors.primary}, 0.2)`
+                ]
+              : [
+                  `0 0 15px 1px rgba(${colors.primary}, 0.18), inset 0 0 8px rgba(255,255,255,0.1)`,
+                  `0 0 30px 4px rgba(${colors.primary}, 0.42), inset 0 0 12px rgba(255,255,255,0.2)`,
+                  `0 0 15px 1px rgba(${colors.primary}, 0.18), inset 0 0 8px rgba(255,255,255,0.1)`
+                ]
+          }}
+          transition={{
+            scale: { type: "spring", stiffness: 150, damping: 15 },
+            boxShadow: { duration: 3.5, repeat: Infinity, ease: "easeInOut" }
+          }}
+          className="relative size-24 rounded-full bg-gradient-to-tr from-white/10 to-white/20 dark:from-white/[0.03] dark:to-white/[0.08] backdrop-blur-xl border flex items-center justify-center z-10 transition-all duration-300"
+          style={{ 
+            borderColor: `rgba(${colors.primary}, 0.35)`
+          }}
+        >
+          {/* Inner concentric glowing circle */}
+          <div 
+            className="absolute inset-2 rounded-full border border-dashed opacity-30 animate-spin"
+            style={{ 
+              borderColor: `rgba(${colors.primary}, 0.45)`,
+              animationDuration: '10s'
+            }}
+          />
+
+          <img 
+            loading="lazy" 
+            src="/images/heart.png" 
+            alt="Heart" 
+            draggable={false}
+            className="size-8 object-contain select-none z-20 filter drop-shadow-[0_2px_8px_rgba(244,63,94,0.4)]" 
+          />
+        </m.div>
+
+        {/* Layer 4: Elegant Floating Sparks on hover/active */}
+        {isHovered && [1, 2, 3, 4].map((id) => (
+          <m.div
+            key={id}
+            className="absolute pointer-events-none w-1.5 h-1.5 rounded-full z-0"
+            style={{
+              backgroundColor: id % 2 === 0 ? `rgb(${colors.primary})` : `rgb(${colors.secondary})`,
+              boxShadow: `0 0 6px rgb(${colors.primary})`
+            }}
+            initial={{ 
+              x: (id - 2.5) * 25 + (Math.random() - 0.5) * 10, 
+              y: 20 + (Math.random() - 0.5) * 10, 
+              opacity: 0.8,
+              scale: 0.6 + Math.random() * 0.5
+            }}
+            animate={{ 
+              y: -80 - Math.random() * 40, 
+              x: (id - 2.5) * 30 + (Math.random() - 0.5) * 20,
+              opacity: 0,
+              scale: 0.1
+            }}
+            transition={{ 
+              duration: 2.2 + Math.random() * 0.8,
+              repeat: Infinity,
+              ease: "easeOut",
+              delay: id * 0.4
+            }}
+          />
+        ))}
+      </div>
+      
+      <p className="text-[10px] text-muted-foreground mt-4 leading-normal select-none">
+        {isHovered 
+          ? "Interact with the glowing orb and move your pointer to alter the connection hum."
+          : "Your connection is active and perfectly synced in real-time."
+        }
+      </p>
+    </div>
   )
 }
 
@@ -209,15 +524,28 @@ export function SyncView() {
     if (!option) { setIsSending(false); return }
 
     try {
+      let secretMessage = option.message
+      const pairingCode = user?.role === 'lady'
+        ? user?.partnerCode
+        : localStorage.getItem('mensflow_e2ee_pairing_code:v1')
+
+      if (pairingCode) {
+        try {
+          secretMessage = await encryptData(option.message, pairingCode)
+        } catch (e) {
+          console.error('Failed to encrypt support ping message', e)
+        }
+      }
+
       if (isAuthenticated) {
-        await partnerApi.sendPing(option.id, option.label, option.message)
+        await partnerApi.sendPing(option.id, option.label, secretMessage)
       }
 
       // Broadcast ping details via localStorage for cross-tab sync support
       const pingData = {
         id: option.id,
         label: option.label,
-        message: option.message,
+        message: secretMessage,
         senderId: user?.id || 'guest',
         senderRole: user?.role || 'lady',
         timestamp: Date.now()
@@ -447,6 +775,15 @@ export function SyncView() {
               Your health data is always private. Only aggregated cycle phase info is shared with your partner.
             </m.p>
 
+            {/* Preview Relationship Aura for Unpaired Users */}
+            <m.div variants={itemVariants} className="mt-10 max-w-md mx-auto w-full px-4 sm:px-0">
+              <div className="text-center mb-4">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--mf-accent)] block mb-1">Interactive Sync Preview</span>
+                <p className="text-[11.5px] text-[var(--mf-muted)]">Get a preview of the premium real-time connection aura below.</p>
+              </div>
+              <RelationshipAura />
+            </m.div>
+
           </div>
 
           {/* Invite Partner Dialog */}
@@ -594,6 +931,7 @@ export function SyncView() {
             
             {/* Left Column: Real-Time Ping Card */}
             <m.section variants={itemVariants} className="flex flex-col gap-6 self-start">
+              <RelationshipAura />
               <div className="flo-card p-5 relative overflow-hidden transition-all duration-300">
                 
                 <div className="flex flex-col items-center text-center">

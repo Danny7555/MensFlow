@@ -6,10 +6,13 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { useQueryState, parseAsStringLiteral } from 'nuqs'
 import { cn } from "@/lib/utils"
+import { m } from "framer-motion"
 import { useStore } from "@/store/useStore"
 import { LogSymptomsModal } from "@/components/tracker/LogSymptomsModal"
 import { RequestAccessModal } from "@/components/dashboard/RequestAccessModal"
 import { useSEO } from "@/hooks/useSEO"
+import { playTickSound } from "@/lib/sound"
+import { hapticMedium } from "@/lib/haptics"
 
 const DAYS_OF_WEEK = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
 
@@ -924,10 +927,14 @@ function MonthView({
             const isRangeStartDay = isEditingPeriods && rangeStart === key
 
             return (
-              <button 
+              <m.button 
                 key={d} 
                 type="button"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={(e) => {
+                  hapticMedium()
+                  playTickSound()
                   if (isEditingPeriods) {
                     onTogglePeriod(key, e.shiftKey)
                   } else {
@@ -954,7 +961,7 @@ function MonthView({
                   }
                 }}
                 className={cn(
-                  "relative flex flex-col items-center justify-center cursor-pointer group py-2 sm:py-0 w-full transition-all",
+                  "relative flex flex-col items-center justify-center cursor-pointer group py-2 sm:py-0 w-full transition-all focus:outline-none",
                 )}
               >
                 {/* Cycle day label */}
@@ -998,7 +1005,7 @@ function MonthView({
                   {/* Pulsing selection border for range start day */}
                   {isRangeStartDay && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-                      <div className="size-10 sm:size-11 rounded-full border-2 border-violet-500 animate-pulse" />
+                      <div className="size-10 sm:size-11 rounded-full border-2 border-violet-500" />
                     </div>
                   )}
 
@@ -1019,18 +1026,25 @@ function MonthView({
                         : "bg-transparent text-foreground/80 hover:bg-violet-500/8 active:scale-90",
                     ],
                     !isEditingPeriods && [
-                      isSelected && "bg-[#e0e0e0] dark:bg-muted text-foreground",
+                      isSelected && "text-foreground",
                       isPeriod && !isSelected && (isPredicted ? "text-rose-500 dark:text-rose-400/80" : "text-violet-700 dark:text-violet-300 font-bold"),
                       isFertile && !isPeriod && !isSelected && "text-teal-600 dark:text-teal-400 font-semibold",
                       !isPeriod && !isFertile && !isSelected && "text-foreground"
                     ]
                   )}>
-                    <span className="relative z-0 text-base font-normal">
+                    {isSelected && !isEditingPeriods && (
+                      <m.div
+                        layoutId="activeSelectionCircle"
+                        className="absolute inset-0 bg-[#e0e0e0] dark:bg-muted rounded-full -z-10"
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                    <span className="relative z-10 text-base font-normal">
                       {d}
                     </span>
                   </div>
                 </div>
-              </button>
+              </m.button>
             )
           })}
         </div>

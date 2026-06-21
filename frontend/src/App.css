@@ -4717,8 +4717,7 @@
 .dashboard-flo-theme[data-theme='dark'],
 [data-theme='dark'] .partner-theme .dashboard-flo-theme,
 .partner-theme[data-theme='dark'] .dashboard-flo-theme {
-  background: var(--background) !important;
-  background-image: none !important;
+  background: radial-gradient(circle at 50% -10%, rgba(var(--mf-accent-rgb), 0.12) 0%, rgba(var(--mf-accent-rgb), 0.03) 50%, var(--background) 100%) !important;
 }
 
 /* ─── Partner Dashboard Theme Overrides ──────────────────────────────────── */
@@ -4980,21 +4979,27 @@
 }
 
 [data-theme='dark'] .flo-card {
-  border: 1px solid var(--mf-border-strong);
-  background: rgba(255, 255, 255, 0.03);
-  box-shadow: none;
+  border: 1px solid rgba(var(--mf-accent-rgb), 0.18) !important;
+  background: linear-gradient(135deg, rgba(var(--mf-card-rgb, 31, 22, 29), 0.65) 0%, rgba(var(--mf-accent-rgb), 0.03) 100%) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2) !important;
 }
 
 [data-theme='dark'] .flo-card--prominent {
-  background: linear-gradient(135deg, rgba(var(--mf-accent-rgb, 219, 39, 119), 0.1) 0%, rgba(20, 20, 22, 0.5) 100%);
-  border: 1px solid var(--mf-border-strong);
-  box-shadow: none;
+  background: linear-gradient(135deg, rgba(var(--mf-accent-rgb), 0.08) 0%, rgba(var(--mf-card-rgb, 31, 22, 29), 0.75) 100%) !important;
+  border: 1px solid rgba(var(--mf-accent-rgb), 0.25) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
 }
 
 [data-theme='dark'] .flo-card--featured {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--mf-border-strong);
-  box-shadow: none;
+  background: linear-gradient(135deg, rgba(var(--mf-card-rgb, 31, 22, 29), 0.8) 0%, rgba(var(--mf-accent-rgb), 0.04) 100%) !important;
+  border: 1px solid rgba(var(--mf-accent-rgb), 0.2) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
 }
 
 .flo-action-row {
@@ -6016,36 +6021,43 @@
 
 /* Responsive OTP verification inputs */
 .otp-container {
-  display: flex;
-  gap: 0.625rem;
-  justify-content: center;
-  width: 100%;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  gap: 0.625rem !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 .otp-digit-input {
-  width: 2.75rem;
-  height: 3.5rem;
-  border-radius: 12px;
-  border: 2.5px solid var(--border);
-  text-align: center;
-  font-size: 1.25rem;
-  font-weight: 700;
-  background: var(--mf-hover);
-  color: var(--mf-text-strong);
-  outline: none;
-  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block !important;
+  width: 2.75rem !important;
+  height: 3.5rem !important;
+  flex: 0 0 2.75rem !important;
+  min-width: 0 !important;
+  border-radius: 12px !important;
+  border: 2.5px solid var(--border) !important;
+  text-align: center !important;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  background: var(--mf-hover) !important;
+  color: var(--mf-text-strong) !important;
+  outline: none !important;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .otp-digit-input:focus {
-  border-color: #f472b6;
-  box-shadow: none;
-  background: var(--card);
+  border-color: #f472b6 !important;
+  box-shadow: none !important;
+  background: var(--card) !important;
 }
 
 .otp-digit-input.has-value {
-  border-color: #ec4899;
-  box-shadow: none;
-  background: var(--card);
+  border-color: #ec4899 !important;
+  box-shadow: none !important;
+  background: var(--card) !important;
 }
 
 @media (max-width: 400px) {
@@ -6054,6 +6066,7 @@
   }
   .otp-digit-input {
     width: 2.125rem !important;
+    flex: 0 0 2.125rem !important;
     height: 3rem !important;
     font-size: 1rem !important;
     border-radius: 8px !important;

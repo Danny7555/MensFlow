@@ -85,6 +85,7 @@ export interface LogsSlice {
   addCustomSymptom: (label: string, category: SymptomCategory) => Promise<void>
   removeCustomSymptom: (id: string) => Promise<void>
   fetchCustomSymptoms: () => Promise<void>
+  syncOfflineLogs: () => Promise<void>
 }
 
 export interface PartnerSlice {

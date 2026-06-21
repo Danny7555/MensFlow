@@ -4,6 +4,7 @@ import { useStore } from "@/store/useStore"
 import { SYMPTOM_DEFS, type SymptomDef } from "@/data/symptomsData"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { playTickSound, playSuccessSound } from "@/lib/sound"
 import { Button } from "@/components/ui/button"
 import { Check, Trophy, Drop, Sparkle, SealCheck, ArrowRight, Brain, Star, Fire } from "@phosphor-icons/react"
 import { buildPersonalizationProfile } from "@/lib/personalization"
@@ -151,12 +152,14 @@ export function SymptomLogger() {
         description: `Removed "${label}" from today's log.`,
         duration: 3000,
       })
+      playTickSound()
     } else {
       next = [...currentSymptoms, id]
       toast.success("Symptom logged", {
         description: `Added "${label}" to today's log.`,
         duration: 3000,
       })
+      playSuccessSound()
     }
     await addLog(todayDate, next)
   }
@@ -172,12 +175,14 @@ export function SymptomLogger() {
         description: "Removed flow log for today.",
         duration: 3000,
       })
+      playTickSound()
     } else {
       next = [...currentSymptoms.filter(s => !otherFlows.includes(s)), flowId]
       toast.success("Flow updated", {
         description: `Logged ${flowId.replace('flow-', '')} flow for today.`,
         duration: 3000,
       })
+      playSuccessSound()
     }
     await addLog(todayDate, next)
   }
@@ -382,14 +387,17 @@ export function DailyQuiz() {
         icon: <Trophy size={18} className="text-amber-500" />,
         description: "+50 XP added to your wellness insights."
       })
+      playSuccessSound()
     } else {
       toast.error("Incorrect answer", {
         description: "Review the explanation below to learn more!"
       })
+      playTickSound()
     }
   }
 
   const handleNext = () => {
+    playTickSound()
     setSelectedQuizAnswer(null)
     setActiveStep(dbQuizCount)
   }

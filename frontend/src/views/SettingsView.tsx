@@ -26,11 +26,17 @@ import {
   LockKey,
   FileText,
   Brain,
+  Check,
+  Fingerprint,
 } from '@phosphor-icons/react'
+import { cn, hashPin } from '../lib/utils'
+import { hapticMedium } from '../lib/haptics'
 import { DoctorReportModal } from '../components/dashboard/DoctorReportModal'
 import { toast } from 'sonner'
 import { useAIUsageStats } from '../services/chatService'
 import { useSEO } from '../hooks/useSEO'
+import { FaceIDScanner } from '../components/security/AppLockGate'
+import { playTickSound } from '../lib/sound'
 import {
   Dialog,
   DialogContent,
@@ -114,7 +120,7 @@ function SelectRow({
           <p className="settings-field-desc">{description}</p>
         )}
       </div>
-      <Select value={value} onValueChange={onChange}>
+      <Select value={value} onValueChange={(val) => { playTickSound(); onChange(val); }}>
         <SelectTrigger className="settings-select flex items-center justify-between bg-none min-w-[120px] sm:min-w-[150px] h-9 pr-2 pl-3 cursor-pointer">
           <SelectValue />
         </SelectTrigger>
@@ -157,7 +163,13 @@ function ToggleRow({
         aria-checked={checked}
         disabled={disabled}
         className={`switch ${checked ? 'switch--on' : ''}`}
-        onClick={() => !disabled && onChange(!checked)}
+        onClick={() => {
+          if (!disabled) {
+            hapticMedium()
+            playTickSound()
+            onChange(!checked)
+          }
+        }}
       >
         <span className="switch-thumb" aria-hidden />
       </button>
@@ -405,20 +417,45 @@ function GeneralPanel({
           { value: 'high', label: 'High' },
         ]}
       />
-      <SelectRow
-        label="Accent color"
-        value={settings.accentPreset}
-        onChange={(v) => updateSettings({ accentPreset: v as AccentPreset })}
-        options={[
-          { value: 'default', label: 'Default' },
-          { value: 'orchid', label: 'Orchid' },
-          { value: 'ocean', label: 'Ocean' },
-          { value: 'emerald', label: 'Emerald' },
-          { value: 'amber', label: 'Amber' },
-          { value: 'sapphire', label: 'Sapphire' },
-          { value: 'ruby', label: 'Ruby' },
-        ]}
-      />
+      <div className="settings-field-row flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-3">
+        <div className="settings-field-text">
+          <span className="settings-field-label">Accent color</span>
+          <p className="settings-field-desc">Personalize the primary color theme of the interface.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2.5">
+          {[
+            { value: 'default', color: 'bg-[#ff6b8b] dark:bg-[#ff8da1]', label: 'Default' },
+            { value: 'orchid', color: 'bg-[#c84b9e] dark:bg-[#e272be]', label: 'Orchid' },
+            { value: 'ocean', color: 'bg-[#0284c7] dark:bg-[#38bdf8]', label: 'Ocean' },
+            { value: 'emerald', color: 'bg-[#059669] dark:bg-[#34d399]', label: 'Emerald' },
+            { value: 'amber', color: 'bg-[#d97706] dark:bg-[#fbbf24]', label: 'Amber' },
+            { value: 'sapphire', color: 'bg-[#2563eb] dark:bg-[#60a5fa]', label: 'Sapphire' },
+            { value: 'ruby', color: 'bg-[#dc2626] dark:bg-[#f87171]', label: 'Ruby' },
+          ].map((preset) => {
+            const isSelected = settings.accentPreset === preset.value
+            return (
+              <button
+                key={preset.value}
+                type="button"
+                onClick={() => {
+                  hapticMedium()
+                  updateSettings({ accentPreset: preset.value as AccentPreset })
+                }}
+                title={preset.label}
+                className={cn(
+                  "size-8 rounded-full flex items-center justify-center transition-all duration-300 relative border border-black/10 dark:border-white/10 cursor-pointer active-squish",
+                  preset.color,
+                  isSelected ? "scale-110 ring-2 ring-[var(--mf-accent)] ring-offset-2 ring-offset-background" : "hover:scale-105 opacity-80 hover:opacity-100"
+                )}
+              >
+                {isSelected && (
+                  <Check size={14} className="text-white dark:text-gray-900 font-bold" weight="bold" />
+                )}
+              </button>
+            )
+          })}
+        </div>
+      </div>
       <SelectRow
         label="Language"
         value={settings.languageUi}
@@ -525,6 +562,12 @@ function GeneralPanel({
         description="Simplifies your dashboard layout by completely hiding educational playbooks and content cards."
         checked={settings.hideDailyStoriesAndTips}
         onChange={(v) => updateSettings({ hideDailyStoriesAndTips: v })}
+      />
+      <ToggleRow
+        label="Interface Sounds"
+        description="Enable synthesized auditory chimes and tactile click effects on buttons."
+        checked={settings.soundEffectsEnabled}
+        onChange={(v) => updateSettings({ soundEffectsEnabled: v })}
       />
 
       {/* Partner Connection Settings */}
@@ -696,7 +739,34 @@ function NotificationsPanel({
       <ToggleRow
         label="Push-style alerts (device)"
         checked={settings.notificationsPush}
-        onChange={(v) => updateSettings({ notificationsPush: v })}
+        onChange={(v) => {
+          if (v) {
+            if (typeof window !== 'undefined' && 'Notification' in window) {
+              Notification.requestPermission().then((permission) => {
+                if (permission === 'granted') {
+                  updateSettings({ notificationsPush: true })
+                  toast.success('Push notifications enabled!')
+                  if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+                    navigator.serviceWorker.ready.then((reg) => {
+                      reg.showNotification('MensFlow Activated', {
+                        body: 'Push alerts are successfully configured on this device.',
+                        icon: '/images/track.png'
+                      })
+                    })
+                  }
+                } else {
+                  updateSettings({ notificationsPush: false })
+                  toast.error('Permission denied. Please enable notifications in your browser settings.')
+                }
+              })
+            } else {
+              toast.error('Notifications are not supported on this browser.')
+            }
+          } else {
+            updateSettings({ notificationsPush: false })
+            toast.success('Push notifications disabled.')
+          }
+        }}
       />
       <ToggleRow
         label="Email digest"
@@ -792,6 +862,56 @@ function AppsPanel() {
   )
 }
 
+function parseCSV(text: string): { date: string; symptoms: string[] }[] {
+  const lines = text.split(/\r?\n/)
+  if (lines.length <= 1) return []
+
+  const results: { date: string; symptoms: string[] }[] = []
+  
+  // Try to find headers: "date" and "symptoms"
+  const header = lines[0].toLowerCase().split(',')
+  let dateIdx = header.findIndex(h => h.includes('date'))
+  let symptomsIdx = header.findIndex(h => h.includes('symptom'))
+
+  if (dateIdx === -1) dateIdx = 0
+  if (symptomsIdx === -1) symptomsIdx = 1
+
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim()
+    if (!line) continue
+
+    const columns = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim())
+    if (columns.length <= Math.max(dateIdx, symptomsIdx)) continue
+
+    const rawDate = columns[dateIdx]
+    const rawSymptoms = columns[symptomsIdx] ? columns[symptomsIdx] : ''
+
+    const dateObj = new Date(rawDate)
+    if (isNaN(dateObj.getTime())) continue
+    const dateString = dateObj.toISOString().split('T')[0]
+
+    const symptoms = rawSymptoms
+      .split(/[;|]/)
+      .map(s => s.trim().toLowerCase())
+      .filter(Boolean)
+      .map(s => {
+        if (s.includes('cramp') || (s.includes('pain') && s.includes('pelvic'))) return 'cramps'
+        if (s.includes('fatigue') || s.includes('tired') || s.includes('exhausted')) return 'fatigue'
+        if (s.includes('bloat')) return 'bloating'
+        if (s.includes('headache') || s.includes('migraine')) return 'headache'
+        if (s.includes('mood') || s.includes('pms') || s.includes('irritabl') || s.includes('sad')) return 'mood'
+        if (s.includes('back')) return 'backache'
+        if (s.includes('insomnia') || s.includes('sleep') || s.includes('awake')) return 'insomnia'
+        if (s.includes('acne') || s.includes('pimple') || s.includes('skin')) return 'acne'
+        return s
+      })
+      .filter(s => ['cramps', 'fatigue', 'bloating', 'headache', 'mood', 'backache', 'pelvicpain', 'insomnia', 'acne'].includes(s))
+
+    results.push({ date: dateString, symptoms })
+  }
+  return results
+}
+
 function DataControlsPanel({
   settings,
   updateSettings,
@@ -813,6 +933,53 @@ function DataControlsPanel({
 }) {
   const [aiUsageDays, setAIUsageDays] = useState(30)
   const { data: aiStats, isLoading, refetch } = useAIUsageStats(aiUsageDays)
+
+  const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = async (event) => {
+      const text = event.target?.result as string
+      if (!text) {
+        toast.error("Failed to read file.")
+        return
+      }
+
+      try {
+        const rows = parseCSV(text)
+        if (rows.length === 0) {
+          toast.error("No valid cycle logs found in the CSV file.")
+          return
+        }
+
+        const toastId = toast.loading(`Importing ${rows.length} cycle logs...`)
+        let importedCount = 0
+        
+        const results = await Promise.allSettled(
+          rows.map(row => useStore.getState().addLog(row.date, row.symptoms))
+        )
+
+        results.forEach(res => {
+          if (res.status === 'fulfilled' && res.value === true) {
+            importedCount++
+          }
+        })
+
+        if (importedCount > 0) {
+          toast.success(`Successfully imported ${importedCount} of ${rows.length} logs!`, { id: toastId })
+          void useStore.getState().fetchLogs()
+        } else {
+          toast.error("Failed to import cycle logs.", { id: toastId })
+        }
+      } catch (err) {
+        console.error("CSV import error:", err)
+        toast.error("Failed to parse CSV file. Ensure format is: Date, Symptoms")
+      }
+    }
+    reader.readAsText(file)
+    e.target.value = ''
+  }
 
   return (
     <>
@@ -977,6 +1144,22 @@ function DataControlsPanel({
           <DownloadSimple size={18} aria-hidden />
           Export JSON
         </button>
+        <div className="relative w-full">
+          <input
+            type="file"
+            accept=".csv"
+            onChange={handleImportCSV}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            aria-label="Import cycle logs from CSV"
+          />
+          <button
+            type="button"
+            className="btn btn-secondary w-full flex items-center justify-center gap-2"
+          >
+            <Database size={18} aria-hidden />
+            Import CSV Logs
+          </button>
+        </div>
         <button
           type="button"
           className="btn btn-secondary"
@@ -1023,6 +1206,208 @@ function DataControlsPanel({
 
 
 
+
+function AppLockSetupModal({
+  trigger,
+  updateSettings,
+}: {
+  trigger: ReactNode
+  updateSettings: (patch: Partial<MensFlowSettings>) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [pin, setPin] = useState('')
+  const [confirmPin, setConfirmPin] = useState('')
+  const [error, setError] = useState('')
+
+  const handleSave = () => {
+    if (!/^\d{4}$/.test(pin)) {
+      setError('PIN must be exactly 4 digits.')
+      return
+    }
+    if (pin !== confirmPin) {
+      setError('PINs do not match.')
+      return
+    }
+    updateSettings({ appLockEnabled: true, appLockPIN: hashPin(pin) })
+    toast.success('App Lock enabled successfully!')
+    setOpen(false)
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => {
+      setOpen(o)
+      if (!o) {
+        setPin('')
+        setConfirmPin('')
+        setError('')
+      }
+    }}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="sm:max-w-[360px] bg-card border-border p-6">
+        <DialogHeader className="mb-4">
+          <DialogTitle className="text-lg font-medium tracking-tight flex items-center gap-2">
+            <Lock size={20} className="text-[var(--mf-accent)]" /> Enable App Lock
+          </DialogTitle>
+          <DialogDescription className="text-xs">
+            Set a 4-digit security PIN to restrict access to the application.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold uppercase text-muted-foreground tracking-wide">Enter PIN</label>
+            <input
+              type="password"
+              pattern="[0-9]*"
+              inputMode="numeric"
+              maxLength={4}
+              placeholder="e.g. 1234"
+              value={pin}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, '')
+                setPin(val)
+                setError('')
+              }}
+              className="w-full h-11 px-4 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-[var(--mf-accent)] focus:ring-1 transition-all outline-none text-center text-lg tracking-[0.3em]"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold uppercase text-muted-foreground tracking-wide">Confirm PIN</label>
+            <input
+              type="password"
+              pattern="[0-9]*"
+              inputMode="numeric"
+              maxLength={4}
+              placeholder="Confirm PIN"
+              value={confirmPin}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, '')
+                setConfirmPin(val)
+                setError('')
+              }}
+              className="w-full h-11 px-4 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-[var(--mf-accent)] focus:ring-1 transition-all outline-none text-center text-lg tracking-[0.3em]"
+            />
+          </div>
+
+          {error && (
+            <p className="text-xs text-rose-500 font-medium text-left px-1 animate-in fade-in">{error}</p>
+          )}
+        </div>
+
+        <DialogFooter className="mt-6 flex gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            className="rounded-xl flex-1 text-xs"
+            onClick={() => setOpen(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            disabled={pin.length !== 4 || confirmPin.length !== 4}
+            className="rounded-xl flex-1 text-xs font-medium"
+            onClick={handleSave}
+          >
+            Enable Lock
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function AppLockDisableModal({
+  trigger,
+  currentPin,
+  updateSettings,
+}: {
+  trigger: ReactNode
+  currentPin: string | null
+  updateSettings: (patch: Partial<MensFlowSettings>) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [pin, setPin] = useState('')
+  const [error, setError] = useState(false)
+
+  const handleDisable = () => {
+    const isMatch = hashPin(pin) === currentPin || (currentPin?.length === 4 && pin === currentPin)
+    if (isMatch) {
+      updateSettings({ appLockEnabled: false, appLockPIN: null, appLockBiometric: false })
+      toast.success('App Lock disabled successfully.')
+      setOpen(false)
+    } else {
+      setError(true)
+      setPin('')
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => {
+      setOpen(o)
+      if (!o) {
+        setPin('')
+        setError(false)
+      }
+    }}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="sm:max-w-[360px] bg-card border-border p-6">
+        <DialogHeader className="mb-4">
+          <DialogTitle className="text-lg font-medium tracking-tight flex items-center gap-2">
+            <Lock size={20} className="text-rose-500" /> Disable App Lock
+          </DialogTitle>
+          <DialogDescription className="text-xs">
+            Confirm your current 4-digit PIN to disable security locking.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold uppercase text-muted-foreground tracking-wide">Enter PIN</label>
+            <input
+              type="password"
+              pattern="[0-9]*"
+              inputMode="numeric"
+              maxLength={4}
+              placeholder="e.g. 1234"
+              value={pin}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, '')
+                setPin(val)
+                setError(false)
+              }}
+              className={`w-full h-11 px-4 rounded-xl bg-muted border ${error ? 'border-rose-500' : 'border-border'} focus:border-[var(--mf-accent-border)] focus:ring-[var(--mf-accent)] focus:ring-1 transition-all outline-none text-center text-lg tracking-[0.3em]`}
+            />
+          </div>
+
+          {error && (
+            <p className="text-xs text-rose-500 font-medium text-left px-1 animate-in fade-in">Incorrect PIN. Please try again.</p>
+          )}
+        </div>
+
+        <DialogFooter className="mt-6 flex gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            className="rounded-xl flex-1 text-xs"
+            onClick={() => setOpen(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            disabled={pin.length !== 4}
+            className="rounded-xl flex-1 text-xs font-medium"
+            onClick={handleDisable}
+          >
+            Disable Lock
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
 
 function LockChatSetupModal({
   trigger,
@@ -1212,7 +1597,7 @@ function LockChatSetupModal({
                 onClick={() => {
                   updateSettings({ 
                     privacyLockChats: true, 
-                    privacyLockChatsPassword: password,
+                    privacyLockChatsPassword: hashPin(password),
                     privacyLockChatsSecurityQuestion: questionId,
                     privacyLockChatsSecurityAnswer: answer.trim().toLowerCase()
                   })
@@ -1301,6 +1686,7 @@ function SecurityPanel({
   updateSettings: (patch: Partial<MensFlowSettings>) => void
 }) {
   const { loginHistory, fetchLoginHistory } = useStore()
+  const [testFaceID, setTestFaceID] = useState(false)
 
   useEffect(() => {
     void fetchLoginHistory()
@@ -1322,6 +1708,125 @@ function SecurityPanel({
           onChange={(v) => updateSettings({ otpEnabled: v })}
         />
       </div>
+
+      <div className="settings-field-row border-b border-border/50 pb-6 mb-6">
+        <div className="settings-field-text">
+          <span className="settings-field-label">Application Security Lock</span>
+          <p className="settings-field-desc">
+            Lock the entire application behind a 4-digit PIN code and native device biometrics.
+          </p>
+        </div>
+        {!settings.appLockEnabled ? (
+          <AppLockSetupModal
+            updateSettings={updateSettings}
+            trigger={
+              <button
+                type="button"
+                role="switch"
+                aria-checked={false}
+                className="switch"
+              >
+                <span className="switch-thumb" aria-hidden />
+              </button>
+            }
+          />
+        ) : (
+          <AppLockDisableModal
+            currentPin={settings.appLockPIN}
+            updateSettings={updateSettings}
+            trigger={
+              <button
+                type="button"
+                role="switch"
+                aria-checked={true}
+                className="switch switch--on"
+              >
+                <span className="switch-thumb" aria-hidden />
+              </button>
+            }
+          />
+        )}
+      </div>
+
+      {settings.appLockEnabled && (
+        <div className="border-b border-border/50 pb-6 mb-6">
+          <div className="settings-field-row">
+            <div className="settings-field-text">
+              <span className="settings-field-label">Biometric Verification</span>
+              <p className="settings-field-desc">
+                Unlock using Touch ID, Face ID, or Windows Hello.
+              </p>
+            </div>
+            <ToggleRow
+              label=""
+              checked={settings.appLockBiometric}
+              onChange={(v) => {
+                if (v) {
+                  if (typeof window !== 'undefined' && window.PublicKeyCredential) {
+                    PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
+                      .then((available) => {
+                        if (available) {
+                          updateSettings({ appLockBiometric: true })
+                          toast.success('Biometric unlock enabled!')
+                        } else {
+                          updateSettings({ appLockBiometric: true })
+                          toast.success('Biometric simulation enabled on this device.')
+                        }
+                      })
+                      .catch(() => {
+                        updateSettings({ appLockBiometric: true })
+                        toast.success('Biometric simulation enabled.')
+                      })
+                  } else {
+                    toast.error('Biometrics not supported on this browser.')
+                  }
+                } else {
+                  updateSettings({ appLockBiometric: false })
+                }
+              }}
+            />
+          </div>
+          {settings.appLockBiometric && (
+            <div className="mt-3 flex justify-start">
+              <button
+                type="button"
+                onClick={() => {
+                  hapticMedium()
+                  setTestFaceID(true)
+                }}
+                className="text-xs text-[var(--mf-accent)] hover:underline flex items-center gap-1.5 cursor-pointer outline-none font-medium bg-[var(--mf-accent-soft)] px-3 py-1.5 rounded-xl border border-[var(--mf-accent-border)]/30 active:scale-95 transition-all"
+              >
+                <Fingerprint size={14} />
+                Test FaceID Scan & Sound FX
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {settings.appLockEnabled && (
+        <div className="settings-field-row border-b border-border/50 pb-6 mb-6">
+          <div className="settings-field-text">
+            <span className="settings-field-label">Auto-lock Timeout</span>
+            <p className="settings-field-desc">
+              Automatically lock the app after this period of inactivity.
+            </p>
+          </div>
+          <select
+            value={settings.appLockTimeoutMinutes ?? 3}
+            onChange={(e) => updateSettings({ appLockTimeoutMinutes: Number(e.target.value) })}
+            className="h-10 px-3 pr-8 rounded-xl bg-muted border border-border text-sm text-[var(--mf-text-strong)] outline-none focus:ring-1 focus:ring-[var(--mf-accent)] transition-all cursor-pointer"
+            aria-label="Auto-lock timeout"
+          >
+            <option value={1}>1 minute</option>
+            <option value={3}>3 minutes</option>
+            <option value={5}>5 minutes</option>
+            <option value={15}>15 minutes</option>
+            <option value={30}>30 minutes</option>
+            <option value={0}>Never</option>
+          </select>
+        </div>
+      )}
 
       <div className="settings-field-row border-b border-border/50 pb-6 mb-6">
         <div className="settings-field-text">
@@ -1406,6 +1911,15 @@ function SecurityPanel({
           </div>
         )}
       </div>
+      {testFaceID && (
+        <FaceIDScanner
+          onSuccess={() => {
+            setTestFaceID(false)
+            toast.success('Test Face ID verification succeeded!')
+          }}
+          onCancel={() => setTestFaceID(false)}
+        />
+      )}
     </>
   )
 }
@@ -2145,7 +2659,10 @@ export function SettingsView({
                 key={id}
                 type="button"
                 className={`settings-nav-item ${effectiveCat === id ? 'settings-nav-item--active' : ''}`}
-                onClick={() => setCat(id)}
+                onClick={() => {
+                  playTickSound()
+                  setCat(id)
+                }}
               >
                 <Icon size={20} aria-hidden />
                 <span>{label}</span>

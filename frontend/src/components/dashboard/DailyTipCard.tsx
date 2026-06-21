@@ -82,7 +82,7 @@ export function DailyTipCard({ phaseLabel, tipCompleted, setTipCompleted, varian
     <m.div 
       variants={variants}
       style={{ backgroundColor: 'var(--mf-card, #ffffff)' }}
-      className="flo-card flo-card--featured overflow-hidden flex flex-col group relative !p-5 md:!p-6 xl:!p-8"
+      className="flo-card flo-card--featured daily-tip-card overflow-hidden flex flex-col group relative !p-5 md:!p-6 xl:!p-8"
     >
       <div className="flex flex-col md:flex-row md:items-center justify-between w-full gap-4 md:gap-5 xl:gap-8 ">
         <div className="shrink-0 size-12 md:size-14 flex items-center justify-center">

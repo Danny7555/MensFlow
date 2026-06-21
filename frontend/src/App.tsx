@@ -1,8 +1,8 @@
 /* eslint-disable */
-import { useCallback, useState, useMemo, lazy, Suspense } from 'react'
+import { useCallback, useState, useMemo, lazy, Suspense, useEffect, useRef } from 'react'
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { LazyMotion, domAnimation, AnimatePresence, m } from 'framer-motion'
-import { cn } from './lib/utils'
+import { cn, hashPin } from './lib/utils'
 import { ThemeSync } from './components/ThemeSync'
 import { Toaster } from 'sonner'
 import { AuthProvider } from './context/AuthProvider'
@@ -21,6 +21,7 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { ScrollToTop } from './components/ScrollToTop'
 import { AccessGate } from './components/AccessGate'
 import { Button } from './components/ui/button'
+import { AppLockGate } from './components/security/AppLockGate'
 import { SECURITY_QUESTIONS } from './lib/constants'
 import { getPasswordStrength } from './lib/passwordStrength'
 import { EducationView } from './views/EducationView'
@@ -75,6 +76,42 @@ function ChatLockGate({ children }: { children: React.ReactNode }) {
   const [securityAnswer, setSecurityAnswer] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+
+  // Rate-limiting lockout (mirrors AppLockGate pattern)
+  const chatLockoutUntilRef = useRef<number | null>(null)
+  const [chatLockoutTimeLeft, setChatLockoutTimeLeft] = useState<number>(() => {
+    if (typeof window === 'undefined') return 0
+    const raw = localStorage.getItem('mensflow_chat_lockout_until')
+    if (raw) {
+      const until = parseInt(raw, 10)
+      if (!isNaN(until) && until > Date.now()) {
+        chatLockoutUntilRef.current = until
+        return Math.ceil((until - Date.now()) / 1000)
+      }
+    }
+    return 0
+  })
+
+  useEffect(() => {
+    if (chatLockoutTimeLeft <= 0) return
+    const timer = setInterval(() => {
+      const until = chatLockoutUntilRef.current
+      if (until) {
+        const left = Math.ceil((until - Date.now()) / 1000)
+        if (left > 0) {
+          setChatLockoutTimeLeft(left)
+        } else {
+          chatLockoutUntilRef.current = null
+          localStorage.removeItem('mensflow_chat_lockout_until')
+          setFailedAttempts(0)
+          setChatLockoutTimeLeft(0)
+        }
+      } else {
+        setChatLockoutTimeLeft(0)
+      }
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [chatLockoutTimeLeft])
 
   const activeQuestion = SECURITY_QUESTIONS.find(q => q.id === settings.privacyLockChatsSecurityQuestion)
   const strengthResult = getPasswordStrength(newPassword)
@@ -165,7 +202,7 @@ function ChatLockGate({ children }: { children: React.ReactNode }) {
             onSubmit={(e) => {
               e.preventDefault()
               if (isStrong) {
-                useStore.getState().updateSettings({ privacyLockChatsPassword: newPassword })
+                useStore.getState().updateSettings({ privacyLockChatsPassword: hashPin(newPassword) })
                 setIsUnlocked(true)
                 setMode('unlock')
                 setPassword('')
@@ -260,63 +297,85 @@ function ChatLockGate({ children }: { children: React.ReactNode }) {
           Enter your privacy password to access your conversations.
         </p>
         
-        <form 
-          className="w-full max-w-xs space-y-4"
-          onSubmit={(e) => {
-            e.preventDefault()
-            if (password === settings.privacyLockChatsPassword) {
-              setIsUnlocked(true)
-              setError(false)
-              setFailedAttempts(0)
-            } else {
-              setError(true)
-              setFailedAttempts(f => f + 1)
-            }
-          }}
-        >
-          <div className="relative">
-            <LockKey size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input 
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Enter password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value)
-                setError(false)
-              }}
-              className={`w-full h-12 pl-10 pr-12 rounded-xl bg-muted border ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-border focus:border-[var(--mf-accent-border)] focus:ring-[var(--mf-accent)]'} focus:ring-1 transition-all outline-none text-base`}
-              aria-label="Privacy password"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-[var(--mf-text-strong)] transition-colors cursor-pointer"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-            >
-              {showPassword ? <EyeSlash size={20} /> : <Eye size={20} />}
-            </button>
-          </div>
-          {error && <p className="text-xs text-red-500 text-left px-1 animate-in slide-in-from-top-1">Incorrect password. Please try again.</p>}
-          <Button type="submit" className="w-full rounded-xl h-12 font-medium">
-            Unlock
-          </Button>
-          {failedAttempts >= 3 && settings.privacyLockChatsSecurityQuestion && (
-            <div className="pt-2 animate-in fade-in duration-500">
-              <Button 
-                type="button" 
-                variant="ghost" 
-                className="w-full text-sm text-[var(--mf-accent)] hover:bg-[var(--mf-accent-soft)]"
-                onClick={() => {
-                  setMode('reset-security')
-                  setError(false)
-                  setSecurityAnswer('')
-                }}
-              >
-                Forgot Password?
-              </Button>
+        {chatLockoutTimeLeft > 0 ? (
+          <div className="flex flex-col items-center justify-center my-6 text-center animate-in zoom-in-95 duration-200">
+            <span className="text-rose-500 font-semibold mb-2">Vault Lockout Active</span>
+            <p className="text-xs text-muted-foreground max-w-[250px]">
+              Too many incorrect attempts. Please wait:
+            </p>
+            <div className="text-3xl font-bold text-[var(--mf-text-strong)] mt-4 tracking-tight tabular-nums bg-muted px-6 py-2 rounded-2xl border border-border">
+              {chatLockoutTimeLeft}s
             </div>
-          )}
-        </form>
+          </div>
+        ) : (
+          <form 
+            className="w-full max-w-xs space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault()
+              if (chatLockoutTimeLeft > 0) return
+              if (hashPin(password) === settings.privacyLockChatsPassword) {
+                setIsUnlocked(true)
+                setError(false)
+                setFailedAttempts(0)
+              } else {
+                setError(true)
+                const nextFailed = failedAttempts + 1
+                setFailedAttempts(nextFailed)
+                if (nextFailed >= 5) {
+                  const until = Date.now() + 30000
+                  localStorage.setItem('mensflow_chat_lockout_until', String(until))
+                  chatLockoutUntilRef.current = until
+                  setChatLockoutTimeLeft(30)
+                  setPassword('')
+                  setError(false)
+                }
+              }
+            }}
+          >
+            <div className="relative">
+              <LockKey size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input 
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Enter password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value)
+                  setError(false)
+                }}
+                className={`w-full h-12 pl-10 pr-12 rounded-xl bg-muted border ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-border focus:border-[var(--mf-accent-border)] focus:ring-[var(--mf-accent)]'} focus:ring-1 transition-all outline-none text-base`}
+                aria-label="Privacy password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-[var(--mf-text-strong)] transition-colors cursor-pointer"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeSlash size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
+            {error && <p className="text-xs text-red-500 text-left px-1 animate-in slide-in-from-top-1">Incorrect password. Please try again.</p>}
+            <Button type="submit" className="w-full rounded-xl h-12 font-medium">
+              Unlock
+            </Button>
+            {failedAttempts >= 3 && settings.privacyLockChatsSecurityQuestion && (
+              <div className="pt-2 animate-in fade-in duration-500">
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  className="w-full text-sm text-[var(--mf-accent)] hover:bg-[var(--mf-accent-soft)]"
+                  onClick={() => {
+                    setMode('reset-security')
+                    setError(false)
+                    setSecurityAnswer('')
+                  }}
+                >
+                  Forgot Password?
+                </Button>
+              </div>
+            )}
+          </form>
+        )}
       </div>
     )
   }
@@ -356,7 +415,40 @@ function ChatLockGate({ children }: { children: React.ReactNode }) {
 function MainShell() {
   useReactQuerySync()
   const { isAuthenticated, onboardingCompleted, logout, openAuthModal, isRehydrating } = useAuth()
-  const { settings, updateSettings, user, notificationCount } = useStore()
+  const { settings, updateSettings, user, notificationCount, syncOfflineLogs } = useStore()
+
+  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true)
+  const [showSyncSuccess, setShowSyncSuccess] = useState(false)
+
+  useEffect(() => {
+    const handleOnlineStatus = () => {
+      setIsOnline(true)
+      void syncOfflineLogs()
+      setShowSyncSuccess(true)
+      const t = setTimeout(() => setShowSyncSuccess(false), 4000)
+      return () => clearTimeout(t)
+    }
+
+    const handleOfflineStatus = () => {
+      setIsOnline(false)
+      setShowSyncSuccess(false)
+    }
+
+    window.addEventListener('online', handleOnlineStatus)
+    window.addEventListener('offline', handleOfflineStatus)
+
+    if (typeof navigator !== 'undefined') {
+      setIsOnline(navigator.onLine)
+      if (navigator.onLine) {
+        void syncOfflineLogs()
+      }
+    }
+
+    return () => {
+      window.removeEventListener('online', handleOnlineStatus)
+      window.removeEventListener('offline', handleOfflineStatus)
+    }
+  }, [syncOfflineLogs])
   const navigate = useNavigate()
   const location = useLocation()
   const isMobile = useMediaQuery('(max-width: 768px)')
@@ -652,6 +744,37 @@ function MainShell() {
           </nav>
         )}
         <ScrollToTop />
+
+        {/* Network Status Banner */}
+        <AnimatePresence>
+          {!isOnline && (
+            <m.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 50 }}
+              className="fixed bottom-20 right-6 z-50 bg-rose-500/10 text-rose-600 dark:bg-rose-950/30 dark:text-rose-400 border border-rose-500/20 px-4 py-3 rounded-2xl flex items-center gap-3 text-xs shadow-lg backdrop-blur-md"
+              role="alert"
+            >
+              <span className="relative flex size-2 shrink-0">
+                <span className="relative inline-flex rounded-full size-2 bg-rose-500"></span>
+              </span>
+              <span>Offline Mode — symptom logs will save locally and sync when online</span>
+            </m.div>
+          )}
+
+          {isOnline && showSyncSuccess && (
+            <m.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 50 }}
+              className="fixed bottom-20 right-6 z-50 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-500/20 px-4 py-3 rounded-2xl flex items-center gap-3 text-xs shadow-lg backdrop-blur-md"
+              role="status"
+            >
+              <span className="size-2 rounded-full bg-emerald-500 shrink-0" />
+              <span>Back Online — offline logs synchronized successfully!</span>
+            </m.div>
+          )}
+        </AnimatePresence>
       </div>
     </ChatSessionContext.Provider>
   )
@@ -686,7 +809,9 @@ export default function App() {
   return (
     <AuthProvider>
       <ThemeSync />
-      <MainShell />
+      <AppLockGate>
+        <MainShell />
+      </AppLockGate>
       <DynamicToaster />
       <GlobalModalContainer />
     </AuthProvider>

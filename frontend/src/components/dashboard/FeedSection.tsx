@@ -71,7 +71,7 @@ export function PrimaryInsightCard({ label, currentDay, trend }: { label: string
   const gradient = PHASE_GRADIENTS[normalized] || 'from-gray-500/20 to-gray-500/10'
 
   return (
-    <m.div initial="hidden" animate="visible" variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
+    <m.div initial="hidden" animate="visible" variants={itemVariants} className="flo-card flo-card--prominent primary-insight-card overflow-hidden group h-full">
       <div className="flex flex-col h-full">
         <div className={`-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden bg-gradient-to-r ${gradient}`}>
           {!imgError && (
@@ -130,7 +130,7 @@ export function BodySignalsCard({ signals, currentDay, phaseLabel }: { signals: 
     : ['Setup Tracking', 'Log Cycle']
 
   return (
-    <m.div initial="hidden" animate="visible" variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
+    <m.div initial="hidden" animate="visible" variants={itemVariants} className="flo-card flo-card--prominent body-signals-card overflow-hidden group h-full">
       <div className="flex flex-col h-full">
         <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden bg-gradient-to-br from-blue-500/20 to-cyan-500/10">
           {!imgError && (
@@ -188,7 +188,7 @@ export function WellnessScoreCard() {
 
   if (!hasLoggedToday) {
     return (
-      <m.div initial="hidden" animate="visible" variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
+      <m.div initial="hidden" animate="visible" variants={itemVariants} className="flo-card flo-card--prominent wellness-score-card overflow-hidden group h-full">
         <div className="flex flex-col h-full">
           <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden bg-gradient-to-br from-rose-500/15 to-pink-500/5">
             <img loading="lazy" src="/images/heart.png" alt="Wellness" className="w-full h-full object-cover opacity-60" />
@@ -254,7 +254,7 @@ export function WellnessScoreCard() {
   const sleepText = symptoms.includes('phys-fatigue') ? "75% Restless" : "96% Optimal"
 
   return (
-    <m.div initial="hidden" animate="visible" variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
+    <m.div initial="hidden" animate="visible" variants={itemVariants} className="flo-card flo-card--prominent wellness-score-card overflow-hidden group h-full">
       <div className="flex flex-col h-full">
         <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden bg-gradient-to-br from-rose-500/15 to-pink-500/5">
           <img loading="lazy" src="/images/heart.png" alt="Wellness" className="w-full h-full object-cover opacity-60" />

@@ -8,7 +8,7 @@ export interface RetryOptions {
   onRetry?: (attempt: number, err: unknown, delayMs: number) => void
 }
 
-export async function withRetry<T>(
+export function withRetry<T>(
   fn: () => Promise<T>,
   options: RetryOptions = {},
 ): Promise<T> {
@@ -20,10 +20,8 @@ export async function withRetry<T>(
     onRetry,
   } = options;
 
-  async function attempt(currentAttempt: number): Promise<T> {
-    try {
-      return await fn();
-    } catch (err) {
+  function attempt(currentAttempt: number): Promise<T> {
+    return fn().catch((err) => {
       if (currentAttempt === maxAttempts || !shouldRetry(err)) {
         throw err;
       }
@@ -37,9 +35,12 @@ export async function withRetry<T>(
         error: err instanceof Error ? err.message : String(err),
       });
 
-      await new Promise((r) => setTimeout(r, totalDelay));
-      return attempt(currentAttempt + 1);
-    }
+      return new Promise<T>((resolve, reject) => {
+        setTimeout(() => {
+          attempt(currentAttempt + 1).then(resolve, reject);
+        }, totalDelay);
+      });
+    });
   }
 
   return attempt(1);

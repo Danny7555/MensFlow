@@ -1,7 +1,8 @@
 /* eslint-disable */
 import { use, useReducer, useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Joyride, STATUS, type EventData, type TooltipRenderProps } from 'react-joyride'
+import { driver } from 'driver.js'
+import 'driver.js/dist/driver.css'
 import { m } from 'framer-motion'
 import { Plus, LinkSimple, Users, ArrowRight, Sparkle, Check, Cookie, CookingPot, Heart, Moon, LockSimple, FileText, Warning } from '@phosphor-icons/react'
 import { DoctorReportModal } from '../components/dashboard/DoctorReportModal'
@@ -181,77 +182,68 @@ function dashboardReducer(state: DashboardState, action: DashboardAction): Dashb
   }
 }
 
-function TourTooltip({
-  index,
-  size,
-  step,
-  backProps,
-  isLastStep,
-  primaryProps,
-  skipProps,
-  tooltipProps,
-}: TooltipRenderProps) {
+function PartnerCareTipsCard({ phase, bodySignals, ladyName }: { phase: string; bodySignals: string; ladyName: string }) {
+  const normalizedPhase = phase.toLowerCase()
+  const symptoms = (bodySignals || '').toLowerCase()
+
+  const tips = useMemo(() => {
+    const list: string[] = []
+
+    if (normalizedPhase.includes('menstru')) {
+      list.push("Prepare iron-rich foods (spinach, red meat, lentils) to help her body replenish.")
+      list.push("Suggest gentle activities like a slow walk, or simply watching a favorite movie together.")
+      if (symptoms.includes('cramps') || symptoms.includes('pain')) {
+        list.push("Prepare a hot water bottle or heating pad to soothe period cramps.")
+        list.push("Offer a warm cup of red raspberry leaf or ginger tea.")
+      }
+    } else if (normalizedPhase.includes('follicul')) {
+      list.push("Support her rising creativity and energy by planning a fun outdoor date or activity.")
+      list.push("Encourage her to explore new projects—this is her peak planning phase.")
+      if (symptoms.includes('fatigue') || symptoms.includes('tired')) {
+        list.push("Even during energy peaks, transition fatigue can happen. Offer a morning coffee or healthy snack.")
+      }
+    } else if (normalizedPhase.includes('fertile') || normalizedPhase.includes('ovulat')) {
+      list.push("Schedule a special date night or social event; her social energy is at its biological peak.")
+      list.push("Leave a sweet post-it note or small surprise gesture to match her heightened openness and mood.")
+    } else {
+      // Luteal
+      list.push("Prioritize a calm, stress-free home environment; reduce planning heavy or stressful debates.")
+      list.push("Bring home some dark chocolate or her favorite comfort snack to satisfy luteal cravings.")
+      if (symptoms.includes('fatigue') || symptoms.includes('sleep') || symptoms.includes('tired')) {
+        list.push("Take over dinner prep or household chores to let her get extra rest.")
+      }
+      if (symptoms.includes('bloat') || symptoms.includes('tender')) {
+        list.push("Suggest a warm bath with Epsom salts to help reduce physical bloating and water retention.")
+      }
+    }
+
+    if (list.length < 3) {
+      list.push(`Ask ${ladyName} how she is feeling today and actively listen without immediately trying to solve problems.`)
+      list.push(`Take care of small daily chores (dishes, trash) to reduce her mental load.`)
+    }
+
+    return list.slice(0, 3)
+  }, [normalizedPhase, symptoms, ladyName])
+
   return (
-    <div 
-      {...tooltipProps} 
-      className="bg-[var(--mf-card)] border border-[var(--mf-border)] rounded-2xl md:rounded-2xl p-5 md:p-7 max-w-[320px] md:max-w-[420px] w-[calc(100vw-32px)] md:w-auto text-left focus:outline-none relative z-50 animate-in fade-in zoom-in-95 duration-200"
-    >
-      <div className="flex items-center justify-between mb-3 md:mb-4">
-        <span className="text-[11px] md:text-xs font-semibold uppercase tracking-widest text-[var(--mf-accent)]">
-          Tour • Step {index + 1} of {size}
-        </span>
-        {!isLastStep && (
-          <button 
-            {...skipProps} 
-            type="button"
-            className="text-[11px] md:text-xs font-semibold uppercase tracking-wider text-[var(--mf-muted)] hover:text-[var(--mf-text-strong)] transition-colors cursor-pointer"
-          >
-            Skip
-          </button>
-        )}
+    <div className="flo-card p-6 text-left space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="size-8 rounded-lg bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] flex items-center justify-center">
+          <Sparkle size={18} weight="fill" />
+        </div>
+        <div>
+          <h4 className="text-sm font-semibold text-[var(--mf-text-strong)]">Daily Support Digest</h4>
+          <p className="text-[10px] text-muted-foreground">Actionable care tips tailored to her state today</p>
+        </div>
       </div>
 
-      {step.title && (
-        <h4 className="text-sm md:text-base font-semibold text-[var(--mf-text-strong)] mb-1.5 md:mb-2">
-          {step.title}
-        </h4>
-      )}
-
-      <div className="text-xs md:text-sm text-[var(--mf-text)] leading-relaxed md:leading-relaxed mb-5 md:mb-6">
-        {step.content}
-      </div>
-
-      <div className="flex items-center justify-between border-t border-[var(--mf-border)] pt-4 md:pt-5">
-        <div className="flex gap-1.5 md:gap-2">
-          {Array.from({ length: size }).map((_, i) => (
-            <div 
-              key={i} 
-              className={cn(
-                "size-1.5 md:size-2 rounded-full transition-all duration-300",
-                i === index ? "bg-[var(--mf-accent)] w-3 md:w-5" : "bg-[var(--mf-muted)]/30"
-              )}
-            />
-          ))}
-        </div>
-
-        <div className="flex items-center gap-2 md:gap-3">
-          {index > 0 && (
-            <button 
-              {...backProps} 
-              type="button"
-              className="px-3.5 md:px-5 py-2 md:py-2.5 rounded-xl border border-[var(--mf-border)] text-xs md:text-sm font-medium text-[var(--mf-text-strong)] hover:bg-[var(--mf-hover)] transition-colors cursor-pointer active:scale-95"
-            >
-              Back
-            </button>
-          )}
-          <button 
-            {...primaryProps} 
-            type="button"
-            className="px-4 md:px-6 py-2 md:py-2.5 rounded-xl bg-[var(--mf-accent)] text-white text-xs md:text-sm font-semibold hover:brightness-105 transition-all cursor-pointer active:scale-95"
-          >
-            {isLastStep ? 'Finish' : 'Next'}
-          </button>
-        </div>
+      <div className="space-y-3 pt-1">
+        {tips.map((tip, idx) => (
+          <div key={idx} className="flex items-start gap-2.5 text-xs text-[var(--mf-text)] leading-relaxed">
+            <span className="size-1.5 rounded-full bg-[var(--mf-accent)] mt-2 shrink-0" />
+            <span>{tip}</span>
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -314,57 +306,7 @@ export function DashboardView() {
   const aiTip = dailyGuidance?.dailyTip || (data.dailyTip && data.dailyTip.title ? data.dailyTip : undefined)
   const aiInsightText = dailyGuidance?.scientificInsight || data.scientificInsight
 
-  const tourSteps = useMemo(() => {
-    const isPartner = user?.role === 'partner'
-    
-    const steps = [
-      {
-        target: '.cycle-tracker-hero',
-        title: isPartner ? "Partner's Cycle Tracker" : "Your Cycle Tracker",
-        content: isPartner 
-          ? "Keep track of your partner's current cycle day, phase, and upcoming period prediction." 
-          : "See your current cycle day, active phase, and predictions of your next period at a glance.",
-        placement: 'bottom' as const,
-        disableBeacon: true,
-      },
-      {
-        target: '.flo-story-circle',
-        title: "Quick Navigation",
-        content: "Tap these shortcuts to quickly navigate between the dashboard, logs, secret chats, and settings.",
-        placement: 'bottom' as const,
-        disableBeacon: true,
-      },
-      {
-        target: '.flo-today-plan',
-        title: "Daily Plan & Insights",
-        content: "Explore daily phase-specific insights, hormone trends, and customized wellness recommendations.",
-        placement: 'top' as const,
-        disableBeacon: true,
-      }
-    ]
-
-    if (isPartner) {
-      steps.push({
-        target: '.connection-checklist-card',
-        title: "Daily Connection Gestures",
-        content: "Check off customized support actions tailored to her active cycle phase to maintain your support streak.",
-        placement: 'top' as const,
-        disableBeacon: true,
-      })
-    } else {
-      steps.push({
-        target: isMobile ? '.flo-fab' : '.quick-log-card',
-        title: "Instant Logging",
-        content: isMobile 
-          ? "Tap this floating action button at any time to record symptoms, mood, and flow data."
-          : "Use this panel to quickly log your daily symptoms, mood, and lifestyle metrics.",
-        placement: 'top' as const,
-        disableBeacon: true,
-      })
-    }
-
-    return steps
-  }, [user?.role, isMobile])
+  // Tour steps definition and instantiation of driver.js is managed in a useEffect below
 
   useEffect(() => {
     if (isAuthenticated && user?.role && partnerStatus === null) {
@@ -425,13 +367,150 @@ export function DashboardView() {
     })
   }, [isAuthenticated])
 
-  const handleJoyrideCallback = (data: EventData) => {
-    const { status } = data;
-    if (([STATUS.FINISHED, STATUS.SKIPPED] as string[]).includes(status)) {
-      sessionStorage.setItem('mensflow_tour_completed', 'true')
-      dispatch({ type: 'SET_TOUR_RUN', payload: false })
+  useEffect(() => {
+    const isPartner = user?.role === 'partner'
+    const isPairedPartner = isPartner && partnerStatus?.paired
+    const isLady = user?.role === 'lady'
+    const canRunTour = isLady || isPairedPartner
+
+    if (state.mounted && state.tourRun && canRunTour) {
+      const steps: any[] = []
+
+      const addStepIfExist = (selector: string, stepConfig: any) => {
+        if (document.querySelector(selector)) {
+          steps.push({
+            element: selector,
+            popover: stepConfig
+          })
+        }
+      }
+
+      addStepIfExist('.cycle-tracker-hero', {
+        title: isPartner ? "Partner's Cycle Tracker" : "Your Cycle Tracker",
+        description: isPartner 
+          ? "Keep track of your partner's current cycle day, phase, and upcoming period prediction." 
+          : "See your current cycle day, active phase, and predictions of your next period at a glance.",
+        side: 'bottom' as const,
+        align: 'center' as const,
+      })
+
+      addStepIfExist('.flo-story-circle', {
+        title: "Daily Stories",
+        description: isPartner
+          ? "Tap these shortcuts to read scientific insights and care tips customized for your partner's current day."
+          : "Tap these shortcuts to read scientific insights, body signal guides, and care tips customized for your current day.",
+        side: 'bottom' as const,
+        align: 'center' as const,
+      })
+
+      addStepIfExist('.primary-insight-card', {
+        title: "Phase Insights & Trends",
+        description: isPartner
+          ? "Explore what your partner is experiencing physically and hormonally during her current cycle phase."
+          : "Explore how Estrogen, LH, and Progesterone behave during your current phase, and what they mean for your body.",
+        side: 'top' as const,
+        align: 'center' as const,
+      })
+
+      if (isPartner) {
+        addStepIfExist('.partner-translation-card', {
+          title: "Partner Empathy Translator",
+          description: "Translate her cycle symptoms into supportive actions and copy supportive text templates to send her right away.",
+          side: 'top' as const,
+          align: 'center' as const,
+        })
+        addStepIfExist('.daily-tip-card', {
+          title: "Daily Support Recommendation",
+          description: "Get tailored daily recommendations on how to support her with foods, activities, and communication.",
+          side: 'top' as const,
+          align: 'center' as const,
+        })
+        addStepIfExist('.connection-checklist-card', {
+          title: "Daily Connection Checklist",
+          description: "Check off customized gestures (like making tea or taking over chores) to maintain your relationship streak.",
+          side: 'top' as const,
+          align: 'center' as const,
+        })
+        addStepIfExist('.body-signals-card', {
+          title: "Shared Body Signals",
+          description: "See which symptoms she has logged today so you can respond with care and empathy.",
+          side: 'top' as const,
+          align: 'center' as const,
+        })
+        addStepIfExist('.wellness-score-card', {
+          title: "Partner Wellness Score",
+          description: "Check your partner's calculated score based on her daily logged symptoms (if shared).",
+          side: 'top' as const,
+          align: 'center' as const,
+        })
+      } else {
+        addStepIfExist('.daily-tip-card', {
+          title: "Daily Tip & Action Card",
+          description: "Get tailored daily recommendations for food, exercise, and mental well-being, and save or mark them as done.",
+          side: 'top' as const,
+          align: 'center' as const,
+        })
+        addStepIfExist('.body-signals-card', {
+          title: "Body Signals & Focus",
+          description: "See common symptoms for today and target specific wellness routines like hydration, stretching, or workouts.",
+          side: 'top' as const,
+          align: 'center' as const,
+        })
+        addStepIfExist('.wellness-score-card', {
+          title: "Daily Wellness Score",
+          description: "Track symptoms, mood, and sleep levels to calculate your daily wellness score and monitor health trends.",
+          side: 'top' as const,
+          align: 'center' as const,
+        })
+        addStepIfExist('.clinical-export-card', {
+          title: "Clinical PDF Export",
+          description: "Generate a print-ready PDF containing your historical averages, symptom trends, and biological NFP evidence to share with your doctor.",
+          side: 'top' as const,
+          align: 'center' as const,
+        })
+        addStepIfExist(isMobile ? '.flo-fab' : '.quick-log-card', {
+          title: "Instant Logging",
+          description: isMobile 
+            ? "Tap this floating action button at any time to record symptoms, mood, and flow data."
+            : "Use this panel to quickly log your daily symptoms, mood, and lifestyle metrics.",
+          side: 'top' as const,
+          align: 'center' as const,
+        })
+      }
+
+      const timer = setTimeout(() => {
+        // Ensure any previous driver is destroyed first
+        const activeDriver = (window as any).__mensflow_driver
+        if (activeDriver && typeof activeDriver.destroy === 'function') {
+          activeDriver.destroy()
+        }
+
+        const driverObj = driver({
+          showProgress: true,
+          allowClose: true,
+          overlayColor: 'rgba(0, 0, 0, 0.65)',
+          steps,
+          onDestroyed: () => {
+            sessionStorage.setItem('mensflow_tour_completed', 'true')
+            dispatch({ type: 'SET_TOUR_RUN', payload: false })
+            delete (window as any).__mensflow_driver
+          }
+        })
+
+        ;(window as any).__mensflow_driver = driverObj
+        driverObj.drive()
+      }, 300)
+
+      return () => {
+        clearTimeout(timer)
+        const activeDriver = (window as any).__mensflow_driver
+        if (activeDriver && typeof activeDriver.destroy === 'function') {
+          activeDriver.destroy()
+          delete (window as any).__mensflow_driver
+        }
+      }
     }
-  }
+  }, [state.mounted, state.tourRun, user?.role, partnerStatus?.paired, isMobile])
 
   const phase = useMemo(() => {
     if (data.phaseLabel) {
@@ -626,36 +705,7 @@ export function DashboardView() {
     )
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const joyrideProps: any = {
-    steps: tourSteps,
-    run: state.tourRun,
-    continuous: true,
-    showSkipButton: true,
-    showProgress: true,
-    disableOverlayClose: true,
-    scrollToFirstStep: true,
-    scrollOffset: 100,
-    callback: handleJoyrideCallback,
-    tooltipComponent: TourTooltip,
-    spotlightPadding: 8,
-    floaterProps: {
-      disableAnimation: true,
-      options: {
-        preventOverflow: true,
-      },
-    },
-    styles: {
-      options: {
-        overlayColor: 'rgba(0, 0, 0, 0.6)',
-        zIndex: 10000,
-      },
-      spotlight: {
-        borderRadius: '24px',
-        border: '2px dashed var(--mf-accent)',
-      }
-    }
-  }
+  // Tour config is handled inside the driver.js useEffect hook
 
   const ladyName = partnerStatus?.partner?.name || 'your partner'
 
@@ -675,7 +725,7 @@ export function DashboardView() {
           </button>
         </div>
       )}
-      {state.mounted && <Joyride {...joyrideProps} />}
+      {/* Tour overlay is managed via driver.js and rendered outside the react tree */}
       <DashboardHeader 
         user={user}
         mounted={state.mounted}
@@ -781,6 +831,14 @@ export function DashboardView() {
                   label={phase}
                   onCopy={handleCopyGesture}
                 />
+
+                {shareSymptoms && (
+                  <PartnerCareTipsCard 
+                    phase={phase}
+                    bodySignals={data.bodySignals}
+                    ladyName={ladyName}
+                  />
+                )}
 
                 {/* 3. Quick empathy actions (secondary to education) */}
                 <QuickEmpathyBoostCard ladyName={ladyName} isAuthenticated={isAuthenticated} />
@@ -1025,7 +1083,7 @@ export function DashboardView() {
 
               {/* Right Sidebar Stack */}
               <div className="flex flex-col gap-6 md:gap-8 min-w-0">
-                <div className="flo-card flo-card--prominent overflow-hidden text-left">
+                <div className="flo-card flo-card--prominent clinical-export-card overflow-hidden text-left">
                   <div className="flo-card-top relative z-10">
                     <div className="flo-card-icon flo-card-icon--purple">
                       <FileText size={20} weight="light" />

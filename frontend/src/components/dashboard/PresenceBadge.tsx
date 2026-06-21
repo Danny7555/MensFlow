@@ -36,14 +36,11 @@ export function PresenceBadge({ lastActive }: PresenceBadgeProps) {
 
   return (
     <div className="flex items-center gap-1.5">
-      {/* Status dot with pulse animation when online */}
+      {/* Status dot */}
       <span className="relative flex size-2">
         <span className={`absolute inline-flex size-full rounded-full ${
           isOnline ? 'bg-emerald-500' : isRecentlyActive ? 'bg-amber-400' : 'bg-gray-400'
         }`} />
-        {isOnline && (
-          <span className="absolute inline-flex size-full rounded-full bg-emerald-500 opacity-75 animate-ping" />
-        )}
       </span>
 
       {/* Label */}
