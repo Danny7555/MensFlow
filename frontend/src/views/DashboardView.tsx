@@ -77,7 +77,7 @@ function QuickEmpathyBoostCard({ ladyName, isAuthenticated }: QuickEmpathyBoostC
         description: `"${label}" nudge dispatched successfully.`,
         action: {
           label: 'Open Chat',
-          onClick: () => nav('/ask'),
+          onClick: () => nav('/sync'),
         },
       })
     } catch (err) {
@@ -453,7 +453,7 @@ export function DashboardView() {
       duration: 5000,
       action: {
         label: 'Open Chat',
-        onClick: () => navigate('/ask'),
+        onClick: () => navigate('/sync'),
       },
     })
   }
