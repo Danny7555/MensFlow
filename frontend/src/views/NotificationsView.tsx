@@ -636,7 +636,7 @@ export function NotificationsView() {
             {((partnerStatus && partnerStatus.paired) || user?.role === 'lady') && (
               <div className="p-6 rounded-[24px] border border-[var(--mf-border)] bg-[var(--mf-card)]">
                 <div className="flex items-center gap-2.5 mb-5">
-                  <span className="size-2.5 rounded-full bg-pink-500 animate-pulse" />
+                  <span className="size-2.5 rounded-full bg-pink-500" />
                   <h3 className="font-medium text-sm text-[var(--mf-text-strong)]">Cycle Sync Status</h3>
                 </div>
                 <div className="space-y-4">

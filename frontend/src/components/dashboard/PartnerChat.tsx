@@ -112,7 +112,7 @@ export function PartnerChat() {
           </div>
         </div>
         <div className="flex items-center gap-1.5 bg-emerald-500/10 text-emerald-500 text-[10px] px-2.5 py-0.5 rounded-full border border-emerald-500/20 font-medium">
-          <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="size-1.5 rounded-full bg-emerald-500" />
           Connected
         </div>
       </div>
