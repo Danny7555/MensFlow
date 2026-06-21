@@ -1,8 +1,8 @@
 export type ThemeMode = 'light' | 'dark' | 'system'
 
-export type ContrastMode = 'system' | 'standard' | 'high'
+export type ContrastMode = 'system' | 'standard' | 'soft' | 'high'
 
-export type AccentPreset = 'default' | 'orchid' | 'ocean'
+export type AccentPreset = 'default' | 'orchid' | 'ocean' | 'emerald' | 'amber' | 'sapphire' | 'ruby'
 
 export type MensFlowSettings = {
   version: 1

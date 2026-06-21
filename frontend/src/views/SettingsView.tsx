@@ -400,6 +400,7 @@ function GeneralPanel({
         options={[
           { value: 'system', label: 'System' },
           { value: 'standard', label: 'Standard' },
+          { value: 'soft', label: 'Soft' },
           { value: 'high', label: 'High' },
         ]}
       />
@@ -411,6 +412,10 @@ function GeneralPanel({
           { value: 'default', label: 'Default' },
           { value: 'orchid', label: 'Orchid' },
           { value: 'ocean', label: 'Ocean' },
+          { value: 'emerald', label: 'Emerald' },
+          { value: 'amber', label: 'Amber' },
+          { value: 'sapphire', label: 'Sapphire' },
+          { value: 'ruby', label: 'Ruby' },
         ]}
       />
       <SelectRow

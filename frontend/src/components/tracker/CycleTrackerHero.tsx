@@ -436,7 +436,7 @@ function CycleTrackerHeroInner({
             </DropdownMenuContent>
           </DropdownMenu>
           {settings.conditionOptimization !== 'none' && (
-            <div className="px-2.5 py-1 rounded-full text-[10px] font-normal uppercase tracking-wider bg-rose-500/10 text-rose-500 dark:text-rose-400 border border-rose-500/25">
+            <div className="px-2.5 py-1 rounded-full text-[11px] font-normal uppercase tracking-wider bg-rose-500/10 text-rose-500 dark:text-rose-400 border border-rose-500/25">
               {settings.conditionOptimization.toUpperCase()} MODE
             </div>
           )}
@@ -451,7 +451,7 @@ function CycleTrackerHeroInner({
             <div className="flex flex-col items-center justify-center py-8 px-4 gap-5">
               <div className="size-24 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-500/20 dark:to-purple-500/5 flex items-center justify-center flex-col">
                 <span className="text-3xl font-semibold text-purple-700 dark:text-purple-300 leading-none">{Math.min(40, Math.max(1, currentDay))}</span>
-                <span className="text-[9px] uppercase tracking-wider text-purple-600 dark:text-purple-400 mt-0.5">Weeks</span>
+                <span className="text-[11px] uppercase tracking-wider text-purple-600 dark:text-purple-400 mt-0.5">Weeks</span>
               </div>
 
               <div className="w-full max-w-[260px] space-y-2">
@@ -518,7 +518,7 @@ function CycleTrackerHeroInner({
                 {data.lastPeriodStart && settings.cycleShowFertileWindow && (
                   <div className="mb-6 animate-in fade-in zoom-in duration-700">
                     <span
-                      className="px-5 py-1.5 rounded-full text-[9px] font-normal uppercase tracking-widest transition-colors duration-300"
+                      className="px-5 py-1.5 rounded-full text-[11px] font-normal uppercase tracking-widest transition-colors duration-300"
                       style={{ color: activeInfo.color }}
                     >
                       {trackingMode === 'conception'

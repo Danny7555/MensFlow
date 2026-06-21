@@ -199,8 +199,8 @@ export function TrackerView() {
     <div className="flex flex-col h-full bg-background overflow-auto relative">
       <div className="flex-1 w-full max-w-[1200px] mx-auto p-4 md:p-6 lg:p-8 animate-in fade-in duration-500">
         <div className="flex items-center justify-end mb-3">
-          <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-card border border-border/50">
-            <span className="text-[9px] font-normal uppercase tracking-wider text-muted-foreground">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-card border border-border/50">
+            <span className="text-[11px] font-normal uppercase tracking-wider text-muted-foreground">
               {isSaving ? 'Syncing…' : 'All synced'}
             </span>
           </div>
