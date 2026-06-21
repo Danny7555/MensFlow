@@ -14,6 +14,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { Button } from '@/components/ui/button'
 import { hapticMedium, hapticSelection } from '@/lib/haptics'
+import { useSEO } from '../hooks/useSEO'
 import {
   Dialog,
   DialogContent,
@@ -693,6 +694,14 @@ export function CommunityView() {
   const { data: list, isLoading } = useCommunityPosts(category === 'all' ? undefined : category, page)
   const { data: detail } = useCommunityPost(selectedPostId || '')
   const addComment = useAddComment()
+
+  useSEO({
+    title: detail ? detail.post.title : 'Community Board',
+    description: detail
+      ? detail.post.body.slice(0, 150) + (detail.post.body.length > 150 ? '...' : '')
+      : 'Connect with others on their cycle journey, share tips, and post questions.',
+    keywords: 'menstrual health, mensflow community, support group, cycle discussion'
+  })
 
   const handlePostClick = (id: string) => {
     viewDispatch({ type: 'SELECT_POST', payload: id })

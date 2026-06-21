@@ -2,8 +2,14 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, House } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
+import { useSEO } from '../hooks/useSEO';
 
 export function NotFoundView() {
+  useSEO({
+    title: "Page Not Found",
+    description: "The page you're looking for has moved or doesn't exist yet on MensFlow.",
+  });
+
   const navigate = useNavigate();
 
   return (
