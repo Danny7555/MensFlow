@@ -175,6 +175,10 @@ export function FaceIDScanner({
 }) {
   const [phase, setPhase] = useState<'scanning' | 'success'>('scanning')
   const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  // Cache onSuccess in a mutable ref to prevent effect re-subscription triggers
+  const onSuccessRef = useRef(onSuccess)
+  onSuccessRef.current = onSuccess
   
   // Audio scanning tick loop
   useEffect(() => {
@@ -193,7 +197,7 @@ export function FaceIDScanner({
       
       // Delay success display for 800ms before unlocking
       const unlockTimeout = setTimeout(() => {
-        onSuccess()
+        onSuccessRef.current()
       }, 800)
       
       return () => clearTimeout(unlockTimeout)
@@ -203,7 +207,7 @@ export function FaceIDScanner({
       clearInterval(interval)
       clearTimeout(timeout)
     }
-  }, [phase, onSuccess])
+  }, [phase])
 
   // Canvas scan line / face mesh animation
   useEffect(() => {
