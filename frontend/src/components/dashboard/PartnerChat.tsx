@@ -133,7 +133,7 @@ export function PartnerChat() {
             </div>
             <p className="text-xs text-[var(--mf-text-strong)] font-medium">No messages yet</p>
             <p className="text-[10px] text-[var(--mf-muted)] mt-1 max-w-[200px] leading-relaxed">
-              Send a message to your partner to start coordinating care plans and support!
+              The quiet before something beautiful. Send a message to your partner — every word strengthens your connection. ✨
             </p>
           </div>
         ) : (

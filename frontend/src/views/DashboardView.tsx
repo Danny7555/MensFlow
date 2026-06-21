@@ -3,7 +3,7 @@ import { use, useReducer, useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Joyride, STATUS, type EventData, type TooltipRenderProps } from 'react-joyride'
 import { m } from 'framer-motion'
-import { Plus, LinkSimple, Users, ArrowRight, Sparkle, Check, Cookie, CookingPot, Heart, Moon, LockSimple, PersonIcon, FileText, Warning } from '@phosphor-icons/react'
+import { Plus, LinkSimple, Users, ArrowRight, Sparkle, Check, Cookie, CookingPot, Heart, Moon, LockSimple, FileText, Warning } from '@phosphor-icons/react'
 import { DoctorReportModal } from '../components/dashboard/DoctorReportModal'
 import { toast } from 'sonner'
 import { useStore } from '../store/useStore'
@@ -35,6 +35,7 @@ import { HormoneInsightCard } from '../components/dashboard/HormoneInsightCard'
 import { SymptomLogger } from '../components/dashboard/DailyCheckIn'
 import { MonthInReview } from '../components/dashboard/MonthInReview'
 import { WeatherAlertCard } from '../components/dashboard/WeatherAlertCard'
+import { hapticMedium, hapticHeavy } from '../lib/haptics'
 
 const getTimestamp = () => new Date().getTime()
 
@@ -56,6 +57,7 @@ function QuickEmpathyBoostCard({ ladyName, isAuthenticated }: QuickEmpathyBoostC
   ]
 
   const handleSendPing = async (id: string, label: string, message: string) => {
+    hapticMedium()
     setActivePing(id)
     try {
       if (isAuthenticated) {
@@ -284,6 +286,7 @@ export function DashboardView() {
   }, [])
 
   const handleDashboardPair = async () => {
+    hapticMedium()
     if (!dashboardPartnerCodeInput.trim()) return
     setIsDashboardPairing(true)
     try {
@@ -1060,7 +1063,7 @@ export function DashboardView() {
       {user?.role !== 'partner' && (
         <button type="button" 
           className="flo-fab"
-          onClick={() => dispatch({ type: 'TOGGLE_LOG', payload: true })}
+          onClick={() => { hapticHeavy(); dispatch({ type: 'TOGGLE_LOG', payload: true }); }}
         >
           <div className="flo-fab-ripple" />
           <Plus size={28} weight="bold" />

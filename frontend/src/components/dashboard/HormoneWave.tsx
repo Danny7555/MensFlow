@@ -99,6 +99,9 @@ function Bar({ label, detail, level, color }: {
   )
 }
 
+const createSliderBg = (val: number, max: number, color: string) =>
+  `linear-gradient(to right, color-mix(in srgb, ${color} 19%, transparent) 0%, color-mix(in srgb, ${color} 19%, transparent) ${(val / max) * 100}%, var(--mf-border) ${(val / max) * 100}%, var(--mf-border) 100%)`
+
 export function HormoneWave() {
   const { dashboard: ownDashboard, partnerStatus, user } = useStore()
 
@@ -137,9 +140,6 @@ export function HormoneWave() {
 
   const icon = phaseIcons[dayInsight.key]
 
-  const createSliderBg = (val: number, max: number, color: string) =>
-    `linear-gradient(to right, color-mix(in srgb, ${color} 19%, transparent) 0%, color-mix(in srgb, ${color} 19%, transparent) ${(val / max) * 100}%, var(--mf-border) ${(val / max) * 100}%, var(--mf-border) 100%)`
-
   return (
     <div className="space-y-5 p-5 bg-card rounded-2xl border border-border">
       {/* Title + Phase */}
@@ -169,6 +169,7 @@ export function HormoneWave() {
           value={activeDay}
           onChange={(e) => setActiveDay(parseInt(e.target.value))}
           className="hormone-slider w-full"
+          aria-label={`Cycle day ${activeDay} of ${cycleLen}`}
           style={{ background: createSliderBg(activeDay, cycleLen, dayInsight.accentColor) }}
         />
       </div>

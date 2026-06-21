@@ -17,6 +17,7 @@ import {
 } from '@phosphor-icons/react'
 import { useStore } from '../store/useStore'
 import { cn } from '../lib/utils'
+import { hapticMedium } from '../lib/haptics'
 
 const MAX_FILES = 12
 const MAX_BYTES = 15 * 1024 * 1024
@@ -159,6 +160,7 @@ export function ChatComposer({
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
     if (!value.trim()) return
+    hapticMedium()
     onSubmit()
   }
 

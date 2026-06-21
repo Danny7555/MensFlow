@@ -613,12 +613,12 @@ export function NotificationsView() {
 
             {notifications.length === 0 && (
               <div className="flex flex-col items-center justify-center py-24 text-center">
-                <div className="size-16 rounded-full bg-[var(--mf-hover)] flex items-center justify-center text-[var(--mf-muted)] mb-4">
+                <div className="size-16 rounded-full bg-gradient-to-br from-[var(--mf-accent-soft)] to-[var(--mf-accent-soft)]/40 flex items-center justify-center text-[var(--mf-accent)] mb-4 border border-[var(--mf-accent-border)]">
                   <Bell size={32} weight="light" />
                 </div>
-                <h3 className="font-medium text-[var(--mf-text-strong)] mb-1">All caught up</h3>
+                <h3 className="font-medium text-[var(--mf-text-strong)] mb-1">All caught up ✨</h3>
                 <p className="text-xs md:text-sm text-[var(--mf-muted)] max-w-[280px] leading-relaxed">
-                  You don't have any notifications or action alerts at the moment.
+                  You're clear for now. We'll let you know when you need to check in.
                 </p>
               </div>
             )}

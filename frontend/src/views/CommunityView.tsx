@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useReducer } from 'react'
+import React, { useRef, useEffect, useReducer } from 'react'
 import { m, AnimatePresence } from 'framer-motion'
 import {
   Plus, ArrowLeft, Trash,
@@ -13,6 +13,7 @@ import { resolveAssetUrl } from '../lib/apiClient'
 import { useQueryClient } from '@tanstack/react-query'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { Button } from '@/components/ui/button'
+import { hapticMedium, hapticSelection } from '@/lib/haptics'
 import {
   Dialog,
   DialogContent,
@@ -145,6 +146,7 @@ function CreatePostModal({ open, onClose }: { open: boolean; onClose: () => void
   }
 
   const handleSubmit = async () => {
+    hapticMedium()
     if (!title.trim() || !body.trim()) return
     try {
       await createPost.mutateAsync({
@@ -624,14 +626,41 @@ function VirtualizedPostList({ posts, scrollRef, onPostClick }: {
   )
 }
 
+type ViewState = {
+  category: string
+  page: number
+  selectedPostId: string | null
+  showCreate: boolean
+  confirmDeleteId: string | null
+}
+
+type ViewAction =
+  | { type: 'SET_CATEGORY'; payload: string }
+  | { type: 'SET_PAGE'; payload: number }
+  | { type: 'SELECT_POST'; payload: string | null }
+  | { type: 'SET_SHOW_CREATE'; payload: boolean }
+  | { type: 'SET_CONFIRM_DELETE'; payload: string | null }
+
+const initialViewState: ViewState = {
+  category: 'all', page: 1, selectedPostId: null, showCreate: false, confirmDeleteId: null,
+}
+
+function viewReducer(state: ViewState, action: ViewAction): ViewState {
+  switch (action.type) {
+    case 'SET_CATEGORY': return { ...state, category: action.payload, page: 1 }
+    case 'SET_PAGE': return { ...state, page: action.payload }
+    case 'SELECT_POST': return { ...state, selectedPostId: action.payload }
+    case 'SET_SHOW_CREATE': return { ...state, showCreate: action.payload }
+    case 'SET_CONFIRM_DELETE': return { ...state, confirmDeleteId: action.payload }
+    default: return state
+  }
+}
+
 export function CommunityView() {
   const { user } = useStore()
   const qc = useQueryClient()
-  const [category, setCategory] = useState('all')
-  const [page, setPage] = useState(1)
-  const [selectedPostId, setSelectedPostId] = useState<string | null>(null)
-  const [showCreate, setShowCreate] = useState(false)
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [view, viewDispatch] = useReducer(viewReducer, initialViewState)
+  const { category, page, selectedPostId, showCreate, confirmDeleteId } = view
   const [comment, commentDispatch] = useReducer(commentReducer, initialCommentState)
   const mentionRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -666,11 +695,12 @@ export function CommunityView() {
   const addComment = useAddComment()
 
   const handlePostClick = (id: string) => {
-    setSelectedPostId(id)
+    viewDispatch({ type: 'SELECT_POST', payload: id })
     commentDispatch({ type: 'RESET' })
   }
 
   const handleSubmitComment = async () => {
+    hapticSelection()
     if (!comment.text.trim() || !selectedPostId) return
     try {
       await addComment.mutateAsync({ postId: selectedPostId, data: { body: comment.text.trim(), isAnonymous: comment.isAnonymous } })
@@ -681,7 +711,7 @@ export function CommunityView() {
   }
 
   const handleDeletePost = async (postId: string) => {
-    setConfirmDeleteId(postId)
+    viewDispatch({ type: 'SET_CONFIRM_DELETE', payload: postId })
   }
 
   const confirmDelete = async () => {
@@ -693,11 +723,11 @@ export function CommunityView() {
         return { ...old, posts: old.posts.filter(p => p._id !== confirmDeleteId), total: old.total - 1 }
       })
       toast.success('Post deleted')
-      setSelectedPostId(null)
+      viewDispatch({ type: 'SELECT_POST', payload: null })
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to delete post')
     } finally {
-      setConfirmDeleteId(null)
+      viewDispatch({ type: 'SET_CONFIRM_DELETE', payload: null })
     }
   }
 
@@ -706,11 +736,11 @@ export function CommunityView() {
       <PostDetailView
         detail={detail}
         user={user}
-        onBack={() => setSelectedPostId(null)}
+        onBack={() => viewDispatch({ type: 'SELECT_POST', payload: null })}
         onDelete={handleDeletePost}
         confirmDelete={confirmDelete}
         confirmDeleteId={confirmDeleteId}
-        setConfirmDeleteId={setConfirmDeleteId}
+        setConfirmDeleteId={(id) => viewDispatch({ type: 'SET_CONFIRM_DELETE', payload: id })}
         commentText={comment.text}
         setCommentText={val => commentDispatch({ type: 'SET_TEXT', text: val })}
         commentAnonymous={comment.isAnonymous}
@@ -742,7 +772,7 @@ export function CommunityView() {
               </div>
             </div>
             <Button
-              onClick={() => setShowCreate(true)}
+              onClick={() => viewDispatch({ type: 'SET_SHOW_CREATE', payload: true })}
               size="sm"
               className="rounded-xl gap-1.5 h-9 text-xs"
             >
@@ -759,7 +789,7 @@ export function CommunityView() {
                 <button
                   key={cat.id}
                   type="button"
-                  onClick={() => { setCategory(cat.id); setPage(1) }}
+                  onClick={() => { viewDispatch({ type: 'SET_CATEGORY', payload: cat.id }); viewDispatch({ type: 'SET_PAGE', payload: 1 }) }}
                   className={cn(
                     'flex items-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer border shrink-0',
                     active
@@ -784,16 +814,16 @@ export function CommunityView() {
               <VirtualizedPostList posts={list.posts} scrollRef={scrollRef} onPostClick={handlePostClick} />
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-20 gap-5 px-4">
-              <div className="size-20 rounded-2xl bg-gradient-to-br from-[var(--mf-accent-soft)] to-[var(--mf-accent-soft)]/40 flex items-center justify-center text-[var(--mf-accent)] border border-[var(--mf-accent-border)]">
-                <ChatCircleDots size={36} weight="thin" />
-              </div>
-              <div className="text-center space-y-1.5 max-w-xs">
-                <p className="text-base font-semibold text-[var(--mf-text-strong)]">No discussions yet</p>
-                <p className="text-sm text-muted-foreground">Be the first to start a conversation!</p>
-              </div>
+              <div className="flex flex-col items-center justify-center py-20 gap-5 px-4">
+                <div className="size-20 rounded-2xl bg-gradient-to-br from-[var(--mf-accent-soft)] to-[var(--mf-accent-soft)]/40 flex items-center justify-center text-[var(--mf-accent)] border border-[var(--mf-accent-border)]">
+                  <ChatCircleDots size={36} weight="thin" />
+                </div>
+                <div className="text-center space-y-1.5 max-w-xs">
+                  <p className="text-base font-semibold text-[var(--mf-text-strong)]">No discussions yet</p>
+                  <p className="text-sm text-muted-foreground">The community is quiet. Spark a conversation — someone out there needs to hear this! 💬</p>
+                </div>
               <Button
-                onClick={() => setShowCreate(true)}
+                onClick={() => viewDispatch({ type: 'SET_SHOW_CREATE', payload: true })}
                 className="rounded-xl gap-1.5"
               >
                 <Plus size={16} weight="bold" />
@@ -805,17 +835,17 @@ export function CommunityView() {
       </main>
 
       <AnimatePresence>
-        {showCreate && <CreatePostModal open={showCreate} onClose={() => setShowCreate(false)} />}
+        {showCreate && <CreatePostModal open={showCreate} onClose={() => viewDispatch({ type: 'SET_SHOW_CREATE', payload: false })} />}
       </AnimatePresence>
 
-      <Dialog open={!!confirmDeleteId} onOpenChange={() => setConfirmDeleteId(null)}>
+      <Dialog open={!!confirmDeleteId} onOpenChange={() => viewDispatch({ type: 'SET_CONFIRM_DELETE', payload: null })}>
         <DialogContent className="sm:max-w-[360px] rounded-2xl">
           <DialogHeader>
             <DialogTitle>Delete post?</DialogTitle>
             <DialogDescription>This action cannot be undone.</DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex gap-2 sm:gap-2">
-            <Button variant="outline" onClick={() => setConfirmDeleteId(null)} className="flex-1 rounded-xl">Cancel</Button>
+            <Button variant="outline" onClick={() => viewDispatch({ type: 'SET_CONFIRM_DELETE', payload: null })} className="flex-1 rounded-xl">Cancel</Button>
             <Button onClick={confirmDelete} className="flex-1 rounded-xl bg-[var(--mf-danger)] hover:bg-[var(--mf-danger)]/90 text-white">Delete</Button>
           </DialogFooter>
         </DialogContent>

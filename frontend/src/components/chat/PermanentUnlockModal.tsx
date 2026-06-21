@@ -23,14 +23,14 @@ export function PermanentUnlockModal({ passcode, onPasscodeChange, onConfirm, on
           This will permanently remove password protection and move the conversation back into your main chat history.
         </p>
         <div className="flex flex-col gap-1.5 text-left">
-          <label className="text-xs font-medium text-[var(--mf-text)]">Enter your passcode or account password</label>
+          <label htmlFor="perm-unlock-passcode" className="text-xs font-medium text-[var(--mf-text)]">Enter your passcode or account password</label>
           <input
+            id="perm-unlock-passcode"
             type="password"
             placeholder="Enter passcode / account password"
             className="chat-lock-input"
             value={passcode}
             onChange={(e) => onPasscodeChange(e.target.value)}
-            autoFocus
           />
         </div>
         <div className="flex items-center gap-2 pt-1">

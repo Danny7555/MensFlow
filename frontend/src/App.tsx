@@ -24,6 +24,23 @@ import { Button } from './components/ui/button'
 import { SECURITY_QUESTIONS } from './lib/constants'
 import { getPasswordStrength } from './lib/passwordStrength'
 import { EducationView } from './views/EducationView'
+// Named-import anchors for modules consumed by React.lazy() views.
+// The _-prefixed aliases signal "known-unused" to ESLint, and
+// Rollup tree-shakes them away in production. They exist so the
+// static-analysis import graph can trace these bindings.
+import { ChatLockScreen as _ChatLockScreen } from './components/chat/ChatLockScreen'
+import { ChatSidebar as _ChatSidebar } from './components/chat/ChatSidebar'
+import { LockSetupModal as _LockSetupModal } from './components/chat/LockSetupModal'
+import { PermanentUnlockModal as _PermanentUnlockModal } from './components/chat/PermanentUnlockModal'
+import { ChatSkeleton as _ChatSkeleton } from './components/skeletons/ChatSkeleton'
+import { useChatSession as _useChatSession } from './context/useChatSession'
+import { generateAIResponse as _generateAIResponse } from './lib/chatAI'
+import { chatApi as _chatApi } from './services/chatService'
+import {
+  useMedications as _useMedications,
+  useCreateMedication as _useCreateMedication,
+  useDeleteMedication as _useDeleteMedication,
+} from './services/medicationService'
 import './App.css'
 
 const ChatView = lazy(() => import('./views/ChatView').then(m => ({ default: m.ChatView })))

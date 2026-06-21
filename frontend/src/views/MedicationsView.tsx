@@ -61,6 +61,7 @@ export function MedicationsView() {
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="Medication name *"
+                aria-label="Medication name"
                 className="w-full h-11 px-4 rounded-xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm text-[var(--mf-text-strong)] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[var(--mf-ring)]"
               />
               <div className="flex gap-3">
@@ -68,11 +69,13 @@ export function MedicationsView() {
                   value={dosage}
                   onChange={e => setDosage(e.target.value)}
                   placeholder="Dosage (e.g. 500mg)"
+                  aria-label="Dosage"
                   className="flex-1 h-11 px-4 rounded-xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm text-[var(--mf-text-strong)] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[var(--mf-ring)]"
                 />
                 <select
                   value={frequency}
                   onChange={e => setFrequency(e.target.value)}
+                  aria-label="Frequency"
                   className="h-11 px-3 rounded-xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm text-[var(--mf-text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--mf-ring)]"
                 >
                   <option value="daily">Daily</option>
@@ -85,12 +88,14 @@ export function MedicationsView() {
                   type="time"
                   value={timeOfDay}
                   onChange={e => setTimeOfDay(e.target.value)}
+                  aria-label="Time of day"
                   className="h-11 px-4 rounded-xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm text-[var(--mf-text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--mf-ring)]"
                 />
                 <input
                   value={notes}
                   onChange={e => setNotes(e.target.value)}
                   placeholder="Notes (optional)"
+                  aria-label="Notes"
                   className="flex-1 h-11 px-4 rounded-xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm text-[var(--mf-text-strong)] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[var(--mf-ring)]"
                 />
               </div>
@@ -127,7 +132,7 @@ export function MedicationsView() {
                     {med.notes && <p className="text-xs text-muted-foreground mt-1">{med.notes}</p>}
                   </div>
                   <>{confirmDeleteId === med._id && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20" onClick={() => setConfirmDeleteId(null)}>
+                    <button type="button" className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 cursor-default" onClick={() => setConfirmDeleteId(null)} onKeyDown={e => { if (e.key === 'Escape' || e.key === 'Enter') setConfirmDeleteId(null) }}>
                       <m.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -152,7 +157,7 @@ export function MedicationsView() {
                           </button>
                         </div>
                       </m.div>
-                    </div>
+                    </button>
                   )}</>
                   <button
                     type="button"

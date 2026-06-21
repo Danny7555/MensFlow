@@ -44,16 +44,16 @@ export function LockSetupModal({
         </p>
         <div className="flex flex-col gap-4 text-left">
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-[var(--mf-text)]">Passcode</label>
+            <label htmlFor="lock-passcode" className="text-xs font-medium text-[var(--mf-text)]">Passcode</label>
             <div className="relative">
               <LockKey size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
+                id="lock-passcode"
                 type="password"
                 placeholder="Enter a passcode"
                 className="chat-lock-input pl-9"
                 value={passcode}
                 onChange={(e) => onPasscodeChange(e.target.value)}
-                autoFocus
               />
             </div>
             {strength && (
@@ -71,8 +71,9 @@ export function LockSetupModal({
             )}
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-[var(--mf-text)]">Security Question <span className="text-muted-foreground font-normal">(optional)</span></label>
+            <label htmlFor="lock-security-question" className="text-xs font-medium text-[var(--mf-text)]">Security Question <span className="text-muted-foreground font-normal">(optional)</span></label>
             <select
+              id="lock-security-question"
               className="w-full h-11 px-3 rounded-xl bg-muted border border-border text-sm text-[var(--mf-text-strong)] focus:border-[var(--mf-accent-border)] focus:ring-1 focus:ring-[var(--mf-accent)] outline-none transition-all"
               value={questionId}
               onChange={(e) => onQuestionChange(e.target.value)}
@@ -83,8 +84,9 @@ export function LockSetupModal({
             </select>
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-[var(--mf-text)]">Answer <span className="text-muted-foreground font-normal">(optional — for recovery)</span></label>
+            <label htmlFor="lock-answer" className="text-xs font-medium text-[var(--mf-text)]">Answer <span className="text-muted-foreground font-normal">(optional — for recovery)</span></label>
             <input
+              id="lock-answer"
               type="text"
               placeholder="Your answer"
               className="chat-lock-input"

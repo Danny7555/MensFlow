@@ -1959,4 +1959,48 @@
   overscroll-behavior-y: none;
 }
 
+/* ─── Ripple Button Effect ──────────────────────────────────── */
+.btn-ripple {
+  position: relative;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-ripple::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--ripple-x, 50%) var(--ripple-y, 50%), rgba(255,255,255,0.3) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.btn-ripple:active::after {
+  opacity: 1;
+  transition: opacity 0s;
+}
+
+/* ─── Celebration keyframes ─────────────────────────────────── */
+@keyframes celebration-pop {
+  0% { transform: scale(0) rotate(-15deg); opacity: 0; }
+  50% { transform: scale(1.2) rotate(5deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.celebration-check {
+  animation: celebration-pop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ─── Pulse ring for notifications/status ───────────────────── */
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(var(--mf-accent-rgb), 0.4); }
+  70% { box-shadow: 0 0 0 12px rgba(var(--mf-accent-rgb), 0); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--mf-accent-rgb), 0); }
+}
+
+.pulse-ring {
+  animation: pulse-ring 2s ease-in-out infinite;
+}
+
 

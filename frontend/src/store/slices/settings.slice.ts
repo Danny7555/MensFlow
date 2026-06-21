@@ -5,7 +5,7 @@ import { isLoggedIn } from '../../lib/auth-token'
 import { userApi, userKeys } from '../../services/userService'
 import { queryClient } from '../../lib/queryClient'
 
-export function loadSavedSettings(): MensFlowSettings {
+function loadSavedSettings(): MensFlowSettings {
   if (typeof window === 'undefined') return DEFAULT_SETTINGS
   try {
     const raw = localStorage.getItem('mensflow-settings-v1')

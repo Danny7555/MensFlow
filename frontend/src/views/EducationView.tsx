@@ -229,7 +229,7 @@ export function EducationView() {
             </div>
             <div className="text-center space-y-1.5 max-w-xs">
               <p className="text-base font-semibold text-[var(--mf-text-strong)]">No guides found</p>
-              <p className="text-sm text-muted-foreground">Try selecting a different category to discover more guides.</p>
+              <p className="text-sm text-muted-foreground">Nothing here yet, but there's always more to explore. Try another category!</p>
             </div>
           </div>
         ) : (<>

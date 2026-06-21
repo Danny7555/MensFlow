@@ -53,19 +53,20 @@ export function ChatLockScreen({ unlockInfo, onSubmit }: Props) {
                 value={securityAnsVal}
                 onChange={(e) => setSecurityAnsVal(e.target.value)}
                 required
-                autoFocus
+                aria-label="Security question answer"
               />
             </>
           ) : (
-            <input
-              type="password"
-              placeholder="Enter passcode"
-              className="chat-lock-input"
-              value={passcodeVal}
-              onChange={(e) => setPasscodeVal(e.target.value)}
-              required
-              autoFocus
-            />
+              <input
+                id="lock-screen-passcode"
+                type="password"
+                placeholder="Enter passcode"
+                className="chat-lock-input"
+                value={passcodeVal}
+                onChange={(e) => setPasscodeVal(e.target.value)}
+                required
+                aria-label="Enter passcode"
+              />
           )}
         </div>
 

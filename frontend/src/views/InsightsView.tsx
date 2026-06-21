@@ -13,6 +13,7 @@ import { useStore } from '../store/useStore'
 import { SYMPTOM_DEFS } from '../data/symptomsData'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
+import { hapticSelection } from '@/lib/haptics'
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -39,6 +40,7 @@ const itemVariants: Variants = {
 }
 
 const handlePrintPDF = () => {
+  hapticSelection()
   window.print()
 }
 
@@ -67,6 +69,7 @@ export function InsightsView() {
   }, [isPartner, partnerStatus, fetchPartnerStatus])
 
   const handleExportCSV = () => {
+    hapticSelection()
     if (!logs || logs.length === 0) {
       toast.error("No logs available to export.")
       return

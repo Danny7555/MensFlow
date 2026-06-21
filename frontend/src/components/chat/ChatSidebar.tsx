@@ -28,9 +28,12 @@ export function ChatSidebar({
   return (
     <>
       {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-40 md:hidden"
+        <button
+          type="button"
+          className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-40 md:hidden cursor-default"
+          aria-label="Close menu"
           onClick={onClose}
+          onKeyDown={e => { if (e.key === 'Escape' || e.key === 'Enter') onClose() }}
         />
       )}
       <aside className={cn("chat-sidebar-wrapper", !isOpen && "collapsed")}>
@@ -71,9 +74,12 @@ export function ChatSidebar({
                   "chat-session-item",
                   activeSessionId === s.sessionId && "active"
                 )}
-                onClick={() => onSessionClick(s.sessionId)}
               >
-                <div className="chat-session-left">
+                <button
+                  type="button"
+                  className="chat-session-left"
+                  onClick={() => onSessionClick(s.sessionId)}
+                >
                   {s.isLocked ? (
                     <Lock size={16} className="text-amber-500 shrink-0" />
                   ) : (
@@ -82,7 +88,7 @@ export function ChatSidebar({
                   <span className="chat-session-title">
                     {s.title}
                   </span>
-                </div>
+                </button>
 
                 <div className="chat-session-actions">
                   {!s.isLocked && (

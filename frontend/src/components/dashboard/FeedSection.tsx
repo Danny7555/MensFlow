@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils"
 import { useStore } from "../../store/useStore"
 import { getPhaseTasks } from "../../lib/cycleUtils"
 import { toast } from "sonner"
+import { useAnimatedCounter } from "../../lib/useAnimatedCounter"
 
 const itemVariants: Variants = {
   hidden: { opacity: 0, y: 15 },
@@ -70,7 +71,7 @@ export function PrimaryInsightCard({ label, currentDay, trend }: { label: string
   const gradient = PHASE_GRADIENTS[normalized] || 'from-gray-500/20 to-gray-500/10'
 
   return (
-    <m.div variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
+    <m.div initial="hidden" animate="visible" variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
       <div className="flex flex-col h-full">
         <div className={`-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden bg-gradient-to-r ${gradient}`}>
           {!imgError && (
@@ -129,7 +130,7 @@ export function BodySignalsCard({ signals, currentDay, phaseLabel }: { signals: 
     : ['Setup Tracking', 'Log Cycle']
 
   return (
-    <m.div variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
+    <m.div initial="hidden" animate="visible" variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
       <div className="flex flex-col h-full">
         <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden bg-gradient-to-br from-blue-500/20 to-cyan-500/10">
           {!imgError && (
@@ -182,9 +183,12 @@ export function WellnessScoreCard() {
     ? partnerStatus.cycle.symptoms
     : (todayLog?.symptoms ?? [])
 
+  const score = Math.max(50, 100 - symptoms.length * 10)
+  const animatedScore = useAnimatedCounter(score, 900, hasLoggedToday)
+
   if (!hasLoggedToday) {
     return (
-      <m.div variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
+      <m.div initial="hidden" animate="visible" variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
         <div className="flex flex-col h-full">
           <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden bg-gradient-to-br from-rose-500/15 to-pink-500/5">
             <img loading="lazy" src="/images/heart.png" alt="Wellness" className="w-full h-full object-cover opacity-60" />
@@ -237,8 +241,6 @@ export function WellnessScoreCard() {
     )
   }
   
-  const score = Math.max(50, 100 - symptoms.length * 10)
-  
   let stressText = "Low (Stable)"
   let stressColor = "text-green-500"
   if (symptoms.includes('mood-anxious') || symptoms.includes('mood-irritable')) {
@@ -252,7 +254,7 @@ export function WellnessScoreCard() {
   const sleepText = symptoms.includes('phys-fatigue') ? "75% Restless" : "96% Optimal"
 
   return (
-    <m.div variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
+    <m.div initial="hidden" animate="visible" variants={itemVariants} className="flo-card flo-card--prominent overflow-hidden group h-full">
       <div className="flex flex-col h-full">
         <div className="-mx-6 -mt-6 mb-4 h-[100px] relative shrink-0 overflow-hidden bg-gradient-to-br from-rose-500/15 to-pink-500/5">
           <img loading="lazy" src="/images/heart.png" alt="Wellness" className="w-full h-full object-cover opacity-60" />
@@ -266,7 +268,7 @@ export function WellnessScoreCard() {
           <div className="flex-1">
             <p className="flo-card-title">Wellness Score</p>
             <div className="flex items-end gap-1">
-              <h3 className="flo-card-desc text-2xl font-normal text-[var(--mf-accent)]">{score}</h3>
+              <h3 className="flo-card-desc text-2xl font-normal text-[var(--mf-accent)]">{animatedScore}</h3>
               <span className="text-xs mb-1.5 font-normal text-[var(--mf-accent)] opacity-60">/100</span>
             </div>
             <div className="w-full h-1.5 bg-[var(--mf-border)] rounded-full mt-3 overflow-hidden">
@@ -360,7 +362,7 @@ export function PartnerTranslationCard({ label, onCopy }: {
 
 export function QuickLogCard({ onViewAll }: { onViewAll: () => void }) {
   return (
-    <m.div variants={itemVariants} className="flo-card flo-card--prominent h-full quick-log-card">
+    <m.div initial="hidden" animate="visible" variants={itemVariants} className="flo-card flo-card--prominent h-full quick-log-card">
       <div className="flo-card-top mb-6">
         <p className="flo-card-title">Quick Log</p>
         <button type="button" 
@@ -460,6 +462,7 @@ export function ConnectionChecklistCard() {
   const tasks = getPhaseTasks(phaseLabel)
   const completedCount = tasks.filter(t => completedActions.includes(t.id)).length
   const progressPercent = tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0
+  const animatedProgress = useAnimatedCounter(progressPercent, 600, progressPercent > 0)
 
   const handleToggle = (id: string, label: string) => {
     const wasCompleted = completedActions.includes(id)
@@ -514,7 +517,7 @@ export function ConnectionChecklistCard() {
 
         <div className="mt-auto pt-4 flex items-center justify-between text-[10px] text-muted-foreground border-t border-[var(--mf-border)]">
           <span>Relationship resonance</span>
-          <span className="text-teal-500 font-normal">{progressPercent}% Optimal</span>
+          <span className="text-teal-500 font-normal">{animatedProgress}% Optimal</span>
         </div>
       </div>
     </div>

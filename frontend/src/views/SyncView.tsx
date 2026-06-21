@@ -22,6 +22,7 @@ import { partnerApi } from '../services/partnerService'
 import { cn } from '../lib/utils'
 import { getPhaseTasks } from '../lib/cycleUtils'
 import { Button } from '@/components/ui/button'
+import { hapticSelection, hapticMedium } from '../lib/haptics'
 
 interface StatusOption {
   id: string
@@ -139,6 +140,7 @@ export function SyncView() {
   }, [])
 
   const handlePair = async () => {
+    hapticMedium()
     if (!partnerCodeInput.trim()) return
     setIsPairing(true)
     await pairPartner(partnerCodeInput.trim())
@@ -148,12 +150,14 @@ export function SyncView() {
 
   const inviteUrl = `${window.location.origin}/sync?code=${user?.partnerCode || ''}`
   const copyLink = () => {
+    hapticSelection()
     navigator.clipboard.writeText(inviteUrl)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
 
   const handleSendInvite = async () => {
+    hapticMedium()
     const email = inviteEmail.trim()
     if (!email) return
     setIsInviting(true)
@@ -191,6 +195,7 @@ export function SyncView() {
   const options = user?.role === 'partner' ? SUPPORT_PING_OPTIONS : STATUS_OPTIONS
 
   const handleSendPing = async () => {
+    hapticMedium()
     if (!selected) return
     setIsSending(true)
     
@@ -633,7 +638,7 @@ export function SyncView() {
                         {options.map((opt) => (
                           <button
                             key={opt.id}
-                            onClick={() => setSelected(opt.id)}
+                            onClick={() => { hapticSelection(); setSelected(opt.id); }}
                             type="button"
                             className={cn(
                               "relative overflow-hidden aspect-[4/3] rounded-xl border text-left p-2.5 transition-all flex flex-col justify-between outline-none group cursor-pointer",
