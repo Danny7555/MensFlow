@@ -1476,25 +1476,25 @@
 
 /* ─── Partner Empathy Support Theme ────────────────────────────────────────── */
 
-/* Partner theme — warm plum accent that complements the main pink palette */
+/* Partner theme — warm amber, distinct from the main pink palette */
 [data-theme='light'][data-accent='default'] .partner-theme,
 [data-accent='default'] .partner-theme[data-theme='light'] {
-  --mf-accent: #7c3aed;
-  --mf-accent-rgb: 124, 58, 237;
-  --mf-accent-hover: #6d28d9;
-  --mf-accent-soft: rgba(124, 58, 237, 0.12);
-  --mf-accent-border: rgba(124, 58, 237, 0.25);
-  --mf-ring: rgba(124, 58, 237, 0.4);
+  --mf-accent: #d97706;
+  --mf-accent-rgb: 217, 119, 6;
+  --mf-accent-hover: #b45309;
+  --mf-accent-soft: rgba(217, 119, 6, 0.12);
+  --mf-accent-border: rgba(217, 119, 6, 0.25);
+  --mf-ring: rgba(217, 119, 6, 0.4);
 }
 
 [data-theme='dark'][data-accent='default'] .partner-theme,
 [data-accent='default'] .partner-theme[data-theme='dark'] {
-  --mf-accent: #a78bfa;
-  --mf-accent-rgb: 167, 139, 250;
-  --mf-accent-hover: #c4b5fd;
-  --mf-accent-soft: rgba(167, 139, 250, 0.15);
-  --mf-accent-border: rgba(167, 139, 250, 0.35);
-  --mf-ring: rgba(167, 139, 250, 0.45);
+  --mf-accent: #fbbf24;
+  --mf-accent-rgb: 251, 191, 36;
+  --mf-accent-hover: #f59e0b;
+  --mf-accent-soft: rgba(251, 191, 36, 0.15);
+  --mf-accent-border: rgba(251, 191, 36, 0.35);
+  --mf-ring: rgba(251, 191, 36, 0.45);
 }
 
 /* Keep focus-visible styles intact for accessibility */
