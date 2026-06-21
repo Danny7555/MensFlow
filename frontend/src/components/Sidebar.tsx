@@ -164,6 +164,7 @@ export function Sidebar({
           {!collapsed && <span className="sidebar-brand-text">MensFlow</span>}
           
           <button
+            id="sidebar-toggle-btn"
             type="button"
             className={cn("icon-btn sidebar-toggle-btn-top", !collapsed && "ml-auto")}
             onClick={desktopCollapsed ? onToggleDesktopCollapse : (onToggleSidebar || onToggleDesktopCollapse)}
@@ -231,6 +232,7 @@ export function Sidebar({
               <div key={item.id}>
                 <div className="flex items-center">
                   <NavLink
+                    id={`sidebar-link-${item.id}`}
                     to={item.id === 'dashboard' ? (isAuthenticated ? '/dashboard' : '/') : `/${item.id}`}
                     title={collapsed ? item.label : undefined}
                     className={({ isActive }) => cn(
@@ -254,6 +256,7 @@ export function Sidebar({
                   </NavLink>
                   {item.children && (
                     <button
+                      id={`sidebar-expand-${item.id}`}
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation()
@@ -275,6 +278,7 @@ export function Sidebar({
                   const ChildIcon = child.Icon
                   return (
                     <NavLink
+                      id={`sidebar-link-${child.id}`}
                       key={child.id}
                       to={`/${child.id}`}
                       title={collapsed ? child.label : undefined}
@@ -303,6 +307,7 @@ export function Sidebar({
               </p>
             )}
             <button
+              id="sidebar-login-btn"
               type="button"
               className={cn("btn btn-primary w-full transition-transform active:scale-95", collapsed && "sidebar-login-icon")}
               title={collapsed ? 'Log in' : undefined}
@@ -318,6 +323,7 @@ export function Sidebar({
         ) : (
           <div className={cn("sidebar-footer", collapsed && "sidebar-footer--compact mt-auto")}>
             <button
+              id="sidebar-logout-btn"
               type="button"
               className={cn(
                 "btn w-full flex items-center justify-center gap-2 border border-border bg-card text-muted-foreground hover:text-foreground transition-all duration-200 active:scale-95",
