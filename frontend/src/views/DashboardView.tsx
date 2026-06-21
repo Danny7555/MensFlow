@@ -89,20 +89,26 @@ function QuickEmpathyBoostCard({ ladyName, isAuthenticated }: QuickEmpathyBoostC
   }
 
   return (
-    <div className="flo-card p-6 border-[var(--mf-border-strong)] bg-white dark:bg-[var(--mf-card)] text-left">
-      <div className="flex items-center justify-between mb-4">
+    <div className="flo-card p-6 text-left">
+      <div className="flex items-center justify-between mb-2">
         <div>
-          <span className="text-[9px] font-normal text-[var(--mf-accent)] uppercase tracking-[0.2em] block mb-0.5">Quick Actions</span>
-          <h3 className="text-base font-normal text-[var(--mf-text-strong)] flex items-center gap-1.5">
-            Send Empathy Boost <img loading="lazy" src="/images/heart.png" alt="" className="size-4.5 object-contain inline-block ml-1" />
+          <span className="text-[9px] font-normal text-[var(--mf-accent)] uppercase tracking-[0.2em] block mb-1">Quick Actions</span>
+          <h3 className="text-base font-normal text-[var(--mf-text-strong)] flex items-center gap-2">
+            Send Empathy Boost
+            <m.span
+              animate={{ scale: [1, 1.15, 1] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <img loading="lazy" src="/images/heart.png" alt="" className="size-4.5 object-contain inline-block" />
+            </m.span>
           </h3>
         </div>
       </div>
-      <p className="text-[11px] text-[var(--mf-muted)] mb-5">
-        Tap to send an instant real-time notification to her phone:
+      <p className="text-[11px] text-[var(--mf-muted)] mb-4 leading-relaxed">
+        Tap to send an instant notification to her phone. Every small gesture counts.
       </p>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2.5">
         {options.map((opt) => {
           const isPending = activePing === opt.id
           return (
@@ -110,17 +116,18 @@ function QuickEmpathyBoostCard({ ladyName, isAuthenticated }: QuickEmpathyBoostC
               key={opt.id}
               onClick={() => handleSendPing(opt.id, opt.label, opt.message)}
               disabled={activePing !== null}
-              className="p-3 rounded-2xl bg-[var(--mf-hover)] hover:bg-[var(--mf-border)] text-left border border-[var(--mf-border)] flex flex-col justify-between h-[84px] transition-all cursor-pointer relative overflow-hidden group active-squish"
+              className="p-3 rounded-2xl bg-[var(--mf-hover)] hover:bg-[var(--mf-border)] text-left border border-[var(--mf-border)] flex flex-col justify-between h-[82px] transition-all cursor-pointer relative overflow-hidden group active-squish"
             >
               <div className="flex items-center justify-between w-full">
                 {opt.Icon === Heart ? (
-                  <img loading="lazy" src="/images/heart.png" alt="" className="size-6 object-contain" />
+                  <img loading="lazy" src="/images/heart.png" alt="" className="size-5 object-contain" />
                 ) : (
-                  <opt.Icon size={24} className={opt.color} weight="bold" />
+                  <opt.Icon size={20} className={opt.color} weight="bold" />
                 )}
                 {isPending && (
                   <m.div 
-                    animate={{ scale: [1, 1.2, 1] }} 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: [0, 1.3, 1] }} 
                     className="size-4 rounded-full bg-[var(--mf-accent)] flex items-center justify-center text-white"
                   >
                     <Check size={8} weight="bold" />
@@ -711,22 +718,21 @@ export function DashboardView() {
             </div>
           )}
 
-          {/* Top Playbook Header Banner for Partner */}
+          {/* Top Playbook Header Banner for Partner — warm greeting, no cycle data (PhaseInsightCard handles education) */}
           {isPartner && (
-            <div className="mb-8 p-6 md:p-8 rounded-[2.5rem] bg-[var(--mf-card)] border border-[var(--mf-border)] relative overflow-hidden text-left">
+            <div className="mb-8 partner-header-banner text-left">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative z-10">
                 <div className="space-y-2 text-left">
-                  <h2 className="text-2xl font-normal tracking-tight text-[var(--mf-text-strong)]">
-                    Partner Empathy Support Hub
+                  <h2 className="text-2xl font-normal tracking-tight text-[var(--mf-text-strong)] flex items-center gap-2">
+                    <Heart size={24} className="text-[var(--mf-accent)]" weight="fill" />
+                    Support {ladyName}
                   </h2>
                   <p className="text-xs text-[var(--mf-muted)] max-w-xl leading-relaxed">
-                    {data.lastPeriodStart
-                      ? `Welcome to your supportive workspace for ${ladyName}. Today is her cycle Day ${currentDay} in the ${phase.charAt(0).toUpperCase() + phase.slice(1)} Phase. Use the checklist playbooks and translators below to coordinate active support.`
-                      : `Welcome to your supportive workspace for ${ladyName}. Once she starts logging her cycle, you'll see her phase, symptoms, and personalized care suggestions here.`}
+                    Daily insights to help you understand what she's experiencing and how to be there for her.
                   </p>
                 </div>
-                <div className="shrink-0 flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/40 dark:bg-white/5 border border-[var(--mf-border)] text-xs font-normal text-[var(--mf-text)] ">
-                  <PersonIcon size={16} className="text-teal-500" />
+                <div className="partner-connection-badge shrink-0">
+                  <span className="partner-connection-dot" />
                   <span>Connected to {ladyName}</span>
                 </div>
               </div>
@@ -734,95 +740,76 @@ export function DashboardView() {
           )}
 
           {isPartner ? (
-            /* PARTNER PLAYBOOK LAYOUT */
+            /* PARTNER DASHBOARD — educational-first, matching Flo for Partners approach.
+               Primary focus: "What's she experiencing?" → "How can you help?"
+               Cycle tracking data is secondary reference, not the focus. */
             <div className="dashboard-responsive-grid">
-              {/* Left Column: Primary Empathy & Playbook Tools */}
+              {/* Left Column (Wide): Education → Support Actions */}
               <div className="flex flex-col gap-6 md:gap-8 min-w-0">
-                {!settings.hideDailyStoriesAndTips && (
-                  <div className="w-full min-w-0">
-                    <DailyTipCard
-                      phaseLabel={phase}
-                      tipCompleted={tipCompleted}
-                      setTipCompleted={setTipCompleted}
-                      aiTip={aiTip}
-                    />
+                {/* 1. Phase education — her current state, what it means (Flo's "quick-fire stories") */}
+                {shareDetails && (
+                  <PrimaryInsightCard 
+                    label={phase}
+                    currentDay={currentDay}
+                    trend={data.hormoneTrend}
+                  />
+                )}
+
+                {/* Private fallback if no phase data shared */}
+                {!shareDetails && (
+                  <div className="flo-card p-6 flex flex-col items-center justify-center text-center min-h-[200px]">
+                    <LockSimple size={24} className="text-muted-foreground mb-3" />
+                    <h4 className="text-sm font-semibold text-[var(--mf-text-strong)]">Cycle Details Private</h4>
+                    <p className="text-[11px] text-muted-foreground mt-1 max-w-[280px] leading-relaxed">
+                      Your partner is keeping her cycle details private. Once she shares them, you'll see daily insights here.
+                    </p>
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 min-w-0">
-                  <ConnectionChecklistCard />
-                  <PartnerTranslationCard 
-                    label={phase}
-                    onCopy={handleCopyGesture}
-                  />
-                </div>
+                {/* 2. Support translator — "how you can help" (Flo's "actions you can take right away") */}
+                <PartnerTranslationCard 
+                  label={phase}
+                  onCopy={handleCopyGesture}
+                />
 
-                {(shareDetails || shareSymptoms) && (
-                  <div className="flex flex-col gap-6 md:gap-8 min-w-0">
-                    <div className="flex items-center gap-2 border-b border-[var(--mf-border)] pb-1">
-                      <Sparkle size={18} className="text-teal-500" weight="fill" />
-                      <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--mf-text-strong)]">Her Cycle Insights</h3>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 min-w-0">
-                      {shareDetails ? (
-                        <PrimaryInsightCard 
-                          label={phase}
-                          currentDay={currentDay}
-                          trend={data.hormoneTrend}
-                        />
-                      ) : (
-                        <div className="flo-card p-6 flex flex-col items-center justify-center text-center border border-[var(--mf-border)] bg-[var(--mf-card)] min-h-[160px] rounded-3xl">
-                          <LockSimple size={24} className="text-muted-foreground mb-2" />
-                          <h4 className="text-xs font-semibold text-[var(--mf-text-strong)]">Cycle Details Private</h4>
-                          <p className="text-[10px] text-muted-foreground mt-1 max-w-[200px]">Your partner is keeping her cycle predictions and phase information private.</p>
-                        </div>
-                      )}
-                      {shareSymptoms ? (
-                        <BodySignalsCard 
-                          signals={data.bodySignals}
-                          currentDay={currentDay}
-                          phaseLabel={phase}
-                        />
-                      ) : (
-                        <div className="flo-card p-6 flex flex-col items-center justify-center text-center border border-[var(--mf-border)] bg-[var(--mf-card)] min-h-[160px] rounded-3xl">
-                          <LockSimple size={24} className="text-muted-foreground mb-2" />
-                          <h4 className="text-xs font-semibold text-[var(--mf-text-strong)]">Symptom Logs Private</h4>
-                          <p className="text-[10px] text-muted-foreground mt-1 max-w-[200px]">Daily logged symptoms and signals are kept private.</p>
-                        </div>
-                      )}
-                    </div>
-                    {shareDetails && (
-                      <div className="w-full min-w-0">
-                        <HormoneInsightCard phaseLabel={phase} aiInsightText={aiInsightText} />
-                      </div>
-                    )}
-                  </div>
+                {/* 3. Quick empathy actions (secondary to education) */}
+                <QuickEmpathyBoostCard ladyName={ladyName} isAuthenticated={isAuthenticated} />
+
+                {!settings.hideDailyStoriesAndTips && (
+                  <DailyTipCard
+                    phaseLabel={phase}
+                    tipCompleted={tipCompleted}
+                    setTipCompleted={setTipCompleted}
+                    aiTip={aiTip}
+                  />
                 )}
               </div>
 
-              {/* Right Column: Her Passive Status Reference & Real-Time Interaction */}
+              {/* Right Column (Narrow): Reference widgets only — no cycle tracker visual */}
               <div className="flex flex-col gap-6 md:gap-8 min-w-0">
-                {shareDetails && (
-                  <section className="flo-hero-panel min-w-0" aria-label="Cycle overview">
-                    <CycleTrackerHero showCheckIn={false} data={data} />
-                  </section>
+                <ConnectionChecklistCard />
+
+                {shareSymptoms && (
+                  <BodySignalsCard 
+                    signals={data.bodySignals}
+                    currentDay={currentDay}
+                    phaseLabel={phase}
+                  />
                 )}
 
-                <div className="min-w-0">
-                  <QuickEmpathyBoostCard ladyName={ladyName} isAuthenticated={isAuthenticated} />
-                </div>
+                {shareDetails && (
+                  <HormoneInsightCard phaseLabel={phase} aiInsightText={aiInsightText} />
+                )}
 
-                <div className="min-w-0">
-                  {shareCharts ? (
-                    <WellnessScoreCard />
-                  ) : (
-                    <div className="flo-card p-6 flex flex-col items-center justify-center text-center border border-[var(--mf-border)] bg-[var(--mf-card)] min-h-[140px] rounded-3xl">
-                      <LockSimple size={24} className="text-muted-foreground mb-2" />
-                      <h4 className="text-xs font-semibold text-[var(--mf-text-strong)]">Health Trends Private</h4>
-                      <p className="text-[10px] text-muted-foreground mt-1 max-w-[220px]">Monthly reviews and analytics scores are private.</p>
-                    </div>
-                  )}
-                </div>
+                {shareCharts ? (
+                  <WellnessScoreCard />
+                ) : (
+                  <div className="flo-card p-6 flex flex-col items-center justify-center text-center min-h-[120px]">
+                    <LockSimple size={20} className="text-muted-foreground mb-2" />
+                    <h4 className="text-xs font-semibold text-[var(--mf-text-strong)]">Health Trends Private</h4>
+                    <p className="text-[10px] text-muted-foreground mt-1 max-w-[220px]">Monthly reviews and analytics scores are private.</p>
+                  </div>
+                )}
 
                 {showRequestAccessBox && (
                   <div className="p-5 sm:p-6 rounded-[2rem] bg-gradient-to-br from-teal-500/5 via-[var(--mf-composer-bg)] to-[var(--mf-composer-bg)] border border-[var(--mf-border)] text-center w-full space-y-4 flex flex-col items-center">
