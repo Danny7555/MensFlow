@@ -255,9 +255,12 @@ export function AppLockGate({ children }: { children: React.ReactNode }) {
       window.addEventListener(event, updateActivity, { passive: true })
     })
 
+    const timeoutMs = (settings.appLockTimeoutMinutes ?? 3) * 60 * 1000
+    if (timeoutMs === 0) return // 0 = never auto-lock
+
     const interval = setInterval(() => {
       const inactiveMs = Date.now() - lastActivityRef.current
-      if (inactiveMs >= 3 * 60 * 1000) { // 3 minutes of total inactivity
+      if (inactiveMs >= timeoutMs) {
         writeSessionUnlock(false)
         updateState({ isUnlocked: false, pin: '' })
         toast.info('Session locked due to inactivity.')

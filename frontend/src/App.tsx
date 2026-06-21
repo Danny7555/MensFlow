@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { useCallback, useState, useMemo, lazy, Suspense, useEffect } from 'react'
+import { useCallback, useState, useMemo, lazy, Suspense, useEffect, useRef } from 'react'
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { LazyMotion, domAnimation, AnimatePresence, m } from 'framer-motion'
 import { cn } from './lib/utils'
@@ -76,6 +76,42 @@ function ChatLockGate({ children }: { children: React.ReactNode }) {
   const [securityAnswer, setSecurityAnswer] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+
+  // Rate-limiting lockout (mirrors AppLockGate pattern)
+  const chatLockoutUntilRef = useRef<number | null>(null)
+  const [chatLockoutTimeLeft, setChatLockoutTimeLeft] = useState<number>(() => {
+    if (typeof window === 'undefined') return 0
+    const raw = localStorage.getItem('mensflow_chat_lockout_until')
+    if (raw) {
+      const until = parseInt(raw, 10)
+      if (!isNaN(until) && until > Date.now()) {
+        chatLockoutUntilRef.current = until
+        return Math.ceil((until - Date.now()) / 1000)
+      }
+    }
+    return 0
+  })
+
+  useEffect(() => {
+    if (chatLockoutTimeLeft <= 0) return
+    const timer = setInterval(() => {
+      const until = chatLockoutUntilRef.current
+      if (until) {
+        const left = Math.ceil((until - Date.now()) / 1000)
+        if (left > 0) {
+          setChatLockoutTimeLeft(left)
+        } else {
+          chatLockoutUntilRef.current = null
+          localStorage.removeItem('mensflow_chat_lockout_until')
+          setFailedAttempts(0)
+          setChatLockoutTimeLeft(0)
+        }
+      } else {
+        setChatLockoutTimeLeft(0)
+      }
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [chatLockoutTimeLeft])
 
   const activeQuestion = SECURITY_QUESTIONS.find(q => q.id === settings.privacyLockChatsSecurityQuestion)
   const strengthResult = getPasswordStrength(newPassword)
@@ -261,63 +297,85 @@ function ChatLockGate({ children }: { children: React.ReactNode }) {
           Enter your privacy password to access your conversations.
         </p>
         
-        <form 
-          className="w-full max-w-xs space-y-4"
-          onSubmit={(e) => {
-            e.preventDefault()
-            if (password === settings.privacyLockChatsPassword) {
-              setIsUnlocked(true)
-              setError(false)
-              setFailedAttempts(0)
-            } else {
-              setError(true)
-              setFailedAttempts(f => f + 1)
-            }
-          }}
-        >
-          <div className="relative">
-            <LockKey size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input 
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Enter password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value)
-                setError(false)
-              }}
-              className={`w-full h-12 pl-10 pr-12 rounded-xl bg-muted border ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-border focus:border-[var(--mf-accent-border)] focus:ring-[var(--mf-accent)]'} focus:ring-1 transition-all outline-none text-base`}
-              aria-label="Privacy password"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-[var(--mf-text-strong)] transition-colors cursor-pointer"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-            >
-              {showPassword ? <EyeSlash size={20} /> : <Eye size={20} />}
-            </button>
-          </div>
-          {error && <p className="text-xs text-red-500 text-left px-1 animate-in slide-in-from-top-1">Incorrect password. Please try again.</p>}
-          <Button type="submit" className="w-full rounded-xl h-12 font-medium">
-            Unlock
-          </Button>
-          {failedAttempts >= 3 && settings.privacyLockChatsSecurityQuestion && (
-            <div className="pt-2 animate-in fade-in duration-500">
-              <Button 
-                type="button" 
-                variant="ghost" 
-                className="w-full text-sm text-[var(--mf-accent)] hover:bg-[var(--mf-accent-soft)]"
-                onClick={() => {
-                  setMode('reset-security')
-                  setError(false)
-                  setSecurityAnswer('')
-                }}
-              >
-                Forgot Password?
-              </Button>
+        {chatLockoutTimeLeft > 0 ? (
+          <div className="flex flex-col items-center justify-center my-6 text-center animate-in zoom-in-95 duration-200">
+            <span className="text-rose-500 font-semibold mb-2">Vault Lockout Active</span>
+            <p className="text-xs text-muted-foreground max-w-[250px]">
+              Too many incorrect attempts. Please wait:
+            </p>
+            <div className="text-3xl font-bold text-[var(--mf-text-strong)] mt-4 tracking-tight tabular-nums bg-muted px-6 py-2 rounded-2xl border border-border">
+              {chatLockoutTimeLeft}s
             </div>
-          )}
-        </form>
+          </div>
+        ) : (
+          <form 
+            className="w-full max-w-xs space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault()
+              if (chatLockoutTimeLeft > 0) return
+              if (password === settings.privacyLockChatsPassword) {
+                setIsUnlocked(true)
+                setError(false)
+                setFailedAttempts(0)
+              } else {
+                setError(true)
+                const nextFailed = failedAttempts + 1
+                setFailedAttempts(nextFailed)
+                if (nextFailed >= 5) {
+                  const until = Date.now() + 30000
+                  localStorage.setItem('mensflow_chat_lockout_until', String(until))
+                  chatLockoutUntilRef.current = until
+                  setChatLockoutTimeLeft(30)
+                  setPassword('')
+                  setError(false)
+                }
+              }
+            }}
+          >
+            <div className="relative">
+              <LockKey size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input 
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Enter password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value)
+                  setError(false)
+                }}
+                className={`w-full h-12 pl-10 pr-12 rounded-xl bg-muted border ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-border focus:border-[var(--mf-accent-border)] focus:ring-[var(--mf-accent)]'} focus:ring-1 transition-all outline-none text-base`}
+                aria-label="Privacy password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-[var(--mf-text-strong)] transition-colors cursor-pointer"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeSlash size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
+            {error && <p className="text-xs text-red-500 text-left px-1 animate-in slide-in-from-top-1">Incorrect password. Please try again.</p>}
+            <Button type="submit" className="w-full rounded-xl h-12 font-medium">
+              Unlock
+            </Button>
+            {failedAttempts >= 3 && settings.privacyLockChatsSecurityQuestion && (
+              <div className="pt-2 animate-in fade-in duration-500">
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  className="w-full text-sm text-[var(--mf-accent)] hover:bg-[var(--mf-accent-soft)]"
+                  onClick={() => {
+                    setMode('reset-security')
+                    setError(false)
+                    setSecurityAnswer('')
+                  }}
+                >
+                  Forgot Password?
+                </Button>
+              </div>
+            )}
+          </form>
+        )}
       </div>
     )
   }

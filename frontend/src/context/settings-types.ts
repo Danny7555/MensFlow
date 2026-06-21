@@ -51,6 +51,8 @@ export type MensFlowSettings = {
   appLockEnabled: boolean
   appLockPIN: string | null
   appLockBiometric: boolean
+  /** Auto-lock inactivity timeout in minutes (1, 3, 5, 15, 30, 0=never) */
+  appLockTimeoutMinutes: number
   soundEffectsEnabled: boolean
 }
 
@@ -99,5 +101,6 @@ export const DEFAULT_SETTINGS: MensFlowSettings = {
   appLockEnabled: false,
   appLockPIN: null,
   appLockBiometric: false,
+  appLockTimeoutMinutes: 3,
   soundEffectsEnabled: true,
 }

@@ -1804,6 +1804,30 @@ function SecurityPanel({
         </div>
       )}
 
+      {settings.appLockEnabled && (
+        <div className="settings-field-row border-b border-border/50 pb-6 mb-6">
+          <div className="settings-field-text">
+            <span className="settings-field-label">Auto-lock Timeout</span>
+            <p className="settings-field-desc">
+              Automatically lock the app after this period of inactivity.
+            </p>
+          </div>
+          <select
+            value={settings.appLockTimeoutMinutes ?? 3}
+            onChange={(e) => updateSettings({ appLockTimeoutMinutes: Number(e.target.value) })}
+            className="h-10 px-3 pr-8 rounded-xl bg-muted border border-border text-sm text-[var(--mf-text-strong)] outline-none focus:ring-1 focus:ring-[var(--mf-accent)] transition-all cursor-pointer"
+            aria-label="Auto-lock timeout"
+          >
+            <option value={1}>1 minute</option>
+            <option value={3}>3 minutes</option>
+            <option value={5}>5 minutes</option>
+            <option value={15}>15 minutes</option>
+            <option value={30}>30 minutes</option>
+            <option value={0}>Never</option>
+          </select>
+        </div>
+      )}
+
       <div className="settings-field-row border-b border-border/50 pb-6 mb-6">
         <div className="settings-field-text">
           <span className="settings-field-label">Hidden / Locked Chats</span>
