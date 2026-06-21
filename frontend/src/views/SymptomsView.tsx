@@ -21,6 +21,21 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
+/** Shared symptom-id → image path map. Used in both SymptomCategoryList and the partner read-only grid. */
+const SYMPTOM_IMG_MAP: Record<string, string> = {
+  'mood-happy': '/images/happy.jpg',
+  'mood-sad': '/images/sad.jpg',
+  'mood-irritable': '/images/angry.jpg',
+  'mood-anxious': '/images/anxious.jpg',
+  'mood-calm': '/images/calm.jpg',
+  'phys-cramps': '/images/cramps.jpg',
+  'phys-fatigue': '/images/fatique.jpg',
+  'phys-bloating': '/images/bloat.jpg',
+  'phys-headache': '/images/headache.jpg',
+  'phys-acne': '/images/acne.jpg',
+  'phys-tender': '/images/tender.jpg',
+}
+
 const SYMPTOM_ICONS: Record<string, React.ElementType> = {
   'flow-light': DropSimple,
   'flow-medium': DropHalf,
@@ -108,21 +123,8 @@ function SymptomCategoryList({
               )}
             >
               {(() => {
-                const imgMap: Record<string, string> = {
-                  'mood-happy': '/images/happy.jpg',
-                  'mood-sad': '/images/sad.jpg',
-                  'mood-irritable': '/images/angry.jpg',
-                  'mood-anxious': '/images/anxious.jpg',
-                  'mood-calm': '/images/calm.jpg',
-                  'phys-cramps': '/images/cramps.jpg',
-                  'phys-fatigue': '/images/fatique.jpg',
-                  'phys-bloating': '/images/bloat.jpg',
-                  'phys-headache': '/images/headache.jpg',
-                  'phys-acne': '/images/acne.jpg',
-                  'phys-tender': '/images/tender.jpg',
-                }
-                if (imgMap[symptom.id]) {
-                  return <img loading="lazy" src={imgMap[symptom.id]} alt="" className="size-6 rounded-full object-cover" />
+                if (SYMPTOM_IMG_MAP[symptom.id]) {
+                  return <img loading="lazy" src={SYMPTOM_IMG_MAP[symptom.id]} alt="" className="size-6 rounded-full object-cover" />
                 }
                 if (SYMPTOM_ICONS[symptom.id]) {
                   const Icon = SYMPTOM_ICONS[symptom.id]
@@ -437,20 +439,6 @@ export function SymptomsView() {
                         if (catSymptoms.length === 0) return null
 
                         const IconComponent = cat === 'Physical' ? Pulse : cat === 'Mood' ? Pill : Drop
-                        const imgMap: Record<string, string> = {
-                          'mood-happy': '/images/happy.jpg',
-                          'mood-sad': '/images/sad.jpg',
-                          'mood-irritable': '/images/angry.jpg',
-                          'mood-anxious': '/images/anxious.jpg',
-                          'mood-calm': '/images/calm.jpg',
-                          'phys-cramps': '/images/cramps.jpg',
-                          'phys-fatigue': '/images/fatique.jpg',
-                          'phys-bloating': '/images/bloat.jpg',
-                          'phys-headache': '/images/headache.jpg',
-                          'phys-acne': '/images/acne.jpg',
-                          'phys-tender': '/images/tender.jpg',
-                        }
-
                         return (
                           <div key={cat} className="space-y-4 p-5 rounded-2xl bg-muted/20 border border-border/50">
                             <h4 className="text-xs font-normal tracking-wider text-muted-foreground uppercase flex items-center gap-1.5">
@@ -463,8 +451,8 @@ export function SymptomsView() {
                                   key={symptom.id} 
                                   className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-card border border-border text-sm font-normal text-[var(--mf-text-strong)]"
                                 >
-                                  {imgMap[symptom.id] ? (
-                                    <img loading="lazy" src={imgMap[symptom.id]} alt="" className="size-6 rounded-full object-cover" />
+                                  {SYMPTOM_IMG_MAP[symptom.id] ? (
+                                    <img loading="lazy" src={SYMPTOM_IMG_MAP[symptom.id]} alt="" className="size-6 rounded-full object-cover" />
                                   ) : SYMPTOM_ICONS[symptom.id] ? (
                                     (() => {
                                       const Icon = SYMPTOM_ICONS[symptom.id]
