@@ -185,6 +185,7 @@ export function ChatComposer({
   return (
     <div className={cn("composer-stack", minimal && "composer-stack--minimal")} ref={rootRef}>
       <input
+        id="composer-file-picker"
         ref={fileInputRef}
         type="file"
         className="composer-hidden-input"
@@ -196,6 +197,7 @@ export function ChatComposer({
         aria-label="Upload files"
       />
       <input
+        id="composer-image-picker"
         ref={imageInputRef}
         type="file"
         className="composer-hidden-input"
@@ -239,6 +241,7 @@ export function ChatComposer({
       >
         <div className="composer-attach-wrap">
           <button
+            id="composer-attach-btn"
             type="button"
             className={cn("composer-icon-btn transition-colors", menuOpen && "composer-icon-btn--active")}
             aria-label="Add attachments"
@@ -253,6 +256,7 @@ export function ChatComposer({
           {menuOpen && (
             <div className="composer-dropdown glass-morphism animate-in fade-in zoom-in-95 duration-200 origin-bottom-left" id={menuId} role="menu">
               <button
+                id="composer-upload-files-btn"
                 type="button"
                 className="composer-dropdown-item"
                 role="menuitem"
@@ -265,6 +269,7 @@ export function ChatComposer({
                 </span>
               </button>
               <button
+                id="composer-upload-media-btn"
                 type="button"
                 className="composer-dropdown-item"
                 role="menuitem"
@@ -277,6 +282,7 @@ export function ChatComposer({
                 </span>
               </button>
               <button
+                id="composer-paste-btn"
                 type="button"
                 className="composer-dropdown-item"
                 role="menuitem"
@@ -293,6 +299,7 @@ export function ChatComposer({
         </div>
 
         <textarea
+          id="composer-textarea"
           ref={textareaRef}
           className="composer-input"
           rows={1}
@@ -314,6 +321,7 @@ export function ChatComposer({
             <Microphone size={21} aria-hidden />
           </button>
           <button
+            id="composer-send-btn"
             type="submit"
             className="composer-send transition-all active:scale-95"
             aria-label="Send"
