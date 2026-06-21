@@ -74,6 +74,7 @@ export async function updateSettings(req: AuthRequest, res: Response, next: Next
         : undefined,
       privacyStrictLocalOnly: optionalBoolean(body, 'privacyStrictLocalOnly'),
       conditionOptimization: optionalOneOf(body, 'conditionOptimization', ['none', 'pcos', 'endometriosis', 'perimenopause'] as const),
+      trackingMode: optionalOneOf(body, 'trackingMode', ['period', 'conception', 'pregnancy', 'perimenopause'] as const),
       disableAIPopups: optionalBoolean(body, 'disableAIPopups'),
       hideDailyStoriesAndTips: optionalBoolean(body, 'hideDailyStoriesAndTips'),
       parentalControlsEnabled: optionalBoolean(body, 'parentalControlsEnabled'),

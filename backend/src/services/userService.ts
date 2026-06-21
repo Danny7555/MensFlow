@@ -283,6 +283,7 @@ function toSettings(settings: SettingsDocument): ISettings {
     privacyRequestedFields: settings.privacyRequestedFields ?? [],
     privacyStrictLocalOnly: settings.privacyStrictLocalOnly,
     conditionOptimization: settings.conditionOptimization,
+    trackingMode: settings.trackingMode ?? 'period',
     disableAIPopups: settings.disableAIPopups,
     hideDailyStoriesAndTips: settings.hideDailyStoriesAndTips,
     otpEnabled: settings.otpEnabled ?? true,

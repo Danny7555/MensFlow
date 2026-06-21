@@ -40,6 +40,17 @@ export const SYMPTOM_DEFS: SymptomDef[] = [
   { id: 'peri-nightsweat', label: 'Night Sweats', category: 'Physical' },
   { id: 'peri-brainfog', label: 'Brain Fog', category: 'Mood' },
 
+  // Pregnancy Niche
+  { id: 'preg-nausea', label: 'Nausea', category: 'Physical' },
+  { id: 'preg-foodaversion', label: 'Food Aversions', category: 'Physical' },
+  { id: 'preg-cravings', label: 'Cravings', category: 'Physical' },
+  { id: 'preg-backache', label: 'Back Pain', category: 'Physical' },
+  { id: 'preg-swelling', label: 'Swelling', category: 'Physical' },
+  { id: 'preg-kicks', label: 'Baby Kicks', category: 'Physical' },
+  { id: 'preg-heartburn', label: 'Heartburn', category: 'Physical' },
+  { id: 'preg-excited', label: 'Excited', category: 'Mood' },
+  { id: 'preg-nervous', label: 'Nervous', category: 'Mood' },
+
   { id: 'life-sleep', label: 'Sleep Quality', category: 'Lifestyle' },
   { id: 'life-bbt', label: 'BBT Logged', category: 'Lifestyle' },
   { id: 'life-sex', label: 'Sexual Activity', category: 'Lifestyle' },

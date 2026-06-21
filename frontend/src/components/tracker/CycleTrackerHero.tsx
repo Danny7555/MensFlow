@@ -59,7 +59,6 @@ interface CycleTrackerState {
   currentDay: number
   selectedDay: number
   hoveredDay: number | null
-  trackingMode: string
   isLogModalOpen: boolean
 }
 
@@ -67,7 +66,6 @@ type CycleTrackerAction =
   | { type: 'SET_CURRENT_DAY'; payload: number }
   | { type: 'SET_SELECTED_DAY'; payload: number }
   | { type: 'SET_HOVERED_DAY'; payload: number | null }
-  | { type: 'SET_TRACKING_MODE'; payload: string }
   | { type: 'SET_LOG_MODAL_OPEN'; payload: boolean }
   | { type: 'INIT_DAYS'; currentDay: number; selectedDay: number }
 
@@ -79,8 +77,6 @@ function cycleTrackerReducer(state: CycleTrackerState, action: CycleTrackerActio
       return { ...state, selectedDay: action.payload }
     case 'SET_HOVERED_DAY':
       return { ...state, hoveredDay: action.payload }
-    case 'SET_TRACKING_MODE':
-      return { ...state, trackingMode: action.payload }
     case 'SET_LOG_MODAL_OPEN':
       return { ...state, isLogModalOpen: action.payload }
     case 'INIT_DAYS':
@@ -90,7 +86,33 @@ function cycleTrackerReducer(state: CycleTrackerState, action: CycleTrackerActio
   }
 }
 
-const modes = ['Period', 'Conception', 'Pregnancy', 'Perimenopause'];
+const modeLabels: Record<string, string> = {
+  period: 'MensFlow Period',
+  conception: 'Conception (NFP)',
+  pregnancy: 'MensFlow Pregnancy',
+  perimenopause: 'MensFlow Perimenopause',
+};
+
+const modeChipStyles: Record<string, { bg: string; text: string; border: string }> = {
+  period:     { bg: 'var(--mf-accent-soft)', text: 'var(--mf-accent)', border: 'var(--mf-accent-border)' },
+  conception: { bg: '#fef2f3', text: '#e11d48', border: 'rgba(225,29,72,0.25)' },
+  pregnancy:  { bg: '#f5f3ff', text: '#7c3aed', border: 'rgba(124,58,237,0.25)' },
+  perimenopause: { bg: '#fffbeb', text: '#d97706', border: 'rgba(217,119,6,0.25)' },
+};
+
+const modeChipStylesDark: Record<string, { bg: string; text: string; border: string }> = {
+  period:     { bg: 'var(--mf-accent-soft)', text: 'var(--mf-accent)', border: 'var(--mf-accent-border)' },
+  conception: { bg: 'rgba(225,29,72,0.2)', text: '#fb7185', border: 'rgba(225,29,72,0.35)' },
+  pregnancy:  { bg: 'rgba(124,58,237,0.2)', text: '#a78bfa', border: 'rgba(124,58,237,0.35)' },
+  perimenopause: { bg: 'rgba(217,119,6,0.2)', text: '#fbbf24', border: 'rgba(217,119,6,0.35)' },
+};
+
+const modeHeroBorders: Record<string, string> = {
+  period: 'var(--mf-border)',
+  conception: 'rgba(225,29,72,0.15)',
+  pregnancy: 'rgba(124,58,237,0.15)',
+  perimenopause: 'rgba(217,119,6,0.15)',
+};
 
 const emptyStateCardStyle: React.CSSProperties = {
   display: 'flex',
@@ -114,7 +136,7 @@ function CycleTrackerHeroInner({
   onHoverDay,
   data: propData,
 }: CycleTrackerHeroProps) {
-  const { dashboard: storeData, user, settings, logs } = useStore()
+  const { dashboard: storeData, user, settings, logs, updateSettings } = useStore()
   const data = propData || storeData
   const isPartner = user?.role === 'partner'
 
@@ -125,11 +147,13 @@ function CycleTrackerHeroInner({
     currentDay: 1,
     selectedDay: 1,
     hoveredDay: null,
-    trackingMode: 'Period',
     isLogModalOpen: false,
   })
 
-  const { trackingMode, isLogModalOpen } = state
+  const { isLogModalOpen } = state
+  const trackingMode = settings.trackingMode
+  const isDark = typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'dark'
+  const chipStyle = (isDark ? modeChipStylesDark : modeChipStyles)[trackingMode] ?? modeChipStyles.period
 
   const isControlled = controlledSelectedDay !== undefined
   const selectedDay = isControlled ? controlledSelectedDay : state.selectedDay
@@ -176,17 +200,27 @@ function CycleTrackerHeroInner({
     let end = standardOvulation + 2;   // Day 16 for L=28
     let ovDay = standardOvulation;      // Day 14 for L=28
 
-    if (settings.conditionOptimization === 'pcos') {
+    const isPerimenopause = settings.conditionOptimization === 'perimenopause' || trackingMode === 'perimenopause';
+    const isPcos = settings.conditionOptimization === 'pcos';
+    if (trackingMode === 'pregnancy') {
+      start = -1;
+      end = -1;
+      ovDay = -1;
+    } else if (isPcos) {
       start = 10;
       end = Math.min(24, cycleLength - 4);
-      ovDay = -1; // Unpredictable
-    } else if (settings.conditionOptimization === 'perimenopause') {
+      ovDay = -1;
+    } else if (isPerimenopause) {
       start = 9;
       end = Math.min(22, cycleLength - 6);
-      ovDay = -1; // Unpredictable
+      ovDay = -1;
+    } else if (trackingMode === 'conception') {
+      start = standardOvulation - 5;
+      end = standardOvulation + 3;
+      ovDay = standardOvulation;
     }
     return { fertileStart: start, fertileEnd: end, ovulationDay: ovDay };
-  }, [standardOvulation, cycleLength, settings.conditionOptimization]);
+  }, [standardOvulation, cycleLength, settings.conditionOptimization, trackingMode]);
 
   const upcomingStart = cycleLength - 5;
   const upcomingEnd = cycleLength - 1;
@@ -199,13 +233,21 @@ function CycleTrackerHeroInner({
   };
 
   const getDayInfo = (day: number) => {
+    if (trackingMode === 'pregnancy') {
+      const estimatedWeek = Math.max(1, Math.min(40, currentDay));
+      return { label: `Week ${estimatedWeek}`, color: '#a855f7', phase: `Pregnancy Week ${estimatedWeek} of 40` };
+    }
     if (day <= periodLength) return { label: 'Period', color: '#f43f5e', phase: 'Menstrual Phase' };
     if (day <= periodLength + predictedPeriodLength) return { label: 'Light Flow', color: '#fda4af', phase: 'Late Menstrual' };
     if (day >= fertileStart && day <= fertileEnd) {
+       if (trackingMode === 'conception') {
+         if (day === ovulationDay) return { label: 'Ovulation', color: '#e11d48', phase: 'Peak Fertile Day – Best chance' };
+         return { label: 'Fertile', color: '#e11d48', phase: 'Fertile Window – Try to conceive' };
+       }
        if (settings.conditionOptimization === 'pcos') {
          return { label: 'Variable Fertile', color: '#8b5cf6', phase: 'Irregular Fertile Window' };
        }
-       if (settings.conditionOptimization === 'perimenopause') {
+       if (settings.conditionOptimization === 'perimenopause' || trackingMode === 'perimenopause') {
          return { label: 'Erratic Fertile', color: '#f59e0b', phase: 'Unpredictable Fertile Window' };
        }
        if (day === ovulationDay) return { label: 'Ovulation', color: '#26899e', phase: 'Peak Fertile Day' };
@@ -241,19 +283,27 @@ function CycleTrackerHeroInner({
         <div className="cycle-tracker-mode flex flex-wrap items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button type="button" className="mode-chip">
-                Mode: {trackingMode === 'Conception' ? 'Conception (NFP)' : `MensFlow ${trackingMode}`}
+              <button type="button" className="mode-chip"
+                style={{
+                  backgroundColor: chipStyle?.bg ?? 'var(--mf-accent-soft)',
+                  color: chipStyle?.text ?? 'var(--mf-accent)',
+                  borderColor: chipStyle?.border ?? 'var(--mf-accent-border)',
+                  borderWidth: 1,
+                  borderStyle: 'solid',
+                }}
+              >
+                Mode: {modeLabels[trackingMode]}
                 <CaretDown size={14} weight="regular" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56 bg-card border-border">
-              {modes.map((m) => (
+              {Object.entries(modeLabels).map(([key, label]) => (
                 <DropdownMenuItem
-                  key={m}
-                  onClick={() => dispatch({ type: 'SET_TRACKING_MODE', payload: m })}
+                  key={key}
+                  onClick={() => updateSettings({ trackingMode: key as 'period' | 'conception' | 'pregnancy' | 'perimenopause' })}
                   className="text-sm font-regular focus:bg-[var(--mf-accent-soft)] focus:text-[var(--mf-accent)] cursor-pointer"
                 >
-                  {m}
+                  {label}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
@@ -346,8 +396,10 @@ function CycleTrackerHeroInner({
     )
   }
 
+  const heroBorder = modeHeroBorders[trackingMode] ?? 'var(--mf-border)'
+
   return (
-    <div className="cycle-tracker-hero relative">
+    <div className="cycle-tracker-hero relative" style={{ borderColor: heroBorder }}>
       <div className="cycle-tracker-mode flex flex-wrap items-center gap-2">
         {isPartner ? (
           <div className="mode-chip cursor-default bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 font-normal text-xs tracking-wider flex items-center gap-1.5">
@@ -358,19 +410,27 @@ function CycleTrackerHeroInner({
           <>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button type="button" className="mode-chip">
-                  Mode: {trackingMode === 'Conception' ? 'Conception (NFP)' : `MensFlow ${trackingMode}`}
+                <button type="button" className="mode-chip"
+                  style={{
+                    backgroundColor: chipStyle.bg,
+                    color: chipStyle.text,
+                    borderColor: chipStyle.border,
+                    borderWidth: 1,
+                    borderStyle: 'solid',
+                  }}
+                >
+                  Mode: {modeLabels[trackingMode]}
                   <CaretDown size={14} weight="regular" />
                 </button>
               </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56 bg-card border-border">
-              {modes.map((m) => (
+              {Object.entries(modeLabels).map(([key, label]) => (
                 <DropdownMenuItem 
-                  key={m} 
-                  onClick={() => dispatch({ type: 'SET_TRACKING_MODE', payload: m })}
+                  key={key} 
+                  onClick={() => updateSettings({ trackingMode: key as 'period' | 'conception' | 'pregnancy' | 'perimenopause' })}
                   className="text-sm font-regular focus:bg-[var(--mf-accent-soft)] focus:text-[var(--mf-accent)] cursor-pointer"
                 >
-                  {m}
+                  {label}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
@@ -385,129 +445,172 @@ function CycleTrackerHeroInner({
       </div>
 
       <div className="cycle-tracker-viz">
-        <div className="viz-ring-container">
-          <CycleWheel
-            cycleLength={cycleLength}
-            currentDay={currentDay}
-            selectedDay={selectedDay}
-            hoveredDay={hoveredDay}
-            periodLength={periodLength}
-            predictedPeriodLength={predictedPeriodLength}
-            fertileStart={fertileStart}
-            fertileEnd={fertileEnd}
-            upcomingStart={upcomingStart}
-            upcomingEnd={upcomingEnd}
-            showFertileWindow={settings.cycleShowFertileWindow}
-            fertileColor={
-              settings.conditionOptimization === 'pcos' ? '#8b5cf6' :
-              settings.conditionOptimization === 'perimenopause' ? '#f59e0b' :
-              '#26899e'
-            }
-            onSelectDay={(day) => {
-              if (isControlled && onSelectDay) onSelectDay(day)
-              else dispatch({ type: 'SET_SELECTED_DAY', payload: day })
-            }}
-            onHoverDay={(day) => {
-              if (isControlled && onHoverDay) onHoverDay(day)
-              else dispatch({ type: 'SET_HOVERED_DAY', payload: day })
-            }}
-          />
+        <div className="viz-ring-container" style={trackingMode === 'pregnancy' ? { maxWidth: 340, aspectRatio: 'auto' } : undefined}>
+          {trackingMode === 'pregnancy' ? (
+            /* ── Pregnancy Week Visual ── */
+            <div className="flex flex-col items-center justify-center py-8 px-4 gap-5">
+              <div className="size-24 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-500/20 dark:to-purple-500/5 flex items-center justify-center flex-col">
+                <span className="text-3xl font-semibold text-purple-700 dark:text-purple-300 leading-none">{Math.min(40, Math.max(1, currentDay))}</span>
+                <span className="text-[9px] uppercase tracking-wider text-purple-600 dark:text-purple-400 mt-0.5">Weeks</span>
+              </div>
 
-          <div className="viz-content">
-            {/* Chance of pregnancy indicator — only shown when cycle data exists and fertile window hints are on */}
-            {data.lastPeriodStart && settings.cycleShowFertileWindow && (
-              <div className="mb-6 animate-in fade-in zoom-in duration-700">
-                <span
-                  className="px-5 py-1.5 rounded-full text-[9px] font-normal uppercase tracking-widest transition-colors duration-300"
-                  style={{ color: activeInfo.color }}
-                >
-                  {trackingMode === 'Conception'
-                    ? (activeDay >= fertileStart && activeDay <= fertileEnd
-                        ? (settings.conditionOptimization === 'pcos' || settings.conditionOptimization === 'perimenopause'
-                            ? 'Variable Fertility Window (Monitor BBT/Mucus)'
-                            : 'Peak fertility window (Symptothermal NFP)')
-                        : 'Non-fertile phase (NFP prediction)')
-                    : (activeDay >= fertileStart && activeDay <= fertileEnd
-                        ? (settings.conditionOptimization === 'pcos' || settings.conditionOptimization === 'perimenopause'
-                            ? 'Unpredictable pregnancy chance'
-                            : 'High pregnancy chance')
-                        : 'Low pregnancy chance')
+              <div className="w-full max-w-[260px] space-y-2">
+                <div className="flex justify-between text-[10px] text-muted-foreground">
+                  <span>Week 1</span>
+                  <span>Week {Math.min(40, Math.max(1, currentDay))}</span>
+                  <span>Week 40</span>
+                </div>
+                <div className="h-2 bg-muted/30 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-700 ease-out"
+                    style={{ width: `${(Math.min(40, Math.max(1, currentDay)) / 40) * 100}%`, backgroundColor: '#7c3aed' }}
+                  />
+                </div>
+              </div>
+
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">{format(activeDate, 'EEEE, d MMM')}</p>
+                <h2 className="text-base font-semibold text-[var(--mf-text-strong)] mt-0.5">
+                  {activeDay === currentDay
+                    ? `Pregnancy Week ${Math.min(40, Math.max(1, currentDay))}`
+                    : activeInfo.phase
                   }
-                </span>
+                </h2>
               </div>
-            )}
 
-            <p className="viz-today">{format(activeDate, 'EEEE, d MMM')}</p>
-            <h2 className="viz-title" style={{ color: activeInfo.color }}>
-              {activeDay === currentDay 
-                ? `${isPartner ? 'Her next period' : 'Next period'}: ${format(addDays(today, cycleLength - currentDay), 'd MMM')}`
-                : activeInfo.phase
-              }
-            </h2>
-            {/* Symptothermal and Flow indicators */}
-            {activeLog && (
-              (activeLog.lhLevel !== undefined && activeLog.lhLevel !== null) || 
-              activeLog.mucus || 
-              activeLog.symptoms.some(s => s.startsWith('flow-'))
-            ) && (
-              <div className="flex justify-center gap-2 mt-1 mb-2 animate-in fade-in duration-300">
-                {activeLog.symptoms.find(s => s.startsWith('flow-')) && (
-                  (() => {
-                    const activeFlow = activeLog.symptoms.find(s => s.startsWith('flow-'))!;
-                    return (
-                      <span className="text-[10px] font-medium bg-[#ff5a5f]/15 text-[#ff5a5f] border border-[#ff5a5f]/25 px-2 py-0.5 rounded-full flex items-center gap-1 capitalize">
-                        <Drop size={12} weight="fill" className="text-[#ff5a5f]" />
-                        <span>Flow: {activeFlow.replace('flow-', '')}</span>
-                      </span>
-                    )
-                  })()
-                )}
-                {activeLog.lhLevel !== undefined && activeLog.lhLevel !== null && (
-                  <span className="text-[10px] font-medium bg-[#e07a5f]/15 text-[#e07a5f] border border-[#e07a5f]/25 px-2 py-0.5 rounded-full flex items-center gap-1 capitalize">
-                    <Flask size={12} className="text-[#e07a5f]" aria-hidden="true" />
-                    <span>LH: {activeLog.lhLevel}</span>
-                  </span>
-                )}
-                {activeLog.mucus && (
-                  <span className="text-[10px] font-medium bg-[#26899e]/15 text-[#26899e] border border-[#26899e]/25 px-2 py-0.5 rounded-full flex items-center gap-1.5 capitalize">
-                    <img loading="lazy" src="/images/water.png" alt="" className="size-3 object-contain shrink-0" />
-                    <span>{activeLog.mucus.replace('-', ' ')}</span>
-                  </span>
-                )}
-              </div>
-            )}
-            <div className="viz-fertile-status" style={{ color: activeInfo.color }}>
-              <span className="flex items-center gap-1">
-                {activeInfo.label} 
-                {activeDay === currentDay && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button type="button" className="hover:opacity-70 transition-opacity">
-                        <Info size={14} />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom" className="max-w-[200px] text-xs">
-                      {isPartner
-                        ? "This represents your partner's current phase in her cycle based on her details."
-                        : getPcosTooltipText()
-                      }
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-              </span>
-              <CaretDown size={14} className="mt-0.5 opacity-50" />
+              {activeLog && activeLog.symptoms.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {activeLog.symptoms.length} symptom{activeLog.symptoms.length > 1 ? 's' : ''} logged today
+                </p>
+              )}
             </div>
-          </div>
+          ) : (
+            <>
+              <CycleWheel
+                cycleLength={cycleLength}
+                currentDay={currentDay}
+                selectedDay={selectedDay}
+                hoveredDay={hoveredDay}
+                periodLength={periodLength}
+                predictedPeriodLength={predictedPeriodLength}
+                fertileStart={fertileStart}
+                fertileEnd={fertileEnd}
+                upcomingStart={upcomingStart}
+                upcomingEnd={upcomingEnd}
+                showFertileWindow={trackingMode === 'conception' ? true : settings.cycleShowFertileWindow}
+                fertileColor={
+                  trackingMode === 'conception' ? '#e11d48' :
+                  settings.conditionOptimization === 'pcos' ? '#8b5cf6' :
+                  (settings.conditionOptimization === 'perimenopause' || trackingMode === 'perimenopause') ? '#f59e0b' :
+                  '#26899e'
+                }
+                onSelectDay={(day) => {
+                  if (isControlled && onSelectDay) onSelectDay(day)
+                  else dispatch({ type: 'SET_SELECTED_DAY', payload: day })
+                }}
+                onHoverDay={(day) => {
+                  if (isControlled && onHoverDay) onHoverDay(day)
+                  else dispatch({ type: 'SET_HOVERED_DAY', payload: day })
+                }}
+              />
 
-          <div className="viz-day-badge">
-             <div className="badge-inner">
-                <span className="badge-label">
-                  {activeDay === currentDay ? (isPartner ? 'Her Today' : 'Today') : 'Day'}
-                </span>
-                <span className="badge-value">{activeDay}</span>
-                <span className="text-[10px] font-normal opacity-40 mt-0.5">{format(activeDate, 'd MMM').toUpperCase()}</span>
-             </div>
-          </div>
+              <div className="viz-content">
+                {data.lastPeriodStart && settings.cycleShowFertileWindow && (
+                  <div className="mb-6 animate-in fade-in zoom-in duration-700">
+                    <span
+                      className="px-5 py-1.5 rounded-full text-[9px] font-normal uppercase tracking-widest transition-colors duration-300"
+                      style={{ color: activeInfo.color }}
+                    >
+                      {trackingMode === 'conception'
+                        ? (activeDay >= fertileStart && activeDay <= fertileEnd
+                            ? (settings.conditionOptimization === 'pcos' || settings.conditionOptimization === 'perimenopause'
+                                ? 'Variable Fertility Window (Monitor BBT/Mucus)'
+                                : 'Peak fertility window (Symptothermal NFP)')
+                            : 'Non-fertile phase (NFP prediction)')
+                        : (activeDay >= fertileStart && activeDay <= fertileEnd
+                            ? (settings.conditionOptimization === 'pcos' || settings.conditionOptimization === 'perimenopause'
+                                ? 'Unpredictable pregnancy chance'
+                                : 'High pregnancy chance')
+                            : 'Low pregnancy chance')
+                      }
+                    </span>
+                  </div>
+                )}
+
+                <p className="viz-today">{format(activeDate, 'EEEE, d MMM')}</p>
+                <h2 className="viz-title" style={{ color: activeInfo.color }}>
+                  {activeDay === currentDay 
+                    ? `${isPartner ? 'Her next period' : 'Next period'}: ${format(addDays(today, cycleLength - currentDay), 'd MMM')}`
+                    : activeInfo.phase
+                  }
+                </h2>
+
+                {activeLog && (
+                  (activeLog.lhLevel !== undefined && activeLog.lhLevel !== null) || 
+                  activeLog.mucus || 
+                  activeLog.symptoms.some(s => s.startsWith('flow-'))
+                ) && (
+                  <div className="flex justify-center gap-2 mt-1 mb-2 animate-in fade-in duration-300">
+                    {activeLog.symptoms.find(s => s.startsWith('flow-')) && (
+                      (() => {
+                        const activeFlow = activeLog.symptoms.find(s => s.startsWith('flow-'))!;
+                        return (
+                          <span className="text-[10px] font-medium bg-[#ff5a5f]/15 text-[#ff5a5f] border border-[#ff5a5f]/25 px-2 py-0.5 rounded-full flex items-center gap-1 capitalize">
+                            <Drop size={12} weight="fill" className="text-[#ff5a5f]" />
+                            <span>Flow: {activeFlow.replace('flow-', '')}</span>
+                          </span>
+                        )
+                      })()
+                    )}
+                    {activeLog.lhLevel !== undefined && activeLog.lhLevel !== null && (
+                      <span className="text-[10px] font-medium bg-[#e07a5f]/15 text-[#e07a5f] border border-[#e07a5f]/25 px-2 py-0.5 rounded-full flex items-center gap-1 capitalize">
+                        <Flask size={12} className="text-[#e07a5f]" aria-hidden="true" />
+                        <span>LH: {activeLog.lhLevel}</span>
+                      </span>
+                    )}
+                    {activeLog.mucus && (
+                      <span className="text-[10px] font-medium bg-[#26899e]/15 text-[#26899e] border border-[#26899e]/25 px-2 py-0.5 rounded-full flex items-center gap-1.5 capitalize">
+                        <img loading="lazy" src="/images/water.png" alt="" className="size-3 object-contain shrink-0" />
+                        <span>{activeLog.mucus.replace('-', ' ')}</span>
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                <div className="viz-fertile-status" style={{ color: activeInfo.color }}>
+                  <span className="flex items-center gap-1">
+                    {activeInfo.label} 
+                    {activeDay === currentDay && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button type="button" className="hover:opacity-70 transition-opacity">
+                            <Info size={14} />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="max-w-[200px] text-xs">
+                          {isPartner
+                            ? "This represents your partner's current phase in her cycle based on her details."
+                            : getPcosTooltipText()
+                          }
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </span>
+                  <CaretDown size={14} className="mt-0.5 opacity-50" />
+                </div>
+              </div>
+
+              <div className="viz-day-badge">
+                 <div className="badge-inner">
+                    <span className="badge-label">
+                      {activeDay === currentDay ? (isPartner ? 'Her Today' : 'Today') : 'Day'}
+                    </span>
+                    <span className="badge-value">{activeDay}</span>
+                    <span className="text-[10px] font-normal opacity-40 mt-0.5">{format(activeDate, 'd MMM').toUpperCase()}</span>
+                 </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -542,7 +645,10 @@ function CycleTrackerHeroInner({
              <img loading="lazy" src="/images/exp.jpg" alt="" className="mood-cta-bg" />
              <div className="mood-cta-overlay" />
              <span className="mood-text pl-4">
-                Log symptoms for Day {activeDay}
+                {trackingMode === 'conception' ? `Log BBT, LH & symptoms for Day ${activeDay}`
+                  : trackingMode === 'pregnancy' ? `Log pregnancy symptoms for Day ${activeDay}`
+                  : trackingMode === 'perimenopause' ? `Log perimenopause symptoms for Day ${activeDay}`
+                  : `Log symptoms for Day ${activeDay}`}
              </span>
              <CaretRight size={20} className="caret-right group-hover:translate-x-1 transition-transform" />
           </button>

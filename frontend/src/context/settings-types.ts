@@ -37,6 +37,7 @@ export type MensFlowSettings = {
   privacyRequestedFields: string[]
   privacyStrictLocalOnly: boolean
   conditionOptimization: 'none' | 'pcos' | 'endometriosis' | 'perimenopause'
+  trackingMode: 'period' | 'conception' | 'pregnancy' | 'perimenopause'
   disableAIPopups: boolean
   hideDailyStoriesAndTips: boolean
   /** Two-factor authentication via email OTP */
@@ -81,6 +82,7 @@ export const DEFAULT_SETTINGS: MensFlowSettings = {
   privacyRequestedFields: [],
   privacyStrictLocalOnly: false,
   conditionOptimization: 'none',
+  trackingMode: 'period',
   disableAIPopups: false,
   hideDailyStoriesAndTips: false,
   otpEnabled: true,

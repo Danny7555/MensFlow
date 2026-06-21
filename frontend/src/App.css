@@ -3307,14 +3307,12 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: #eef9fb;
-  color: #1a4d57;
   padding: 0.45rem 1.15rem;
   border-radius: 999px;
   font-size: 0.82rem;
-  border: none;
   cursor: pointer;
   margin-bottom: 2.5rem;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
 }
 
 .viz-ring-container {

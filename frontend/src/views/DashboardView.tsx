@@ -429,6 +429,7 @@ export function DashboardView() {
   }, [data.lastPeriodStart, data.typicalCycleDays, data.phaseLabel])
 
   const currentDay = computeCycleDay(data.lastPeriodStart, data.typicalCycleDays)
+  const trackingMode = settings.trackingMode
   
   const isPartner = user?.role === 'partner'
   const shareDetails = !isPartner || (partnerStatus?.paired && partnerStatus?.privacyShareCycleDetails !== false)
@@ -858,7 +859,90 @@ export function DashboardView() {
                   <CycleTrackerHero showCheckIn={true} data={data} />
                 </section>
 
-                {data.isAtypical && (
+                {/* Mode-specific insight banner */}
+                {trackingMode === 'conception' && (
+                  <m.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, ease: 'easeOut' }}
+                    className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-rose-500/8 via-rose-500/5 to-transparent border border-rose-500/25 text-[var(--mf-text-strong)] flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-left"
+                  >
+                    <div className="flex-1 p-5 space-y-2">
+                      <h4 className="text-xs font-semibold uppercase tracking-wider flex items-center gap-2 text-rose-600 dark:text-rose-400">
+                        <Sparkle size={14} weight="fill" />
+                        Conception Mode Active
+                      </h4>
+                      <p className="text-[12px] text-foreground leading-relaxed opacity-90 max-w-2xl">
+                        Tracking fertile windows and NFP signs. Log BBT, cervical mucus, and LH levels daily for the most accurate fertile window predictions.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 px-5 pb-5 sm:pb-5 sm:pr-5 sm:pl-0">
+                      <button
+                        type="button"
+                        onClick={() => navigate('/track')}
+                        className="px-4 py-2.5 rounded-xl text-[11px] font-medium bg-rose-500 hover:bg-rose-600 text-white transition-all cursor-pointer text-center border-none active:scale-95"
+                      >
+                        View Tracker
+                      </button>
+                    </div>
+                  </m.div>
+                )}
+                {trackingMode === 'pregnancy' && (
+                  <m.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, ease: 'easeOut' }}
+                    className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-purple-500/8 via-purple-500/5 to-transparent border border-purple-500/25 text-[var(--mf-text-strong)] flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-left"
+                  >
+                    <div className="flex-1 p-5 space-y-2">
+                      <h4 className="text-xs font-semibold uppercase tracking-wider flex items-center gap-2 text-purple-600 dark:text-purple-400">
+                        <Sparkle size={14} weight="fill" />
+                        Pregnancy Mode Active
+                      </h4>
+                      <p className="text-[12px] text-foreground leading-relaxed opacity-90 max-w-2xl">
+                        Period predictions paused. Log pregnancy symptoms, track weeks, and monitor your wellbeing.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 px-5 pb-5 sm:pb-5 sm:pr-5 sm:pl-0">
+                      <button
+                        type="button"
+                        onClick={() => navigate('/track')}
+                        className="px-4 py-2.5 rounded-xl text-[11px] font-medium bg-purple-500 hover:bg-purple-600 text-white transition-all cursor-pointer text-center border-none active:scale-95"
+                      >
+                        Log Symptoms
+                      </button>
+                    </div>
+                  </m.div>
+                )}
+                {trackingMode === 'perimenopause' && (
+                  <m.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, ease: 'easeOut' }}
+                    className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-500/8 via-amber-500/5 to-transparent border border-amber-500/25 text-[var(--mf-text-strong)] flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-left"
+                  >
+                    <div className="flex-1 p-5 space-y-2">
+                      <h4 className="text-xs font-semibold uppercase tracking-wider flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                        <Sparkle size={14} weight="fill" />
+                        Perimenopause Mode Active
+                      </h4>
+                      <p className="text-[12px] text-foreground leading-relaxed opacity-90 max-w-2xl">
+                        Tracking irregular cycles, hot flashes, and mood shifts. Cycle predictions are adjusted for perimenopause variability.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 px-5 pb-5 sm:pb-5 sm:pr-5 sm:pl-0">
+                      <button
+                        type="button"
+                        onClick={() => navigate('/track')}
+                        className="px-4 py-2.5 rounded-xl text-[11px] font-medium bg-amber-500 hover:bg-amber-600 text-white transition-all cursor-pointer text-center border-none active:scale-95"
+                      >
+                        Log Symptoms
+                      </button>
+                    </div>
+                  </m.div>
+                )}
+
+                {data.isAtypical && trackingMode !== 'pregnancy' && (
                   <m.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -895,10 +979,12 @@ export function DashboardView() {
                 )}
 
                 <div className="flo-today-plan flex flex-col gap-6 md:gap-8 w-full min-w-0">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 min-w-0">
-                    <MonthInReview />
-                    <WeatherAlertCard />
-                  </div>
+                  {trackingMode !== 'pregnancy' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 min-w-0">
+                      <MonthInReview />
+                      <WeatherAlertCard />
+                    </div>
+                  )}
                   {!settings.hideDailyStoriesAndTips && (
                     <div className="w-full min-w-0">
                       <DailyTipCard
@@ -916,16 +1002,27 @@ export function DashboardView() {
                       currentDay={currentDay}
                       trend={data.hormoneTrend}
                     />
-                    <BodySignalsCard 
-                      signals={data.bodySignals}
-                      currentDay={currentDay}
-                      phaseLabel={phase}
-                    />
+                    {trackingMode !== 'pregnancy' && (
+                      <BodySignalsCard 
+                        signals={data.bodySignals}
+                        currentDay={currentDay}
+                        phaseLabel={phase}
+                      />
+                    )}
+                    {trackingMode === 'pregnancy' && (
+                      <div className="flo-card p-6 flex flex-col items-center justify-center text-center border border-[var(--mf-border)] bg-[var(--mf-card)] min-h-[160px] rounded-3xl">
+                        <Sparkle size={24} className="text-purple-500 mb-2" />
+                        <h4 className="text-xs font-semibold text-[var(--mf-text-strong)]">Pregnancy Wellness</h4>
+                        <p className="text-[10px] text-muted-foreground mt-1 max-w-[220px]">Track pregnancy symptoms, energy levels, and appointments in your daily log.</p>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="grid grid-cols-1 gap-6 md:gap-8 min-w-0 md:grid-cols-1">
-                    <HormoneInsightCard phaseLabel={phase} aiInsightText={aiInsightText} />
-                  </div>
+                  {trackingMode !== 'pregnancy' && (
+                    <div className="grid grid-cols-1 gap-6 md:gap-8 min-w-0 md:grid-cols-1">
+                      <HormoneInsightCard phaseLabel={phase} aiInsightText={aiInsightText} />
+                    </div>
+                  )}
                 </div>
               </div>
 

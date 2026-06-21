@@ -59,6 +59,15 @@ const SYMPTOM_ICONS: Record<string, React.ElementType> = {
   'peri-hotflash': Fire,
   'peri-nightsweat': Waves,
   'peri-brainfog': Brain,
+  'preg-nausea': Pulse,
+  'preg-foodaversion': HandHeart,
+  'preg-cravings': Sparkle,
+  'preg-backache': Brain,
+  'preg-swelling': Drop,
+  'preg-kicks': HandHeart,
+  'preg-heartburn': Fire,
+  'preg-excited': Smiley,
+  'preg-nervous': Brain,
 }
 
 export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }: LogSymptomsModalProps) {
@@ -125,15 +134,13 @@ export function LogSymptomsModal({ isOpen, onOpenChange, activeDay, activeDate }
 
   const allSymptoms = useMemo(() => {
     return [...SYMPTOM_DEFS, ...customSymptoms].filter(s => {
-      // If symptom is pcos-specific, only show if optimization is pcos
       if (s.id.startsWith('pcos-') && settings.conditionOptimization !== 'pcos') return false;
-      // If symptom is endo-specific, only show if optimization is endometriosis
       if (s.id.startsWith('endo-') && settings.conditionOptimization !== 'endometriosis') return false;
-      // If symptom is peri-specific, only show if optimization is perimenopause
-      if (s.id.startsWith('peri-') && settings.conditionOptimization !== 'perimenopause') return false;
+      if (s.id.startsWith('peri-') && settings.conditionOptimization !== 'perimenopause' && settings.trackingMode !== 'perimenopause') return false;
+      if (s.id.startsWith('preg-') && settings.trackingMode !== 'pregnancy') return false;
       return true;
     });
-  }, [customSymptoms, settings.conditionOptimization]);
+  }, [customSymptoms, settings.conditionOptimization, settings.trackingMode]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
