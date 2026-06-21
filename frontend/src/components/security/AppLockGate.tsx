@@ -73,96 +73,99 @@ export function AppLockGate({ children }: { children: React.ReactNode }) {
     }
   }
 
-  if (!settings.appLockEnabled || isUnlocked) {
-    return <>{children}</>
-  }
+  const showLock = settings.appLockEnabled && !isUnlocked
 
   return (
-    <div className="fixed inset-0 z-50 bg-background flex flex-col items-center justify-center p-6 select-none animate-in fade-in duration-300">
-      <div className="w-full max-w-sm flex flex-col items-center">
-        {/* App Logo/Icon Container */}
-        <div className="size-20 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-4 shadow-sm">
-          <Lock size={38} weight="duotone" />
-        </div>
-        <h1 className="text-xl font-normal text-[var(--mf-text-strong)] mb-1">MensFlow Secure</h1>
-        <p className="text-xs text-muted-foreground mb-8">Enter your 4-digit security PIN to access the application</p>
+    <>
+      {children}
+      {showLock && (
+        <div className="fixed inset-0 z-50 bg-background flex flex-col items-center justify-center p-6 select-none animate-in fade-in duration-300">
+          <div className="w-full max-w-sm flex flex-col items-center">
+            {/* App Logo/Icon Container */}
+            <div className="size-20 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-4 shadow-sm">
+              <Lock size={38} weight="duotone" />
+            </div>
+            <h1 className="text-xl font-normal text-[var(--mf-text-strong)] mb-1">MensFlow Secure</h1>
+            <p className="text-xs text-muted-foreground mb-8">Enter your 4-digit security PIN to access the application</p>
 
-        {/* PIN Indicators */}
-        <div className="flex gap-4 mb-12">
-          {[0, 1, 2, 3].map((index) => (
-            <div
-              key={index}
-              className={`size-4 rounded-full border-2 transition-all duration-200 ${
-                error
-                  ? 'border-rose-500 bg-rose-500 animate-bounce'
-                  : index < pin.length
-                  ? 'border-[var(--mf-accent)] bg-[var(--mf-accent)] scale-110 shadow-[0_0_8px_rgba(var(--mf-accent-rgb),0.5)]'
-                  : 'border-muted-foreground/30 bg-transparent'
-              }`}
+            {/* PIN Indicators */}
+            <div className="flex gap-4 mb-12">
+              {[0, 1, 2, 3].map((index) => (
+                <div
+                  key={index}
+                  className={`size-4 rounded-full border-2 transition-all duration-200 ${
+                    error
+                      ? 'border-rose-500 bg-rose-500 animate-bounce'
+                      : index < pin.length
+                      ? 'border-[var(--mf-accent)] bg-[var(--mf-accent)] scale-110 shadow-[0_0_8px_rgba(var(--mf-accent-rgb),0.5)]'
+                      : 'border-muted-foreground/30 bg-transparent'
+                  }`}
+                />
+              ))}
+            </div>
+
+            {/* Numeric PIN Pad */}
+            <div className="grid grid-cols-3 gap-y-4 gap-x-6 w-full max-w-[270px]">
+              {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((num) => (
+                <button
+                  key={num}
+                  type="button"
+                  onClick={() => handleKeyPress(num)}
+                  className="size-16 rounded-full bg-muted/50 border border-border/60 hover:bg-muted active:scale-95 transition-all text-lg font-medium text-[var(--mf-text-strong)] flex items-center justify-center cursor-pointer outline-none"
+                >
+                  {num}
+                </button>
+              ))}
+
+              {/* Biometrics Toggle Button */}
+              {settings.appLockBiometric ? (
+                <button
+                  type="button"
+                  onClick={handleBiometricUnlock}
+                  className="size-16 rounded-full hover:bg-[var(--mf-accent-soft)] active:scale-95 transition-all text-[var(--mf-accent)] flex items-center justify-center cursor-pointer outline-none"
+                  aria-label="Unlock with biometrics"
+                >
+                  <Fingerprint size={28} />
+                </button>
+              ) : (
+                <div className="size-16" />
+              )}
+
+              {/* Zero key */}
+              <button
+                type="button"
+                onClick={() => handleKeyPress('0')}
+                className="size-16 rounded-full bg-muted/50 border border-border/60 hover:bg-muted active:scale-95 transition-all text-lg font-medium text-[var(--mf-text-strong)] flex items-center justify-center cursor-pointer outline-none"
+              >
+                0
+              </button>
+
+              {/* Delete Backspace key */}
+              <button
+                type="button"
+                onClick={handleBackspace}
+                className="size-16 rounded-full hover:bg-muted/70 active:scale-95 transition-all text-muted-foreground flex items-center justify-center cursor-pointer outline-none"
+                aria-label="Backspace"
+              >
+                <Backspace size={24} />
+              </button>
+            </div>
+          </div>
+
+          {/* Simulated Biometric Modal (Fallback when platform WebAuthn isn't set up/declined) */}
+          {showBiometricSim && (
+            <FaceIDScanner
+              onSuccess={() => {
+                setIsUnlocked(true)
+                setShowBiometricSim(false)
+                toast.success('Unlocked via Face ID!')
+              }}
+              onCancel={() => setShowBiometricSim(false)}
             />
-          ))}
-        </div>
-
-        {/* Numeric PIN Pad */}
-        <div className="grid grid-cols-3 gap-y-4 gap-x-6 w-full max-w-[270px]">
-          {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((num) => (
-            <button
-              key={num}
-              type="button"
-              onClick={() => handleKeyPress(num)}
-              className="size-16 rounded-full bg-muted/50 border border-border/60 hover:bg-muted active:scale-95 transition-all text-lg font-medium text-[var(--mf-text-strong)] flex items-center justify-center cursor-pointer outline-none"
-            >
-              {num}
-            </button>
-          ))}
-
-          {/* Biometrics Toggle Button */}
-          {settings.appLockBiometric ? (
-            <button
-              type="button"
-              onClick={handleBiometricUnlock}
-              className="size-16 rounded-full hover:bg-[var(--mf-accent-soft)] active:scale-95 transition-all text-[var(--mf-accent)] flex items-center justify-center cursor-pointer outline-none"
-              aria-label="Unlock with biometrics"
-            >
-              <Fingerprint size={28} />
-            </button>
-          ) : (
-            <div className="size-16" />
           )}
-
-          {/* Zero key */}
-          <button
-            type="button"
-            onClick={() => handleKeyPress('0')}
-            className="size-16 rounded-full bg-muted/50 border border-border/60 hover:bg-muted active:scale-95 transition-all text-lg font-medium text-[var(--mf-text-strong)] flex items-center justify-center cursor-pointer outline-none"
-          >
-            0
-          </button>
-
-          {/* Delete Backspace key */}
-          <button
-            type="button"
-            onClick={handleBackspace}
-            className="size-16 rounded-full hover:bg-muted/70 active:scale-95 transition-all text-muted-foreground flex items-center justify-center cursor-pointer outline-none"
-            aria-label="Backspace"
-          >
-            <Backspace size={24} />
-          </button>
         </div>
-      </div>
-
-      {/* Simulated Biometric Modal (Fallback when platform WebAuthn isn't set up/declined) */}
-      {showBiometricSim && (
-        <FaceIDScanner
-          onSuccess={() => {
-            setIsUnlocked(true)
-            setShowBiometricSim(false)
-            toast.success('Unlocked via Face ID!')
-          }}
-          onCancel={() => setShowBiometricSim(false)}
-        />
       )}
-    </div>
+    </>
   )
 }
 
@@ -184,6 +187,8 @@ export function FaceIDScanner({
   useEffect(() => {
     if (phase !== 'scanning') return
     
+    let unlockTimeout: any = null
+    
     // Play tick sound every 140ms
     const interval = setInterval(() => {
       playFaceIDScanSound()
@@ -196,16 +201,17 @@ export function FaceIDScanner({
       playFaceIDSuccessSound()
       
       // Delay success display for 800ms before unlocking
-      const unlockTimeout = setTimeout(() => {
+      unlockTimeout = setTimeout(() => {
         onSuccessRef.current()
       }, 800)
-      
-      return () => clearTimeout(unlockTimeout)
     }, 1800)
     
     return () => {
       clearInterval(interval)
       clearTimeout(timeout)
+      if (unlockTimeout) {
+        clearTimeout(unlockTimeout)
+      }
     }
   }, [phase])
 

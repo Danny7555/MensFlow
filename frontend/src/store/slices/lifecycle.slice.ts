@@ -12,6 +12,15 @@ function freshUser(): AppUser {
 
 export const createLifecycleSlice: StateCreator<AppState, [], [], LifecycleSlice> = (_set, _get) => ({
   hydrate: ({ user, settings, dashboard }) => {
+    const nextSettings = {
+      ...DEFAULT_SETTINGS,
+      ...(settings as Partial<typeof DEFAULT_SETTINGS>),
+      version: 1 as const,
+    }
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('mensflow-settings-v1', JSON.stringify(nextSettings))
+    }
+
     _set({
       user: {
         id: user.id,
@@ -28,11 +37,7 @@ export const createLifecycleSlice: StateCreator<AppState, [], [], LifecycleSlice
         quizLastCompletedAt: user.quizLastCompletedAt || '',
         quizCountToday: user.quizCountToday || 0,
       },
-      settings: {
-        ...DEFAULT_SETTINGS,
-        ...(settings as Partial<typeof DEFAULT_SETTINGS>),
-        version: 1,
-      },
+      settings: nextSettings,
       dashboard: dashboard
         ? {
             version: 1,

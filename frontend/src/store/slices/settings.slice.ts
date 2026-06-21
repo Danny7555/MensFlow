@@ -26,12 +26,18 @@ export const createSettingsSlice: StateCreator<AppState, [], [], SettingsSlice> 
       : null
     const wasLocalOnly = get().settings.privacyStrictLocalOnly
 
-    set((state) => ({
-      settings: { ...state.settings, ...patch },
-      dashboard: dashboardPatch
-        ? { ...state.dashboard, ...dashboardPatch }
-        : state.dashboard,
-    }))
+    set((state) => {
+      const nextSettings = { ...state.settings, ...patch }
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('mensflow-settings-v1', JSON.stringify(nextSettings))
+      }
+      return {
+        settings: nextSettings,
+        dashboard: dashboardPatch
+          ? { ...state.dashboard, ...dashboardPatch }
+          : state.dashboard,
+      }
+    })
 
     const shouldSync = isLoggedIn() && (!wasLocalOnly || patch.privacyStrictLocalOnly === false)
 
