@@ -86,7 +86,7 @@ export function DailyTipCard({ phaseLabel, tipCompleted, setTipCompleted, varian
     >
       <div className="flex flex-col md:flex-row md:items-center justify-between w-full gap-4 md:gap-5 xl:gap-8 ">
         <div className="shrink-0 size-12 md:size-14 flex items-center justify-center">
-          <img src="/images/star.png" alt="" className="size-8 md:size-9 object-contain" />
+          <img loading="lazy" src="/images/star.png" alt="" className="size-8 md:size-9 object-contain" />
         </div>
 
         <div className="flex-1 flex flex-col min-w-0 md:pl-4 xl:pl-6">
@@ -128,7 +128,7 @@ export function DailyTipCard({ phaseLabel, tipCompleted, setTipCompleted, varian
               onClick={handleSave}
               className="w-full px-4 xl:px-6 py-2 xl:py-2.5 rounded-full border border-[var(--mf-border)] bg-[var(--mf-card)] text-[var(--mf-text-strong)] text-[9px] xl:text-[10px] font-medium tracking-widest uppercase flex items-center justify-center gap-2 hover:bg-[var(--mf-hover)] transition-all cursor-pointer"
             >
-              <img src="/images/heart.png" alt="" className="size-3.5 object-contain" />
+              <img loading="lazy" src="/images/heart.png" alt="" className="size-3.5 object-contain" />
               <span>{isSaved ? 'Saved' : 'Save'}</span>
             </m.button>
           </div>

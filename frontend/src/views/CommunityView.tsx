@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useReducer } from 'react'
+import React, { useRef, useEffect, useReducer } from 'react'
 import { m, AnimatePresence } from 'framer-motion'
 import {
   Plus, ArrowLeft, Trash,
@@ -11,7 +11,10 @@ import { useCommunityPosts, useCommunityPost, useCreatePost, useAddComment, comm
 import { cn } from '../lib/utils'
 import { resolveAssetUrl } from '../lib/apiClient'
 import { useQueryClient } from '@tanstack/react-query'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { Button } from '@/components/ui/button'
+import { hapticMedium, hapticSelection } from '@/lib/haptics'
+import { useSEO } from '../hooks/useSEO'
 import {
   Dialog,
   DialogContent,
@@ -43,7 +46,7 @@ function AvatarCircle({ name, avatar, size = 'md' }: { name: string; avatar?: st
   const src = resolveAssetUrl(avatar)
 
   if (src) {
-    return <img src={src} alt={name} className={`${dim} rounded-full object-cover shrink-0 border-2 border-white dark:border-gray-800`} />
+    return <img loading="lazy" src={src} alt={name} className={`${dim} rounded-full object-cover shrink-0 border-2 border-white dark:border-gray-800`} />
   }
 
   const hash = name.split('').reduce((a, c) => a + c.charCodeAt(0), 0)
@@ -144,6 +147,7 @@ function CreatePostModal({ open, onClose }: { open: boolean; onClose: () => void
   }
 
   const handleSubmit = async () => {
+    hapticMedium()
     if (!title.trim() || !body.trim()) return
     try {
       await createPost.mutateAsync({
@@ -475,11 +479,11 @@ function PostDetailView({
                     }
                   }}
                   placeholder="Write a reply..."
-                  className="w-full min-h-[80px] px-4 py-3 rounded-2xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm text-[var(--mf-text-strong)] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[var(--mf-ring)] resize-none transition-all"
+                  className="w-full min-h-[44px] px-4 py-2 rounded-2xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm text-[var(--mf-text-strong)] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[var(--mf-ring)] resize-none transition-all"
                   maxLength={5000}
                 />
                 {showMentions && mentionResults.length > 0 && (
-                  <div ref={mentionRef} className="absolute bottom-full left-0 right-0 mb-1 bg-white dark:bg-gray-800 border border-[var(--mf-border)] rounded-xl shadow-lg overflow-hidden z-20 max-h-36 overflow-y-auto">
+                  <div ref={mentionRef} className="absolute bottom-full left-0 right-0 mb-1 bg-white dark:bg-gray-800 border border-[var(--mf-border)] rounded-xl overflow-hidden z-20 max-h-36 overflow-y-auto">
                     {mentionResults.map(u => (
                       <button
                         key={u.id}
@@ -502,7 +506,7 @@ function PostDetailView({
                   </div>
                 )}
                 {commentText.toLowerCase().includes('@men') && !commentText.toLowerCase().includes('@mensflow') && (
-                  <div className="absolute -bottom-2 left-3 translate-y-full bg-white dark:bg-gray-800 border border-[var(--mf-border)] rounded-xl shadow-lg px-3 py-2 text-xs text-muted-foreground flex items-center gap-2 z-10 animate-in fade-in slide-in-from-top-1">
+                  <div className="absolute -bottom-2 left-3 translate-y-full bg-white dark:bg-gray-800 border border-[var(--mf-border)] rounded-xl px-3 py-2 text-xs text-muted-foreground flex items-center gap-2 z-10 animate-in fade-in slide-in-from-top-1">
                     <span className="text-purple-500 font-semibold">@mensflow</span>
                     <span>— Ask MensFlow AI to answer</span>
                   </div>
@@ -587,16 +591,80 @@ function commentReducer(state: CommentState, action: CommentAction): CommentStat
   }
 }
 
+function VirtualizedPostList({ posts, scrollRef, onPostClick }: {
+  posts: import('../services/communityService').ApiCommunityPost[]
+  scrollRef: React.RefObject<HTMLDivElement | null>
+  onPostClick: (id: string) => void
+}) {
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const virtualizer = useVirtualizer({
+    count: posts.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => 180,
+    overscan: 5,
+  })
+
+  return (
+    <div style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative' }}>
+      {virtualizer.getVirtualItems().map((item) => (
+        <div
+          key={item.key}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: `${item.size}px`,
+            transform: `translateY(${item.start}px)`,
+          }}
+        >
+          <div className="pr-1">
+            <PostCard post={posts[item.index]} onClick={() => onPostClick(posts[item.index]._id)} />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+type ViewState = {
+  category: string
+  page: number
+  selectedPostId: string | null
+  showCreate: boolean
+  confirmDeleteId: string | null
+}
+
+type ViewAction =
+  | { type: 'SET_CATEGORY'; payload: string }
+  | { type: 'SET_PAGE'; payload: number }
+  | { type: 'SELECT_POST'; payload: string | null }
+  | { type: 'SET_SHOW_CREATE'; payload: boolean }
+  | { type: 'SET_CONFIRM_DELETE'; payload: string | null }
+
+const initialViewState: ViewState = {
+  category: 'all', page: 1, selectedPostId: null, showCreate: false, confirmDeleteId: null,
+}
+
+function viewReducer(state: ViewState, action: ViewAction): ViewState {
+  switch (action.type) {
+    case 'SET_CATEGORY': return { ...state, category: action.payload, page: 1 }
+    case 'SET_PAGE': return { ...state, page: action.payload }
+    case 'SELECT_POST': return { ...state, selectedPostId: action.payload }
+    case 'SET_SHOW_CREATE': return { ...state, showCreate: action.payload }
+    case 'SET_CONFIRM_DELETE': return { ...state, confirmDeleteId: action.payload }
+    default: return state
+  }
+}
+
 export function CommunityView() {
   const { user } = useStore()
   const qc = useQueryClient()
-  const [category, setCategory] = useState('all')
-  const [page, setPage] = useState(1)
-  const [selectedPostId, setSelectedPostId] = useState<string | null>(null)
-  const [showCreate, setShowCreate] = useState(false)
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [view, viewDispatch] = useReducer(viewReducer, initialViewState)
+  const { category, page, selectedPostId, showCreate, confirmDeleteId } = view
   const [comment, commentDispatch] = useReducer(commentReducer, initialCommentState)
   const mentionRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!comment.showMentions || !comment.mentionQuery) return
@@ -627,12 +695,21 @@ export function CommunityView() {
   const { data: detail } = useCommunityPost(selectedPostId || '')
   const addComment = useAddComment()
 
+  useSEO({
+    title: detail ? detail.post.title : 'Community Board',
+    description: detail
+      ? detail.post.body.slice(0, 150) + (detail.post.body.length > 150 ? '...' : '')
+      : 'Connect with others on their cycle journey, share tips, and post questions.',
+    keywords: 'menstrual health, mensflow community, support group, cycle discussion'
+  })
+
   const handlePostClick = (id: string) => {
-    setSelectedPostId(id)
+    viewDispatch({ type: 'SELECT_POST', payload: id })
     commentDispatch({ type: 'RESET' })
   }
 
   const handleSubmitComment = async () => {
+    hapticSelection()
     if (!comment.text.trim() || !selectedPostId) return
     try {
       await addComment.mutateAsync({ postId: selectedPostId, data: { body: comment.text.trim(), isAnonymous: comment.isAnonymous } })
@@ -643,7 +720,7 @@ export function CommunityView() {
   }
 
   const handleDeletePost = async (postId: string) => {
-    setConfirmDeleteId(postId)
+    viewDispatch({ type: 'SET_CONFIRM_DELETE', payload: postId })
   }
 
   const confirmDelete = async () => {
@@ -655,11 +732,11 @@ export function CommunityView() {
         return { ...old, posts: old.posts.filter(p => p._id !== confirmDeleteId), total: old.total - 1 }
       })
       toast.success('Post deleted')
-      setSelectedPostId(null)
+      viewDispatch({ type: 'SELECT_POST', payload: null })
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to delete post')
     } finally {
-      setConfirmDeleteId(null)
+      viewDispatch({ type: 'SET_CONFIRM_DELETE', payload: null })
     }
   }
 
@@ -668,11 +745,11 @@ export function CommunityView() {
       <PostDetailView
         detail={detail}
         user={user}
-        onBack={() => setSelectedPostId(null)}
+        onBack={() => viewDispatch({ type: 'SELECT_POST', payload: null })}
         onDelete={handleDeletePost}
         confirmDelete={confirmDelete}
         confirmDeleteId={confirmDeleteId}
-        setConfirmDeleteId={setConfirmDeleteId}
+        setConfirmDeleteId={(id) => viewDispatch({ type: 'SET_CONFIRM_DELETE', payload: id })}
         commentText={comment.text}
         setCommentText={val => commentDispatch({ type: 'SET_TEXT', text: val })}
         commentAnonymous={comment.isAnonymous}
@@ -704,7 +781,7 @@ export function CommunityView() {
               </div>
             </div>
             <Button
-              onClick={() => setShowCreate(true)}
+              onClick={() => viewDispatch({ type: 'SET_SHOW_CREATE', payload: true })}
               size="sm"
               className="rounded-xl gap-1.5 h-9 text-xs"
             >
@@ -721,7 +798,7 @@ export function CommunityView() {
                 <button
                   key={cat.id}
                   type="button"
-                  onClick={() => { setCategory(cat.id); setPage(1) }}
+                  onClick={() => { viewDispatch({ type: 'SET_CATEGORY', payload: cat.id }); viewDispatch({ type: 'SET_PAGE', payload: 1 }) }}
                   className={cn(
                     'flex items-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer border shrink-0',
                     active
@@ -742,22 +819,20 @@ export function CommunityView() {
               <div className="size-10 rounded-full border-3 border-[var(--mf-border)] border-t-[var(--mf-accent)] animate-spin" />
             </div>
           ) : list && list.posts.length > 0 ? (
-            <div className="space-y-3 pb-4">
-              {list.posts.map(post => (
-                <PostCard key={post._id} post={post} onClick={() => handlePostClick(post._id)} />
-              ))}
+            <div ref={scrollRef} className="overflow-y-auto pb-4" style={{ contain: 'strict' }}>
+              <VirtualizedPostList posts={list.posts} scrollRef={scrollRef} onPostClick={handlePostClick} />
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-20 gap-5 px-4">
-              <div className="size-20 rounded-2xl bg-gradient-to-br from-[var(--mf-accent-soft)] to-[var(--mf-accent-soft)]/40 flex items-center justify-center text-[var(--mf-accent)] border border-[var(--mf-accent-border)]">
-                <ChatCircleDots size={36} weight="thin" />
-              </div>
-              <div className="text-center space-y-1.5 max-w-xs">
-                <p className="text-base font-semibold text-[var(--mf-text-strong)]">No discussions yet</p>
-                <p className="text-sm text-muted-foreground">Be the first to start a conversation!</p>
-              </div>
+              <div className="flex flex-col items-center justify-center py-20 gap-5 px-4">
+                <div className="size-20 rounded-2xl bg-gradient-to-br from-[var(--mf-accent-soft)] to-[var(--mf-accent-soft)]/40 flex items-center justify-center text-[var(--mf-accent)] border border-[var(--mf-accent-border)]">
+                  <ChatCircleDots size={36} weight="thin" />
+                </div>
+                <div className="text-center space-y-1.5 max-w-xs">
+                  <p className="text-base font-semibold text-[var(--mf-text-strong)]">No discussions yet</p>
+                  <p className="text-sm text-muted-foreground">The community is quiet. Spark a conversation — someone out there needs to hear this! 💬</p>
+                </div>
               <Button
-                onClick={() => setShowCreate(true)}
+                onClick={() => viewDispatch({ type: 'SET_SHOW_CREATE', payload: true })}
                 className="rounded-xl gap-1.5"
               >
                 <Plus size={16} weight="bold" />
@@ -769,17 +844,17 @@ export function CommunityView() {
       </main>
 
       <AnimatePresence>
-        {showCreate && <CreatePostModal open={showCreate} onClose={() => setShowCreate(false)} />}
+        {showCreate && <CreatePostModal open={showCreate} onClose={() => viewDispatch({ type: 'SET_SHOW_CREATE', payload: false })} />}
       </AnimatePresence>
 
-      <Dialog open={!!confirmDeleteId} onOpenChange={() => setConfirmDeleteId(null)}>
+      <Dialog open={!!confirmDeleteId} onOpenChange={() => viewDispatch({ type: 'SET_CONFIRM_DELETE', payload: null })}>
         <DialogContent className="sm:max-w-[360px] rounded-2xl">
           <DialogHeader>
             <DialogTitle>Delete post?</DialogTitle>
             <DialogDescription>This action cannot be undone.</DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex gap-2 sm:gap-2">
-            <Button variant="outline" onClick={() => setConfirmDeleteId(null)} className="flex-1 rounded-xl">Cancel</Button>
+            <Button variant="outline" onClick={() => viewDispatch({ type: 'SET_CONFIRM_DELETE', payload: null })} className="flex-1 rounded-xl">Cancel</Button>
             <Button onClick={confirmDelete} className="flex-1 rounded-xl bg-[var(--mf-danger)] hover:bg-[var(--mf-danger)]/90 text-white">Delete</Button>
           </DialogFooter>
         </DialogContent>

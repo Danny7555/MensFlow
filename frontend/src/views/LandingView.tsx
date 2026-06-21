@@ -10,8 +10,14 @@ import { toast } from 'sonner'
 import { MarkdownText } from '../components/MarkdownText'
 import { cn } from '../lib/utils'
 import { useChatSuggestions } from '../services/chatService'
+import { useSEO } from '../hooks/useSEO'
 
 export function LandingView() {
+  useSEO({
+    title: 'Menstrual Health & Partner Support Companion',
+    description: 'Ask MensFlow cycle questions, log symptoms, get personalized insights, and securely pair with your partner to share tracking context.',
+    keywords: 'cycle tracking, period tracker, partner sync, menstrual AI, self-care'
+  })
   const [draft, setDraft] = useState('')
   const [messages, setMessages] = useState<{ id: string; role: 'user' | 'assistant'; text: string }[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -74,7 +80,7 @@ export function LandingView() {
         {messages.length === 0 ? (
           <>
             <div className="landing-hero-image-wrap">
-              <img src="/images/lady.jpg" alt="" className="landing-hero-image" />
+              <img loading="lazy" src="/images/lady.jpg" alt="" className="landing-hero-image" />
             </div>
             <h1 className="landing-title">Ask MensFlow about your cycle?</h1>
             <p className="landing-sub">
@@ -232,13 +238,13 @@ export function LandingView() {
               <div className="flex gap-4 w-full max-w-[340px] mt-1">
                 <button type="button" 
                   onClick={() => openAuthModal('login')}
-                  className="btn btn-secondary flex-1 h-[3.25rem] rounded-full font-semibold cursor-pointer active-squish shadow-xs"
+                  className="btn btn-secondary flex-1 h-[3.25rem] rounded-full font-semibold cursor-pointer active-squish"
                 >
                   Log in
                 </button>
                 <button type="button" 
                   onClick={() => openAuthModal('register')}
-                  className="btn btn-primary flex-1 h-[3.25rem] rounded-full font-semibold cursor-pointer active-squish shadow-sm bg-gradient-to-r from-[var(--mf-accent)] to-[var(--mf-accent-hover,#ff5277)]"
+                  className="btn btn-primary flex-1 h-[3.25rem] rounded-full font-semibold cursor-pointer active-squish bg-gradient-to-r from-[var(--mf-accent)] to-[var(--mf-accent-hover,#ff5277)]"
                 >
                   Create account
                 </button>

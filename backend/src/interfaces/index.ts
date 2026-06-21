@@ -75,6 +75,7 @@ export interface ISettings {
   privacyRequestedFields: string[];
   privacyStrictLocalOnly: boolean;
   conditionOptimization: 'none' | 'pcos' | 'endometriosis' | 'perimenopause';
+  trackingMode: 'period' | 'conception' | 'pregnancy' | 'perimenopause';
   disableAIPopups: boolean;
   hideDailyStoriesAndTips: boolean;
   otpEnabled: boolean;

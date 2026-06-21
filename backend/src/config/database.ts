@@ -1,8 +1,13 @@
 import mongoose from 'mongoose';
+import { logger } from '../utils/logger';
+import { withRetry } from '../utils/retry';
+
+const MAX_RECONNECT_ATTEMPTS = 5;
+const RECONNECT_BASE_DELAY = 1_000;
 
 export async function connectDatabase(): Promise<void> {
   if (mongoose.connection.readyState >= 1) {
-    console.log('[DB] Already connected to MongoDB (cached)');
+    logger.debug('Already connected to MongoDB (cached)');
     return;
   }
   const uri = process.env.MONGO_URI;
@@ -11,53 +16,37 @@ export async function connectDatabase(): Promise<void> {
     throw new Error('MONGO_URI is not defined in environment variables');
   }
 
-  // ─── Connection event handlers ────────────────────────────────────────────
-  // Note: 'disconnected' is also handled in index.ts to reset the dbConnected
-  // flag so the lazy-connect middleware re-connects on the next request.
   mongoose.connection.on('connected', () => {
-    console.log('[DB] Connected to MongoDB');
+    logger.info('Connected to MongoDB');
   });
 
   mongoose.connection.on('disconnected', () => {
-    console.warn('[DB] MongoDB disconnected');
+    logger.warn('MongoDB disconnected');
   });
 
   mongoose.connection.on('reconnected', () => {
-    console.log('[DB] MongoDB reconnected');
+    logger.info('MongoDB reconnected');
   });
 
   mongoose.connection.on('error', (err) => {
-    console.error('[DB] MongoDB connection error:', err.message);
-    // Do NOT exit — the lazy-connect middleware will re-connect on the next request
+    logger.error('MongoDB connection error', { error: err.message });
   });
 
-  await mongoose.connect(uri, {
-    // ── Serverless-safe pool settings ──────────────────────────────────────
-    // A pool of 10 on Vercel means 10 sockets opened per cold-start that
-    // all get ECONNRESET when the function goes idle. 1-2 is the right
-    // value for serverless — MongoDB Atlas free-tier also caps connections.
-    maxPoolSize: 2,
+  await withRetry(() => mongoose.connect(uri, {
+    maxPoolSize: parseInt(process.env.MONGO_POOL_SIZE || (process.env.VERCEL === '1' ? '2' : '20'), 10),
     minPoolSize: 0,
-
-    // ── Timeouts ───────────────────────────────────────────────────────────
-    // Keep selection timeout short so a bad connection surfaces fast rather
-    // than hanging a Vercel function for 30 seconds.
     serverSelectionTimeoutMS: 8_000,
-    // Heartbeat less frequently — we don't need aggressive keep-alive in
-    // serverless; it just generates unnecessary traffic.
     heartbeatFrequencyMS: 30_000,
-    // How long a connection can sit idle in the pool before being closed.
-    // Keeps idle sockets from accumulating between invocations.
     maxIdleTimeMS: 30_000,
-    // How long to wait for a socket to connect.
     connectTimeoutMS: 10_000,
-    // How long to wait for a socket read/write operation.
     socketTimeoutMS: 30_000,
-
-    // ── Mongoose behaviour ─────────────────────────────────────────────────
-    // bufferCommands: false means Mongoose rejects queries immediately when
-    // disconnected instead of queuing them indefinitely, which causes the
-    // "buffering timed out after 10000ms" errors on Vercel.
     bufferCommands: false,
+  }), {
+    maxAttempts: MAX_RECONNECT_ATTEMPTS,
+    baseDelayMs: RECONNECT_BASE_DELAY,
+    maxDelayMs: 10_000,
+    onRetry: (attempt, _err, delayMs) => {
+      logger.warn(`MongoDB connection attempt ${attempt + 1}/${MAX_RECONNECT_ATTEMPTS} failed — retrying in ${delayMs}ms`);
+    },
   });
 }

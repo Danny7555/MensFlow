@@ -23,7 +23,7 @@ export function StoriesSection() {
           >
             <div className={cn("flo-story-ring", story.active && "flo-story-ring--active")}>
               <div className="flo-story-inner">
-                <img src={story.image} alt={story.label} className="flo-story-img" />
+                <img loading="lazy" src={story.image} alt={story.label} className="flo-story-img" />
               </div>
               {story.active && <div className="flo-story-dot" />}
             </div>

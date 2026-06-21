@@ -18,6 +18,7 @@ interface PingItem {
 
 let cachedLastPingProcessed: string | null = null
 let cachedPingsListStr: string | null = null
+const processedTimestamps = new Set<string>()
 
 const getLastPingProcessed = (): string | null => {
   if (cachedLastPingProcessed === null) {
@@ -79,15 +80,19 @@ export function useNotificationsListener() {
           const ping = JSON.parse(pingStr)
           if (ping && ping.timestamp) {
             if (ping.senderId && ping.senderId === (user?.id || 'guest')) {
+              setLastPingProcessed(String(ping.timestamp))
               return
             }
             const lastProcessed = getLastPingProcessed()
             if (lastProcessed !== String(ping.timestamp)) {
               setLastPingProcessed(String(ping.timestamp))
-              
+
+              if (!processedTimestamps.has(String(ping.timestamp))) {
+                processedTimestamps.add(String(ping.timestamp))
+
               // Increment the count
               incrementNotificationCount()
-              
+
               // Play notification sound
               playNotificationSound()
 
@@ -129,12 +134,13 @@ export function useNotificationsListener() {
             }
           }
         }
-      } catch (err) {
-        console.error("Failed to parse local storage ping", err)
       }
+    } catch (err) {
+      console.error("Failed to parse local storage ping", err)
     }
+  }
 
-    window.addEventListener('storage', handlePingEvent as EventListener)
+  window.addEventListener('storage', handlePingEvent as EventListener)
 
     // Trigger check immediately in case storage is already set or on initial mount
     handlePingEvent()
@@ -147,10 +153,13 @@ export function useNotificationsListener() {
             const lastProcessed = getLastPingProcessed()
             if (lastProcessed !== String(ping.timestamp)) {
               setLastPingProcessed(String(ping.timestamp))
-              
+
+              if (!processedTimestamps.has(String(ping.timestamp))) {
+                processedTimestamps.add(String(ping.timestamp))
+
               // Increment count
               incrementNotificationCount()
-              
+
               // Play sound
               playNotificationSound()
 
@@ -182,7 +191,8 @@ export function useNotificationsListener() {
               }
             }
           }
-        })
+        }
+      })
         .catch((e) => console.error("Failed to fetch latest partner ping", e))
     }
 

@@ -70,13 +70,13 @@ function SymptomCategoryList({
   return (
     <div className="dash-panel flex flex-col overflow-hidden">
       {category === 'Physical' && (
-        <img src="/images/ovary.jpg" alt="" className="w-full h-32 object-cover object-[center_30%]" />
+        <img loading="lazy" src="/images/ovary.jpg" alt="" className="w-full h-32 object-cover object-[center_30%]" />
       )}
       {category === 'Mood' && (
-        <img src="/images/happy.jpg" alt="" className="w-full h-32 object-cover object-[center_30%]" />
+        <img loading="lazy" src="/images/happy.jpg" alt="" className="w-full h-32 object-cover object-[center_30%]" />
       )}
       {category === 'Flow' && (
-        <img src="/images/flow.jpg" alt="" className="w-full h-32 object-cover object-[center_30%]" />
+        <img loading="lazy" src="/images/flow.jpg" alt="" className="w-full h-32 object-cover object-[center_30%]" />
       )}
       <div className="p-6 flex flex-col gap-6">
         <div className="flex items-center justify-between">
@@ -122,7 +122,7 @@ function SymptomCategoryList({
                   'phys-tender': '/images/tender.jpg',
                 }
                 if (imgMap[symptom.id]) {
-                  return <img src={imgMap[symptom.id]} alt="" className="size-6 rounded-full object-cover" />
+                  return <img loading="lazy" src={imgMap[symptom.id]} alt="" className="size-6 rounded-full object-cover" />
                 }
                 if (SYMPTOM_ICONS[symptom.id]) {
                   const Icon = SYMPTOM_ICONS[symptom.id]
@@ -208,7 +208,7 @@ export function SymptomsView() {
   if (isPartner && !partnerStatus?.paired) {
     return (
       <div className="flex flex-col h-full bg-background overflow-auto items-center justify-center p-6 min-h-[60vh]">
-        <div className="max-w-[420px] w-full text-center bg-card border border-border p-8 sm:p-10 rounded-[2.5rem] shadow-xl gap-6 relative overflow-hidden flex flex-col items-center">
+        <div className="max-w-[420px] w-full text-center bg-card border border-border p-8 sm:p-10 rounded-[2.5rem] gap-6 relative overflow-hidden flex flex-col items-center">
           <div className="absolute top-0 right-0 size-32 bg-[var(--mf-accent)]/5 rounded-full blur-2xl pointer-events-none" />
           <div className="size-16 rounded-3xl bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] flex items-center justify-center mx-auto border border-[var(--mf-accent)]/10">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-8">
@@ -232,7 +232,7 @@ export function SymptomsView() {
     <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <header className="dash-header">
         <div className="dash-header-left">
-          <img src="/images/girl.jpg" alt="" className="dash-avatar" />
+          <img loading="lazy" src="/images/girl.jpg" alt="" className="dash-avatar" />
           <div>
             <p className="dash-kicker">{isPartner ? "Partner's Cycle" : "Tracking"}</p>
             <div className="flex items-center gap-3">
@@ -247,7 +247,7 @@ export function SymptomsView() {
         </div>
         <div className="dash-header-meta">
           <span className="dash-pill">
-            <img src="/images/cal.png" alt="" width={16} height={16} className="object-contain mr-1.5" aria-hidden />
+            <img loading="lazy" src="/images/cal.png" alt="" width={16} height={16} className="object-contain mr-1.5" aria-hidden />
             Today, {todayStr}
           </span>
         </div>
@@ -324,7 +324,7 @@ export function SymptomsView() {
                           <SelectTrigger 
                             title={currentLog?.lhLevel && currentLog.lhLevel !== 'not-logged' ? "Click to edit LH result" : "Click to select LH result"}
                             className={cn(
-                              "border-none p-0 bg-transparent hover:bg-transparent h-auto focus-visible:ring-0 focus:ring-0 flex items-center gap-1 cursor-pointer text-left shadow-none outline-none focus-visible:ring-offset-0 focus:ring-offset-0 select-none data-[placeholder]:text-muted-foreground group/trigger",
+                              "border-none p-0 bg-transparent hover:bg-transparent h-auto focus-visible:ring-0 focus:ring-0 flex items-center gap-1 cursor-pointer text-left outline-none focus-visible:ring-offset-0 focus:ring-offset-0 select-none data-[placeholder]:text-muted-foreground group/trigger",
                               (currentLog?.lhLevel && currentLog.lhLevel !== 'not-logged') 
                                 ? "text-2xl font-normal text-[var(--mf-text-strong)] hover:text-[var(--mf-accent)] transition-colors capitalize [&_svg]:hidden border-b border-dashed border-muted-foreground/30 hover:border-[var(--mf-accent)]/50 pb-0.5" 
                                 : "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-normal border border-border/50 hover:bg-muted/20 text-muted-foreground transition-colors [&_svg]:hidden"
@@ -371,7 +371,7 @@ export function SymptomsView() {
                           <SelectTrigger 
                             title={currentLog?.mucus && currentLog.mucus !== 'not-logged' ? "Click to edit cervical mucus" : "Click to select consistency"}
                             className={cn(
-                              "border-none p-0 bg-transparent hover:bg-transparent h-auto focus-visible:ring-0 focus:ring-0 flex items-center gap-1 cursor-pointer text-left shadow-none outline-none focus-visible:ring-offset-0 focus:ring-offset-0 select-none data-[placeholder]:text-muted-foreground group/trigger",
+                              "border-none p-0 bg-transparent hover:bg-transparent h-auto focus-visible:ring-0 focus:ring-0 flex items-center gap-1 cursor-pointer text-left outline-none focus-visible:ring-offset-0 focus:ring-offset-0 select-none data-[placeholder]:text-muted-foreground group/trigger",
                               (currentLog?.mucus && currentLog.mucus !== 'not-logged') 
                                 ? "text-2xl font-normal text-[var(--mf-text-strong)] hover:text-[var(--mf-accent)] transition-colors capitalize [&_svg]:hidden border-b border-dashed border-muted-foreground/30 hover:border-[var(--mf-accent)]/50 pb-0.5" 
                                 : "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-normal border border-border/50 hover:bg-muted/20 text-muted-foreground transition-colors [&_svg]:hidden"
@@ -395,7 +395,7 @@ export function SymptomsView() {
                     )}
                   </div>
                   <div className="size-10 flex items-center justify-center shrink-0">
-                    <img src="/images/water.png" alt="" className="size-8 object-contain" />
+                    <img loading="lazy" src="/images/water.png" alt="" className="size-8 object-contain" />
                   </div>
                 </div>
               </div>
@@ -464,7 +464,7 @@ export function SymptomsView() {
                                   className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-card border border-border text-sm font-normal text-[var(--mf-text-strong)]"
                                 >
                                   {imgMap[symptom.id] ? (
-                                    <img src={imgMap[symptom.id]} alt="" className="size-6 rounded-full object-cover" />
+                                    <img loading="lazy" src={imgMap[symptom.id]} alt="" className="size-6 rounded-full object-cover" />
                                   ) : SYMPTOM_ICONS[symptom.id] ? (
                                     (() => {
                                       const Icon = SYMPTOM_ICONS[symptom.id]

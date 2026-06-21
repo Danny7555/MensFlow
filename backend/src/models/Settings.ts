@@ -32,6 +32,7 @@ export interface SettingsDocument extends Document {
   privacyRequestedFields: string[];
   privacyStrictLocalOnly: boolean;
   conditionOptimization: 'none' | 'pcos' | 'endometriosis' | 'perimenopause';
+  trackingMode: 'period' | 'conception' | 'pregnancy' | 'perimenopause';
   disableAIPopups: boolean;
   hideDailyStoriesAndTips: boolean;
   otpEnabled: boolean;
@@ -75,6 +76,7 @@ const SettingsSchema = new Schema<SettingsDocument>({
   privacyRequestedFields: { type: [String], default: [] },
   privacyStrictLocalOnly: { type: Boolean, default: false },
   conditionOptimization: { type: String, enum: ['none', 'pcos', 'endometriosis', 'perimenopause'], default: 'none' },
+  trackingMode: { type: String, enum: ['period', 'conception', 'pregnancy', 'perimenopause'], default: 'period' },
   disableAIPopups: { type: Boolean, default: false },
   hideDailyStoriesAndTips: { type: Boolean, default: false },
   otpEnabled: { type: Boolean, default: true },

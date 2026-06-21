@@ -119,6 +119,7 @@ export function Header({
           <div className="top-header-left">
             {showBackButton ? (
               <button
+                id="mobile-back-btn"
                 type="button"
                 onClick={handleBack}
                 className="flex items-center gap-0.5 text-[var(--mf-accent)] active:opacity-60 transition-opacity border-none bg-transparent cursor-pointer p-0"
@@ -128,6 +129,7 @@ export function Header({
               </button>
             ) : (
               <button
+                id="mobile-menu-toggle-btn"
                 type="button"
                 className="icon-btn top-header-menu"
                 aria-label={sidebarToggleLabel}
@@ -145,12 +147,13 @@ export function Header({
 
           <div className="top-header-actions">
             {!isAuthenticated ? (
-              <button type="button" className="btn btn-ghost text-xs px-2" onClick={() => onOpenAuth('login')}>
+              <button id="mobile-login-btn" type="button" className="btn btn-ghost text-xs px-2" onClick={() => onOpenAuth('login')}>
                 Login
               </button>
             ) : (
               <div className="profile-menu-wrap" ref={profileWrapRef}>
                 <button
+                  id="mobile-profile-btn"
                   type="button"
                   className="icon-btn profile-btn"
                   aria-expanded={profileOpen}
@@ -163,6 +166,7 @@ export function Header({
                 {profileOpen && (
                   <div className="profile-dropdown" role="menu">
                     <Link
+                      id="mobile-profile-settings-link"
                       to="/settings"
                       className="profile-dropdown-item"
                       role="menuitem"
@@ -172,6 +176,7 @@ export function Header({
                       Settings
                     </Link>
                     <button
+                      id="mobile-profile-logout-btn"
                       type="button"
                       className="profile-dropdown-item profile-dropdown-item--danger"
                       role="menuitem"
@@ -194,6 +199,7 @@ export function Header({
           <div className="top-header-left">
             {(isMobile && !sidebarExpanded) && (
               <button
+                id="desktop-header-menu-btn"
                 type="button"
                 className="icon-btn top-header-menu"
                 aria-label={sidebarToggleLabel}
@@ -203,7 +209,7 @@ export function Header({
                 <SidebarSimple size={22} aria-hidden />
               </button>
             )}
-            <Link to={isAuthenticated ? "/dashboard" : "/ask"} className="top-header-logo">
+            <Link id="header-logo-link" to={isAuthenticated ? "/dashboard" : "/ask"} className="top-header-logo">
               MensFlow
             </Link>
           </div>
@@ -211,10 +217,10 @@ export function Header({
           <div className="top-header-actions">
             {!isAuthenticated ? (
               <>
-                <button type="button" className="btn btn-ghost" onClick={() => onOpenAuth('login')}>
+                <button id="header-login-btn" type="button" className="btn btn-ghost" onClick={() => onOpenAuth('login')}>
                   Login
                 </button>
-                <button type="button" className="btn btn-primary" onClick={() => onOpenAuth('register')}>
+                <button id="header-signup-btn" type="button" className="btn btn-primary" onClick={() => onOpenAuth('register')}>
                   Sign up
                 </button>
               </>
@@ -222,6 +228,7 @@ export function Header({
               <>
                 {onToggleTemporaryChat !== undefined && (
                   <button
+                    id="header-temp-chat-mode-btn"
                     type="button"
                     className={`chat-mode-chip ${temporaryChat ? 'chat-mode-chip--temp' : ''}`}
                     onClick={onToggleTemporaryChat}
@@ -249,6 +256,7 @@ export function Header({
                 )}
                 <div className="profile-menu-wrap" ref={profileWrapRef}>
                   <button
+                    id="header-profile-btn"
                     type="button"
                     className="icon-btn profile-btn profile-btn--with-caret"
                     aria-expanded={profileOpen}
@@ -262,6 +270,7 @@ export function Header({
                   {profileOpen && (
                     <div className="profile-dropdown" role="menu">
                       <Link
+                        id="header-profile-settings-link"
                         to="/settings"
                         className="profile-dropdown-item"
                         role="menuitem"
@@ -271,6 +280,7 @@ export function Header({
                         Settings
                       </Link>
                       <button
+                        id="header-profile-logout-btn"
                         type="button"
                         className="profile-dropdown-item profile-dropdown-item--danger"
                         role="menuitem"

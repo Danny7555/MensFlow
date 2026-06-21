@@ -1,8 +1,8 @@
 export type ThemeMode = 'light' | 'dark' | 'system'
 
-export type ContrastMode = 'system' | 'standard' | 'high'
+export type ContrastMode = 'system' | 'standard' | 'soft' | 'high'
 
-export type AccentPreset = 'default' | 'orchid' | 'ocean'
+export type AccentPreset = 'default' | 'orchid' | 'ocean' | 'emerald' | 'amber' | 'sapphire' | 'ruby'
 
 export type MensFlowSettings = {
   version: 1
@@ -37,6 +37,7 @@ export type MensFlowSettings = {
   privacyRequestedFields: string[]
   privacyStrictLocalOnly: boolean
   conditionOptimization: 'none' | 'pcos' | 'endometriosis' | 'perimenopause'
+  trackingMode: 'period' | 'conception' | 'pregnancy' | 'perimenopause'
   disableAIPopups: boolean
   hideDailyStoriesAndTips: boolean
   /** Two-factor authentication via email OTP */
@@ -81,6 +82,7 @@ export const DEFAULT_SETTINGS: MensFlowSettings = {
   privacyRequestedFields: [],
   privacyStrictLocalOnly: false,
   conditionOptimization: 'none',
+  trackingMode: 'period',
   disableAIPopups: false,
   hideDailyStoriesAndTips: false,
   otpEnabled: true,

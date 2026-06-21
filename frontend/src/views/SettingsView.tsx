@@ -30,6 +30,7 @@ import {
 import { DoctorReportModal } from '../components/dashboard/DoctorReportModal'
 import { toast } from 'sonner'
 import { useAIUsageStats } from '../services/chatService'
+import { useSEO } from '../hooks/useSEO'
 import {
   Dialog,
   DialogContent,
@@ -114,7 +115,7 @@ function SelectRow({
         )}
       </div>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="settings-select flex items-center justify-between bg-none shadow-none min-w-[150px] h-9 pr-2 pl-3 cursor-pointer">
+        <SelectTrigger className="settings-select flex items-center justify-between bg-none min-w-[120px] sm:min-w-[150px] h-9 pr-2 pl-3 cursor-pointer">
           <SelectValue />
         </SelectTrigger>
         <SelectContent className="rounded-xl border border-border bg-card">
@@ -400,6 +401,7 @@ function GeneralPanel({
         options={[
           { value: 'system', label: 'System' },
           { value: 'standard', label: 'Standard' },
+          { value: 'soft', label: 'Soft' },
           { value: 'high', label: 'High' },
         ]}
       />
@@ -411,6 +413,10 @@ function GeneralPanel({
           { value: 'default', label: 'Default' },
           { value: 'orchid', label: 'Orchid' },
           { value: 'ocean', label: 'Ocean' },
+          { value: 'emerald', label: 'Emerald' },
+          { value: 'amber', label: 'Amber' },
+          { value: 'sapphire', label: 'Sapphire' },
+          { value: 'ruby', label: 'Ruby' },
         ]}
       />
       <SelectRow
@@ -583,7 +589,7 @@ function GeneralPanel({
                 <div className="flex items-center gap-3">
                   <div className="size-10 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center overflow-hidden border border-[var(--mf-border)]">
                     {partnerStatus.partner?.avatar ? (
-                      <img src={resolveAssetUrl(partnerStatus.partner.avatar)} alt="" className="w-full h-full object-cover" />
+                      <img loading="lazy" src={resolveAssetUrl(partnerStatus.partner.avatar)} alt="" className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-base font-normal text-[var(--mf-accent)]">
                         {partnerStatus.partner?.name?.charAt(0).toUpperCase()}
@@ -867,7 +873,7 @@ function DataControlsPanel({
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div className="p-3 rounded-xl bg-[var(--mf-accent-soft)]/20 border border-[var(--mf-accent-border)]">
               <span className="text-[10px] tracking-wider text-[var(--mf-muted)] block">Tokens Used</span>
               <p className="text-lg text-[var(--mf-text-strong)] mt-0.5">{(aiStats.totalTokens / 1000).toFixed(1)}k</p>
@@ -1479,7 +1485,7 @@ function ParentalPanel({
             onChange={(e) => setGuardianEmail(e.target.value)}
             placeholder="guardian@example.com"
             disabled={!settings.parentalControlsEnabled}
-            className="settings-select bg-none shadow-none w-[320px] sm:w-[380px] max-w-none h-9 px-3 disabled:opacity-50 cursor-text"
+            className="settings-select bg-none w-full max-w-[280px] sm:max-w-[320px] h-9 px-3 disabled:opacity-50 cursor-text"
             aria-label="Guardian email"
           />
           <Button
@@ -1527,7 +1533,7 @@ function ParentalPanel({
             value={settings.parentalQuietHoursStart}
             disabled={!settings.parentalControlsEnabled || !settings.parentalQuietHoursEnabled}
             onChange={(e) => updateSettings({ parentalQuietHoursStart: e.target.value })}
-            className="settings-select bg-none shadow-none h-9 px-3 disabled:opacity-50"
+            className="settings-select bg-none h-9 px-3 disabled:opacity-50"
             aria-label="Quiet hours start"
           />
           <span className="text-xs text-muted-foreground">to</span>
@@ -1536,7 +1542,7 @@ function ParentalPanel({
             value={settings.parentalQuietHoursEnd}
             disabled={!settings.parentalControlsEnabled || !settings.parentalQuietHoursEnabled}
             onChange={(e) => updateSettings({ parentalQuietHoursEnd: e.target.value })}
-            className="settings-select bg-none shadow-none h-9 px-3 disabled:opacity-50"
+            className="settings-select bg-none h-9 px-3 disabled:opacity-50"
             aria-label="Quiet hours end"
           />
         </div>
@@ -1636,7 +1642,7 @@ function AccountPanel({
             <div className="flex flex-col items-center gap-2 mr-4">
               <div className="size-20 rounded-full bg-muted border border-border flex items-center justify-center overflow-hidden shrink-0 relative group">
                 {user?.avatar ? (
-                  <img src={resolveAssetUrl(user.avatar)} alt="Profile" className="w-full h-full object-cover" />
+                  <img loading="lazy" src={resolveAssetUrl(user.avatar)} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
                   <UserCircle size={48} weight="duotone" className="text-muted-foreground" aria-hidden />
                 )}
@@ -1805,7 +1811,7 @@ function AccountPanel({
                   className={`size-16 rounded-full border-2 overflow-hidden transition-all hover:scale-105 active:scale-95 ${user?.avatar === avatar.src ? 'border-[var(--mf-accent)] ring-2 ring-[var(--mf-accent-soft)]' : 'border-transparent'}`}
                   title={avatar.label}
                 >
-                  <img src={avatar.src} alt={avatar.label} className="w-full h-full object-cover" />
+                  <img loading="lazy" src={avatar.src} alt={avatar.label} className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>
@@ -1841,6 +1847,11 @@ export function SettingsView({
   onLogin,
   onLogout,
 }: SettingsViewProps) {
+  useSEO({
+    title: 'Settings',
+    description: 'Customize your tracking mode, theme options, security question, and passcode privacy settings.',
+    keywords: 'settings, preferences, customize theme, cycle length settings, passcode lock'
+  })
   const [cat, setCat] = useQueryState(
     'section',
     parseAsStringLiteral(SETTINGS_CATS)
@@ -2104,6 +2115,9 @@ export function SettingsView({
 
   return (
     <div className="settings-shell">
+      <header className="sr-only">
+        <h1>Settings & Preferences</h1>
+      </header>
       {(!isMobile || !effectiveCat) && (
         <aside className="settings-shell-nav" aria-label="Settings sections">
           {isMobile ? (

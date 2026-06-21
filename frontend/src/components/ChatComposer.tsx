@@ -17,6 +17,7 @@ import {
 } from '@phosphor-icons/react'
 import { useStore } from '../store/useStore'
 import { cn } from '../lib/utils'
+import { hapticMedium } from '../lib/haptics'
 
 const MAX_FILES = 12
 const MAX_BYTES = 15 * 1024 * 1024
@@ -159,6 +160,7 @@ export function ChatComposer({
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
     if (!value.trim()) return
+    hapticMedium()
     onSubmit()
   }
 
@@ -183,6 +185,7 @@ export function ChatComposer({
   return (
     <div className={cn("composer-stack", minimal && "composer-stack--minimal")} ref={rootRef}>
       <input
+        id="composer-file-picker"
         ref={fileInputRef}
         type="file"
         className="composer-hidden-input"
@@ -194,6 +197,7 @@ export function ChatComposer({
         aria-label="Upload files"
       />
       <input
+        id="composer-image-picker"
         ref={imageInputRef}
         type="file"
         className="composer-hidden-input"
@@ -230,7 +234,6 @@ export function ChatComposer({
       <form
         className={cn(
           "composer glass-morphism transition-all duration-300 focus-within:ring-2 focus-within:ring-[var(--mf-accent)]",
-          "border-2 border-dotted border-[#d1d5db] dark:border-muted-foreground/30 bg-muted/20",
           minimal && "composer--minimal",
           disabled && "opacity-60 pointer-events-none"
         )}
@@ -238,6 +241,7 @@ export function ChatComposer({
       >
         <div className="composer-attach-wrap">
           <button
+            id="composer-attach-btn"
             type="button"
             className={cn("composer-icon-btn transition-colors", menuOpen && "composer-icon-btn--active")}
             aria-label="Add attachments"
@@ -252,6 +256,7 @@ export function ChatComposer({
           {menuOpen && (
             <div className="composer-dropdown glass-morphism animate-in fade-in zoom-in-95 duration-200 origin-bottom-left" id={menuId} role="menu">
               <button
+                id="composer-upload-files-btn"
                 type="button"
                 className="composer-dropdown-item"
                 role="menuitem"
@@ -264,6 +269,7 @@ export function ChatComposer({
                 </span>
               </button>
               <button
+                id="composer-upload-media-btn"
                 type="button"
                 className="composer-dropdown-item"
                 role="menuitem"
@@ -276,6 +282,7 @@ export function ChatComposer({
                 </span>
               </button>
               <button
+                id="composer-paste-btn"
                 type="button"
                 className="composer-dropdown-item"
                 role="menuitem"
@@ -292,6 +299,7 @@ export function ChatComposer({
         </div>
 
         <textarea
+          id="composer-textarea"
           ref={textareaRef}
           className="composer-input"
           rows={1}
@@ -306,13 +314,14 @@ export function ChatComposer({
         <div className="flex items-center gap-1">
           <button
             type="button"
-            className="composer-icon-btn hidden sm:flex"
-            aria-label="Voice input"
+            className="composer-icon-btn opacity-40 cursor-not-allowed"
+            aria-label="Voice input (coming soon)"
             title="Voice (coming soon)"
           >
             <Microphone size={21} aria-hidden />
           </button>
           <button
+            id="composer-send-btn"
             type="submit"
             className="composer-send transition-all active:scale-95"
             aria-label="Send"

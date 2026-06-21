@@ -94,7 +94,7 @@ export function PartnerChat() {
   }
 
   return (
-    <div className="flo-card relative overflow-hidden transition-all duration-300 border border-[var(--mf-border)] !shadow-none p-5 flex flex-col max-h-[500px]">
+    <div className="flo-card relative overflow-hidden transition-all duration-300 border border-[var(--mf-border)] p-5 flex flex-col max-h-[500px]">
       
       {/* Header */}
       <div className="flex items-center justify-between pb-3.5 border-b border-[var(--mf-border)] mb-4">
@@ -133,7 +133,7 @@ export function PartnerChat() {
             </div>
             <p className="text-xs text-[var(--mf-text-strong)] font-medium">No messages yet</p>
             <p className="text-[10px] text-[var(--mf-muted)] mt-1 max-w-[200px] leading-relaxed">
-              Send a message to your partner to start coordinating care plans and support!
+              The quiet before something beautiful. Send a message to your partner — every word strengthens your connection. ✨
             </p>
           </div>
         ) : (

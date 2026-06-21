@@ -55,7 +55,7 @@ export function SymptomTrendsChart() {
     }).reverse()
   }, [logs])
   return (
-    <Card className="border-none shadow-none bg-transparent">
+    <Card className="border-none bg-transparent">
       <CardHeader className="p-4 pb-2">
         <div className="flex items-center gap-2">
           <CardTitle className="font-normal text-sm sm:text-base">Symptom Trends</CardTitle>

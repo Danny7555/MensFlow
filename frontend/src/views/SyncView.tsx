@@ -22,6 +22,8 @@ import { partnerApi } from '../services/partnerService'
 import { cn } from '../lib/utils'
 import { getPhaseTasks } from '../lib/cycleUtils'
 import { Button } from '@/components/ui/button'
+import { hapticSelection, hapticMedium } from '../lib/haptics'
+import { useSEO } from '../hooks/useSEO'
 
 interface StatusOption {
   id: string
@@ -89,7 +91,7 @@ function SupportHistory() {
     <m.div 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flo-card p-6 border border-[var(--mf-border)] !shadow-none"
+      className="flo-card p-6 border border-[var(--mf-border)]"
     >
       <div className="flex items-center gap-2 mb-4">
         <div className="size-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
@@ -101,7 +103,7 @@ function SupportHistory() {
         {completed.slice(-3).reverse().map((task) => (
           <div key={task.id} className="flex items-center justify-between text-[11.5px] py-2 border-b border-border/40 last:border-0">
             <div className="flex items-center gap-2.5">
-              <img src="/images/heart.png" alt="" className="size-3.5 object-contain shrink-0" />
+              <img loading="lazy" src="/images/heart.png" alt="" className="size-3.5 object-contain shrink-0" />
               <span className="text-[var(--mf-text)]">{task.label}</span>
             </div>
             <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Completed</span>
@@ -113,6 +115,11 @@ function SupportHistory() {
 }
 
 export function SyncView() {
+  useSEO({
+    title: 'Partner Sync',
+    description: 'Link with your partner securely to share cycle details, symptom logs, or send empathy gestures.',
+    keywords: 'partner sync, cycle sharing, support updates, empathy pings, relationship support'
+  })
   const { partnerStatus, fetchPartnerStatus, user, pairPartner } = useStore()
   const { isAuthenticated, openAuthModal } = useAuth()
   const mainRef = useRef<HTMLElement>(null)
@@ -139,6 +146,7 @@ export function SyncView() {
   }, [])
 
   const handlePair = async () => {
+    hapticMedium()
     if (!partnerCodeInput.trim()) return
     setIsPairing(true)
     await pairPartner(partnerCodeInput.trim())
@@ -148,12 +156,14 @@ export function SyncView() {
 
   const inviteUrl = `${window.location.origin}/sync?code=${user?.partnerCode || ''}`
   const copyLink = () => {
+    hapticSelection()
     navigator.clipboard.writeText(inviteUrl)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
 
   const handleSendInvite = async () => {
+    hapticMedium()
     const email = inviteEmail.trim()
     if (!email) return
     setIsInviting(true)
@@ -191,6 +201,7 @@ export function SyncView() {
   const options = user?.role === 'partner' ? SUPPORT_PING_OPTIONS : STATUS_OPTIONS
 
   const handleSendPing = async () => {
+    hapticMedium()
     if (!selected) return
     setIsSending(true)
     
@@ -271,7 +282,7 @@ export function SyncView() {
 
             {/* How it works — role-aware */}
             <m.div variants={itemVariants} className="mb-8">
-              <div className="flo-card p-5 border border-[var(--mf-border)] !shadow-none">
+              <div className="flo-card p-5 border border-[var(--mf-border)]">
                 <h3 className="text-[10px] font-normal uppercase tracking-[0.2em] text-muted-foreground mb-5 text-center">
                   How it works
                 </h3>
@@ -302,7 +313,7 @@ export function SyncView() {
 
             {/* Pairing card — role-aware */}
             {!isAuthenticated ? (
-              <div className="flo-card p-6 border border-[var(--mf-border)] !shadow-none text-center space-y-5 relative overflow-hidden max-w-xl mx-auto">
+              <div className="flo-card p-6 border border-[var(--mf-border)] text-center space-y-5 relative overflow-hidden max-w-xl mx-auto">
                 <div className="relative z-10 space-y-4">
                   <div className="size-10 rounded-xl bg-pink-500/10 flex items-center justify-center mx-auto text-pink-500">
                     <Users size={20} weight="bold" />
@@ -312,6 +323,7 @@ export function SyncView() {
                     Sign in or create an account to sync cycles with your partner.
                   </p>
                   <Button
+                    id="sync-unauth-signin-btn"
                     onClick={() => openAuthModal(window.location.search.includes('code') ? 'register' : 'login')}
                     className="bg-[var(--mf-accent)] hover:bg-[var(--mf-accent)]/90 text-white rounded-xl text-xs"
                   >
@@ -323,7 +335,7 @@ export function SyncView() {
             ) : user?.role === 'partner' ? (
               /* ── Partner: enter lady's code ── */
               <m.div variants={itemVariants} className="max-w-md mx-auto">
-                <div className="flo-card p-5 border border-[var(--mf-border)] !shadow-none space-y-3.5">
+                <div className="flo-card p-5 border border-[var(--mf-border)] space-y-3.5">
                   <div className="flex items-center gap-2">
                     <div className="size-7 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 shrink-0">
                       <LinkSimple size={14} weight="bold" />
@@ -335,6 +347,7 @@ export function SyncView() {
                   </p>
                   <div className="space-y-3">
                     <input
+                      id="sync-pairing-code-input"
                       type="text"
                       placeholder="e.g. XY82HA"
                       value={partnerCodeInput}
@@ -344,6 +357,7 @@ export function SyncView() {
                       maxLength={6}
                     />
                     <Button
+                      id="sync-connect-partner-btn"
                       disabled={isPairing || !partnerCodeInput.trim()}
                       onClick={handlePair}
                       className="w-full bg-[var(--mf-accent)] hover:bg-[var(--mf-accent)]/90 text-white rounded-xl text-xs h-11"
@@ -366,7 +380,7 @@ export function SyncView() {
             ) : (
               /* ── Lady: show her code to share ── */
               <m.div variants={itemVariants} className="max-w-md mx-auto">
-                <div className="flo-card p-5 border border-[var(--mf-border)] !shadow-none space-y-3.5">
+                <div className="flo-card p-5 border border-[var(--mf-border)] space-y-3.5">
                   <div className="flex items-center gap-2">
                     <div className="size-7 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-500 shrink-0">
                       <Copy size={14} weight="bold" />
@@ -381,6 +395,7 @@ export function SyncView() {
                       {user?.partnerCode ?? '— — — — — —'}
                     </span>
                     <Button
+                      id="sync-copy-code-btn"
                       onClick={() => {
                         if (user?.partnerCode) {
                           navigator.clipboard.writeText(user.partnerCode)
@@ -406,6 +421,7 @@ export function SyncView() {
             {isAuthenticated && user?.role === 'lady' && (
               <m.div variants={itemVariants} className="mt-8 w-full max-w-2xl mx-auto px-4 sm:px-0">
                 <Button
+                  id="sync-invite-partner-banner-btn"
                   onClick={() => setIsInviteModalOpen(true)}
                   className="w-full text-left bg-gradient-to-r from-[var(--mf-accent)] to-[#be185d] rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-8 text-white flex flex-col items-center sm:flex-row justify-between gap-4 sm:gap-6 overflow-hidden relative group cursor-pointer h-auto border-0"
                 >
@@ -419,7 +435,7 @@ export function SyncView() {
                     Invite Partner
                   </span>
                   <div className="absolute right-[-20px] top-[-20px] opacity-10 group-hover:scale-110 transition-transform duration-700">
-                     <img src="/images/girl.jpg" alt="" className="size-40 sm:size-48 object-contain rotate-[-15deg]" />
+                     <img loading="lazy" src="/images/girl.jpg" alt="" className="size-40 sm:size-48 object-contain rotate-[-15deg]" />
                   </div>
                 </Button>
               </m.div>
@@ -467,6 +483,7 @@ export function SyncView() {
                         className="flex-1 h-12 px-4 rounded-xl bg-muted/50 border border-border focus:border-[var(--mf-accent-border)] focus:bg-background transition-all outline-none text-sm"
                       />
                       <Button 
+                        id="partner-email-invite-submit-btn"
                         onClick={handleSendInvite}
                         disabled={isInviting || !inviteEmail.trim()}
                         className="h-12 px-6 bg-[var(--mf-accent)] hover:bg-[var(--mf-accent)]/90 text-white rounded-xl shrink-0"
@@ -491,6 +508,7 @@ export function SyncView() {
                         {inviteUrl}
                       </span>
                       <Button
+                        id="partner-email-copy-link-btn"
                         onClick={copyLink}
                         variant="outline"
                         className="w-full sm:w-auto rounded-lg text-xs gap-1.5 shrink-0"
@@ -552,9 +570,9 @@ export function SyncView() {
                     <div className="flex items-center gap-2">
                       <div className="size-7 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center overflow-hidden border border-[var(--mf-border)] shrink-0">
                         {partnerStatus.partner.avatar ? (
-                          <img src={resolveAssetUrl(partnerStatus.partner.avatar)} alt="" className="size-full object-cover" />
+                          <img loading="lazy" src={resolveAssetUrl(partnerStatus.partner.avatar)} alt="" className="size-full object-cover" />
                         ) : (
-                          <img src="/images/girl.jpg" alt="" className="size-full object-cover" />
+                          <img loading="lazy" src="/images/girl.jpg" alt="" className="size-full object-cover" />
                         )}
                       </div>
                       <span className="text-xs font-medium text-[var(--mf-text-strong)]">
@@ -567,7 +585,7 @@ export function SyncView() {
                 )}
               </div>
               <div className="hidden md:block shrink-0">
-                <img src="/images/lady.jpg" alt="Empathy Hub Illustration" className="h-28 lg:h-32 object-cover rounded-full opacity-95" />
+                <img loading="lazy" src="/images/lady.jpg" alt="Empathy Hub Illustration" className="h-28 lg:h-32 object-cover rounded-full opacity-95" />
               </div>
             </div>
           </m.div>
@@ -584,7 +602,7 @@ export function SyncView() {
                     transition={{ duration: 2, repeat: Infinity }}
                     className="mb-3 size-12 rounded-full bg-rose-500/10 flex items-center justify-center text-rose-500"
                   >
-                    <img src="/images/heart.png" alt="" className="size-6 object-contain" />
+                    <img loading="lazy" src="/images/heart.png" alt="" className="size-6 object-contain" />
                   </m.div>
 
                   <h2 className="text-base font-normal tracking-tight text-[var(--mf-text-strong)]">
@@ -632,8 +650,9 @@ export function SyncView() {
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         {options.map((opt) => (
                           <button
+                            id={`sync-ping-option-${opt.id}`}
                             key={opt.id}
-                            onClick={() => setSelected(opt.id)}
+                            onClick={() => { hapticSelection(); setSelected(opt.id); }}
                             type="button"
                             className={cn(
                               "relative overflow-hidden aspect-[4/3] rounded-xl border text-left p-2.5 transition-all flex flex-col justify-between outline-none group cursor-pointer",
@@ -643,7 +662,7 @@ export function SyncView() {
                             )}
                           >
                             <div className="absolute inset-0 bg-black/45 group-hover:bg-black/50 transition-colors z-10" />
-                            <img src={opt.image} alt={opt.label} className="absolute inset-0 size-full object-cover z-0 transition-transform duration-700 group-hover:scale-110" />
+                            <img loading="lazy" src={opt.image} alt={opt.label} className="absolute inset-0 size-full object-cover z-0 transition-transform duration-700 group-hover:scale-110" />
                             
                             <div className="flex justify-end w-full z-20">
                               <div className={cn(
@@ -656,7 +675,7 @@ export function SyncView() {
                               </div>
                             </div>
                             
-                            <span className="text-white text-[11px] font-normal tracking-wide z-20 mt-auto drop-shadow-sm">
+                            <span className="text-white text-[11px] font-normal tracking-wide z-20 mt-auto">
                               {opt.label}
                             </span>
                           </button>
@@ -665,6 +684,7 @@ export function SyncView() {
                     </div>
 
                     <Button
+                      id="sync-send-ping-btn"
                       onClick={handleSendPing}
                       disabled={!selected || isSending}
                       className="w-full h-12 bg-[var(--mf-accent)] hover:bg-[var(--mf-accent)]/90 text-white rounded-2xl text-xs"
@@ -734,6 +754,7 @@ export function SyncView() {
                       className="flex-1 h-12 px-4 rounded-xl bg-muted/50 border border-border focus:border-[var(--mf-accent-border)] focus:bg-background transition-all outline-none text-sm"
                     />
                     <button type="button" 
+                      id="partner-email-invite-submit-paired-btn"
                       onClick={handleSendInvite}
                       disabled={isInviting || !inviteEmail.trim()}
                       className="h-12 px-6 bg-[var(--mf-accent)] text-white rounded-xl text-sm font-medium hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
@@ -758,6 +779,7 @@ export function SyncView() {
                       {inviteUrl}
                     </span>
                     <button type="button" 
+                      id="partner-email-copy-link-paired-btn"
                       onClick={copyLink}
                       className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3 py-1.5 bg-background border rounded-lg text-xs font-medium hover:bg-muted transition-colors shrink-0"
                     >

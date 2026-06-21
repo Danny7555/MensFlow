@@ -131,6 +131,11 @@
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  --mf-phase-menstrual: #f43f5e;
+  --mf-phase-follicular: #0d9488;
+  --mf-phase-ovulatory: #0ea5e9;
+  --mf-phase-luteal: #d97706;
+  --mf-phase-premenstrual: #6b7280;
 }
 
 [data-theme='light'] {
@@ -205,6 +210,25 @@
   --mf-ring: rgba(255, 141, 161, 0.45);
 }
 
+/* Soft Contrast Mode - reduced visual intensity */
+[data-contrast='soft'] {
+  --mf-text: #6a6673;
+  --mf-text-strong: #3d3a43;
+  --mf-muted: #8f8899;
+  --mf-border: #dccbd5;
+  --mf-border-strong: #d2bcc9;
+}
+[data-theme='dark'][data-contrast='soft'] {
+  --mf-text: #a09aad;
+  --mf-text-strong: #d9d4e0;
+  --mf-muted: #7f788a;
+  --mf-elevated: #1f161d;
+  --mf-border: #2f1f2a;
+  --mf-border-strong: #3f2c39;
+  --mf-hover: rgba(255, 141, 161, 0.04);
+  --mf-active: rgba(255, 141, 161, 0.08);
+}
+
 /* Orchid Accent Preset */
 [data-accent='orchid'] {
   --mf-accent: #c84b9e;
@@ -247,6 +271,94 @@
   --mf-ring: rgba(56, 189, 248, 0.45);
   --primary: #38bdf8;
   --primary-foreground: #0f172a;
+}
+
+/* Emerald Accent Preset (green) */
+[data-accent='emerald'] {
+  --mf-accent: #059669;
+  --mf-accent-rgb: 5, 150, 105;
+  --mf-accent-hover: #047857;
+  --mf-accent-soft: rgba(5, 150, 105, 0.12);
+  --mf-accent-border: rgba(5, 150, 105, 0.25);
+  --mf-ring: rgba(5, 150, 105, 0.4);
+  --primary: #059669;
+  --primary-foreground: #ffffff;
+}
+[data-theme='dark'][data-accent='emerald'] {
+  --mf-accent: #34d399;
+  --mf-accent-rgb: 52, 211, 153;
+  --mf-accent-hover: #6ee7b7;
+  --mf-accent-soft: rgba(52, 211, 153, 0.15);
+  --mf-accent-border: rgba(52, 211, 153, 0.35);
+  --mf-ring: rgba(52, 211, 153, 0.45);
+  --primary: #34d399;
+  --primary-foreground: #022c22;
+}
+
+/* Amber Accent Preset (warm orange) */
+[data-accent='amber'] {
+  --mf-accent: #d97706;
+  --mf-accent-rgb: 217, 119, 6;
+  --mf-accent-hover: #b45309;
+  --mf-accent-soft: rgba(217, 119, 6, 0.12);
+  --mf-accent-border: rgba(217, 119, 6, 0.25);
+  --mf-ring: rgba(217, 119, 6, 0.4);
+  --primary: #d97706;
+  --primary-foreground: #ffffff;
+}
+[data-theme='dark'][data-accent='amber'] {
+  --mf-accent: #fbbf24;
+  --mf-accent-rgb: 251, 191, 36;
+  --mf-accent-hover: #fcd34d;
+  --mf-accent-soft: rgba(251, 191, 36, 0.15);
+  --mf-accent-border: rgba(251, 191, 36, 0.35);
+  --mf-ring: rgba(251, 191, 36, 0.45);
+  --primary: #fbbf24;
+  --primary-foreground: #1c1917;
+}
+
+/* Sapphire Accent Preset (deep blue) */
+[data-accent='sapphire'] {
+  --mf-accent: #2563eb;
+  --mf-accent-rgb: 37, 99, 235;
+  --mf-accent-hover: #1d4ed8;
+  --mf-accent-soft: rgba(37, 99, 235, 0.12);
+  --mf-accent-border: rgba(37, 99, 235, 0.25);
+  --mf-ring: rgba(37, 99, 235, 0.4);
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+}
+[data-theme='dark'][data-accent='sapphire'] {
+  --mf-accent: #60a5fa;
+  --mf-accent-rgb: 96, 165, 250;
+  --mf-accent-hover: #93c5fd;
+  --mf-accent-soft: rgba(96, 165, 250, 0.15);
+  --mf-accent-border: rgba(96, 165, 250, 0.35);
+  --mf-ring: rgba(96, 165, 250, 0.45);
+  --primary: #60a5fa;
+  --primary-foreground: #0f172a;
+}
+
+/* Ruby Accent Preset (red/crimson) */
+[data-accent='ruby'] {
+  --mf-accent: #dc2626;
+  --mf-accent-rgb: 220, 38, 38;
+  --mf-accent-hover: #b91c1c;
+  --mf-accent-soft: rgba(220, 38, 38, 0.12);
+  --mf-accent-border: rgba(220, 38, 38, 0.25);
+  --mf-ring: rgba(220, 38, 38, 0.4);
+  --primary: #dc2626;
+  --primary-foreground: #ffffff;
+}
+[data-theme='dark'][data-accent='ruby'] {
+  --mf-accent: #f87171;
+  --mf-accent-rgb: 248, 113, 113;
+  --mf-accent-hover: #fca5a5;
+  --mf-accent-soft: rgba(248, 113, 113, 0.15);
+  --mf-accent-border: rgba(248, 113, 113, 0.35);
+  --mf-ring: rgba(248, 113, 113, 0.45);
+  --primary: #f87171;
+  --primary-foreground: #1c1010;
 }
 
 /* High Contrast Mode - Light */
@@ -305,6 +417,50 @@
   --primary-foreground: #ffffff;
 }
 
+[data-contrast='high'][data-accent='emerald'] {
+  --mf-accent: #047857;
+  --mf-accent-rgb: 4, 120, 87;
+  --mf-accent-hover: #036342;
+  --mf-accent-soft: rgba(4, 120, 87, 0.15);
+  --mf-accent-border: rgba(4, 120, 87, 0.45);
+  --mf-ring: rgba(4, 120, 87, 0.6);
+  --primary: #047857;
+  --primary-foreground: #ffffff;
+}
+
+[data-contrast='high'][data-accent='amber'] {
+  --mf-accent: #b45309;
+  --mf-accent-rgb: 180, 83, 9;
+  --mf-accent-hover: #92400e;
+  --mf-accent-soft: rgba(180, 83, 9, 0.15);
+  --mf-accent-border: rgba(180, 83, 9, 0.45);
+  --mf-ring: rgba(180, 83, 9, 0.6);
+  --primary: #b45309;
+  --primary-foreground: #ffffff;
+}
+
+[data-contrast='high'][data-accent='sapphire'] {
+  --mf-accent: #1d4ed8;
+  --mf-accent-rgb: 29, 78, 216;
+  --mf-accent-hover: #1e3a8a;
+  --mf-accent-soft: rgba(29, 78, 216, 0.15);
+  --mf-accent-border: rgba(29, 78, 216, 0.45);
+  --mf-ring: rgba(29, 78, 216, 0.6);
+  --primary: #1d4ed8;
+  --primary-foreground: #ffffff;
+}
+
+[data-contrast='high'][data-accent='ruby'] {
+  --mf-accent: #b91c1c;
+  --mf-accent-rgb: 185, 28, 28;
+  --mf-accent-hover: #991b1b;
+  --mf-accent-soft: rgba(185, 28, 28, 0.15);
+  --mf-accent-border: rgba(185, 28, 28, 0.45);
+  --mf-ring: rgba(185, 28, 28, 0.6);
+  --primary: #b91c1c;
+  --primary-foreground: #ffffff;
+}
+
 /* High Contrast Mode - Dark */
 [data-theme='dark'][data-contrast='high'] {
   --background: #000000;
@@ -357,6 +513,50 @@
   --mf-accent-border: rgba(153, 230, 255, 0.55);
   --mf-ring: rgba(153, 230, 255, 0.7);
   --primary: #99e6ff;
+  --primary-foreground: #000000;
+}
+
+[data-theme='dark'][data-contrast='high'][data-accent='emerald'] {
+  --mf-accent: #6ee7b7;
+  --mf-accent-rgb: 110, 231, 183;
+  --mf-accent-hover: #a7f3d0;
+  --mf-accent-soft: rgba(110, 231, 183, 0.25);
+  --mf-accent-border: rgba(110, 231, 183, 0.55);
+  --mf-ring: rgba(110, 231, 183, 0.7);
+  --primary: #6ee7b7;
+  --primary-foreground: #000000;
+}
+
+[data-theme='dark'][data-contrast='high'][data-accent='amber'] {
+  --mf-accent: #fcd34d;
+  --mf-accent-rgb: 252, 211, 77;
+  --mf-accent-hover: #fde68a;
+  --mf-accent-soft: rgba(252, 211, 77, 0.25);
+  --mf-accent-border: rgba(252, 211, 77, 0.55);
+  --mf-ring: rgba(252, 211, 77, 0.7);
+  --primary: #fcd34d;
+  --primary-foreground: #000000;
+}
+
+[data-theme='dark'][data-contrast='high'][data-accent='sapphire'] {
+  --mf-accent: #93c5fd;
+  --mf-accent-rgb: 147, 197, 253;
+  --mf-accent-hover: #bfdbfe;
+  --mf-accent-soft: rgba(147, 197, 253, 0.25);
+  --mf-accent-border: rgba(147, 197, 253, 0.55);
+  --mf-ring: rgba(147, 197, 253, 0.7);
+  --primary: #93c5fd;
+  --primary-foreground: #000000;
+}
+
+[data-theme='dark'][data-contrast='high'][data-accent='ruby'] {
+  --mf-accent: #fca5a5;
+  --mf-accent-rgb: 252, 165, 165;
+  --mf-accent-hover: #fecaca;
+  --mf-accent-soft: rgba(252, 165, 165, 0.25);
+  --mf-accent-border: rgba(252, 165, 165, 0.55);
+  --mf-ring: rgba(252, 165, 165, 0.7);
+  --primary: #fca5a5;
   --primary-foreground: #000000;
 }
 
@@ -537,6 +737,8 @@
   .app-canvas,
   .chat-thread {
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    scroll-behavior: smooth;
   }
 
   /* Remove iOS zoom on input focus */
@@ -1276,25 +1478,25 @@
 
 /* ─── Partner Empathy Support Theme ────────────────────────────────────────── */
 
-/* Partner theme — warm plum accent that complements the main pink palette */
+/* Partner theme — warm amber, distinct from the main pink palette */
 [data-theme='light'][data-accent='default'] .partner-theme,
 [data-accent='default'] .partner-theme[data-theme='light'] {
-  --mf-accent: #7c3aed;
-  --mf-accent-rgb: 124, 58, 237;
-  --mf-accent-hover: #6d28d9;
-  --mf-accent-soft: rgba(124, 58, 237, 0.12);
-  --mf-accent-border: rgba(124, 58, 237, 0.25);
-  --mf-ring: rgba(124, 58, 237, 0.4);
+  --mf-accent: #d97706;
+  --mf-accent-rgb: 217, 119, 6;
+  --mf-accent-hover: #b45309;
+  --mf-accent-soft: rgba(217, 119, 6, 0.12);
+  --mf-accent-border: rgba(217, 119, 6, 0.25);
+  --mf-ring: rgba(217, 119, 6, 0.4);
 }
 
 [data-theme='dark'][data-accent='default'] .partner-theme,
 [data-accent='default'] .partner-theme[data-theme='dark'] {
-  --mf-accent: #a78bfa;
-  --mf-accent-rgb: 167, 139, 250;
-  --mf-accent-hover: #c4b5fd;
-  --mf-accent-soft: rgba(167, 139, 250, 0.15);
-  --mf-accent-border: rgba(167, 139, 250, 0.35);
-  --mf-ring: rgba(167, 139, 250, 0.45);
+  --mf-accent: #fbbf24;
+  --mf-accent-rgb: 251, 191, 36;
+  --mf-accent-hover: #f59e0b;
+  --mf-accent-soft: rgba(251, 191, 36, 0.15);
+  --mf-accent-border: rgba(251, 191, 36, 0.35);
+  --mf-ring: rgba(251, 191, 36, 0.45);
 }
 
 /* Keep focus-visible styles intact for accessibility */
@@ -1392,7 +1594,7 @@
     padding: 2px 0 !important;
     min-height: 40px !important;
     border-radius: 0 !important;
-    transition: opacity 0.1s ease, transform 0.1s ease !important;
+    position: relative !important;
     -webkit-tap-highlight-color: transparent !important;
   }
 
@@ -1403,6 +1605,10 @@
 
   .flo-nav-item.flo-nav-item--active {
     color: var(--mf-accent) !important;
+  }
+
+  .flo-nav-item.flo-nav-item--active svg {
+    filter: drop-shadow(0 0 2px rgba(var(--mf-accent-rgb), 0.3)) !important;
   }
 
   .flo-nav-item svg {
@@ -1418,21 +1624,21 @@
     margin-top: 1px !important;
   }
 
-  /* Base transitions for smooth release animation */
+  /* Base transitions for iOS-native release animation */
   button:not(.flo-nav-item),
   .btn,
   .filter-chip,
   .active-squish {
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
   }
 
-  /* Tactile iOS Feedback for generic buttons */
+  /* iOS-native press feedback — subtle opacity + scale */
   button:not(.flo-nav-item):active,
   .btn:active,
   .filter-chip:active,
   .active-squish:active {
-    opacity: 0.75 !important;
-    transform: scale(0.96) !important;
+    opacity: 0.7 !important;
+    transform: scale(0.97) !important;
     transition: transform 0.05s ease, opacity 0.05s ease !important;
   }
 
@@ -1453,7 +1659,9 @@
     border-radius: 24px !important;
     border: none !important;
     border-top: 0.5px solid rgba(212, 188, 201, 0.4) !important;
-    background: var(--mf-card) !important;
+    background: rgba(var(--mf-card-rgb, 255, 255, 255), 0.7) !important;
+    backdrop-filter: blur(24px) saturate(200%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(200%) !important;
     padding: 8px 16px 20px !important;
     max-height: 85vh !important;
     overflow-y: auto !important;
@@ -1469,7 +1677,7 @@
   }
 
   [data-theme='dark'] [data-slot="dialog-content"] {
-    background: var(--mf-card) !important;
+    background: rgba(var(--mf-card-rgb, 31, 22, 29), 0.6) !important;
     border-top: 0.5px solid rgba(54, 36, 48, 0.4) !important;
   }
 
@@ -1582,10 +1790,12 @@
 .ios-settings-list {
   display: flex;
   flex-direction: column;
-  background: var(--mf-card);
+  background: rgba(var(--mf-card-rgb), 0.6);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid var(--mf-border);
+  border: 1px solid rgba(var(--mf-accent-rgb), 0.18);
   margin-top: 1rem;
 }
 
@@ -1673,6 +1883,124 @@
     margin: 8px auto 16px !important;
     flex-shrink: 0 !important;
   }
+}
+
+/* ─── iOS Shimmer Loading ──────────────────────────────────── */
+
+@keyframes ios-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.ios-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(200, 199, 204, 0.15) 0%,
+    rgba(200, 199, 204, 0.3) 40%,
+    rgba(200, 199, 204, 0.15) 80%
+  );
+  background-size: 200% 100%;
+  animation: ios-shimmer 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+[data-theme='dark'] .ios-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(100, 100, 110, 0.1) 0%,
+    rgba(100, 100, 110, 0.3) 40%,
+    rgba(100, 100, 110, 0.1) 80%
+  );
+  background-size: 200% 100%;
+}
+
+/* iOS loading bar (navigation bar style) */
+.ios-loading-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2.5px;
+  z-index: 9999;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ios-loading-bar::after {
+  content: '';
+  display: block;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, var(--mf-accent), transparent);
+  animation: ios-loading-bar 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes ios-loading-bar {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(350%); }
+}
+
+/* iOS card press feedback */
+.ios-card-press:active {
+  opacity: 0.85 !important;
+  transform: scale(0.985) !important;
+  transition: transform 0.05s ease, opacity 0.05s ease !important;
+}
+
+/* Native-feel scroll containers */
+.ios-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+}
+
+/* Prevent pull-to-refresh on iOS */
+.ios-no-pull {
+  overscroll-behavior-y: none;
+}
+
+/* ─── Ripple Button Effect ──────────────────────────────────── */
+.btn-ripple {
+  position: relative;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-ripple::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--ripple-x, 50%) var(--ripple-y, 50%), rgba(255,255,255,0.3) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.btn-ripple:active::after {
+  opacity: 1;
+  transition: opacity 0s;
+}
+
+/* ─── Celebration keyframes ─────────────────────────────────── */
+@keyframes celebration-pop {
+  0% { transform: scale(0) rotate(-15deg); opacity: 0; }
+  50% { transform: scale(1.2) rotate(5deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.celebration-check {
+  animation: celebration-pop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ─── Pulse ring for notifications/status ───────────────────── */
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(var(--mf-accent-rgb), 0.4); }
+  70% { box-shadow: 0 0 0 12px rgba(var(--mf-accent-rgb), 0); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--mf-accent-rgb), 0); }
+}
+
+.pulse-ring {
+  animation: pulse-ring 2s ease-in-out infinite;
 }
 
 

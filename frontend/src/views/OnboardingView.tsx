@@ -9,6 +9,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { cn } from "../lib/utils";
 import { buildPersonalizationProfile, buildPersonalizedDashboard } from "../lib/personalization";
+import { useSEO } from "../hooks/useSEO";
 
 import { type ApiUser } from "../services/userService";
 
@@ -20,6 +21,12 @@ const hasPartnerInviteCode = () =>
   );
 
 export function OnboardingView() {
+  useSEO({
+    title: "Get Started",
+    description: "Personalize your cycle length, tracking intent, and set up your MensFlow account profile.",
+    keywords: "onboarding, menstrual tracking setup, health registration"
+  });
+
   const [activeId, setActiveId] = useState<string>(() => {
     const first = ONBOARDING_QUESTIONS[0]?.id;
     return typeof first === "string" ? first : "intro";

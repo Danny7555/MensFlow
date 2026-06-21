@@ -8,6 +8,7 @@ import mongoose from 'mongoose';
 import { connectDatabase } from './config/database';
 import { getCorsOrigins, getPort, isProduction, validateRuntimeEnv } from './config/env';
 import { authLimiter, apiLimiter } from './middleware/rateLimiter';
+import { logger } from './utils/logger';
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
 import cycleRoutes from './routes/cycleRoutes';
@@ -92,13 +93,11 @@ mongoose.connection.on('disconnected', () => {
 
 // ─── Request Logger (development) ────────────────────────────────────────────
 
-if (!isProduction) {
-  app.use((req: Request, res: Response, next: NextFunction) => {
-    const requestId = res.getHeader('X-Request-Id');
-    console.log(`[${new Date().toISOString()}] [${requestId}] ${req.method} ${req.path}`);
-    next();
-  });
-}
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const requestId = res.getHeader('X-Request-Id');
+  logger.info(`${req.method} ${req.path}`, { requestId });
+  next();
+});
 
 // ─── Rate Limiting ────────────────────────────────────────────────────────────
 
@@ -125,15 +124,25 @@ app.get('/', (_req: Request, res: Response) => {
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 
+const startTime = Date.now();
+
 app.get('/health', (_req: Request, res: Response) => {
   const dbState = mongoose.connection.readyState;
-  // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
   const dbStatus = ['disconnected', 'connected', 'connecting', 'disconnecting'][dbState] ?? 'unknown';
   const isHealthy = dbState === 1;
+  const mem = process.memoryUsage();
 
   res.status(isHealthy ? 200 : 503).json({
     status: isHealthy ? 'ok' : 'degraded',
     db: dbStatus,
+    uptime: Math.floor((Date.now() - startTime) / 1000),
+    memory: {
+      rss: Math.round(mem.rss / 1024 / 1024),
+      heapUsed: Math.round(mem.heapUsed / 1024 / 1024),
+      heapTotal: Math.round(mem.heapTotal / 1024 / 1024),
+    },
+    version: process.env.npm_package_version || '1.0.0',
+    node: process.version,
     timestamp: new Date().toISOString(),
   });
 });
@@ -149,20 +158,24 @@ app.use((_req: Request, res: Response) => {
 app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
   const { status, message } = getErrorResponse(err);
   const requestId = res.getHeader('X-Request-Id') ?? '-';
-  console.error(`[ERROR] [${requestId}] ${req.method} ${req.path} — ${status}: ${message}`);
-  console.error('Actual error details:', err);
+  logger.error(`${req.method} ${req.path} — ${status}: ${message}`, { requestId, status });
+  if (isProduction && status >= 500) {
+    logger.debug('Full error details', { error: String(err) });
+  } else {
+    logger.debug('Full error details', { error: err });
+  }
   res.status(status).json({ error: message });
 });
 
 // ─── Process-level Safety Nets ────────────────────────────────────────────────
 
 process.on('uncaughtException', (err) => {
-  console.error('[FATAL] Uncaught exception — shutting down:', err);
+  logger.error('Uncaught exception — shutting down', { error: err.message });
   process.exit(1);
 });
 
 process.on('unhandledRejection', (reason) => {
-  console.error('[FATAL] Unhandled promise rejection — shutting down:', reason);
+  logger.error('Unhandled promise rejection — shutting down', { reason: String(reason) });
   process.exit(1);
 });
 
@@ -173,7 +186,7 @@ async function bootstrap(): Promise<void> {
   ensureUploadDirectories();
   if (isVercel) {
     // Connect DB in the background on cold start
-    connectDatabase().catch(err => console.error('[Vercel] DB warm connection error:', err));
+    connectDatabase().catch(err => logger.error('Vercel DB warm connection error', { error: err.message }));
     return;
   }
   await connectDatabase();
@@ -191,7 +204,7 @@ async function bootstrap(): Promise<void> {
 }
 
 bootstrap().catch((err) => {
-  console.error('Failed to start server:', err);
+  logger.error('Failed to start server', { error: err.message });
   if (!isVercel) {
     process.exit(1);
   }
@@ -203,15 +216,15 @@ export default app;
 
 function setupGracefulShutdown(server: http.Server): void {
   const shutdown = async (signal: string) => {
-    console.log(`[${signal}] Received — starting graceful shutdown…`);
+    logger.info(`Received ${signal} — starting graceful shutdown…`);
 
     server.close(async () => {
-      console.log('HTTP server closed. Disconnecting from MongoDB…');
+      logger.info('HTTP server closed. Disconnecting from MongoDB…');
       try {
         await mongoose.disconnect();
-        console.log('MongoDB disconnected. Goodbye.');
+        logger.info('MongoDB disconnected. Goodbye.');
       } catch (err) {
-        console.error('Error disconnecting from MongoDB:', err);
+        logger.error('Error disconnecting from MongoDB', { error: String(err) });
       } finally {
         process.exit(0);
       }
@@ -219,7 +232,7 @@ function setupGracefulShutdown(server: http.Server): void {
 
     // Force-kill after 10 s if server hasn't drained
     setTimeout(() => {
-      console.error('Graceful shutdown timed out — forcing exit.');
+      logger.error('Graceful shutdown timed out — forcing exit.');
       process.exit(1);
     }, 10_000).unref();
   };
@@ -274,7 +287,7 @@ function listen(port: number): Promise<http.Server> {
     const server = app.listen(port);
 
     server.once('listening', () => {
-      console.log(`MensFlow API running on port ${port}`);
+      logger.info(`MensFlow API running on port ${port}`);
       resolve(server);
     });
 

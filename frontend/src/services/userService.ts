@@ -22,8 +22,8 @@ export type ApiUser = {
 
 export type ApiSettings = {
   themeMode: 'light' | 'dark' | 'system'
-  contrastMode: 'system' | 'standard' | 'high'
-  accentPreset: 'default' | 'orchid' | 'ocean'
+  contrastMode: 'system' | 'standard' | 'soft' | 'high'
+  accentPreset: 'default' | 'orchid' | 'ocean' | 'emerald' | 'amber' | 'sapphire' | 'ruby'
   languageUi: 'auto' | 'en'
   spokenLanguage: 'auto' | 'en-US'
   enableDictation: boolean
@@ -51,6 +51,7 @@ export type ApiSettings = {
   privacyRequestedFields: string[]
   privacyStrictLocalOnly: boolean
   conditionOptimization: 'none' | 'pcos' | 'endometriosis' | 'perimenopause'
+  trackingMode: 'period' | 'conception' | 'pregnancy' | 'perimenopause'
   disableAIPopups: boolean
   hideDailyStoriesAndTips: boolean
   otpEnabled: boolean

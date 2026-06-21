@@ -6,8 +6,14 @@ import { Button } from '@/components/ui/button'
 import { ChatView } from './ChatView'
 import { SECURITY_QUESTIONS } from '../lib/constants'
 import { getPasswordStrength } from '../lib/passwordStrength'
+import { useSEO } from '../hooks/useSEO'
 
 export function LockedChatsView() {
+  useSEO({
+    title: 'Locked Chats',
+    description: 'Access your locally encrypted, password-protected private conversations securely.',
+    keywords: 'locked chats, secure messaging, encrypted chat, private logs'
+  })
   const { settings, updateSettings } = useStore()
   const [isUnlocked, setIsUnlocked] = useState(false)
   const [password, setPassword] = useState('')
@@ -28,6 +34,7 @@ export function LockedChatsView() {
   if (!settings.privacyLockChats) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] p-6 text-center">
+        <header className="sr-only"><h1>Locked Chats Portal</h1></header>
         <div className="size-20 rounded-full bg-muted flex items-center justify-center text-muted-foreground mb-6">
           <ShieldCheck size={40} weight="duotone" />
         </div>
@@ -43,7 +50,8 @@ export function LockedChatsView() {
     if (mode === 'reset-security') {
       return (
         <div className="flex flex-col items-center justify-center min-h-[70vh] p-6 text-center">
-          <div className="size-20 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-6 shadow-sm">
+          <header className="sr-only"><h1>Locked Chats Security Reset</h1></header>
+          <div className="size-20 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-6">
             <ShieldCheck size={40} weight="duotone" />
           </div>
           <h2 className="text-2xl font-medium tracking-tight mb-2 text-foreground">Security Question</h2>
@@ -108,7 +116,8 @@ export function LockedChatsView() {
     if (mode === 'reset-password') {
       return (
         <div className="flex flex-col items-center justify-center min-h-[70vh] p-6 text-center">
-          <div className="size-20 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-6 shadow-sm">
+          <header className="sr-only"><h1>Locked Chats Password Reset</h1></header>
+          <div className="size-20 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-6">
             <Lock size={40} weight="duotone" />
           </div>
           <h2 className="text-2xl font-medium tracking-tight mb-2 text-foreground">New Password</h2>
@@ -208,7 +217,8 @@ export function LockedChatsView() {
 
     return (
       <div className="flex flex-col items-center justify-center min-h-[70vh] p-6 text-center">
-        <div className="size-20 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-6 shadow-sm">
+        <header className="sr-only"><h1>Locked Chats Portal</h1></header>
+        <div className="size-20 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-6">
           <Lock size={40} weight="duotone" />
         </div>
         <h2 className="text-2xl font-medium tracking-tight mb-2 text-foreground">Locked Chats</h2>

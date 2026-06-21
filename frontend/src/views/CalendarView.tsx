@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
 import { useStore } from "@/store/useStore"
 import { LogSymptomsModal } from "@/components/tracker/LogSymptomsModal"
 import { RequestAccessModal } from "@/components/dashboard/RequestAccessModal"
+import { useSEO } from "@/hooks/useSEO"
 
 const DAYS_OF_WEEK = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
 
@@ -244,7 +245,7 @@ function EditActionBar({
 }) {
   return (
     <div className="animate-in slide-in-from-top-4 fade-in duration-300 w-full max-w-xl mx-auto">
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl bg-white/95 dark:bg-[#1e1e1e]/95 border border-[var(--mf-accent)]/20 shadow-[0_4px_20px_rgba(255,90,95,0.06)] p-3.5">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl bg-white/95 dark:bg-[#1e1e1e]/95 border border-[var(--mf-accent)]/20 p-3.5">
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <div className="size-9 rounded-full bg-[#ff5a5f]/10 flex items-center justify-center shrink-0">
             <Drop size={16} weight="fill" className="text-[#ff5a5f]" />
@@ -271,7 +272,7 @@ function EditActionBar({
               onClick={() => setEditMode('single')}
               className={cn(
                 "text-[10px] font-medium px-3 py-1 rounded-md transition-all",
-                editMode === 'single' ? "bg-white dark:bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                editMode === 'single' ? "bg-white dark:bg-card text-foreground" : "text-muted-foreground hover:text-foreground"
               )}
             >
               Single
@@ -281,7 +282,7 @@ function EditActionBar({
               onClick={() => setEditMode('range')}
               className={cn(
                 "text-[10px] font-medium px-3 py-1 rounded-md transition-all",
-                editMode === 'range' ? "bg-white dark:bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                editMode === 'range' ? "bg-white dark:bg-card text-foreground" : "text-muted-foreground hover:text-foreground"
               )}
             >
               Range
@@ -597,6 +598,11 @@ function useCalendarState() {
 }
 
 export function CalendarView() {
+  useSEO({
+    title: 'Cycle Calendar',
+    description: 'Interactive calendar showing cycle predictions, logged symptoms history, and fertile windows.',
+    keywords: 'period calendar, cycle predictions, ovulation calendar, symptom logs calendar'
+  })
   const {
     isAuthenticated,
     openAuthModal,
@@ -651,8 +657,11 @@ export function CalendarView() {
 
   return (
     <div className="flex flex-col h-full bg-background overflow-auto relative" suppressHydrationWarning>
+      <header className="sr-only">
+        <h1>Period Prediction & Cycle Calendar</h1>
+      </header>
       <div className="absolute right-0 top-20 opacity-10 pointer-events-none z-0">
-        <img src="/images/girl.jpg" alt="" className="size-[800px] object-contain" />
+        <img loading="lazy" src="/images/girl.jpg" alt="" className="size-[800px] object-contain" />
       </div>
 
       <div className="flex-1 w-full max-w-[1200px] mx-auto p-4 md:p-6 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 relative z-10">
@@ -1006,7 +1015,7 @@ function MonthView({
                     "relative z-10 flex items-center justify-center size-10 sm:size-11 rounded-full transition-all duration-150",
                     isEditingPeriods && [
                       isPeriod
-                        ? "bg-violet-600 text-white shadow-[0_2px_12px_rgba(124,58,237,0.35)] scale-105 font-semibold"
+                        ? "bg-violet-600 text-white scale-105 font-semibold"
                         : "bg-transparent text-foreground/80 hover:bg-violet-500/8 active:scale-90",
                     ],
                     !isEditingPeriods && [

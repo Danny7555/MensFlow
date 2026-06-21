@@ -4,6 +4,7 @@ import { NavLink, useLocation } from 'react-router-dom'
 import { m } from 'framer-motion'
 import type { IconProps } from '@phosphor-icons/react'
 import {
+  Bell,
   BookOpen,
   CalendarBlank,
   CalendarHeart,
@@ -50,7 +51,7 @@ const authItems: NavItem[] = [
   { id: 'ask', label: 'Ask MensFlow', Icon: ChatCircle },
   { id: 'symptoms', label: 'Symptoms', Icon: Pulse },
   { id: 'insights', label: 'Health insights', Icon: Target },
-  { id: 'community', label: 'Community', Icon: FlowerLotus },
+  // { id: 'community', label: 'Community', Icon: FlowerLotus },
   { id: 'cycle-history', label: 'Cycle History', Icon: ClockClockwise, children: [
     { id: 'cycle-compare', label: 'Compare Cycles', Icon: ChartBar },
     { id: 'medications', label: 'Medications', Icon: Pill },
@@ -60,6 +61,7 @@ const authItems: NavItem[] = [
   { id: 'tracker', label: 'Tracker', Icon: CalendarHeart },
   { id: 'tips', label: 'Wellness Tips', Icon: Heart },
   { id: 'sync', label: 'Partner Sync', Icon: Users },
+  { id: 'notifications', label: 'Alerts', Icon: Bell },
   { id: 'settings', label: 'Settings', Icon: GearSix },
 ]
 
@@ -87,7 +89,7 @@ export function Sidebar({
 }: SidebarProps) {
   const { logout, onboardingCompleted } = useAuth()
 
-  const { dashboard: data, user, partnerStatus } = useStore()
+  const { dashboard: data, user, partnerStatus, notificationCount, settings: sideSettings } = useStore()
   const { pathname } = useLocation()
 
   const rawItems = isAuthenticated ? [...authItems] : [...guestItems]
@@ -162,6 +164,7 @@ export function Sidebar({
           {!collapsed && <span className="sidebar-brand-text">MensFlow</span>}
           
           <button
+            id="sidebar-toggle-btn"
             type="button"
             className={cn("icon-btn sidebar-toggle-btn-top", !collapsed && "ml-auto")}
             onClick={desktopCollapsed ? onToggleDesktopCollapse : (onToggleSidebar || onToggleDesktopCollapse)}
@@ -178,26 +181,28 @@ export function Sidebar({
               layout
               className={cn(
                 "transition-all duration-500 overflow-hidden border border-[var(--mf-border)] bg-white dark:bg-white/5 rounded-[2rem]",
-                collapsed ? "p-2" : "py-5 px-6"
+                collapsed ? "p-1.5" : "py-5 px-6"
               )}
             >
               <div className={cn("flex items-center gap-4", collapsed && "justify-center")}>
                 <div 
-                  className={cn("size-12 rounded-full flex items-center justify-center shrink-0 border border-[var(--mf-border)] shadow-sm overflow-hidden",
+                  className={cn(
+                    "rounded-full flex items-center justify-center shrink-0 border border-[var(--mf-border)] overflow-hidden",
+                    collapsed ? "size-10" : "size-12",
                     (user?.role === 'partner' ? partnerStatus?.partner?.avatar : user?.avatar) ? "bg-transparent" : "bg-white dark:bg-transparent"
                   )}
                 >
                   {user?.role === 'partner' ? (
                     partnerStatus?.partner?.avatar ? (
-                      <img src={resolveAssetUrl(partnerStatus.partner.avatar)} alt="Partner" className="w-full h-full object-cover" />
+                      <img loading="lazy" src={resolveAssetUrl(partnerStatus.partner.avatar)} alt="Partner" className="w-full h-full object-cover" />
                     ) : (
-                      <img src="/images/girl.jpg" alt="Partner" className="w-full h-full object-cover" />
+                      <img loading="lazy" src="/images/girl.jpg" alt="Partner" className="w-full h-full object-cover" />
                     )
                   ) : (
                     user?.avatar ? (
-                      <img src={resolveAssetUrl(user.avatar)} alt="You" className="w-full h-full object-cover" />
+                      <img loading="lazy" src={resolveAssetUrl(user.avatar)} alt="You" className="w-full h-full object-cover" />
                     ) : (
-                      <img src="/images/girl.jpg" alt="You" className="w-full h-full object-cover" />
+                      <img loading="lazy" src="/images/girl.jpg" alt="You" className="w-full h-full object-cover" />
                     )
                   )}
                 </div>
@@ -227,6 +232,7 @@ export function Sidebar({
               <div key={item.id}>
                 <div className="flex items-center">
                   <NavLink
+                    id={`sidebar-link-${item.id}`}
                     to={item.id === 'dashboard' ? (isAuthenticated ? '/dashboard' : '/') : `/${item.id}`}
                     title={collapsed ? item.label : undefined}
                     className={({ isActive }) => cn(
@@ -235,11 +241,22 @@ export function Sidebar({
                     )}
                     onClick={onCloseMobile}
                   >
-                    <item.Icon size={navIconSize} className="sidebar-link-icon" aria-hidden />
+                    <div className="relative">
+                      <item.Icon size={navIconSize} className="sidebar-link-icon" aria-hidden />
+                      {item.id === 'notifications' && (() => {
+                        const badgeCount = notificationCount + (user?.role === 'lady' && sideSettings?.privacyPendingAccessRequest ? 1 : 0)
+                        return badgeCount > 0 ? (
+                          <span className="absolute -top-1.5 -right-2 min-w-[14px] h-[14px] rounded-full bg-[var(--mf-accent)] text-white text-[8px] font-bold flex items-center justify-center leading-none animate-in fade-in zoom-in-95 duration-200">
+                            {badgeCount > 99 ? '99+' : badgeCount}
+                          </span>
+                        ) : null
+                      })()}
+                    </div>
                     <span className="sidebar-link-label">{item.label}</span>
                   </NavLink>
                   {item.children && (
                     <button
+                      id={`sidebar-expand-${item.id}`}
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation()
@@ -261,6 +278,7 @@ export function Sidebar({
                   const ChildIcon = child.Icon
                   return (
                     <NavLink
+                      id={`sidebar-link-${child.id}`}
                       key={child.id}
                       to={`/${child.id}`}
                       title={collapsed ? child.label : undefined}
@@ -289,6 +307,7 @@ export function Sidebar({
               </p>
             )}
             <button
+              id="sidebar-login-btn"
               type="button"
               className={cn("btn btn-primary w-full transition-transform active:scale-95", collapsed && "sidebar-login-icon")}
               title={collapsed ? 'Log in' : undefined}
@@ -304,6 +323,7 @@ export function Sidebar({
         ) : (
           <div className={cn("sidebar-footer", collapsed && "sidebar-footer--compact mt-auto")}>
             <button
+              id="sidebar-logout-btn"
               type="button"
               className={cn(
                 "btn w-full flex items-center justify-center gap-2 border border-border bg-card text-muted-foreground hover:text-foreground transition-all duration-200 active:scale-95",

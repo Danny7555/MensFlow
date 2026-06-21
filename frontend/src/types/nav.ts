@@ -19,3 +19,4 @@ export type SectionId =
   | 'cycle-history'
   | 'cycle-compare'
   | 'medications'
+  | 'notifications'

@@ -6,7 +6,7 @@ import {
   calculatePeriodsFromLogs,
   getPhaseTasks,
   getGreeting,
-} from './cycleUtils'
+} from '../lib/cycleUtils'
 
 describe('computeCycleDay', () => {
   it('returns 1 for a start date of today', () => {

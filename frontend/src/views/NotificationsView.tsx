@@ -10,6 +10,7 @@ import { sendEmailReminder } from "../lib/emailService"
 import { toast } from "sonner"
 import { partnerApi } from '../services/partnerService'
 import { playNotificationSound } from '../lib/sound'
+import { useSEO } from '../hooks/useSEO'
 
 interface Notification {
   id: string
@@ -21,6 +22,11 @@ interface Notification {
 }
 
 export function NotificationsView() {
+  useSEO({
+    title: 'Alerts & Notifications',
+    description: 'Review cycle updates, access requests, and daily wellness logs notifications.',
+    keywords: 'cycle notifications, period alerts, partner access requests, support notifications'
+  })
   const navigate = useNavigate()
   const { user: authUser } = useAuth()
   const { dashboard: data, settings, logs, supportStreak, partnerStatus, updateSettings, user, resetNotificationCount } = useStore()
@@ -458,7 +464,7 @@ export function NotificationsView() {
                 <button type="button"
                   onClick={handleApproveRequest}
                   disabled={isProcessing || (!approveCycle && !approveSymptoms && !approveCharts)}
-                  className="px-5 py-2 text-xs font-medium rounded-xl bg-pink-500 hover:bg-pink-600 text-white shadow-lg shadow-pink-500/20 hover:shadow-pink-500/35 transition-all cursor-pointer disabled:opacity-50 active-squish"
+                  className="px-5 py-2 text-xs font-medium rounded-xl bg-pink-500 hover:bg-pink-600 text-white hover:shadow-pink-500/35 transition-all cursor-pointer disabled:opacity-50 active-squish"
                 >
                   Approve &amp; Share
                 </button>
@@ -558,7 +564,7 @@ export function NotificationsView() {
                   className={`group p-5 rounded-[24px] border transition-all animate-in fade-in slide-in-from-bottom-3 duration-300 cursor-pointer ${
                     readIds.has(notification.id) 
                       ? 'bg-[var(--mf-card)]/50 border-[var(--mf-border)]/30 opacity-60' 
-                      : 'bg-[var(--mf-card)] border-[var(--mf-border)]/50 hover:border-[var(--mf-border)] hover:shadow-xs'
+                      : 'bg-[var(--mf-card)] border-[var(--mf-border)]/50 hover:border-[var(--mf-border)]'
                   }`}
                   style={{ animationDelay: `${idx * 0.05}s` }}
                 >
@@ -613,12 +619,12 @@ export function NotificationsView() {
 
             {notifications.length === 0 && (
               <div className="flex flex-col items-center justify-center py-24 text-center">
-                <div className="size-16 rounded-full bg-[var(--mf-hover)] flex items-center justify-center text-[var(--mf-muted)] mb-4">
+                <div className="size-16 rounded-full bg-gradient-to-br from-[var(--mf-accent-soft)] to-[var(--mf-accent-soft)]/40 flex items-center justify-center text-[var(--mf-accent)] mb-4 border border-[var(--mf-accent-border)]">
                   <Bell size={32} weight="light" />
                 </div>
-                <h3 className="font-medium text-[var(--mf-text-strong)] mb-1">All caught up</h3>
+                <h3 className="font-medium text-[var(--mf-text-strong)] mb-1">All caught up ✨</h3>
                 <p className="text-xs md:text-sm text-[var(--mf-muted)] max-w-[280px] leading-relaxed">
-                  You don't have any notifications or action alerts at the moment.
+                  You're clear for now. We'll let you know when you need to check in.
                 </p>
               </div>
             )}

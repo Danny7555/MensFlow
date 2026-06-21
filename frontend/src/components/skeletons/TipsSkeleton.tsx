@@ -8,7 +8,7 @@ export function TipsSkeleton() {
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="premium-skeleton-card rounded-[32px] p-5 flex flex-col gap-y-4 min-h-[300px] shadow-sm">
+          <div key={i} className="premium-skeleton-card rounded-[32px] p-5 flex flex-col gap-y-4 min-h-[300px]">
             {/* Image box */}
             <div className="h-40 w-full premium-shimmer rounded-2xl" />
             {/* Info text */}

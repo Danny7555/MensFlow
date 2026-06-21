@@ -9,6 +9,7 @@ import { educationApi } from '../services/educationService'
 import type { ApiEducationArticle } from '../services/educationService'
 import { toast } from 'sonner'
 import { EducationFormModal } from '../components/education/EducationFormModal'
+import { useSEO } from '../hooks/useSEO'
 import {
   Brain,
   Drop,
@@ -50,7 +51,7 @@ function ArticleCard({ article, isFeatured }: ArticleCardProps) {
         {isFeatured ? (
           <div className="absolute -right-8 -bottom-8 opacity-[0.15] pointer-events-none rotate-6">
             {article.image && !imageError ? (
-              <img src={resolveAssetUrl(article.image)} alt="" className="size-[300px] object-cover rounded-full" onError={() => setImageError(true)} />
+              <img loading="lazy" src={resolveAssetUrl(article.image)} alt="" className="size-[300px] object-cover rounded-full" onError={() => setImageError(true)} />
             ) : (
               <IconComponent size={340} weight="duotone" className="text-[var(--mf-accent)]" />
             )}
@@ -58,7 +59,7 @@ function ArticleCard({ article, isFeatured }: ArticleCardProps) {
         ) : (
           <div className="absolute -right-4 -bottom-4 opacity-[0.1] pointer-events-none">
             {article.image && !imageError ? (
-              <img src={resolveAssetUrl(article.image)} alt="" className="size-[120px] object-cover rounded-full" onError={() => setImageError(true)} />
+              <img loading="lazy" src={resolveAssetUrl(article.image)} alt="" className="size-[120px] object-cover rounded-full" onError={() => setImageError(true)} />
             ) : (
               <IconComponent size={180} weight="duotone" />
             )}
@@ -71,7 +72,7 @@ function ArticleCard({ article, isFeatured }: ArticleCardProps) {
               <div className={cn('text-foreground', isFeatured && 'text-[var(--mf-accent)]')}>
                 {article.image && !imageError ? (
                   <div className="size-12 rounded-xl overflow-hidden border border-border/30">
-                    <img src={resolveAssetUrl(article.image)} alt="" className="size-full object-cover" onError={() => setImageError(true)} />
+                    <img loading="lazy" src={resolveAssetUrl(article.image)} alt="" className="size-full object-cover" onError={() => setImageError(true)} />
                   </div>
                 ) : (
                   <IconComponent size={isFeatured ? 44 : 32} weight="duotone" />
@@ -117,6 +118,11 @@ function ArticleCard({ article, isFeatured }: ArticleCardProps) {
 
 // ─── Main View ────────────────────────────────────────────────────────────────
 export function EducationView() {
+  useSEO({
+    title: 'Educational Guides',
+    description: 'Browse expert-reviewed medical guides on hormones, cycle phases, and care suggestions.',
+    keywords: 'menstrual education, hormone guides, cycle phases, phase care, women health guides'
+  })
   const { isAuthenticated, openAuthModal } = useAuth()
   const [articles, setArticles] = useState<ApiEducationArticle[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -185,8 +191,13 @@ export function EducationView() {
 
   return (
     <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-8 animate-in fade-in duration-500 relative">
+      <div className="flex flex-col gap-1.5 text-left">
+        <h1 className="text-2xl sm:text-3xl font-normal tracking-tight text-[var(--mf-text-strong)]" id="education-title">Educational Guides</h1>
+        <p className="text-xs text-muted-foreground">Expert-reviewed resources on hormones, cycle phases, and self-care.</p>
+      </div>
+
       {/* Daily Quiz Integration */}
-      <section className="w-full">
+      <section className="w-full" aria-labelledby="education-title">
         <DailyQuiz />
       </section>
 
@@ -214,7 +225,7 @@ export function EducationView() {
           <button
             type="button"
             onClick={() => { setEditingArticle(null); setIsModalOpen(true) }}
-            className="px-5 py-2 rounded-full text-sm font-medium bg-[var(--mf-accent)] text-white hover:bg-[var(--mf-accent-hover)] transition-all cursor-pointer flex items-center gap-1.5 shadow-sm active-squish"
+            className="px-5 py-2 rounded-full text-sm font-medium bg-[var(--mf-accent)] text-white hover:bg-[var(--mf-accent-hover)] transition-all cursor-pointer flex items-center gap-1.5 active-squish"
           >
             <Plus size={16} weight="bold" />
             <span>Add Guide</span>
@@ -229,7 +240,7 @@ export function EducationView() {
             </div>
             <div className="text-center space-y-1.5 max-w-xs">
               <p className="text-base font-semibold text-[var(--mf-text-strong)]">No guides found</p>
-              <p className="text-sm text-muted-foreground">Try selecting a different category to discover more guides.</p>
+              <p className="text-sm text-muted-foreground">Nothing here yet, but there's always more to explore. Try another category!</p>
             </div>
           </div>
         ) : (<>

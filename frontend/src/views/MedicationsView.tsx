@@ -4,8 +4,14 @@ import { Plus, Trash, Pill, Clock } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { useMedications, useCreateMedication, useDeleteMedication } from '../services/medicationService'
 import { Button } from '@/components/ui/button'
+import { useSEO } from '../hooks/useSEO'
 
 export function MedicationsView() {
+  useSEO({
+    title: 'Medications Tracker',
+    description: 'Track your pills, supplements, and treatments with daily alerts and logs.',
+    keywords: 'medication tracker, supplement logger, cycle treatment, pill alarm'
+  })
   const { data: meds, isLoading } = useMedications()
   const createMed = useCreateMedication()
   const deleteMed = useDeleteMedication()
@@ -61,6 +67,7 @@ export function MedicationsView() {
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="Medication name *"
+                aria-label="Medication name"
                 className="w-full h-11 px-4 rounded-xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm text-[var(--mf-text-strong)] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[var(--mf-ring)]"
               />
               <div className="flex gap-3">
@@ -68,11 +75,13 @@ export function MedicationsView() {
                   value={dosage}
                   onChange={e => setDosage(e.target.value)}
                   placeholder="Dosage (e.g. 500mg)"
+                  aria-label="Dosage"
                   className="flex-1 h-11 px-4 rounded-xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm text-[var(--mf-text-strong)] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[var(--mf-ring)]"
                 />
                 <select
                   value={frequency}
                   onChange={e => setFrequency(e.target.value)}
+                  aria-label="Frequency"
                   className="h-11 px-3 rounded-xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm text-[var(--mf-text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--mf-ring)]"
                 >
                   <option value="daily">Daily</option>
@@ -85,12 +94,14 @@ export function MedicationsView() {
                   type="time"
                   value={timeOfDay}
                   onChange={e => setTimeOfDay(e.target.value)}
+                  aria-label="Time of day"
                   className="h-11 px-4 rounded-xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm text-[var(--mf-text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--mf-ring)]"
                 />
                 <input
                   value={notes}
                   onChange={e => setNotes(e.target.value)}
                   placeholder="Notes (optional)"
+                  aria-label="Notes"
                   className="flex-1 h-11 px-4 rounded-xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm text-[var(--mf-text-strong)] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[var(--mf-ring)]"
                 />
               </div>
@@ -127,12 +138,12 @@ export function MedicationsView() {
                     {med.notes && <p className="text-xs text-muted-foreground mt-1">{med.notes}</p>}
                   </div>
                   <>{confirmDeleteId === med._id && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20" onClick={() => setConfirmDeleteId(null)}>
+                    <button type="button" className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 cursor-default" onClick={() => setConfirmDeleteId(null)} onKeyDown={e => { if (e.key === 'Escape' || e.key === 'Enter') setConfirmDeleteId(null) }}>
                       <m.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         onClick={e => e.stopPropagation()}
-                        className="bg-[var(--mf-card)] border border-[var(--mf-border)] rounded-xl p-4 shadow-lg min-w-[200px]"
+                        className="bg-[var(--mf-card)] border border-[var(--mf-border)] rounded-xl p-4 min-w-[200px]"
                       >
                         <p className="text-sm text-[var(--mf-text)] mb-3">Remove this medication?</p>
                         <div className="flex gap-2">
@@ -152,7 +163,7 @@ export function MedicationsView() {
                           </button>
                         </div>
                       </m.div>
-                    </div>
+                    </button>
                   )}</>
                   <button
                     type="button"

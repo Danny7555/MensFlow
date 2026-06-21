@@ -1,9 +1,17 @@
 import { Request, Response, NextFunction } from 'express';
 import { EducationArticle } from '../models/EducationArticle';
+import { cacheGet, cacheSet, cacheDel } from '../utils/cache';
+
+const EDU_CACHE_KEY = 'education:articles';
+const EDU_TTL = 5 * 60 * 1000;
 
 export async function getArticles(req: Request, res: Response, next: NextFunction): Promise<void> {
+  const cached = cacheGet<unknown>(EDU_CACHE_KEY);
+  if (cached) { res.json(cached); return; }
+
   try {
-    const articles = await EducationArticle.find().sort({ createdAt: -1 });
+    const articles = await EducationArticle.find().sort({ createdAt: -1 }).lean();
+    cacheSet(EDU_CACHE_KEY, articles, EDU_TTL);
     res.json(articles);
   } catch (err) {
     next(err);
@@ -28,6 +36,7 @@ export async function createArticle(req: Request, res: Response, next: NextFunct
     });
 
     await article.save();
+    cacheDel(EDU_CACHE_KEY);
     res.status(201).json(article);
   } catch (err) {
     next(err);
@@ -53,6 +62,7 @@ export async function updateArticle(req: Request, res: Response, next: NextFunct
     if (url !== undefined) article.url = url;
 
     await article.save();
+    cacheDel(EDU_CACHE_KEY);
     res.json(article);
   } catch (err) {
     next(err);
@@ -68,6 +78,7 @@ export async function deleteArticle(req: Request, res: Response, next: NextFunct
     }
 
     await article.deleteOne();
+    cacheDel(EDU_CACHE_KEY);
     res.json({ success: true, message: 'Article deleted successfully' });
   } catch (err) {
     next(err);

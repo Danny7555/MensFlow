@@ -26,14 +26,14 @@ export function AccessGate({ children }: { children: ReactNode }) {
         {children}
       </div>
       <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-card p-8 rounded-3xl shadow-2xl border border-border/50 text-center relative overflow-hidden">
+        <div className="max-w-md w-full bg-card p-8 rounded-3xl border border-border/50 text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent pointer-events-none" />
           <h2 className="text-2xl font-bold mb-3 text-foreground relative z-10">Unlock Full Access</h2>
           <p className="text-muted-foreground mb-8 relative z-10 text-sm leading-relaxed">
             You are currently on Educational Access. Opt in for full access to track your cycle, log symptoms, view personalized insights, and get daily health recommendations.
           </p>
           <Button 
-            className="w-full relative z-10 text-base font-semibold shadow-lg hover:shadow-xl transition-all" 
+            className="w-full relative z-10 text-base font-semibold transition-all" 
             size="lg"
             onClick={() => updateUser({ accessLevel: 'full' })}
           >

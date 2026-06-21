@@ -285,7 +285,7 @@ export function EducationFormModal({ open, editingArticle, onClose, onSaved }: E
               <div className="flex gap-3 items-center">
                 {form.image && (
                   <div className="size-10 rounded-xl overflow-hidden border border-border shrink-0 bg-muted">
-                    <img src={resolveAssetUrl(form.image)} alt="" className="size-full object-cover" />
+                    <img loading="lazy" src={resolveAssetUrl(form.image)} alt="" className="size-full object-cover" />
                   </div>
                 )}
                 <input
@@ -354,7 +354,7 @@ export function EducationFormModal({ open, editingArticle, onClose, onSaved }: E
             <button
               type="submit"
               disabled={form.isSaving}
-              className="px-5 py-2.5 text-xs font-medium rounded-xl bg-[var(--mf-accent)] hover:bg-[var(--mf-accent-hover)] text-white shadow-lg shadow-[var(--mf-accent)]/20 hover:shadow-[var(--mf-accent)]/35 transition-all cursor-pointer disabled:opacity-50 active-squish flex items-center gap-1.5"
+              className="px-5 py-2.5 text-xs font-medium rounded-xl bg-[var(--mf-accent)] hover:bg-[var(--mf-accent-hover)] text-white/20/35 transition-all cursor-pointer disabled:opacity-50 active-squish flex items-center gap-1.5"
             >
               {form.isSaving && (
                 <div className="size-3 border border-white/30 border-t-white rounded-full animate-spin" />

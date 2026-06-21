@@ -2,7 +2,7 @@ export function ChatSkeleton() {
   return (
     <div className="flex-1 w-full max-w-[1200px] mx-auto p-4 md:p-6 flex gap-8 h-[calc(100vh-140px)] animate-in fade-in duration-500">
       {/* Left History Sidebar (Hidden on mobile) */}
-      <div className="hidden md:flex flex-col w-64 premium-skeleton-card rounded-[32px] p-4 gap-y-4 shadow-sm">
+      <div className="hidden md:flex flex-col w-64 premium-skeleton-card rounded-[32px] p-4 gap-y-4">
         <div className="h-6 w-32 premium-shimmer rounded-full mb-2" />
         {Array.from({ length: 5 }).map((_, i) => (
           <div key={i} className="h-10 premium-shimmer rounded-2xl w-full" />
@@ -10,7 +10,7 @@ export function ChatSkeleton() {
       </div>
       
       {/* Chat Thread Canvas */}
-      <div className="flex-1 flex flex-col justify-between premium-skeleton-card rounded-[32px] p-6 shadow-sm">
+      <div className="flex-1 flex flex-col justify-between premium-skeleton-card rounded-[32px] p-6">
         <div className="flex flex-col gap-y-6 flex-1 justify-start">
           {/* Assistant message skeleton */}
           <div className="flex items-start gap-3">
