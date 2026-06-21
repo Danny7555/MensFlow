@@ -273,7 +273,7 @@ export function AppLockGate({ children }: { children: React.ReactNode }) {
       })
       clearInterval(interval)
     }
-  }, [settings.appLockEnabled, state.isUnlocked, updateState])
+  }, [settings.appLockEnabled, settings.appLockTimeoutMinutes, state.isUnlocked, updateState])
 
   // Auto-lock when tab becomes hidden (visibilitychange)
   useEffect(() => {
