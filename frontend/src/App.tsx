@@ -1,7 +1,7 @@
 /* eslint-disable */
 import { useCallback, useState, useMemo, lazy, Suspense } from 'react'
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
-import { LazyMotion, domAnimation, AnimatePresence } from 'framer-motion'
+import { LazyMotion, domAnimation, AnimatePresence, m } from 'framer-motion'
 import { cn } from './lib/utils'
 import { ThemeSync } from './components/ThemeSync'
 import { Toaster } from 'sonner'
@@ -480,19 +480,19 @@ function MainShell() {
                 <Routes location={location}>
                 {!isAuthenticated ? (
                   <>
-                    <Route path="/" element={<ErrorBoundary><LandingView /></ErrorBoundary>} />
+                    <Route path="/" element={<m.div key="/" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ type: 'spring', stiffness: 320, damping: 32 }} style={{ height: '100%', width: '100%' }}><ErrorBoundary><LandingView /></ErrorBoundary></m.div>} />
                     <Route 
                       path="/onboarding" 
                       element={
                         onboardingCompleted 
                           ? <Navigate to="/" replace /> 
-                          : <ErrorBoundary><OnboardingView /></ErrorBoundary>
+                          : <m.div key="/onboarding" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ type: 'spring', stiffness: 320, damping: 32 }} style={{ height: '100%', width: '100%' }}><ErrorBoundary><OnboardingView /></ErrorBoundary></m.div>
                       } 
                     />
-                    <Route path="/settings" element={<ErrorBoundary><SettingsView isGuest onLogin={openAuthModal} /></ErrorBoundary>} />
-                    <Route path="/education" element={<ErrorBoundary><EducationView /></ErrorBoundary>} />
-                    <Route path="/sync" element={<ErrorBoundary><SyncView /></ErrorBoundary>} />
-                    <Route path="/locked-chats" element={<ErrorBoundary><LockedChatsView /></ErrorBoundary>} />
+                    <Route path="/settings" element={<m.div key="/settings" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ type: 'spring', stiffness: 320, damping: 32 }} style={{ height: '100%', width: '100%' }}><ErrorBoundary><SettingsView isGuest onLogin={openAuthModal} /></ErrorBoundary></m.div>} />
+                    <Route path="/education" element={<m.div key="/education" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ type: 'spring', stiffness: 320, damping: 32 }} style={{ height: '100%', width: '100%' }}><ErrorBoundary><EducationView /></ErrorBoundary></m.div>} />
+                    <Route path="/sync" element={<m.div key="/sync" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ type: 'spring', stiffness: 320, damping: 32 }} style={{ height: '100%', width: '100%' }}><ErrorBoundary><SyncView /></ErrorBoundary></m.div>} />
+                    <Route path="/locked-chats" element={<m.div key="/locked-chats" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ type: 'spring', stiffness: 320, damping: 32 }} style={{ height: '100%', width: '100%' }}><ErrorBoundary><LockedChatsView /></ErrorBoundary></m.div>} />
                     
                     {/* Unauthenticated redirects */}
                     <Route path="/ask" element={<Navigate to="/" replace />} />
@@ -535,25 +535,23 @@ function MainShell() {
                           : <OnboardingView />
                       } 
                     />
-                    <Route path="/dashboard" element={<ErrorBoundary><AccessGate><DashboardView /></AccessGate></ErrorBoundary>} />
-                    <Route path="/ask" element={<ErrorBoundary><ChatLockGate><ChatView /></ChatLockGate></ErrorBoundary>} />
-                    <Route path="/settings" element={<ErrorBoundary><SettingsView onLogout={handleLogout} /></ErrorBoundary>} />
-                    <Route path="/insights" element={<ErrorBoundary><AccessGate><InsightsView /></AccessGate></ErrorBoundary>} />
-                    <Route path="/health-insights" element={<Navigate to="/insights" replace />} />
-                    <Route path="/tips" element={<ErrorBoundary><AccessGate><TipsView /></AccessGate></ErrorBoundary>} />
-                    <Route path="/wellness-tips" element={<Navigate to="/tips" replace />} />
-                    <Route path="/calendar" element={<ErrorBoundary><AccessGate><CalendarView /></AccessGate></ErrorBoundary>} />
-                    <Route path="/notifications" element={<ErrorBoundary><AccessGate><NotificationsView /></AccessGate></ErrorBoundary>} />
-                    <Route path="/tracker" element={<ErrorBoundary><AccessGate><TrackerView /></AccessGate></ErrorBoundary>} />
-                    <Route path="/symptoms" element={<ErrorBoundary><AccessGate><SymptomsView /></AccessGate></ErrorBoundary>} />
-                    <Route path="/education" element={<ErrorBoundary><EducationView /></ErrorBoundary>} />
-                    <Route path="/sync" element={<ErrorBoundary><AccessGate><SyncView /></AccessGate></ErrorBoundary>} />
-                    <Route path="/community" element={<ErrorBoundary><AccessGate><CommunityView /></AccessGate></ErrorBoundary>} />
-                    <Route path="/cycle-history" element={<ErrorBoundary><AccessGate><CycleHistoryView /></AccessGate></ErrorBoundary>} />
-                    <Route path="/cycle-compare" element={<ErrorBoundary><AccessGate><CycleCompareView /></AccessGate></ErrorBoundary>} />
-                    <Route path="/medications" element={<ErrorBoundary><AccessGate><MedicationsView /></AccessGate></ErrorBoundary>} />
-                    <Route path="/locked-chats" element={<ErrorBoundary><LockedChatsView /></ErrorBoundary>} />
-                    <Route path="*" element={<ErrorBoundary><NotFoundView /></ErrorBoundary>} />
+                    <Route path="/dashboard" element={<m.div key="/dashboard" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ type: 'spring', stiffness: 320, damping: 32 }} style={{ height: '100%', width: '100%' }}><ErrorBoundary><AccessGate><DashboardView /></AccessGate></ErrorBoundary></m.div>} />
+                    <Route path="/ask" element={<m.div key="/ask" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ type: 'spring', stiffness: 320, damping: 32 }} style={{ height: '100%', width: '100%' }}><ErrorBoundary><ChatLockGate><ChatView /></ChatLockGate></ErrorBoundary></m.div>} />
+                    <Route path="/settings" element={<m.div key="/settings-auth" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ type: 'spring', stiffness: 320, damping: 32 }} style={{ height: '100%', width: '100%' }}><ErrorBoundary><SettingsView onLogout={handleLogout} /></ErrorBoundary></m.div>} />
+                    <Route path="/insights" element={<m.div key="/insights" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ type: 'spring', stiffness: 320, damping: 32 }} style={{ height: '100%', width: '100%' }}><ErrorBoundary><AccessGate><InsightsView /></AccessGate></ErrorBoundary></m.div>} />
+                    <Route path="/tips" element={<m.div key="/tips" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ type: 'spring', stiffness: 320, damping: 32 }} style={{ height: '100%', width: '100%' }}><ErrorBoundary><AccessGate><TipsView /></AccessGate></ErrorBoundary></m.div>} />
+                    <Route path="/calendar" element={<m.div key="/calendar" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ type: 'spring', stiffness: 320, damping: 32 }} style={{ height: '100%', width: '100%' }}><ErrorBoundary><AccessGate><CalendarView /></AccessGate></ErrorBoundary></m.div>} />
+                    <Route path="/notifications" element={<m.div key="/notifications" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ type: 'spring', stiffness: 320, damping: 32 }} style={{ height: '100%', width: '100%' }}><ErrorBoundary><AccessGate><NotificationsView /></AccessGate></ErrorBoundary></m.div>} />
+                    <Route path="/tracker" element={<m.div key="/tracker" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ type: 'spring', stiffness: 320, damping: 32 }} style={{ height: '100%', width: '100%' }}><ErrorBoundary><AccessGate><TrackerView /></AccessGate></ErrorBoundary></m.div>} />
+                    <Route path="/symptoms" element={<m.div key="/symptoms" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ type: 'spring', stiffness: 320, damping: 32 }} style={{ height: '100%', width: '100%' }}><ErrorBoundary><AccessGate><SymptomsView /></AccessGate></ErrorBoundary></m.div>} />
+                    <Route path="/education" element={<m.div key="/education-auth" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ type: 'spring', stiffness: 320, damping: 32 }} style={{ height: '100%', width: '100%' }}><ErrorBoundary><EducationView /></ErrorBoundary></m.div>} />
+                    <Route path="/sync" element={<m.div key="/sync-auth" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ type: 'spring', stiffness: 320, damping: 32 }} style={{ height: '100%', width: '100%' }}><ErrorBoundary><AccessGate><SyncView /></AccessGate></ErrorBoundary></m.div>} />
+                    <Route path="/community" element={<m.div key="/community" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ type: 'spring', stiffness: 320, damping: 32 }} style={{ height: '100%', width: '100%' }}><ErrorBoundary><AccessGate><CommunityView /></AccessGate></ErrorBoundary></m.div>} />
+                    <Route path="/cycle-history" element={<m.div key="/cycle-history" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ type: 'spring', stiffness: 320, damping: 32 }} style={{ height: '100%', width: '100%' }}><ErrorBoundary><AccessGate><CycleHistoryView /></AccessGate></ErrorBoundary></m.div>} />
+                    <Route path="/cycle-compare" element={<m.div key="/cycle-compare" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ type: 'spring', stiffness: 320, damping: 32 }} style={{ height: '100%', width: '100%' }}><ErrorBoundary><AccessGate><CycleCompareView /></AccessGate></ErrorBoundary></m.div>} />
+                    <Route path="/medications" element={<m.div key="/medications" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ type: 'spring', stiffness: 320, damping: 32 }} style={{ height: '100%', width: '100%' }}><ErrorBoundary><AccessGate><MedicationsView /></AccessGate></ErrorBoundary></m.div>} />
+                    <Route path="/locked-chats" element={<m.div key="/locked-chats-auth" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ type: 'spring', stiffness: 320, damping: 32 }} style={{ height: '100%', width: '100%' }}><ErrorBoundary><LockedChatsView /></ErrorBoundary></m.div>} />
+                    <Route path="*" element={<m.div key="/not-found" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ type: 'spring', stiffness: 320, damping: 32 }} style={{ height: '100%', width: '100%' }}><ErrorBoundary><NotFoundView /></ErrorBoundary></m.div>} />
                   </>
                 )}
                 </Routes>

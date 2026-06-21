@@ -737,6 +737,8 @@
   .app-canvas,
   .chat-thread {
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    scroll-behavior: smooth;
   }
 
   /* Remove iOS zoom on input focus */
@@ -1592,7 +1594,7 @@
     padding: 2px 0 !important;
     min-height: 40px !important;
     border-radius: 0 !important;
-    transition: opacity 0.1s ease, transform 0.1s ease !important;
+    position: relative !important;
     -webkit-tap-highlight-color: transparent !important;
   }
 
@@ -1603,6 +1605,10 @@
 
   .flo-nav-item.flo-nav-item--active {
     color: var(--mf-accent) !important;
+  }
+
+  .flo-nav-item.flo-nav-item--active svg {
+    filter: drop-shadow(0 0 2px rgba(var(--mf-accent-rgb), 0.3)) !important;
   }
 
   .flo-nav-item svg {
@@ -1618,21 +1624,21 @@
     margin-top: 1px !important;
   }
 
-  /* Base transitions for smooth release animation */
+  /* Base transitions for iOS-native release animation */
   button:not(.flo-nav-item),
   .btn,
   .filter-chip,
   .active-squish {
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
   }
 
-  /* Tactile iOS Feedback for generic buttons */
+  /* iOS-native press feedback — subtle opacity + scale */
   button:not(.flo-nav-item):active,
   .btn:active,
   .filter-chip:active,
   .active-squish:active {
-    opacity: 0.75 !important;
-    transform: scale(0.96) !important;
+    opacity: 0.7 !important;
+    transform: scale(0.97) !important;
     transition: transform 0.05s ease, opacity 0.05s ease !important;
   }
 
@@ -1877,6 +1883,80 @@
     margin: 8px auto 16px !important;
     flex-shrink: 0 !important;
   }
+}
+
+/* ─── iOS Shimmer Loading ──────────────────────────────────── */
+
+@keyframes ios-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.ios-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(200, 199, 204, 0.15) 0%,
+    rgba(200, 199, 204, 0.3) 40%,
+    rgba(200, 199, 204, 0.15) 80%
+  );
+  background-size: 200% 100%;
+  animation: ios-shimmer 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+[data-theme='dark'] .ios-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(100, 100, 110, 0.1) 0%,
+    rgba(100, 100, 110, 0.3) 40%,
+    rgba(100, 100, 110, 0.1) 80%
+  );
+  background-size: 200% 100%;
+}
+
+/* iOS loading bar (navigation bar style) */
+.ios-loading-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2.5px;
+  z-index: 9999;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ios-loading-bar::after {
+  content: '';
+  display: block;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, var(--mf-accent), transparent);
+  animation: ios-loading-bar 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes ios-loading-bar {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(350%); }
+}
+
+/* iOS card press feedback */
+.ios-card-press:active {
+  opacity: 0.85 !important;
+  transform: scale(0.985) !important;
+  transition: transform 0.05s ease, opacity 0.05s ease !important;
+}
+
+/* Native-feel scroll containers */
+.ios-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+}
+
+/* Prevent pull-to-refresh on iOS */
+.ios-no-pull {
+  overscroll-behavior-y: none;
 }
 
 
