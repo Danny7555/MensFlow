@@ -29,7 +29,7 @@ import {
   Check,
   Fingerprint,
 } from '@phosphor-icons/react'
-import { cn } from '../lib/utils'
+import { cn, hashPin } from '../lib/utils'
 import { hapticMedium } from '../lib/haptics'
 import { DoctorReportModal } from '../components/dashboard/DoctorReportModal'
 import { toast } from 'sonner'
@@ -1228,7 +1228,7 @@ function AppLockSetupModal({
       setError('PINs do not match.')
       return
     }
-    updateSettings({ appLockEnabled: true, appLockPIN: pin })
+    updateSettings({ appLockEnabled: true, appLockPIN: hashPin(pin) })
     toast.success('App Lock enabled successfully!')
     setOpen(false)
   }
@@ -1332,7 +1332,8 @@ function AppLockDisableModal({
   const [error, setError] = useState(false)
 
   const handleDisable = () => {
-    if (pin === currentPin) {
+    const isMatch = hashPin(pin) === currentPin || (currentPin?.length === 4 && pin === currentPin)
+    if (isMatch) {
       updateSettings({ appLockEnabled: false, appLockPIN: null, appLockBiometric: false })
       toast.success('App Lock disabled successfully.')
       setOpen(false)

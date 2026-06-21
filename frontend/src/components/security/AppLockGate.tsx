@@ -3,6 +3,7 @@ import { useStore } from '../../store/useStore'
 import { Lock, Fingerprint, Backspace, Check } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { playFaceIDScanSound, playFaceIDSuccessSound } from '../../lib/sound'
+import { hashPin } from '../../lib/utils'
 
 // ---------------------------------------------------------------------------
 // Session key — survives HMR / React hot-reloads, wiped on real page refresh
@@ -331,8 +332,13 @@ export function AppLockGate({ children }: { children: React.ReactNode }) {
       updateState({ pin: nextPin })
       
       if (nextPin.length === 4) {
-        if (nextPin === settings.appLockPIN) {
+        const storedPIN = settings.appLockPIN
+        const isMatch = hashPin(nextPin) === storedPIN || (storedPIN?.length === 4 && nextPin === storedPIN)
+        if (isMatch) {
           grantUnlock()
+          if (storedPIN?.length === 4) {
+            useStore.getState().updateSettings({ appLockPIN: hashPin(nextPin) })
+          }
           toast.success('Application Unlocked!')
         } else {
           updateState({ error: true })
