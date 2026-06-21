@@ -4,8 +4,14 @@ import { Plus, Trash, Pill, Clock } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { useMedications, useCreateMedication, useDeleteMedication } from '../services/medicationService'
 import { Button } from '@/components/ui/button'
+import { useSEO } from '../hooks/useSEO'
 
 export function MedicationsView() {
+  useSEO({
+    title: 'Medications Tracker',
+    description: 'Track your pills, supplements, and treatments with daily alerts and logs.',
+    keywords: 'medication tracker, supplement logger, cycle treatment, pill alarm'
+  })
   const { data: meds, isLoading } = useMedications()
   const createMed = useCreateMedication()
   const deleteMed = useDeleteMedication()
