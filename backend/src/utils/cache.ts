@@ -23,6 +23,4 @@ export function cacheDel(key: string): void {
   store.delete(key)
 }
 
-export function cacheClear(): void {
-  store.clear()
-}
+
