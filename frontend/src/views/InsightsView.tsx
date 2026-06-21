@@ -188,7 +188,7 @@ function ForecastingSection({ itemVariants, logs, dashboard }: ForecastingSectio
     <m.section variants={itemVariants} className="insights-section no-print animate-in fade-in duration-300" aria-labelledby="forecast-title">
       <div className="flex items-center justify-between mb-4">
         <h2 id="forecast-title" className="insights-section-title flex items-center gap-2">
-          <Sparkle size={20} className="text-[var(--mf-accent)] animate-pulse" /> AI Symptom Forecasting
+          <Sparkle size={20} className="text-[var(--mf-accent)]" /> AI Symptom Forecasting
         </h2>
         {isBootstrapped && (
           <span className="text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 px-3 py-1 rounded-full font-medium">

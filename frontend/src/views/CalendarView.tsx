@@ -1005,7 +1005,7 @@ function MonthView({
                   {/* Pulsing selection border for range start day */}
                   {isRangeStartDay && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-                      <div className="size-10 sm:size-11 rounded-full border-2 border-violet-500 animate-pulse" />
+                      <div className="size-10 sm:size-11 rounded-full border-2 border-violet-500" />
                     </div>
                   )}
 

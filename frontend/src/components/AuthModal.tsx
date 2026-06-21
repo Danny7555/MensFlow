@@ -235,6 +235,15 @@ export function AuthModal({
     }
   }, [otpDigits, handleOtpSubmit, handleResetOtpSubmit, mode])
 
+  const handleOtpPaste = useCallback((e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault()
+    const text = e.clipboardData.getData('text').trim()
+    if (/^\d{6}$/.test(text)) {
+      setOtpDigits(text.split(''))
+      inputRefs.current[5]?.focus()
+    }
+  }, [])
+
   const handleResend = useCallback(async () => {
     if (resendCooldown > 0 || !onResendOtp) return
     try {
@@ -359,7 +368,7 @@ export function AuthModal({
 
           <div className="flex flex-col items-center text-center mb-6">
             <div className="size-14 rounded-2xl bg-pink-500/10 flex items-center justify-center mb-4">
-              <EnvelopeSimple size={28} weight="duotone" className="text-pink-500 animate-pulse" />
+              <EnvelopeSimple size={28} weight="duotone" className="text-pink-500" />
             </div>
             <h1 id="reset-otp-modal-title" className="auth-modal-title auth-modal-title--gpt mb-1">
               Check your email
@@ -381,6 +390,7 @@ export function AuthModal({
                   value={digit}
                   onChange={e => handleOtpChange(i, e.target.value)}
                   onKeyDown={e => handleOtpKeyDown(i, e)}
+                  onPaste={handleOtpPaste}
                   aria-label={`Digit ${i + 1}`}
                   className={`otp-digit-input ${digit ? 'has-value' : ''}`}
                 />
@@ -574,7 +584,7 @@ export function AuthModal({
 
           <div className="flex flex-col items-center text-center mb-6">
             <div className="size-14 rounded-2xl bg-pink-500/10 flex items-center justify-center mb-4 transition-all duration-300">
-              <EnvelopeSimple size={28} weight="duotone" className="text-pink-500 animate-pulse" />
+              <EnvelopeSimple size={28} weight="duotone" className="text-pink-500" />
             </div>
             <h1 id="otp-modal-title" className="auth-modal-title auth-modal-title--gpt mb-1">
               Check your email
@@ -597,6 +607,7 @@ export function AuthModal({
                   value={digit}
                   onChange={e => handleOtpChange(i, e.target.value)}
                   onKeyDown={e => handleOtpKeyDown(i, e)}
+                  onPaste={handleOtpPaste}
                   aria-label={`Digit ${i + 1}`}
                   className={`otp-digit-input ${digit ? 'has-value' : ''}`}
                 />

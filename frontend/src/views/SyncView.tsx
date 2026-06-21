@@ -25,6 +25,7 @@ import { Button } from '@/components/ui/button'
 import { hapticSelection, hapticMedium } from '../lib/haptics'
 import { useSEO } from '../hooks/useSEO'
 import { encryptData } from '../lib/e2e'
+import { getAudioContext } from '../lib/sound'
 
 interface StatusOption {
   id: string
@@ -118,7 +119,6 @@ function SupportHistory() {
 
 function RelationshipAura() {
   const { partnerStatus, settings } = useStore()
-  const audioCtxRef = useRef<AudioContext | null>(null)
   const oscRef = useRef<OscillatorNode | null>(null)
   const gainRef = useRef<GainNode | null>(null)
   const [isHovered, setIsHovered] = useState(false)
@@ -146,13 +146,9 @@ function RelationshipAura() {
   const startHum = () => {
     if (!settings.soundEffectsEnabled) return
     try {
-      if (!audioCtxRef.current) {
-        const AudioCtxClass = window.AudioContext || (window as Window & typeof globalThis & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
-        if (!AudioCtxClass) return
-        audioCtxRef.current = new AudioCtxClass()
-      }
+      const ctx = getAudioContext()
+      if (!ctx) return
       
-      const ctx = audioCtxRef.current
       if (ctx.state === 'suspended') {
         void ctx.resume()
       }
@@ -188,7 +184,7 @@ function RelationshipAura() {
   const updateHumFrequency = (e: React.PointerEvent<HTMLDivElement>) => {
     const osc = oscRef.current
     const gain = gainRef.current
-    const ctx = audioCtxRef.current
+    const ctx = getAudioContext()
     if (!osc || !gain || !ctx) return
     
     // Get pointer relative coordinates
@@ -216,9 +212,10 @@ function RelationshipAura() {
   const stopHum = () => {
     const osc = oscRef.current
     const gain = gainRef.current
-    if (osc && gain && audioCtxRef.current) {
+    const ctx = getAudioContext()
+    if (osc && gain && ctx) {
       try {
-        const now = audioCtxRef.current.currentTime
+        const now = ctx.currentTime
         gain.gain.cancelScheduledValues(now)
         gain.gain.setValueAtTime(gain.gain.value, now)
         gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25) // fade out

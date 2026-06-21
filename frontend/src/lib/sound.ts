@@ -1,10 +1,15 @@
 import { useStore } from '../store/useStore'
 
-function getAudioContext(): AudioContext | null {
+let sharedAudioContext: AudioContext | null = null
+
+export function getAudioContext(): AudioContext | null {
   if (typeof window === 'undefined') return null
+  if (sharedAudioContext) return sharedAudioContext
+  
   const AudioContextClass = window.AudioContext || (window as Window & typeof globalThis & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
   if (!AudioContextClass) return null
-  return new AudioContextClass()
+  sharedAudioContext = new AudioContextClass()
+  return sharedAudioContext
 }
 
 export function playTickSound() {
@@ -14,6 +19,9 @@ export function playTickSound() {
     
     const ctx = getAudioContext()
     if (!ctx) return
+    if (ctx.state === 'suspended') {
+      void ctx.resume()
+    }
     
     const osc = ctx.createOscillator()
     const gain = ctx.createGain()
@@ -43,6 +51,9 @@ export function playSuccessSound() {
     
     const ctx = getAudioContext()
     if (!ctx) return
+    if (ctx.state === 'suspended') {
+      void ctx.resume()
+    }
     
     const playNote = (freq: number, startTime: number, duration: number, volume: number) => {
       const osc = ctx.createOscillator()
@@ -80,6 +91,9 @@ export function playFaceIDScanSound() {
     
     const ctx = getAudioContext()
     if (!ctx) return
+    if (ctx.state === 'suspended') {
+      void ctx.resume()
+    }
     
     const osc = ctx.createOscillator()
     const gain = ctx.createGain()
@@ -109,6 +123,9 @@ export function playFaceIDSuccessSound() {
     
     const ctx = getAudioContext()
     if (!ctx) return
+    if (ctx.state === 'suspended') {
+      void ctx.resume()
+    }
     
     const now = ctx.currentTime
     
@@ -148,6 +165,9 @@ export function playNotificationSound() {
     
     const ctx = getAudioContext()
     if (!ctx) return
+    if (ctx.state === 'suspended') {
+      void ctx.resume()
+    }
     
     const playNote = (frequency: number, startTime: number, duration: number) => {
       const osc = ctx.createOscillator()
