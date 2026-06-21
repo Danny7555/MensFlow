@@ -593,6 +593,7 @@ function VirtualizedPostList({ posts, scrollRef, onPostClick }: {
   scrollRef: React.RefObject<HTMLDivElement | null>
   onPostClick: (id: string) => void
 }) {
+  // eslint-disable-next-line react-hooks/incompatible-library
   const virtualizer = useVirtualizer({
     count: posts.length,
     getScrollElement: () => scrollRef.current,

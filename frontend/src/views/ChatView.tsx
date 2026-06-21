@@ -114,6 +114,7 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
     }
 
     const loadingTimer = setTimeout(() => setIsLoading(true), 0)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchSessions()
       .then((data) => {
         const isLocked = showOnlyLockedRef.current
@@ -196,7 +197,7 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
         })
     }, 0)
     return () => clearTimeout(timer)
-  }, [activeSessionId, temporaryChat, welcomeText, unlockedPasscodes])
+  }, [activeSessionId, temporaryChat, welcomeText, unlockedPasscodes, privacyPassword, sessions])
 
   const todayStr = new Date().toISOString().split('T')[0]
   const todayLog = logs.find(l => l.date === todayStr)
@@ -248,12 +249,9 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
     const text = (overrideText || draft).trim()
     if (!text || isTyping) return
 
-    const uid = `u-${Date.now()}`
-    const now = Date.now()
-
     setMessages((m) => [
       ...m,
-      { id: uid, role: 'user', text, createdAt: now }
+      { id: `u-${crypto.randomUUID()}`, role: 'user', text, createdAt: Date.now() }
     ])
 
     if (!overrideText) setDraft('')
