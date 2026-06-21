@@ -27,6 +27,7 @@ import {
   FileText,
   Brain,
   Check,
+  Fingerprint,
 } from '@phosphor-icons/react'
 import { cn } from '../lib/utils'
 import { hapticMedium } from '../lib/haptics'
@@ -34,6 +35,8 @@ import { DoctorReportModal } from '../components/dashboard/DoctorReportModal'
 import { toast } from 'sonner'
 import { useAIUsageStats } from '../services/chatService'
 import { useSEO } from '../hooks/useSEO'
+import { FaceIDScanner } from '../components/security/AppLockGate'
+import { playTickSound } from '../lib/sound'
 import {
   Dialog,
   DialogContent,
@@ -117,7 +120,7 @@ function SelectRow({
           <p className="settings-field-desc">{description}</p>
         )}
       </div>
-      <Select value={value} onValueChange={onChange}>
+      <Select value={value} onValueChange={(val) => { playTickSound(); onChange(val); }}>
         <SelectTrigger className="settings-select flex items-center justify-between bg-none min-w-[120px] sm:min-w-[150px] h-9 pr-2 pl-3 cursor-pointer">
           <SelectValue />
         </SelectTrigger>
@@ -160,7 +163,13 @@ function ToggleRow({
         aria-checked={checked}
         disabled={disabled}
         className={`switch ${checked ? 'switch--on' : ''}`}
-        onClick={() => !disabled && onChange(!checked)}
+        onClick={() => {
+          if (!disabled) {
+            hapticMedium()
+            playTickSound()
+            onChange(!checked)
+          }
+        }}
       >
         <span className="switch-thumb" aria-hidden />
       </button>
@@ -553,6 +562,12 @@ function GeneralPanel({
         description="Simplifies your dashboard layout by completely hiding educational playbooks and content cards."
         checked={settings.hideDailyStoriesAndTips}
         onChange={(v) => updateSettings({ hideDailyStoriesAndTips: v })}
+      />
+      <ToggleRow
+        label="Interface Sounds"
+        description="Enable synthesized auditory chimes and tactile click effects on buttons."
+        checked={settings.soundEffectsEnabled}
+        onChange={(v) => updateSettings({ soundEffectsEnabled: v })}
       />
 
       {/* Partner Connection Settings */}
@@ -1670,6 +1685,7 @@ function SecurityPanel({
   updateSettings: (patch: Partial<MensFlowSettings>) => void
 }) {
   const { loginHistory, fetchLoginHistory } = useStore()
+  const [testFaceID, setTestFaceID] = useState(false)
 
   useEffect(() => {
     void fetchLoginHistory()
@@ -1732,41 +1748,58 @@ function SecurityPanel({
       </div>
 
       {settings.appLockEnabled && (
-        <div className="settings-field-row border-b border-border/50 pb-6 mb-6">
-          <div className="settings-field-text">
-            <span className="settings-field-label">Biometric Verification</span>
-            <p className="settings-field-desc">
-              Unlock using Touch ID, Face ID, or Windows Hello.
-            </p>
-          </div>
-          <ToggleRow
-            label=""
-            checked={settings.appLockBiometric}
-            onChange={(v) => {
-              if (v) {
-                if (typeof window !== 'undefined' && window.PublicKeyCredential) {
-                  PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
-                    .then((available) => {
-                      if (available) {
+        <div className="border-b border-border/50 pb-6 mb-6">
+          <div className="settings-field-row">
+            <div className="settings-field-text">
+              <span className="settings-field-label">Biometric Verification</span>
+              <p className="settings-field-desc">
+                Unlock using Touch ID, Face ID, or Windows Hello.
+              </p>
+            </div>
+            <ToggleRow
+              label=""
+              checked={settings.appLockBiometric}
+              onChange={(v) => {
+                if (v) {
+                  if (typeof window !== 'undefined' && window.PublicKeyCredential) {
+                    PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
+                      .then((available) => {
+                        if (available) {
+                          updateSettings({ appLockBiometric: true })
+                          toast.success('Biometric unlock enabled!')
+                        } else {
+                          updateSettings({ appLockBiometric: true })
+                          toast.success('Biometric simulation enabled on this device.')
+                        }
+                      })
+                      .catch(() => {
                         updateSettings({ appLockBiometric: true })
-                        toast.success('Biometric unlock enabled!')
-                      } else {
-                        updateSettings({ appLockBiometric: true })
-                        toast.success('Biometric simulation enabled on this device.')
-                      }
-                    })
-                    .catch(() => {
-                      updateSettings({ appLockBiometric: true })
-                      toast.success('Biometric simulation enabled.')
-                    })
+                        toast.success('Biometric simulation enabled.')
+                      })
+                  } else {
+                    toast.error('Biometrics not supported on this browser.')
+                  }
                 } else {
-                  toast.error('Biometrics not supported on this browser.')
+                  updateSettings({ appLockBiometric: false })
                 }
-              } else {
-                updateSettings({ appLockBiometric: false })
-              }
-            }}
-          />
+              }}
+            />
+          </div>
+          {settings.appLockBiometric && (
+            <div className="mt-3 flex justify-start">
+              <button
+                type="button"
+                onClick={() => {
+                  hapticMedium()
+                  setTestFaceID(true)
+                }}
+                className="text-xs text-[var(--mf-accent)] hover:underline flex items-center gap-1.5 cursor-pointer outline-none font-medium bg-[var(--mf-accent-soft)] px-3 py-1.5 rounded-xl border border-[var(--mf-accent-border)]/30 active:scale-95 transition-all"
+              >
+                <Fingerprint size={14} />
+                Test FaceID Scan & Sound FX
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -1853,6 +1886,15 @@ function SecurityPanel({
           </div>
         )}
       </div>
+      {testFaceID && (
+        <FaceIDScanner
+          onSuccess={() => {
+            setTestFaceID(false)
+            toast.success('Test Face ID verification succeeded!')
+          }}
+          onCancel={() => setTestFaceID(false)}
+        />
+      )}
     </>
   )
 }
@@ -2592,7 +2634,10 @@ export function SettingsView({
                 key={id}
                 type="button"
                 className={`settings-nav-item ${effectiveCat === id ? 'settings-nav-item--active' : ''}`}
-                onClick={() => setCat(id)}
+                onClick={() => {
+                  playTickSound()
+                  setCat(id)
+                }}
               >
                 <Icon size={20} aria-hidden />
                 <span>{label}</span>

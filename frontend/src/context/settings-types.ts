@@ -51,6 +51,7 @@ export type MensFlowSettings = {
   appLockEnabled: boolean
   appLockPIN: string | null
   appLockBiometric: boolean
+  soundEffectsEnabled: boolean
 }
 
 export const DEFAULT_SETTINGS: MensFlowSettings = {
@@ -98,4 +99,5 @@ export const DEFAULT_SETTINGS: MensFlowSettings = {
   appLockEnabled: false,
   appLockPIN: null,
   appLockBiometric: false,
+  soundEffectsEnabled: true,
 }

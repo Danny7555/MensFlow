@@ -11,6 +11,8 @@ import { useStore } from "@/store/useStore"
 import { LogSymptomsModal } from "@/components/tracker/LogSymptomsModal"
 import { RequestAccessModal } from "@/components/dashboard/RequestAccessModal"
 import { useSEO } from "@/hooks/useSEO"
+import { playTickSound } from "@/lib/sound"
+import { hapticMedium } from "@/lib/haptics"
 
 const DAYS_OF_WEEK = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
 
@@ -931,6 +933,8 @@ function MonthView({
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={(e) => {
+                  hapticMedium()
+                  playTickSound()
                   if (isEditingPeriods) {
                     onTogglePeriod(key, e.shiftKey)
                   } else {

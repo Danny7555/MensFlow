@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useStore } from '../../store/useStore'
-import { Button } from '../ui/button'
-import { Lock, Fingerprint, Backspace } from '@phosphor-icons/react'
+import { Lock, Fingerprint, Backspace, Check } from '@phosphor-icons/react'
 import { toast } from 'sonner'
+import { playFaceIDScanSound, playFaceIDSuccessSound } from '../../lib/sound'
 
 export function AppLockGate({ children }: { children: React.ReactNode }) {
   const settings = useStore((s) => s.settings)
@@ -153,37 +153,262 @@ export function AppLockGate({ children }: { children: React.ReactNode }) {
 
       {/* Simulated Biometric Modal (Fallback when platform WebAuthn isn't set up/declined) */}
       {showBiometricSim && (
-        <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-card border border-border p-6 rounded-3xl max-w-xs w-full text-center flex flex-col items-center shadow-lg animate-in zoom-in-95 duration-200">
-            <div className="size-14 rounded-full bg-[var(--mf-accent-soft)] flex items-center justify-center text-[var(--mf-accent)] mb-4">
-              <Fingerprint size={32} className="animate-pulse" />
-            </div>
-            <h3 className="text-base font-normal mb-1">Verify Identity</h3>
-            <p className="text-xs text-muted-foreground leading-normal mb-6">
-              Confirm your Face ID, Touch ID, or OS User profile to unlock.
-            </p>
-            <div className="flex flex-col gap-2 w-full">
-              <Button
-                onClick={() => {
-                  setIsUnlocked(true)
-                  setShowBiometricSim(false)
-                  toast.success('Unlocked via device biometrics!')
-                }}
-                className="w-full rounded-xl"
-              >
-                Scan Fingerprint / Face
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => setShowBiometricSim(false)}
-                className="w-full rounded-xl text-xs"
-              >
-                Use PIN Code
-              </Button>
-            </div>
-          </div>
-        </div>
+        <FaceIDScanner
+          onSuccess={() => {
+            setIsUnlocked(true)
+            setShowBiometricSim(false)
+            toast.success('Unlocked via Face ID!')
+          }}
+          onCancel={() => setShowBiometricSim(false)}
+        />
       )}
+    </div>
+  )
+}
+
+export function FaceIDScanner({
+  onSuccess,
+  onCancel
+}: {
+  onSuccess: () => void
+  onCancel: () => void
+}) {
+  const [phase, setPhase] = useState<'scanning' | 'success'>('scanning')
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  
+  // Audio scanning tick loop
+  useEffect(() => {
+    if (phase !== 'scanning') return
+    
+    // Play tick sound every 140ms
+    const interval = setInterval(() => {
+      playFaceIDScanSound()
+    }, 140)
+    
+    // Scan duration is 1.8 seconds, then success
+    const timeout = setTimeout(() => {
+      clearInterval(interval)
+      setPhase('success')
+      playFaceIDSuccessSound()
+      
+      // Delay success display for 800ms before unlocking
+      const unlockTimeout = setTimeout(() => {
+        onSuccess()
+      }, 800)
+      
+      return () => clearTimeout(unlockTimeout)
+    }, 1800)
+    
+    return () => {
+      clearInterval(interval)
+      clearTimeout(timeout)
+    }
+  }, [phase, onSuccess])
+
+  // Canvas scan line / face mesh animation
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    
+    let animationFrameId: number
+    let angle = 0
+    let scanY = 0
+    let scanDirection = 1
+    
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      const cx = canvas.width / 2
+      const cy = canvas.height / 2
+      
+      if (phase === 'scanning') {
+        // Draw the Face ID rounded square bracket frame
+        ctx.strokeStyle = 'rgba(236, 72, 153, 0.4)' // Pink border soft
+        ctx.lineWidth = 3
+        ctx.beginPath()
+        
+        const size = 110
+        const r = 24 // border radius
+        
+        // Custom draw rounded rect corners
+        // Top Left corner
+        ctx.moveTo(cx - size, cy - size + r)
+        ctx.quadraticCurveTo(cx - size, cy - size, cx - size + r, cy - size)
+        
+        // Top Right corner
+        ctx.moveTo(cx + size - r, cy - size)
+        ctx.quadraticCurveTo(cx + size, cy - size, cx + size, cy - size + r)
+        
+        // Bottom Right corner
+        ctx.moveTo(cx + size, cy + size - r)
+        ctx.quadraticCurveTo(cx + size, cy + size, cx + size - r, cy + size)
+        
+        // Bottom Left corner
+        ctx.moveTo(cx - size + r, cy + size)
+        ctx.quadraticCurveTo(cx - size, cy + size, cx - size, cy + size - r)
+        ctx.stroke()
+
+        // Draw pulsing bracket indicators
+        ctx.strokeStyle = 'rgba(236, 72, 153, 0.85)' // Pink border strong
+        ctx.lineWidth = 4.5
+        
+        const bLen = 28 // bracket line length
+        
+        // Top Left Bracket
+        ctx.beginPath()
+        ctx.moveTo(cx - size, cy - size + bLen)
+        ctx.lineTo(cx - size, cy - size + r)
+        ctx.quadraticCurveTo(cx - size, cy - size, cx - size + r, cy - size)
+        ctx.lineTo(cx - size + bLen, cy - size)
+        ctx.stroke()
+        
+        // Top Right Bracket
+        ctx.beginPath()
+        ctx.moveTo(cx + size - bLen, cy - size)
+        ctx.lineTo(cx + size - r, cy - size)
+        ctx.quadraticCurveTo(cx + size, cy - size, cx + size, cy - size + r)
+        ctx.lineTo(cx + size, cy - size + bLen)
+        ctx.stroke()
+        
+        // Bottom Right Bracket
+        ctx.beginPath()
+        ctx.moveTo(cx + size, cy + size - bLen)
+        ctx.lineTo(cx + size, cy + size - r)
+        ctx.quadraticCurveTo(cx + size, cy + size, cx + size - r, cy + size)
+        ctx.lineTo(cx + size - bLen, cy + size)
+        ctx.stroke()
+        
+        // Bottom Left Bracket
+        ctx.beginPath()
+        ctx.moveTo(cx - size + bLen, cy + size)
+        ctx.lineTo(cx - size + r, cy + size)
+        ctx.quadraticCurveTo(cx - size, cy + size, cx - size, cy + size - r)
+        ctx.lineTo(cx - size, cy + size - bLen)
+        ctx.stroke()
+
+        // Draw simulated face outline made of points
+        ctx.fillStyle = 'rgba(236, 72, 153, 0.15)'
+        ctx.strokeStyle = 'rgba(236, 72, 153, 0.25)'
+        ctx.lineWidth = 1
+        
+        // Head circle
+        ctx.beginPath()
+        ctx.arc(cx, cy - 10, 50, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.stroke()
+        
+        // Jaw outline
+        ctx.beginPath()
+        ctx.arc(cx, cy + 20, 30, 0, Math.PI)
+        ctx.stroke()
+
+        // Scanning grid/points
+        ctx.fillStyle = 'rgba(236, 72, 153, 0.75)'
+        for (let i = -4; i <= 4; i++) {
+          for (let j = -4; j <= 4; j++) {
+            // Only draw inside the face shape or circle
+            const dx = i * 16
+            const dy = j * 16
+            const dist = Math.sqrt(dx * dx + dy * dy)
+            if (dist < 60) {
+              // Pulse radius
+              const offset = Math.sin(angle + dist * 0.05) * 1.5
+              ctx.beginPath()
+              ctx.arc(cx + dx, cy + dy, 1.2 + offset, 0, Math.PI * 2)
+              ctx.fill()
+            }
+          }
+        }
+
+        // Draw scanning laser beam
+        const gradient = ctx.createLinearGradient(0, cy + scanY - 15, 0, cy + scanY + 2)
+        gradient.addColorStop(0, 'rgba(236, 72, 153, 0)')
+        gradient.addColorStop(0.8, 'rgba(236, 72, 153, 0.35)')
+        gradient.addColorStop(1, 'rgba(236, 72, 153, 0.95)')
+        
+        ctx.fillStyle = gradient
+        ctx.fillRect(cx - size + 4, cy + scanY - 15, (size * 2) - 8, 16)
+        
+        // Bright laser center line
+        ctx.strokeStyle = '#ffffff'
+        ctx.lineWidth = 1.5
+        ctx.shadowColor = 'rgba(236, 72, 153, 1)'
+        ctx.shadowBlur = 8
+        ctx.beginPath()
+        ctx.moveTo(cx - size + 4, cy + scanY)
+        ctx.lineTo(cx + size - 4, cy + scanY)
+        ctx.stroke()
+        ctx.shadowBlur = 0 // reset shadow
+
+        // Move scan line
+        scanY += scanDirection * 2.2
+        if (scanY > size - 10 || scanY < -size + 10) {
+          scanDirection *= -1
+        }
+        
+        angle += 0.075
+      } else {
+        // Success state: Draw green checkmark and success circle
+        ctx.strokeStyle = '#10b981' // emerald-500
+        ctx.lineWidth = 5
+        ctx.beginPath()
+        ctx.arc(cx, cy, 60, 0, Math.PI * 2)
+        ctx.stroke()
+
+        // Pulsing background ring
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.25)'
+        ctx.lineWidth = 10
+        ctx.beginPath()
+        ctx.arc(cx, cy, 60 + Math.sin(Date.now() * 0.01) * 3, 0, Math.PI * 2)
+        ctx.stroke()
+      }
+      
+      animationFrameId = requestAnimationFrame(draw)
+    }
+    
+    draw()
+    return () => cancelAnimationFrame(animationFrameId)
+  }, [phase])
+
+  return (
+    <div className="fixed inset-0 z-[60] bg-background/80 backdrop-blur-md flex flex-col items-center justify-center p-6 select-none animate-in fade-in duration-300">
+      <div className="w-full max-w-sm flex flex-col items-center">
+        
+        {/* Canvas container */}
+        <div className="relative w-72 h-72 flex items-center justify-center mb-8">
+          <canvas 
+            ref={canvasRef} 
+            width={288} 
+            height={288} 
+            className="w-full h-full animate-pulse"
+          />
+          {phase === 'success' && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="size-16 rounded-full bg-emerald-500 flex items-center justify-center text-white shadow-lg animate-in zoom-in-50 duration-300">
+                <Check size={36} weight="bold" />
+              </div>
+            </div>
+          )}
+        </div>
+
+        <h2 className="text-xl font-normal text-[var(--mf-text-strong)] mb-1">
+          {phase === 'scanning' ? 'Face ID' : 'Face ID Verified'}
+        </h2>
+        <p className="text-xs text-muted-foreground mb-12">
+          {phase === 'scanning' ? 'Scanning face features...' : 'Identity confirmed successfully'}
+        </p>
+
+        {phase === 'scanning' && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-6 py-2.5 rounded-full border border-border hover:bg-muted active:scale-95 transition-all text-xs font-semibold text-[var(--mf-text)] cursor-pointer outline-none"
+          >
+            Cancel and enter PIN
+          </button>
+        )}
+      </div>
     </div>
   )
 }
