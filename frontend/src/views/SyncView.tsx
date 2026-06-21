@@ -2,7 +2,7 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { m } from 'framer-motion'
 import type { Variants } from 'framer-motion'
-import { Check, Sparkle, PaperPlaneTilt, LinkSimple, Copy, ArrowRight, Users, ChatCircle, Lock, ShareNetwork, Heart } from '@phosphor-icons/react'
+import { Check, Sparkle, PaperPlaneTilt, LinkSimple, Copy, ArrowRight, Users, ChatCircle, Lock, ShareNetwork } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { PartnerChat } from '../components/dashboard/PartnerChat'
 import { PresenceBadge } from '../components/dashboard/PresenceBadge'
@@ -117,15 +117,15 @@ function SupportHistory() {
 
 
 function RelationshipAura() {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
   const { partnerStatus, settings } = useStore()
   const audioCtxRef = useRef<AudioContext | null>(null)
   const oscRef = useRef<OscillatorNode | null>(null)
   const gainRef = useRef<GainNode | null>(null)
   const [isHovered, setIsHovered] = useState(false)
+  const [pointerActive, setPointerActive] = useState(false)
 
   // Get current phase details
-  const phase = partnerStatus?.cycle?.phaseLabel || 'follicular'
+  const phase = partnerStatus?.cycle?.phaseLabel || 'ovulatory'
   
   // Set colors based on cycle phase
   const colors = (() => {
@@ -134,7 +134,7 @@ function RelationshipAura() {
         return { primary: '244, 114, 182', secondary: '244, 63, 94' } // Pink/Rose
       case 'ovulatory':
       case 'fertile':
-        return { primary: '20, 184, 166', secondary: '16, 185, 129' } // Teal/Emerald
+        return { primary: '236, 72, 153', secondary: '225, 29, 72' } // Vibrant Pink & Rose (Matching Sync Theme)
       case 'luteal':
         return { primary: '168, 85, 247', secondary: '217, 119, 6' } // Purple/Amber
       default:
@@ -143,7 +143,7 @@ function RelationshipAura() {
   })()
 
   // Initialize Audio Synth Hum on drag/interaction
-  const startHum = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const startHum = () => {
     if (!settings.soundEffectsEnabled) return
     try {
       if (!audioCtxRef.current) {
@@ -166,12 +166,12 @@ function RelationshipAura() {
       osc.type = 'sine'
       
       // Base frequency based on phase
-      const baseFreq = phase.toLowerCase() === 'menstrual' ? 180 : phase.toLowerCase() === 'fertile' ? 260 : 220
+      const baseFreq = phase.toLowerCase() === 'menstrual' ? 180 : (phase.toLowerCase() === 'fertile' || phase.toLowerCase() === 'ovulatory') ? 260 : 220
       osc.frequency.setValueAtTime(baseFreq, ctx.currentTime)
       
       // Gain control for smooth entry
       gain.gain.setValueAtTime(0, ctx.currentTime)
-      gain.gain.linearRampToValueAtTime(0.06, ctx.currentTime + 0.15)
+      gain.gain.linearRampToValueAtTime(0.05, ctx.currentTime + 0.15)
       
       osc.connect(gain)
       gain.connect(ctx.destination)
@@ -179,35 +179,22 @@ function RelationshipAura() {
       osc.start()
       oscRef.current = osc
       gainRef.current = gain
-      
-      updateHumFrequency(e)
+      setPointerActive(true)
     } catch (err) {
       console.warn("Aura hum failed to start:", err)
     }
   }
 
-  const updateHumFrequency = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const updateHumFrequency = (e: React.PointerEvent<HTMLDivElement>) => {
     const osc = oscRef.current
     const gain = gainRef.current
-    const canvas = canvasRef.current
-    if (!osc || !gain || !canvas) return
+    const ctx = audioCtxRef.current
+    if (!osc || !gain || !ctx) return
     
-    // Get mouse/touch relative coordinates
-    const rect = canvas.getBoundingClientRect()
-    let clientX = 0
-    let clientY = 0
-    
-    if ('touches' in e) {
-      if (e.touches.length === 0) return
-      clientX = e.touches[0].clientX
-      clientY = e.touches[0].clientY
-    } else {
-      clientX = e.clientX
-      clientY = e.clientY
-    }
-    
-    const x = clientX - rect.left
-    const y = clientY - rect.top
+    // Get pointer relative coordinates
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
     const cx = rect.width / 2
     const cy = rect.height / 2
     
@@ -216,14 +203,14 @@ function RelationshipAura() {
     const maxDist = rect.width / 2
     
     // Vibe modulation
-    const baseFreq = phase.toLowerCase() === 'menstrual' ? 180 : phase.toLowerCase() === 'fertile' ? 260 : 220
+    const baseFreq = phase.toLowerCase() === 'menstrual' ? 180 : (phase.toLowerCase() === 'fertile' || phase.toLowerCase() === 'ovulatory') ? 260 : 220
     const targetFreq = baseFreq + (dist / maxDist) * 120 // pitch goes up as you pull away
     
-    osc.frequency.setTargetAtTime(targetFreq, audioCtxRef.current!.currentTime, 0.05)
+    osc.frequency.setTargetAtTime(targetFreq, ctx.currentTime, 0.05)
     
     // volume matches proximity
-    const targetVolume = Math.max(0.01, (1 - dist / maxDist) * 0.09)
-    gain.gain.setTargetAtTime(targetVolume, audioCtxRef.current!.currentTime, 0.05)
+    const targetVolume = Math.max(0.01, (1 - dist / maxDist) * 0.08)
+    gain.gain.setTargetAtTime(targetVolume, ctx.currentTime, 0.05)
   }
 
   const stopHum = () => {
@@ -242,6 +229,7 @@ function RelationshipAura() {
     }
     oscRef.current = null
     gainRef.current = null
+    setPointerActive(false)
   }
 
   // Cleanup audio
@@ -251,275 +239,202 @@ function RelationshipAura() {
     }
   }, [])
 
-  // Canvas swarm simulation
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-    
-    let animationFrameId: number
-    
-    // Swarm particles
-    const particleCount = 75
-    const particles: Array<{
-      x: number
-      y: number
-      ox: number // original anchor
-      oy: number
-      vx: number
-      vy: number
-      size: number
-      color: string
-      angle: number
-      speed: number
-      distLimit: number
-    }> = []
-    
-    const cx = canvas.width / 2
-    const cy = canvas.height / 2
-    
-    // Create particles in a circle
-    for (let i = 0; i < particleCount; i++) {
-      const angle = (i / particleCount) * Math.PI * 2
-      const dist = 30 + Math.random() * 55
-      const size = 1.5 + Math.random() * 3.5
-      
-      const px = cx + Math.cos(angle) * dist
-      const py = cy + Math.sin(angle) * dist
-      
-      particles.push({
-        x: px,
-        y: py,
-        ox: px,
-        oy: py,
-        vx: 0,
-        vy: 0,
-        size,
-        color: Math.random() > 0.4 ? colors.primary : colors.secondary,
-        angle,
-        speed: 0.015 + Math.random() * 0.02,
-        distLimit: dist
-      })
-    }
-    
-    let mouse = { x: -1000, y: -1000, active: false }
-    
-    const onCanvasMouseMove = (e: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect()
-      // Translate coordinates to canvas size
-      mouse.x = ((e.clientX - rect.left) / rect.width) * canvas.width
-      mouse.y = ((e.clientY - rect.top) / rect.height) * canvas.height
-      mouse.active = true
-    }
-    
-    const onCanvasMouseLeave = () => {
-      mouse.x = -1000
-      mouse.y = -1000
-      mouse.active = false
-    }
-
-    const onCanvasTouchMove = (e: TouchEvent) => {
-      if (e.touches.length === 0) return
-      const rect = canvas.getBoundingClientRect()
-      mouse.x = ((e.touches[0].clientX - rect.left) / rect.width) * canvas.width
-      mouse.y = ((e.touches[0].clientY - rect.top) / rect.height) * canvas.height
-      mouse.active = true
-    }
-    
-    canvas.addEventListener('mousemove', onCanvasMouseMove)
-    canvas.addEventListener('mouseleave', onCanvasMouseLeave)
-    canvas.addEventListener('touchmove', onCanvasTouchMove)
-    canvas.addEventListener('touchend', onCanvasMouseLeave)
-
-    let rippleRadius = 0
-    let rippleCenter = { x: cx, y: cy }
-    
-    const triggerRipple = (e: MouseEvent | TouchEvent) => {
-      const rect = canvas.getBoundingClientRect()
-      let clientX = 0
-      let clientY = 0
-      if ('touches' in e) {
-        if (e.touches.length === 0) return
-        clientX = e.touches[0].clientX
-        clientY = e.touches[0].clientY
-      } else {
-        clientX = e.clientX
-        clientY = e.clientY
-      }
-      rippleCenter.x = ((clientX - rect.left) / rect.width) * canvas.width
-      rippleCenter.y = ((clientY - rect.top) / rect.height) * canvas.height
-      rippleRadius = 1 // start ripple
-    }
-
-    const onCanvasMouseDown = (e: MouseEvent) => triggerRipple(e)
-    const onCanvasTouchStart = (e: TouchEvent) => triggerRipple(e)
-    
-    canvas.addEventListener('mousedown', onCanvasMouseDown)
-    canvas.addEventListener('touchstart', onCanvasTouchStart)
-    
-    let time = 0
-    
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      
-      // Draw background glowing circle aura
-      const radialGradient = ctx.createRadialGradient(cx, cy, 10, cx, cy, 120)
-      radialGradient.addColorStop(0, `rgba(${colors.primary}, 0.22)`)
-      radialGradient.addColorStop(0.5, `rgba(${colors.secondary}, 0.06)`)
-      radialGradient.addColorStop(1, 'rgba(0, 0, 0, 0)')
-      ctx.fillStyle = radialGradient
-      ctx.beginPath()
-      ctx.arc(cx, cy, 130, 0, Math.PI * 2)
-      ctx.fill()
-
-      // Draw relationship connection line in background
-      ctx.strokeStyle = `rgba(${colors.primary}, 0.08)`
-      ctx.lineWidth = 1
-      ctx.beginPath()
-      ctx.arc(cx, cy, 80, 0, Math.PI * 2)
-      ctx.stroke()
-      
-      // Update & Draw ripple
-      if (rippleRadius > 0 && rippleRadius < 150) {
-        ctx.strokeStyle = `rgba(${colors.primary}, ${Math.max(0, 0.5 - rippleRadius / 150)})`
-        ctx.lineWidth = 2
-        ctx.beginPath()
-        ctx.arc(rippleCenter.x, rippleCenter.y, rippleRadius, 0, Math.PI * 2)
-        ctx.stroke()
-        rippleRadius += 4.5
-      }
-
-      // Update particles
-      particles.forEach((p) => {
-        // Orbital motion
-        p.angle += p.speed
-        
-        // Target orbit coordinate
-        const tx = cx + Math.cos(p.angle) * (p.distLimit + Math.sin(time * 0.02 + p.distLimit) * 8)
-        const ty = cy + Math.sin(p.angle) * (p.distLimit + Math.cos(time * 0.02 + p.distLimit) * 8)
-        
-        // Spring physics to return to target orbit
-        const ax = (tx - p.x) * 0.03
-        const ay = (ty - p.y) * 0.03
-        
-        p.vx += ax
-        p.vy += ay
-        
-        // Mouse repelling physics
-        if (mouse.active) {
-          const dx = p.x - mouse.x
-          const dy = p.y - mouse.y
-          const dist = Math.sqrt(dx * dx + dy * dy)
-          if (dist < 55) {
-            const force = (55 - dist) * 0.12
-            p.vx += (dx / dist) * force
-            p.vy += (dy / dist) * force
-          }
-        }
-        
-        // Ripple repelling
-        if (rippleRadius > 0 && rippleRadius < 150) {
-          const dx = p.x - rippleCenter.x
-          const dy = p.y - rippleCenter.y
-          const dist = Math.sqrt(dx * dx + dy * dy)
-          // If close to ripple wavefront
-          if (Math.abs(dist - rippleRadius) < 15) {
-            const force = 4.5
-            p.vx += (dx / dist) * force
-            p.vy += (dy / dist) * force
-          }
-        }
-
-        // Apply friction
-        p.vx *= 0.88
-        p.vy *= 0.88
-        
-        p.x += p.vx
-        p.y += p.vy
-        
-        // Draw particle
-        ctx.fillStyle = `rgba(${p.color}, ${0.45 + Math.sin(time * 0.05 + p.size) * 0.3})`
-        ctx.beginPath()
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
-        ctx.fill()
-        
-        // Glowing halo for larger particles
-        if (p.size > 2.8) {
-          ctx.fillStyle = `rgba(${p.color}, 0.12)`
-          ctx.beginPath()
-          ctx.arc(p.x, p.y, p.size * 2.2, 0, Math.PI * 2)
-          ctx.fill()
-        }
-      })
-      
-      time++
-      animationFrameId = requestAnimationFrame(draw)
-    }
-    
-    draw()
-    
-    return () => {
-      cancelAnimationFrame(animationFrameId)
-      canvas.removeEventListener('mousemove', onCanvasMouseMove)
-      canvas.removeEventListener('mouseleave', onCanvasMouseLeave)
-      canvas.removeEventListener('touchmove', onCanvasTouchMove)
-      canvas.removeEventListener('touchend', onCanvasMouseLeave)
-      canvas.removeEventListener('mousedown', onCanvasMouseDown)
-      canvas.removeEventListener('touchstart', onCanvasTouchStart)
-    }
-  }, [colors, phase])
-
   return (
     <div 
-      className="flo-card p-6 text-center flex flex-col items-center justify-center relative overflow-hidden transition-all duration-500 border border-[var(--mf-border)]"
+      className="flo-card p-6 text-center flex flex-col items-center justify-center relative overflow-hidden transition-all duration-500 border"
+      style={{
+        borderColor: isHovered ? `rgba(${colors.primary}, 0.4)` : 'var(--mf-border)',
+        boxShadow: isHovered 
+          ? `0 12px 30px -10px rgba(${colors.primary}, 0.16), 0 0 20px -5px rgba(${colors.primary}, 0.08)` 
+          : 'none'
+      }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => { setIsHovered(false); stopHum(); }}
     >
       <div className="absolute top-4 left-4 text-left">
-        <span className="text-[9px] font-normal text-[var(--mf-accent)] uppercase tracking-[0.2em] block mb-1">Live Connection</span>
+        <span 
+          className="text-[9px] font-semibold uppercase tracking-[0.2em] block mb-1 transition-colors duration-300"
+          style={{ color: `rgb(${colors.primary})` }}
+        >
+          Live Connection
+        </span>
         <h3 className="text-base font-normal text-[var(--mf-text-strong)] flex items-center gap-2">
           Synced Relationship Aura
         </h3>
       </div>
       
-      <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-[var(--mf-accent-soft)] px-2.5 py-0.5 rounded-full border border-[var(--mf-accent-border)]/20">
+      <div 
+        className="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border transition-all duration-300"
+        style={{
+          backgroundColor: `rgba(${colors.primary}, 0.1)`,
+          borderColor: `rgba(${colors.primary}, 0.25)`
+        }}
+      >
         <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--mf-accent)] opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--mf-accent)]"></span>
+          <span 
+            className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+            style={{ backgroundColor: `rgb(${colors.primary})` }}
+          ></span>
+          <span 
+            className="relative inline-flex rounded-full h-2 w-2"
+            style={{ backgroundColor: `rgb(${colors.primary})` }}
+          ></span>
         </span>
-        <span className="text-[10px] font-semibold text-[var(--mf-accent)] uppercase tracking-wider">
+        <span 
+          className="text-[10px] font-semibold uppercase tracking-wider transition-colors duration-300"
+          style={{ color: `rgb(${colors.primary})` }}
+        >
           {phase}
         </span>
       </div>
 
-      <div className="relative w-full h-48 flex items-center justify-center mt-6">
-        <canvas 
-          ref={canvasRef} 
-          width={320} 
-          height={192} 
-          className="w-full h-full cursor-grab active:cursor-grabbing select-none"
-          onMouseDown={startHum}
-          onMouseMove={updateHumFrequency}
-          onMouseUp={stopHum}
-          onTouchStart={startHum}
-          onTouchMove={updateHumFrequency}
-          onTouchEnd={stopHum}
+      <div 
+        className="relative w-full h-48 flex items-center justify-center mt-6 select-none cursor-pointer"
+        onPointerDown={startHum}
+        onPointerMove={updateHumFrequency}
+        onPointerUp={stopHum}
+        onPointerLeave={() => { stopHum(); setIsHovered(false); }}
+        onPointerEnter={() => setIsHovered(true)}
+      >
+        {/* Layer 1: Radial Ambient Glow in background */}
+        <div 
+          className="absolute inset-0 rounded-full filter blur-[40px] opacity-35 transition-all duration-700 pointer-events-none animate-pulse"
+          style={{
+            background: `radial-gradient(circle, rgba(${colors.primary}, 0.5) 0%, rgba(${colors.secondary}, 0.1) 70%, transparent 100%)`,
+            transform: isHovered ? 'scale(1.15)' : 'scale(0.95)',
+            animationDuration: '4s'
+          }}
         />
-        <div className="absolute pointer-events-none flex flex-col items-center justify-center text-center">
+
+        {/* Layer 2: Concentric SVG Orbital Rings (Parallax rotation) */}
+        <svg className="absolute w-full h-full pointer-events-none max-w-[280px]" viewBox="0 0 200 200">
+          {/* Inner Orbital Ring */}
+          <m.circle
+            cx="100"
+            cy="100"
+            r="60"
+            fill="none"
+            stroke={`rgba(${colors.primary}, 0.5)`}
+            strokeWidth="1.2"
+            strokeDasharray="4 8"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 16, repeat: Infinity, ease: "linear" }}
+            style={{ transformOrigin: '100px 100px' }}
+          />
+
+          {/* Outer Orbital Ring (rotates opposite direction) */}
+          <m.circle
+            cx="100"
+            cy="100"
+            r="82"
+            fill="none"
+            stroke={`rgba(${colors.secondary}, 0.4)`}
+            strokeWidth="1.2"
+            strokeDasharray="6 12"
+            animate={{ rotate: -360 }}
+            transition={{ duration: 24, repeat: Infinity, ease: "linear" }}
+            style={{ transformOrigin: '100px 100px' }}
+          />
+
+          {/* Node 1 on inner ring */}
+          <m.circle
+            cx="160"
+            cy="100"
+            r="3"
+            fill={`rgba(${colors.primary}, 0.8)`}
+            animate={{ rotate: 360 }}
+            transition={{ duration: 16, repeat: Infinity, ease: "linear" }}
+            style={{ transformOrigin: '100px 100px' }}
+          />
+          {/* Node 2 on outer ring */}
+          <m.circle
+            cx="100"
+            cy="182"
+            r="2"
+            fill={`rgba(${colors.secondary}, 0.6)`}
+            animate={{ rotate: -360 }}
+            transition={{ duration: 24, repeat: Infinity, ease: "linear" }}
+            style={{ transformOrigin: '100px 100px' }}
+          />
+        </svg>
+
+        {/* Layer 3: Central breathing Glassmorphic glowing Orb */}
+        <m.div
+          animate={{ 
+            scale: isHovered ? 1.08 : 1.0,
+            boxShadow: pointerActive
+              ? [
+                  `0 0 20px 4px rgba(${colors.primary}, 0.3), inset 0 0 10px rgba(${colors.primary}, 0.2)`,
+                  `0 0 45px 12px rgba(${colors.primary}, 0.75), inset 0 0 15px rgba(${colors.primary}, 0.4)`,
+                  `0 0 20px 4px rgba(${colors.primary}, 0.3), inset 0 0 10px rgba(${colors.primary}, 0.2)`
+                ]
+              : [
+                  `0 0 15px 1px rgba(${colors.primary}, 0.18), inset 0 0 8px rgba(255,255,255,0.1)`,
+                  `0 0 30px 4px rgba(${colors.primary}, 0.42), inset 0 0 12px rgba(255,255,255,0.2)`,
+                  `0 0 15px 1px rgba(${colors.primary}, 0.18), inset 0 0 8px rgba(255,255,255,0.1)`
+                ]
+          }}
+          transition={{
+            scale: { type: "spring", stiffness: 150, damping: 15 },
+            boxShadow: { duration: 3.5, repeat: Infinity, ease: "easeInOut" }
+          }}
+          className="relative size-24 rounded-full bg-gradient-to-tr from-white/10 to-white/20 dark:from-white/[0.03] dark:to-white/[0.08] backdrop-blur-xl border flex items-center justify-center z-10 transition-all duration-300"
+          style={{ 
+            borderColor: `rgba(${colors.primary}, 0.35)`
+          }}
+        >
+          {/* Inner concentric glowing circle */}
+          <div 
+            className="absolute inset-2 rounded-full border border-dashed opacity-30 animate-spin"
+            style={{ 
+              borderColor: `rgba(${colors.primary}, 0.45)`,
+              animationDuration: '10s'
+            }}
+          />
+
+          <img 
+            loading="lazy" 
+            src="/images/heart.png" 
+            alt="Heart" 
+            draggable={false}
+            className="size-8 object-contain select-none z-20 filter drop-shadow-[0_2px_8px_rgba(244,63,94,0.4)]" 
+          />
+        </m.div>
+
+        {/* Layer 4: Elegant Floating Sparks on hover/active */}
+        {isHovered && [1, 2, 3, 4].map((id) => (
           <m.div
-            animate={{ scale: [1, 1.12, 1] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            className="size-11 rounded-full bg-white/70 dark:bg-black/40 backdrop-blur-md border border-[var(--mf-border)] flex items-center justify-center shadow-md z-10"
-          >
-            <Heart size={20} className="text-rose-500" weight="fill" />
-          </m.div>
-        </div>
+            key={id}
+            className="absolute pointer-events-none w-1.5 h-1.5 rounded-full z-0"
+            style={{
+              backgroundColor: id % 2 === 0 ? `rgb(${colors.primary})` : `rgb(${colors.secondary})`,
+              boxShadow: `0 0 6px rgb(${colors.primary})`
+            }}
+            initial={{ 
+              x: (id - 2.5) * 25 + (Math.random() - 0.5) * 10, 
+              y: 20 + (Math.random() - 0.5) * 10, 
+              opacity: 0.8,
+              scale: 0.6 + Math.random() * 0.5
+            }}
+            animate={{ 
+              y: -80 - Math.random() * 40, 
+              x: (id - 2.5) * 30 + (Math.random() - 0.5) * 20,
+              opacity: 0,
+              scale: 0.1
+            }}
+            transition={{ 
+              duration: 2.2 + Math.random() * 0.8,
+              repeat: Infinity,
+              ease: "easeOut",
+              delay: id * 0.4
+            }}
+          />
+        ))}
       </div>
       
       <p className="text-[10px] text-muted-foreground mt-4 leading-normal select-none">
         {isHovered 
-          ? "Click, drag, or tap to play with the particles and hear the connection hum."
+          ? "Interact with the glowing orb and move your pointer to alter the connection hum."
           : "Your connection is active and perfectly synced in real-time."
         }
       </p>
@@ -872,6 +787,15 @@ export function SyncView() {
               <Lock size={10} aria-hidden="true" className="inline mr-0.5" />
               Your health data is always private. Only aggregated cycle phase info is shared with your partner.
             </m.p>
+
+            {/* Preview Relationship Aura for Unpaired Users */}
+            <m.div variants={itemVariants} className="mt-10 max-w-md mx-auto w-full px-4 sm:px-0">
+              <div className="text-center mb-4">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--mf-accent)] block mb-1">Interactive Sync Preview</span>
+                <p className="text-[11.5px] text-[var(--mf-muted)]">Get a preview of the premium real-time connection aura below.</p>
+              </div>
+              <RelationshipAura />
+            </m.div>
 
           </div>
 
