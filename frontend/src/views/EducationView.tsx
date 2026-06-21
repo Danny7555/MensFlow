@@ -125,25 +125,24 @@ export function EducationView() {
     keywords: 'menstrual education, hormone guides, cycle phases, phase care, women health guides'
   })
   const { isAuthenticated, openAuthModal } = useAuth()
-  const [articles, setArticles] = useState<ApiEducationArticle[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [errored, setErrored] = useState(false)
-  const [activeTab, setActiveTab] = useState<'guides' | 'simulator'>('guides')
-
-  // Modal state — only open flag + which article is being edited
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [state, setState] = useState({
+    articles: [] as ApiEducationArticle[],
+    isLoading: true,
+    errored: false,
+    activeTab: 'guides' as 'guides' | 'simulator',
+    isModalOpen: false,
+  })
+  const { articles, isLoading, errored, activeTab, isModalOpen } = state
   const editingArticle: ApiEducationArticle | null = null
 
   const fetchArticles = useCallback(async () => {
     try {
       const data = await educationApi.getArticles()
-      setArticles(data)
+      setState(prev => ({ ...prev, articles: data, isLoading: false }))
     } catch (err) {
       console.error('Failed to load articles:', err)
       toast.error('Could not fetch educational guides from server.')
-      setErrored(true)
-    } finally {
-      setIsLoading(false)
+      setState(prev => ({ ...prev, errored: true, isLoading: false }))
     }
   }, [])
 
@@ -202,7 +201,7 @@ export function EducationView() {
       <div className="flex border-b border-border/60 mb-6 w-full justify-start gap-1">
         <button
           type="button"
-          onClick={() => setActiveTab('guides')}
+          onClick={() => setState(prev => ({ ...prev, activeTab: 'guides' }))}
           className={cn(
             'px-6 py-2.5 text-sm font-normal border-b-2 transition-all cursor-pointer outline-none',
             activeTab === 'guides'
@@ -214,7 +213,7 @@ export function EducationView() {
         </button>
         <button
           type="button"
-          onClick={() => setActiveTab('simulator')}
+          onClick={() => setState(prev => ({ ...prev, activeTab: 'simulator' }))}
           className={cn(
             'px-6 py-2.5 text-sm font-normal border-b-2 transition-all cursor-pointer outline-none',
             activeTab === 'simulator'
@@ -290,7 +289,7 @@ export function EducationView() {
       <EducationFormModal
         open={isModalOpen}
         editingArticle={editingArticle}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => setState(prev => ({ ...prev, isModalOpen: false }))}
         onSaved={fetchArticles}
       />
     </div>

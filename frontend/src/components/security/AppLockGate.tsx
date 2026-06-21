@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useStore } from '../../store/useStore'
 import { Button } from '../ui/button'
 import { Lock, Fingerprint, Backspace } from '@phosphor-icons/react'
@@ -11,7 +11,7 @@ export function AppLockGate({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState(false)
   const [showBiometricSim, setShowBiometricSim] = useState(false)
 
-  const handleBiometricUnlock = async () => {
+  const handleBiometricUnlock = useCallback(async () => {
     if (!settings.appLockEnabled || !settings.appLockBiometric || isUnlocked) {
       return
     }
@@ -39,13 +39,12 @@ export function AppLockGate({ children }: { children: React.ReactNode }) {
       console.warn('Biometric authentication bypassed/failed:', err)
       setShowBiometricSim(true)
     }
-  }
+  }, [settings.appLockEnabled, settings.appLockBiometric, isUnlocked])
 
   // Auto-trigger biometrics on mount if enabled
   useEffect(() => {
     void handleBiometricUnlock()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [handleBiometricUnlock])
 
   const handleKeyPress = (num: string) => {
     if (error) setError(false)
