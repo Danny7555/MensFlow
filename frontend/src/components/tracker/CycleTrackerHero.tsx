@@ -94,17 +94,17 @@ const modeLabels: Record<string, string> = {
 };
 
 const modeChipStyles: Record<string, { bg: string; text: string; border: string }> = {
-  period:     { bg: 'var(--mf-accent-soft)', text: 'var(--mf-accent)', border: 'var(--mf-accent-border)' },
-  conception: { bg: '#fef2f3', text: '#e11d48', border: 'rgba(225,29,72,0.25)' },
-  pregnancy:  { bg: '#f5f3ff', text: '#7c3aed', border: 'rgba(124,58,237,0.25)' },
-  perimenopause: { bg: '#fffbeb', text: '#d97706', border: 'rgba(217,119,6,0.25)' },
+  period:     { bg: 'transparent', text: 'var(--mf-accent)', border: 'rgba(var(--mf-accent-rgb), 0.15)' },
+  conception: { bg: 'transparent', text: '#e11d48', border: 'rgba(225,29,72,0.2)' },
+  pregnancy:  { bg: 'transparent', text: '#7c3aed', border: 'rgba(124,58,237,0.2)' },
+  perimenopause: { bg: 'transparent', text: '#d97706', border: 'rgba(217,119,6,0.2)' },
 };
 
 const modeChipStylesDark: Record<string, { bg: string; text: string; border: string }> = {
-  period:     { bg: 'var(--mf-accent-soft)', text: 'var(--mf-accent)', border: 'var(--mf-accent-border)' },
-  conception: { bg: 'rgba(225,29,72,0.2)', text: '#fb7185', border: 'rgba(225,29,72,0.35)' },
-  pregnancy:  { bg: 'rgba(124,58,237,0.2)', text: '#a78bfa', border: 'rgba(124,58,237,0.35)' },
-  perimenopause: { bg: 'rgba(217,119,6,0.2)', text: '#fbbf24', border: 'rgba(217,119,6,0.35)' },
+  period:     { bg: 'transparent', text: 'var(--mf-accent)', border: 'rgba(var(--mf-accent-rgb), 0.2)' },
+  conception: { bg: 'transparent', text: '#fb7185', border: 'rgba(225,29,72,0.3)' },
+  pregnancy:  { bg: 'transparent', text: '#a78bfa', border: 'rgba(124,58,237,0.3)' },
+  perimenopause: { bg: 'transparent', text: '#fbbf24', border: 'rgba(217,119,6,0.3)' },
 };
 
 const modeHeroBorders: Record<string, string> = {
@@ -377,7 +377,7 @@ function CycleTrackerHeroInner({
           <button
             type="button"
             onClick={() => dispatch({ type: 'SET_LOG_MODAL_OPEN', payload: true })}
-            className="w-full text-left p-0 border-none outline-none bg-transparent mood-cta-card cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mf-accent)] rounded-2xl"
+            className="w-full text-left p-0 outline-none bg-transparent mood-cta-card cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mf-accent)] rounded-2xl"
           >
             <img loading="lazy" src="/images/exp.jpg" alt="" className="mood-cta-bg" />
             <div className="mood-cta-overlay" />
@@ -626,7 +626,7 @@ function CycleTrackerHeroInner({
                 toast.info("Empathy & supportive tips are available on your dashboard playbook!")
               }
             }}
-            className="w-full text-left p-0 border-none outline-none bg-transparent mood-cta-card cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mf-accent)] rounded-2xl"
+            className="w-full text-left p-0 outline-none bg-transparent mood-cta-card cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mf-accent)] rounded-2xl"
           >
              <img loading="lazy" src="/images/calm.jpg" alt="" className="mood-cta-bg opacity-80" />
              <div className="mood-cta-overlay bg-gradient-to-r from-teal-900/60 to-indigo-900/50" />
@@ -640,7 +640,7 @@ function CycleTrackerHeroInner({
           <button 
             type="button"
             onClick={() => dispatch({ type: 'SET_LOG_MODAL_OPEN', payload: true })}
-            className="w-full text-left p-0 border-none outline-none bg-transparent mood-cta-card cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mf-accent)] rounded-2xl"
+            className="w-full text-left p-0 outline-none bg-transparent mood-cta-card cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mf-accent)] rounded-2xl"
           >
              <img loading="lazy" src="/images/exp.jpg" alt="" className="mood-cta-bg" />
              <div className="mood-cta-overlay" />

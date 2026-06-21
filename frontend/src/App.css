@@ -3,7 +3,13 @@
   height: 100svh;
   width: 100%;
   overflow: hidden;
-  background: var(--background);
+  background: linear-gradient(
+    150deg,
+    rgba(255, 107, 139, 0.07) 0%,
+    var(--background) 35%,
+    rgba(139, 92, 246, 0.05) 70%,
+    rgba(255, 107, 139, 0.02) 100%
+  );
   color: var(--mf-text);
   position: relative;
 }
@@ -19,19 +25,19 @@
 }
 
 .app-shell::before {
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(255, 107, 139, 0.03) 0%, transparent 70%);
-  top: -200px;
-  right: -120px;
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, rgba(255, 107, 139, 0.1) 0%, transparent 65%);
+  top: -250px;
+  right: -150px;
 }
 
 .app-shell::after {
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.02) 0%, transparent 70%);
-  bottom: -180px;
-  left: -100px;
+  width: 550px;
+  height: 550px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.07) 0%, transparent 65%);
+  bottom: -200px;
+  left: -120px;
 }
 
 [data-theme='dark'] .app-shell::before {
@@ -144,7 +150,7 @@
   display: flex;
   flex-direction: column;
   border-right: 1px solid rgba(var(--mf-accent-rgb), 0.25);
-  background: rgba(var(--mf-card-rgb), 0.75);
+  background: linear-gradient(135deg, rgba(var(--mf-card-rgb), 0.6) 0%, rgba(var(--mf-accent-rgb), 0.03) 100%);
   backdrop-filter: blur(24px) saturate(200%);
   -webkit-backdrop-filter: blur(24px) saturate(200%);
   z-index: 50;
@@ -1069,7 +1075,7 @@
   padding: 0.65rem 0.85rem;
   border-radius: 12px;
   border: 1px solid rgba(var(--mf-accent-rgb), 0.25);
-  background: rgba(var(--mf-card-rgb), 0.88);
+  background: linear-gradient(135deg, rgba(var(--mf-card-rgb), 0.72) 0%, rgba(var(--mf-accent-rgb), 0.04) 100%);
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
   -webkit-user-select: text;
@@ -1169,7 +1175,7 @@
   border: 1px solid rgba(var(--mf-accent-rgb), 0.28);
   border-radius: 14px;
   padding: 1.1rem 1.15rem;
-  background: rgba(var(--mf-card-rgb), 0.88);
+  background: linear-gradient(135deg, rgba(var(--mf-card-rgb), 0.72) 0%, rgba(var(--mf-accent-rgb), 0.04) 100%);
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
 }
@@ -2788,7 +2794,7 @@
   flex-direction: column;
   border: 1px solid rgba(var(--mf-accent-rgb), 0.28);
   border-radius: 24px;
-  background: rgba(var(--mf-card-rgb), 0.85);
+  background: linear-gradient(135deg, rgba(var(--mf-card-rgb), 0.68) 0%, rgba(var(--mf-accent-rgb), 0.04) 100%);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   margin-bottom: 0;
@@ -3375,7 +3381,7 @@
   align-items: center;
   width: 100%;
   max-width: 720px;
-  background: rgba(var(--mf-card-rgb), 0.85);
+  background: linear-gradient(135deg, rgba(var(--mf-card-rgb), 0.68) 0%, rgba(var(--mf-accent-rgb), 0.05) 100%);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(var(--mf-accent-rgb), 0.3);
@@ -3678,7 +3684,7 @@
 }
 
 .stats-card {
-  background: rgba(var(--mf-card-rgb), 0.85);
+  background: linear-gradient(135deg, rgba(var(--mf-card-rgb), 0.68) 0%, rgba(var(--mf-accent-rgb), 0.05) 100%);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(var(--mf-accent-rgb), 0.3);
@@ -4555,7 +4561,7 @@
 .mood-cta-card {
   width: 100%;
   background: transparent;
-  border: none;
+  border: 1px solid rgba(var(--mf-accent-rgb), 0.25);
   padding: 1.5rem 0;
   display: flex;
   align-items: center;
@@ -4717,9 +4723,9 @@
 
 
 .flo-card {
-  background: rgba(var(--mf-card-rgb, 255, 255, 255), 0.88);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: linear-gradient(135deg, rgba(var(--mf-card-rgb), 0.68) 0%, rgba(var(--mf-accent-rgb), 0.06) 100%);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
   border: 1px solid rgba(var(--mf-accent-rgb), 0.3);
   border-radius: 32px;
   padding: 1.5rem;
