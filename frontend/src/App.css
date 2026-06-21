@@ -4717,8 +4717,7 @@
 .dashboard-flo-theme[data-theme='dark'],
 [data-theme='dark'] .partner-theme .dashboard-flo-theme,
 .partner-theme[data-theme='dark'] .dashboard-flo-theme {
-  background: var(--background) !important;
-  background-image: none !important;
+  background: radial-gradient(circle at 50% -10%, rgba(var(--mf-accent-rgb), 0.12) 0%, rgba(var(--mf-accent-rgb), 0.03) 50%, var(--background) 100%) !important;
 }
 
 /* ─── Partner Dashboard Theme Overrides ──────────────────────────────────── */
@@ -4980,21 +4979,27 @@
 }
 
 [data-theme='dark'] .flo-card {
-  border: 1px solid var(--mf-border-strong);
-  background: rgba(255, 255, 255, 0.03);
-  box-shadow: none;
+  border: 1px solid rgba(var(--mf-accent-rgb), 0.18) !important;
+  background: linear-gradient(135deg, rgba(var(--mf-card-rgb, 31, 22, 29), 0.65) 0%, rgba(var(--mf-accent-rgb), 0.03) 100%) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2) !important;
 }
 
 [data-theme='dark'] .flo-card--prominent {
-  background: linear-gradient(135deg, rgba(var(--mf-accent-rgb, 219, 39, 119), 0.1) 0%, rgba(20, 20, 22, 0.5) 100%);
-  border: 1px solid var(--mf-border-strong);
-  box-shadow: none;
+  background: linear-gradient(135deg, rgba(var(--mf-accent-rgb), 0.08) 0%, rgba(var(--mf-card-rgb, 31, 22, 29), 0.75) 100%) !important;
+  border: 1px solid rgba(var(--mf-accent-rgb), 0.25) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
 }
 
 [data-theme='dark'] .flo-card--featured {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--mf-border-strong);
-  box-shadow: none;
+  background: linear-gradient(135deg, rgba(var(--mf-card-rgb, 31, 22, 29), 0.8) 0%, rgba(var(--mf-accent-rgb), 0.04) 100%) !important;
+  border: 1px solid rgba(var(--mf-accent-rgb), 0.2) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
 }
 
 .flo-action-row {
