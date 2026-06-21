@@ -24,6 +24,7 @@ import { getPhaseTasks } from '../lib/cycleUtils'
 import { Button } from '@/components/ui/button'
 import { hapticSelection, hapticMedium } from '../lib/haptics'
 import { useSEO } from '../hooks/useSEO'
+import { encryptData } from '../lib/e2e'
 
 interface StatusOption {
   id: string
@@ -209,15 +210,28 @@ export function SyncView() {
     if (!option) { setIsSending(false); return }
 
     try {
+      let secretMessage = option.message
+      const pairingCode = user?.role === 'lady'
+        ? user?.partnerCode
+        : localStorage.getItem('mensflow_e2ee_pairing_code:v1')
+
+      if (pairingCode) {
+        try {
+          secretMessage = await encryptData(option.message, pairingCode)
+        } catch (e) {
+          console.error('Failed to encrypt support ping message', e)
+        }
+      }
+
       if (isAuthenticated) {
-        await partnerApi.sendPing(option.id, option.label, option.message)
+        await partnerApi.sendPing(option.id, option.label, secretMessage)
       }
 
       // Broadcast ping details via localStorage for cross-tab sync support
       const pingData = {
         id: option.id,
         label: option.label,
-        message: option.message,
+        message: secretMessage,
         senderId: user?.id || 'guest',
         senderRole: user?.role || 'lady',
         timestamp: Date.now()

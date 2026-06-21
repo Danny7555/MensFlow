@@ -48,6 +48,9 @@ export type MensFlowSettings = {
   parentalQuietHoursEnabled: boolean
   parentalQuietHoursStart: string
   parentalQuietHoursEnd: string
+  appLockEnabled: boolean
+  appLockPIN: string | null
+  appLockBiometric: boolean
 }
 
 export const DEFAULT_SETTINGS: MensFlowSettings = {
@@ -92,4 +95,7 @@ export const DEFAULT_SETTINGS: MensFlowSettings = {
   parentalQuietHoursEnabled: false,
   parentalQuietHoursStart: '21:00',
   parentalQuietHoursEnd: '06:00',
+  appLockEnabled: false,
+  appLockPIN: null,
+  appLockBiometric: false,
 }

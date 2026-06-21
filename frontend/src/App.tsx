@@ -21,6 +21,7 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { ScrollToTop } from './components/ScrollToTop'
 import { AccessGate } from './components/AccessGate'
 import { Button } from './components/ui/button'
+import { AppLockGate } from './components/security/AppLockGate'
 import { SECURITY_QUESTIONS } from './lib/constants'
 import { getPasswordStrength } from './lib/passwordStrength'
 import { EducationView } from './views/EducationView'
@@ -697,7 +698,9 @@ export default function App() {
   return (
     <AuthProvider>
       <ThemeSync />
-      <MainShell />
+      <AppLockGate>
+        <MainShell />
+      </AppLockGate>
       <DynamicToaster />
       <GlobalModalContainer />
     </AuthProvider>

@@ -696,7 +696,34 @@ function NotificationsPanel({
       <ToggleRow
         label="Push-style alerts (device)"
         checked={settings.notificationsPush}
-        onChange={(v) => updateSettings({ notificationsPush: v })}
+        onChange={(v) => {
+          if (v) {
+            if (typeof window !== 'undefined' && 'Notification' in window) {
+              Notification.requestPermission().then((permission) => {
+                if (permission === 'granted') {
+                  updateSettings({ notificationsPush: true })
+                  toast.success('Push notifications enabled!')
+                  if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+                    navigator.serviceWorker.ready.then((reg) => {
+                      reg.showNotification('MensFlow Activated', {
+                        body: 'Push alerts are successfully configured on this device.',
+                        icon: '/images/track.png'
+                      })
+                    })
+                  }
+                } else {
+                  updateSettings({ notificationsPush: false })
+                  toast.error('Permission denied. Please enable notifications in your browser settings.')
+                }
+              })
+            } else {
+              toast.error('Notifications are not supported on this browser.')
+            }
+          } else {
+            updateSettings({ notificationsPush: false })
+            toast.success('Push notifications disabled.')
+          }
+        }}
       />
       <ToggleRow
         label="Email digest"
@@ -1024,6 +1051,207 @@ function DataControlsPanel({
 
 
 
+function AppLockSetupModal({
+  trigger,
+  updateSettings,
+}: {
+  trigger: ReactNode
+  updateSettings: (patch: Partial<MensFlowSettings>) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [pin, setPin] = useState('')
+  const [confirmPin, setConfirmPin] = useState('')
+  const [error, setError] = useState('')
+
+  const handleSave = () => {
+    if (!/^\d{4}$/.test(pin)) {
+      setError('PIN must be exactly 4 digits.')
+      return
+    }
+    if (pin !== confirmPin) {
+      setError('PINs do not match.')
+      return
+    }
+    updateSettings({ appLockEnabled: true, appLockPIN: pin })
+    toast.success('App Lock enabled successfully!')
+    setOpen(false)
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => {
+      setOpen(o)
+      if (!o) {
+        setPin('')
+        setConfirmPin('')
+        setError('')
+      }
+    }}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="sm:max-w-[360px] bg-card border-border p-6">
+        <DialogHeader className="mb-4">
+          <DialogTitle className="text-lg font-medium tracking-tight flex items-center gap-2">
+            <Lock size={20} className="text-[var(--mf-accent)]" /> Enable App Lock
+          </DialogTitle>
+          <DialogDescription className="text-xs">
+            Set a 4-digit security PIN to restrict access to the application.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold uppercase text-muted-foreground tracking-wide">Enter PIN</label>
+            <input
+              type="password"
+              pattern="[0-9]*"
+              inputMode="numeric"
+              maxLength={4}
+              placeholder="e.g. 1234"
+              value={pin}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, '')
+                setPin(val)
+                setError('')
+              }}
+              className="w-full h-11 px-4 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-[var(--mf-accent)] focus:ring-1 transition-all outline-none text-center text-lg tracking-[0.3em]"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold uppercase text-muted-foreground tracking-wide">Confirm PIN</label>
+            <input
+              type="password"
+              pattern="[0-9]*"
+              inputMode="numeric"
+              maxLength={4}
+              placeholder="Confirm PIN"
+              value={confirmPin}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, '')
+                setConfirmPin(val)
+                setError('')
+              }}
+              className="w-full h-11 px-4 rounded-xl bg-muted border border-border focus:border-[var(--mf-accent-border)] focus:ring-[var(--mf-accent)] focus:ring-1 transition-all outline-none text-center text-lg tracking-[0.3em]"
+            />
+          </div>
+
+          {error && (
+            <p className="text-xs text-rose-500 font-medium text-left px-1 animate-in fade-in">{error}</p>
+          )}
+        </div>
+
+        <DialogFooter className="mt-6 flex gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            className="rounded-xl flex-1 text-xs"
+            onClick={() => setOpen(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            disabled={pin.length !== 4 || confirmPin.length !== 4}
+            className="rounded-xl flex-1 text-xs font-medium"
+            onClick={handleSave}
+          >
+            Enable Lock
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function AppLockDisableModal({
+  trigger,
+  currentPin,
+  updateSettings,
+}: {
+  trigger: ReactNode
+  currentPin: string | null
+  updateSettings: (patch: Partial<MensFlowSettings>) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [pin, setPin] = useState('')
+  const [error, setError] = useState(false)
+
+  const handleDisable = () => {
+    if (pin === currentPin) {
+      updateSettings({ appLockEnabled: false, appLockPIN: null, appLockBiometric: false })
+      toast.success('App Lock disabled successfully.')
+      setOpen(false)
+    } else {
+      setError(true)
+      setPin('')
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => {
+      setOpen(o)
+      if (!o) {
+        setPin('')
+        setError(false)
+      }
+    }}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="sm:max-w-[360px] bg-card border-border p-6">
+        <DialogHeader className="mb-4">
+          <DialogTitle className="text-lg font-medium tracking-tight flex items-center gap-2">
+            <Lock size={20} className="text-rose-500" /> Disable App Lock
+          </DialogTitle>
+          <DialogDescription className="text-xs">
+            Confirm your current 4-digit PIN to disable security locking.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold uppercase text-muted-foreground tracking-wide">Enter PIN</label>
+            <input
+              type="password"
+              pattern="[0-9]*"
+              inputMode="numeric"
+              maxLength={4}
+              placeholder="e.g. 1234"
+              value={pin}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, '')
+                setPin(val)
+                setError(false)
+              }}
+              className={`w-full h-11 px-4 rounded-xl bg-muted border ${error ? 'border-rose-500' : 'border-border'} focus:border-[var(--mf-accent-border)] focus:ring-[var(--mf-accent)] focus:ring-1 transition-all outline-none text-center text-lg tracking-[0.3em]`}
+            />
+          </div>
+
+          {error && (
+            <p className="text-xs text-rose-500 font-medium text-left px-1 animate-in fade-in">Incorrect PIN. Please try again.</p>
+          )}
+        </div>
+
+        <DialogFooter className="mt-6 flex gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            className="rounded-xl flex-1 text-xs"
+            onClick={() => setOpen(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            disabled={pin.length !== 4}
+            className="rounded-xl flex-1 text-xs font-medium"
+            onClick={handleDisable}
+          >
+            Disable Lock
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 function LockChatSetupModal({
   trigger,
   updateSettings,
@@ -1322,6 +1550,84 @@ function SecurityPanel({
           onChange={(v) => updateSettings({ otpEnabled: v })}
         />
       </div>
+
+      <div className="settings-field-row border-b border-border/50 pb-6 mb-6">
+        <div className="settings-field-text">
+          <span className="settings-field-label">Application Security Lock</span>
+          <p className="settings-field-desc">
+            Lock the entire application behind a 4-digit PIN code and native device biometrics.
+          </p>
+        </div>
+        {!settings.appLockEnabled ? (
+          <AppLockSetupModal
+            updateSettings={updateSettings}
+            trigger={
+              <button
+                type="button"
+                role="switch"
+                aria-checked={false}
+                className="switch"
+              >
+                <span className="switch-thumb" aria-hidden />
+              </button>
+            }
+          />
+        ) : (
+          <AppLockDisableModal
+            currentPin={settings.appLockPIN}
+            updateSettings={updateSettings}
+            trigger={
+              <button
+                type="button"
+                role="switch"
+                aria-checked={true}
+                className="switch switch--on"
+              >
+                <span className="switch-thumb" aria-hidden />
+              </button>
+            }
+          />
+        )}
+      </div>
+
+      {settings.appLockEnabled && (
+        <div className="settings-field-row border-b border-border/50 pb-6 mb-6">
+          <div className="settings-field-text">
+            <span className="settings-field-label">Biometric Verification</span>
+            <p className="settings-field-desc">
+              Unlock using Touch ID, Face ID, or Windows Hello.
+            </p>
+          </div>
+          <ToggleRow
+            label=""
+            checked={settings.appLockBiometric}
+            onChange={(v) => {
+              if (v) {
+                if (typeof window !== 'undefined' && window.PublicKeyCredential) {
+                  PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
+                    .then((available) => {
+                      if (available) {
+                        updateSettings({ appLockBiometric: true })
+                        toast.success('Biometric unlock enabled!')
+                      } else {
+                        updateSettings({ appLockBiometric: true })
+                        toast.success('Biometric simulation enabled on this device.')
+                      }
+                    })
+                    .catch(() => {
+                      updateSettings({ appLockBiometric: true })
+                      toast.success('Biometric simulation enabled.')
+                    })
+                } else {
+                  toast.error('Biometrics not supported on this browser.')
+                }
+              } else {
+                updateSettings({ appLockBiometric: false })
+              }
+            }}
+          />
+        </div>
+      )}
 
       <div className="settings-field-row border-b border-border/50 pb-6 mb-6">
         <div className="settings-field-text">

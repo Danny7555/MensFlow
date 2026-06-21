@@ -1,7 +1,8 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { m } from 'framer-motion'
 import type { Variants } from 'framer-motion'
-import { ChartLineUp, TrendDown, TrendUp, ShieldCheck } from '@phosphor-icons/react'
+import { ChartLineUp, TrendDown, TrendUp, ShieldCheck, Sparkle } from '@phosphor-icons/react'
+import { forecastSymptoms } from '../lib/forecasting'
 import { INSIGHT_TRENDS_DUMMY } from '../data/insightsData'
 import { InteractiveAreaChart } from '../components/InteractiveAreaChart'
 import { SymptomTrendsChart } from '../components/SymptomTrendsChart'
@@ -169,6 +170,70 @@ function ExportSection({ itemVariants, handleExportCSV, handlePrintPDF }: Export
             Export PDF Report
           </button>
         </div>
+      </div>
+    </m.section>
+  )
+}
+
+interface ForecastingSectionProps extends SectionProps {
+  logs: any[]
+  dashboard: any
+}
+
+function ForecastingSection({ itemVariants, logs, dashboard }: ForecastingSectionProps) {
+  const forecasts = forecastSymptoms(logs, dashboard.lastPeriodStart, dashboard.typicalCycleDays)
+  const isBootstrapped = !logs || logs.length === 0 || logs.every(l => l.symptoms.length === 0)
+
+  return (
+    <m.section variants={itemVariants} className="insights-section no-print animate-in fade-in duration-300" aria-labelledby="forecast-title">
+      <div className="flex items-center justify-between mb-4">
+        <h2 id="forecast-title" className="insights-section-title flex items-center gap-2">
+          <Sparkle size={20} className="text-[var(--mf-accent)] animate-pulse" /> AI Symptom Forecasting
+        </h2>
+        {isBootstrapped && (
+          <span className="text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 px-3 py-1 rounded-full font-medium">
+            Bootstrapped from Cycle Averages
+          </span>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+        {forecasts.map((f) => (
+          <div key={`${f.symptomId}-${f.phase}`} className="bg-card border border-border p-5 rounded-3xl flex flex-col justify-between gap-3 hover:border-border/80 transition-all">
+            <div className="flex justify-between items-start">
+              <div>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
+                  {f.phaseLabel} Projections
+                </span>
+                <h3 className="text-base font-normal text-[var(--mf-text-strong)] mt-0.5">
+                  {f.label}
+                </h3>
+              </div>
+              <div className="text-right">
+                <span className="text-xl font-medium text-[var(--mf-accent)]">
+                  {f.probability}%
+                </span>
+                <span className="block text-[9px] text-muted-foreground font-semibold uppercase">
+                  Probability
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-1 bg-muted/40 p-3 rounded-2xl border border-border/20 text-xs">
+              <span className="font-medium text-[var(--mf-text-strong)] block">Recommended Self-Care</span>
+              <p className="text-muted-foreground leading-normal">{f.recommendation}</p>
+            </div>
+
+            <div className="flex justify-between items-center text-[10px] text-muted-foreground pt-1">
+              <span>Confidence: <strong>{f.confidence}</strong></span>
+              {f.confidence === 'Low' && (
+                <span className="text-[9px] text-amber-500 flex items-center gap-1">
+                  Log more days to refine
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
       </div>
     </m.section>
   )
@@ -366,6 +431,12 @@ export function InsightsView() {
       <PatternsOverTimeSection itemVariants={itemVariants} />
 
       <SymptomFrequencySection 
+        itemVariants={itemVariants} 
+        logs={logs} 
+        dashboard={dashboard} 
+      />
+
+      <ForecastingSection 
         itemVariants={itemVariants} 
         logs={logs} 
         dashboard={dashboard} 

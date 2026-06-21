@@ -10,6 +10,7 @@ import type { ApiEducationArticle } from '../services/educationService'
 import { toast } from 'sonner'
 import { EducationFormModal } from '../components/education/EducationFormModal'
 import { useSEO } from '../hooks/useSEO'
+import { HormoneSimulator } from '../components/education/HormoneSimulator'
 import {
   Brain,
   Drop,
@@ -127,6 +128,7 @@ export function EducationView() {
   const [articles, setArticles] = useState<ApiEducationArticle[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [errored, setErrored] = useState(false)
+  const [activeTab, setActiveTab] = useState<'guides' | 'simulator'>('guides')
 
   // Modal state — only open flag + which article is being edited
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -196,89 +198,94 @@ export function EducationView() {
         <p className="text-xs text-muted-foreground">Expert-reviewed resources on hormones, cycle phases, and self-care.</p>
       </div>
 
-      {/* Daily Quiz Integration */}
-      <section className="w-full" aria-labelledby="education-title">
-        <DailyQuiz />
-      </section>
+      {/* Tabs */}
+      <div className="flex border-b border-border/60 mb-6 w-full justify-start gap-1">
+        <button
+          type="button"
+          onClick={() => setActiveTab('guides')}
+          className={cn(
+            'px-6 py-2.5 text-sm font-normal border-b-2 transition-all cursor-pointer outline-none',
+            activeTab === 'guides'
+              ? 'border-[var(--mf-accent)] text-[var(--mf-accent)] font-medium'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+          )}
+        >
+          Educational Guides
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('simulator')}
+          className={cn(
+            'px-6 py-2.5 text-sm font-normal border-b-2 transition-all cursor-pointer outline-none',
+            activeTab === 'simulator'
+              ? 'border-[var(--mf-accent)] text-[var(--mf-accent)] font-medium'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+          )}
+        >
+          Hormone Simulator
+        </button>
+      </div>
 
-      {/* Category Filter & Add Button */}
-      {/* <section aria-label="Filter guides by category" className="flex flex-wrap gap-4 justify-between items-center bg-card p-4 rounded-2xl border border-border/50">
-        <div className="flex flex-wrap gap-2">
-          {EDUCATION_CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              type="button"
-              onClick={() => setActiveCategory(cat)}
-              className={cn(
-                'px-5 py-2 rounded-full text-sm font-normal border transition-all duration-200 cursor-pointer',
-                activeCategory === cat
-                  ? 'bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] border-[var(--mf-accent-border)] font-medium'
-                  : 'bg-card text-muted-foreground border-border hover:border-foreground hover:text-foreground',
-              )}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        {isAuthenticated && (
-          <button
-            type="button"
-            onClick={() => { setEditingArticle(null); setIsModalOpen(true) }}
-            className="px-5 py-2 rounded-full text-sm font-medium bg-[var(--mf-accent)] text-white hover:bg-[var(--mf-accent-hover)] transition-all cursor-pointer flex items-center gap-1.5 active-squish"
-          >
-            <Plus size={16} weight="bold" />
-            <span>Add Guide</span>
-          </button>
-        )}
-      </section> */}
-      <div className="relative">
-        {filteredArticles.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
-            <div className="size-16 rounded-2xl bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] flex items-center justify-center">
-              <BookOpen size={32} weight="thin" />
-            </div>
-            <div className="text-center space-y-1.5 max-w-xs">
-              <p className="text-base font-semibold text-[var(--mf-text-strong)]">No guides found</p>
-              <p className="text-sm text-muted-foreground">Nothing here yet, but there's always more to explore. Try another category!</p>
-            </div>
-          </div>
-        ) : (<>
-          <section aria-label="Educational Guides" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {filteredArticles.map((article, index) => {
-              const isFeatured = activeCategory === 'All' && index === 0
-              return (
-                <ArticleCard
-                  key={article.id || article._id}
-                  article={article}
-                  isFeatured={isFeatured}
-                />
-              )
-            })}
+      {activeTab === 'simulator' ? (
+        <HormoneSimulator />
+      ) : (
+        <>
+          {/* Daily Quiz Integration */}
+          <section className="w-full" aria-labelledby="education-title">
+            <DailyQuiz />
           </section>
 
-          {!isAuthenticated && (
-            <div className="absolute inset-x-0 bottom-0 top-[200px] bg-gradient-to-t from-background via-background/90 to-transparent pointer-events-none z-20 flex flex-col items-center justify-center pt-24">
-              <div className="w-full h-full backdrop-blur-[6px] opacity-100" />
-              <div className="absolute inset-0 flex flex-col items-center justify-center p-8 pointer-events-auto">
-                <div className="bg-card border border-border p-8 rounded-3xl text-center max-w-[400px] mx-auto">
-                  <h3 className="text-xl font-normal mb-2">Read all guides</h3>
-                  <p className="text-muted-foreground text-sm mb-6">
-                    Unlock our full library of expert-reviewed menstrual health guides by signing in.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => openAuthModal()}
-                    className="btn btn-primary px-8 py-3 rounded-full"
-                  >
-                    Log in to access
-                  </button>
+          <div className="relative">
+            {filteredArticles.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 gap-4">
+                <div className="size-16 rounded-2xl bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] flex items-center justify-center">
+                  <BookOpen size={32} weight="thin" />
+                </div>
+                <div className="text-center space-y-1.5 max-w-xs">
+                  <p className="text-base font-semibold text-[var(--mf-text-strong)]">No guides found</p>
+                  <p className="text-sm text-muted-foreground">Nothing here yet, but there's always more to explore. Try another category!</p>
                 </div>
               </div>
-            </div>
-          )}
-        </>)}
-      </div>
+            ) : (
+              <>
+                <section aria-label="Educational Guides" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+                  {filteredArticles.map((article, index) => {
+                    const isFeatured = index === 0
+                    return (
+                      <ArticleCard
+                        key={article.id || article._id}
+                        article={article}
+                        isFeatured={isFeatured}
+                      />
+                    )
+                  })}
+                </section>
+
+                {!isAuthenticated && (
+                  <div className="absolute inset-x-0 bottom-0 top-[200px] bg-gradient-to-t from-background via-background/90 to-transparent pointer-events-none z-20 flex flex-col items-center justify-center pt-24">
+                    <div className="w-full h-full backdrop-blur-[6px] opacity-100" />
+                    <div className="absolute inset-0 flex flex-col items-center justify-center p-8 pointer-events-auto">
+                      <div className="bg-card border border-border p-8 rounded-3xl text-center max-w-[400px] mx-auto">
+                        <h3 className="text-xl font-normal mb-2">Read all guides</h3>
+                        <p className="text-muted-foreground text-sm mb-6">
+                          Unlock our full library of expert-reviewed menstrual health guides by signing in.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => openAuthModal()}
+                          className="btn btn-primary px-8 py-3 rounded-full"
+                        >
+                          Log in to access
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </>
+      )}
 
       <EducationFormModal
         open={isModalOpen}
