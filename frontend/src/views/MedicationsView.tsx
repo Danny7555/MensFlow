@@ -190,32 +190,39 @@ export function MedicationsView() {
                     {med.notes && <p className="text-xs text-muted-foreground mt-1">{med.notes}</p>}
                   </div>
                   <>{confirmDeleteId === med._id && (
-                    <button type="button" className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 cursor-default" onClick={() => dispatch({ type: 'SET_CONFIRM_DELETE_ID', payload: null })} onKeyDown={e => { if (e.key === 'Escape' || e.key === 'Enter') dispatch({ type: 'SET_CONFIRM_DELETE_ID', payload: null }) }}>
-                      <m.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        onClick={e => e.stopPropagation()}
-                        className="bg-[var(--mf-card)] border border-[var(--mf-border)] rounded-xl p-4 min-w-[200px]"
-                      >
-                        <p className="text-sm text-[var(--mf-text)] mb-3">Remove this medication?</p>
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => { deleteMed.mutate(med._id); dispatch({ type: 'SET_CONFIRM_DELETE_ID', payload: null }) }}
-                            className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-[var(--mf-danger)] text-white hover:brightness-110 transition-all cursor-pointer"
-                          >
-                            Remove
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => dispatch({ type: 'SET_CONFIRM_DELETE_ID', payload: null })}
-                            className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-muted text-muted-foreground hover:text-[var(--mf-text-strong)] transition-all cursor-pointer"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </m.div>
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        aria-label="Close delete confirmation"
+                        className="fixed inset-0 z-40 bg-black/20 cursor-default outline-none"
+                        onClick={() => dispatch({ type: 'SET_CONFIRM_DELETE_ID', payload: null })}
+                      />
+                      <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+                        <m.div
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="bg-[var(--mf-card)] border border-[var(--mf-border)] rounded-xl p-4 min-w-[200px] pointer-events-auto"
+                        >
+                          <p className="text-sm text-[var(--mf-text)] mb-3">Remove this medication?</p>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => { deleteMed.mutate(med._id); dispatch({ type: 'SET_CONFIRM_DELETE_ID', payload: null }) }}
+                              className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-[var(--mf-danger)] text-white hover:brightness-110 transition-all cursor-pointer"
+                            >
+                              Remove
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => dispatch({ type: 'SET_CONFIRM_DELETE_ID', payload: null })}
+                              className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-muted text-muted-foreground hover:text-[var(--mf-text-strong)] transition-all cursor-pointer"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </m.div>
+                      </div>
+                    </>
                   )}</>
                   <button
                     type="button"
