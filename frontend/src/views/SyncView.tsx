@@ -323,6 +323,7 @@ export function SyncView() {
                     Sign in or create an account to sync cycles with your partner.
                   </p>
                   <Button
+                    id="sync-unauth-signin-btn"
                     onClick={() => openAuthModal(window.location.search.includes('code') ? 'register' : 'login')}
                     className="bg-[var(--mf-accent)] hover:bg-[var(--mf-accent)]/90 text-white rounded-xl text-xs"
                   >
@@ -346,6 +347,7 @@ export function SyncView() {
                   </p>
                   <div className="space-y-3">
                     <input
+                      id="sync-pairing-code-input"
                       type="text"
                       placeholder="e.g. XY82HA"
                       value={partnerCodeInput}
@@ -355,6 +357,7 @@ export function SyncView() {
                       maxLength={6}
                     />
                     <Button
+                      id="sync-connect-partner-btn"
                       disabled={isPairing || !partnerCodeInput.trim()}
                       onClick={handlePair}
                       className="w-full bg-[var(--mf-accent)] hover:bg-[var(--mf-accent)]/90 text-white rounded-xl text-xs h-11"
@@ -392,6 +395,7 @@ export function SyncView() {
                       {user?.partnerCode ?? '— — — — — —'}
                     </span>
                     <Button
+                      id="sync-copy-code-btn"
                       onClick={() => {
                         if (user?.partnerCode) {
                           navigator.clipboard.writeText(user.partnerCode)
@@ -417,6 +421,7 @@ export function SyncView() {
             {isAuthenticated && user?.role === 'lady' && (
               <m.div variants={itemVariants} className="mt-8 w-full max-w-2xl mx-auto px-4 sm:px-0">
                 <Button
+                  id="sync-invite-partner-banner-btn"
                   onClick={() => setIsInviteModalOpen(true)}
                   className="w-full text-left bg-gradient-to-r from-[var(--mf-accent)] to-[#be185d] rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-8 text-white flex flex-col items-center sm:flex-row justify-between gap-4 sm:gap-6 overflow-hidden relative group cursor-pointer h-auto border-0"
                 >
@@ -478,6 +483,7 @@ export function SyncView() {
                         className="flex-1 h-12 px-4 rounded-xl bg-muted/50 border border-border focus:border-[var(--mf-accent-border)] focus:bg-background transition-all outline-none text-sm"
                       />
                       <Button 
+                        id="partner-email-invite-submit-btn"
                         onClick={handleSendInvite}
                         disabled={isInviting || !inviteEmail.trim()}
                         className="h-12 px-6 bg-[var(--mf-accent)] hover:bg-[var(--mf-accent)]/90 text-white rounded-xl shrink-0"
@@ -502,6 +508,7 @@ export function SyncView() {
                         {inviteUrl}
                       </span>
                       <Button
+                        id="partner-email-copy-link-btn"
                         onClick={copyLink}
                         variant="outline"
                         className="w-full sm:w-auto rounded-lg text-xs gap-1.5 shrink-0"
@@ -643,6 +650,7 @@ export function SyncView() {
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         {options.map((opt) => (
                           <button
+                            id={`sync-ping-option-${opt.id}`}
                             key={opt.id}
                             onClick={() => { hapticSelection(); setSelected(opt.id); }}
                             type="button"
@@ -676,6 +684,7 @@ export function SyncView() {
                     </div>
 
                     <Button
+                      id="sync-send-ping-btn"
                       onClick={handleSendPing}
                       disabled={!selected || isSending}
                       className="w-full h-12 bg-[var(--mf-accent)] hover:bg-[var(--mf-accent)]/90 text-white rounded-2xl text-xs"
@@ -745,6 +754,7 @@ export function SyncView() {
                       className="flex-1 h-12 px-4 rounded-xl bg-muted/50 border border-border focus:border-[var(--mf-accent-border)] focus:bg-background transition-all outline-none text-sm"
                     />
                     <button type="button" 
+                      id="partner-email-invite-submit-paired-btn"
                       onClick={handleSendInvite}
                       disabled={isInviting || !inviteEmail.trim()}
                       className="h-12 px-6 bg-[var(--mf-accent)] text-white rounded-xl text-sm font-medium hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
@@ -769,6 +779,7 @@ export function SyncView() {
                       {inviteUrl}
                     </span>
                     <button type="button" 
+                      id="partner-email-copy-link-paired-btn"
                       onClick={copyLink}
                       className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3 py-1.5 bg-background border rounded-lg text-xs font-medium hover:bg-muted transition-colors shrink-0"
                     >
