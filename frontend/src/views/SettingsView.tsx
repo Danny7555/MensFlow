@@ -819,6 +819,56 @@ function AppsPanel() {
   )
 }
 
+function parseCSV(text: string): { date: string; symptoms: string[] }[] {
+  const lines = text.split(/\r?\n/)
+  if (lines.length <= 1) return []
+
+  const results: { date: string; symptoms: string[] }[] = []
+  
+  // Try to find headers: "date" and "symptoms"
+  const header = lines[0].toLowerCase().split(',')
+  let dateIdx = header.findIndex(h => h.includes('date'))
+  let symptomsIdx = header.findIndex(h => h.includes('symptom'))
+
+  if (dateIdx === -1) dateIdx = 0
+  if (symptomsIdx === -1) symptomsIdx = 1
+
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim()
+    if (!line) continue
+
+    const columns = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim())
+    if (columns.length <= Math.max(dateIdx, symptomsIdx)) continue
+
+    const rawDate = columns[dateIdx]
+    const rawSymptoms = columns[symptomsIdx] ? columns[symptomsIdx] : ''
+
+    const dateObj = new Date(rawDate)
+    if (isNaN(dateObj.getTime())) continue
+    const dateString = dateObj.toISOString().split('T')[0]
+
+    const symptoms = rawSymptoms
+      .split(/[;|]/)
+      .map(s => s.trim().toLowerCase())
+      .filter(Boolean)
+      .map(s => {
+        if (s.includes('cramp') || (s.includes('pain') && s.includes('pelvic'))) return 'cramps'
+        if (s.includes('fatigue') || s.includes('tired') || s.includes('exhausted')) return 'fatigue'
+        if (s.includes('bloat')) return 'bloating'
+        if (s.includes('headache') || s.includes('migraine')) return 'headache'
+        if (s.includes('mood') || s.includes('pms') || s.includes('irritabl') || s.includes('sad')) return 'mood'
+        if (s.includes('back')) return 'backache'
+        if (s.includes('insomnia') || s.includes('sleep') || s.includes('awake')) return 'insomnia'
+        if (s.includes('acne') || s.includes('pimple') || s.includes('skin')) return 'acne'
+        return s
+      })
+      .filter(s => ['cramps', 'fatigue', 'bloating', 'headache', 'mood', 'backache', 'pelvicpain', 'insomnia', 'acne'].includes(s))
+
+    results.push({ date: dateString, symptoms })
+  }
+  return results
+}
+
 function DataControlsPanel({
   settings,
   updateSettings,
@@ -840,6 +890,53 @@ function DataControlsPanel({
 }) {
   const [aiUsageDays, setAIUsageDays] = useState(30)
   const { data: aiStats, isLoading, refetch } = useAIUsageStats(aiUsageDays)
+
+  const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = async (event) => {
+      const text = event.target?.result as string
+      if (!text) {
+        toast.error("Failed to read file.")
+        return
+      }
+
+      try {
+        const rows = parseCSV(text)
+        if (rows.length === 0) {
+          toast.error("No valid cycle logs found in the CSV file.")
+          return
+        }
+
+        const toastId = toast.loading(`Importing ${rows.length} cycle logs...`)
+        let importedCount = 0
+        
+        const results = await Promise.allSettled(
+          rows.map(row => useStore.getState().addLog(row.date, row.symptoms))
+        )
+
+        results.forEach(res => {
+          if (res.status === 'fulfilled' && res.value === true) {
+            importedCount++
+          }
+        })
+
+        if (importedCount > 0) {
+          toast.success(`Successfully imported ${importedCount} of ${rows.length} logs!`, { id: toastId })
+          void useStore.getState().fetchLogs()
+        } else {
+          toast.error("Failed to import cycle logs.", { id: toastId })
+        }
+      } catch (err) {
+        console.error("CSV import error:", err)
+        toast.error("Failed to parse CSV file. Ensure format is: Date, Symptoms")
+      }
+    }
+    reader.readAsText(file)
+    e.target.value = ''
+  }
 
   return (
     <>
@@ -1004,6 +1101,22 @@ function DataControlsPanel({
           <DownloadSimple size={18} aria-hidden />
           Export JSON
         </button>
+        <div className="relative w-full">
+          <input
+            type="file"
+            accept=".csv"
+            onChange={handleImportCSV}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            aria-label="Import cycle logs from CSV"
+          />
+          <button
+            type="button"
+            className="btn btn-secondary w-full flex items-center justify-center gap-2"
+          >
+            <Database size={18} aria-hidden />
+            Import CSV Logs
+          </button>
+        </div>
         <button
           type="button"
           className="btn btn-secondary"

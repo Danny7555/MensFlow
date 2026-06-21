@@ -359,15 +359,37 @@ function MainShell() {
   const { isAuthenticated, onboardingCompleted, logout, openAuthModal, isRehydrating } = useAuth()
   const { settings, updateSettings, user, notificationCount, syncOfflineLogs } = useStore()
 
+  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true)
+  const [showSyncSuccess, setShowSyncSuccess] = useState(false)
+
   useEffect(() => {
-    const handleOnline = () => {
+    const handleOnlineStatus = () => {
+      setIsOnline(true)
       void syncOfflineLogs()
+      setShowSyncSuccess(true)
+      const t = setTimeout(() => setShowSyncSuccess(false), 4000)
+      return () => clearTimeout(t)
     }
-    window.addEventListener('online', handleOnline)
-    if (typeof navigator !== 'undefined' && navigator.onLine) {
-      void syncOfflineLogs()
+
+    const handleOfflineStatus = () => {
+      setIsOnline(false)
+      setShowSyncSuccess(false)
     }
-    return () => window.removeEventListener('online', handleOnline)
+
+    window.addEventListener('online', handleOnlineStatus)
+    window.addEventListener('offline', handleOfflineStatus)
+
+    if (typeof navigator !== 'undefined') {
+      setIsOnline(navigator.onLine)
+      if (navigator.onLine) {
+        void syncOfflineLogs()
+      }
+    }
+
+    return () => {
+      window.removeEventListener('online', handleOnlineStatus)
+      window.removeEventListener('offline', handleOfflineStatus)
+    }
   }, [syncOfflineLogs])
   const navigate = useNavigate()
   const location = useLocation()
@@ -664,6 +686,38 @@ function MainShell() {
           </nav>
         )}
         <ScrollToTop />
+
+        {/* Network Status Banner */}
+        <AnimatePresence>
+          {!isOnline && (
+            <m.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 50 }}
+              className="fixed bottom-20 right-6 z-50 bg-rose-500/10 text-rose-600 dark:bg-rose-950/30 dark:text-rose-400 border border-rose-500/20 px-4 py-3 rounded-2xl flex items-center gap-3 text-xs shadow-lg backdrop-blur-md"
+              role="alert"
+            >
+              <span className="relative flex size-2 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full size-2 bg-rose-500"></span>
+              </span>
+              <span>Offline Mode — symptom logs will save locally and sync when online</span>
+            </m.div>
+          )}
+
+          {isOnline && showSyncSuccess && (
+            <m.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 50 }}
+              className="fixed bottom-20 right-6 z-50 bg-emerald-500/10 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-500/20 px-4 py-3 rounded-2xl flex items-center gap-3 text-xs shadow-lg backdrop-blur-md"
+              role="status"
+            >
+              <span className="size-2 rounded-full bg-emerald-500 shrink-0" />
+              <span>Back Online — offline logs synchronized successfully!</span>
+            </m.div>
+          )}
+        </AnimatePresence>
       </div>
     </ChatSessionContext.Provider>
   )
