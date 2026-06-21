@@ -23,6 +23,7 @@ import { cn } from '../lib/utils'
 import { getPhaseTasks } from '../lib/cycleUtils'
 import { Button } from '@/components/ui/button'
 import { hapticSelection, hapticMedium } from '../lib/haptics'
+import { useSEO } from '../hooks/useSEO'
 
 interface StatusOption {
   id: string
@@ -114,6 +115,11 @@ function SupportHistory() {
 }
 
 export function SyncView() {
+  useSEO({
+    title: 'Partner Sync',
+    description: 'Link with your partner securely to share cycle details, symptom logs, or send empathy gestures.',
+    keywords: 'partner sync, cycle sharing, support updates, empathy pings, relationship support'
+  })
   const { partnerStatus, fetchPartnerStatus, user, pairPartner } = useStore()
   const { isAuthenticated, openAuthModal } = useAuth()
   const mainRef = useRef<HTMLElement>(null)

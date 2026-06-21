@@ -30,6 +30,7 @@ import {
 import { DoctorReportModal } from '../components/dashboard/DoctorReportModal'
 import { toast } from 'sonner'
 import { useAIUsageStats } from '../services/chatService'
+import { useSEO } from '../hooks/useSEO'
 import {
   Dialog,
   DialogContent,
@@ -1846,6 +1847,11 @@ export function SettingsView({
   onLogin,
   onLogout,
 }: SettingsViewProps) {
+  useSEO({
+    title: 'Settings',
+    description: 'Customize your tracking mode, theme options, security question, and passcode privacy settings.',
+    keywords: 'settings, preferences, customize theme, cycle length settings, passcode lock'
+  })
   const [cat, setCat] = useQueryState(
     'section',
     parseAsStringLiteral(SETTINGS_CATS)
@@ -2109,6 +2115,9 @@ export function SettingsView({
 
   return (
     <div className="settings-shell">
+      <header className="sr-only">
+        <h1>Settings & Preferences</h1>
+      </header>
       {(!isMobile || !effectiveCat) && (
         <aside className="settings-shell-nav" aria-label="Settings sections">
           {isMobile ? (

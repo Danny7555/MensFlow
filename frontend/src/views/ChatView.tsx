@@ -523,7 +523,14 @@ function ChatThread({
 
 // ── Main component ────────────────────────────────────────────────────────────
 
+import { useSEO } from '../hooks/useSEO'
+
 export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnlyLocked?: boolean; privacyPassword?: string }) {
+  useSEO({
+    title: 'Ask AI',
+    description: "Chat with MensFlow's AI support companion to learn about your cycle, log symptoms, and retrieve personalized wellness answers.",
+    keywords: 'AI assistant, cycle advice, locked chats, private tracking, secret chat'
+  })
   const { temporaryChat, setTemporaryChat } = useChatSession()
   const { chatShowTimestamps, privacyLockChats: rawPrivacyLockChats } = useStore((state) => state.settings)
   const { dashboard: data, user, logs, customSymptoms, showConfirm, hydrate, fetchLogs } = useStore()

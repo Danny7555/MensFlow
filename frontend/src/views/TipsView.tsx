@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { tipsApi } from '../services/tipsService'
 import type { ApiWellnessTip } from '../services/tipsService'
 import { toast } from 'sonner'
+import { useSEO } from '../hooks/useSEO'
 
 const CATS: { id: ApiWellnessTip['category'] | 'all'; label: string }[] = [
   { id: 'all', label: 'All' },
@@ -76,6 +77,11 @@ function fetchReducer(state: FetchState, action: FetchAction): FetchState {
 
 // ─── Main View ───────────────────────────────────────────────────────────────
 export function TipsView() {
+  useSEO({
+    title: 'Wellness & Tips',
+    description: 'Daily nutrition, movement, sleep, and self-care recommendations customized for your active cycle phase.',
+    keywords: 'wellness tips, cycle care, cycle tips, wellness score, phase nutrition, phase exercise'
+  })
   const { partnerStatus, user, dashboard: ownDashboard } = useStore()
 
   const data = (user?.role === 'partner' && partnerStatus?.paired && partnerStatus?.cycle)
@@ -171,6 +177,11 @@ export function TipsView() {
 
   return (
     <div className="tips-page">
+      <div className="flex flex-col gap-1.5 text-left mb-6 px-4 sm:px-0">
+        <h1 className="text-2xl sm:text-3xl font-normal tracking-tight text-[var(--mf-text-strong)]" id="tips-title">Wellness Tips</h1>
+        <p className="text-xs text-muted-foreground">Daily recommendations for nutrition, movement, rest, and mindset tailored to your cycle.</p>
+      </div>
+
       <div className="flex flex-wrap gap-4 justify-between items-center mb-6">
         <div className="filter-chips mb-0" role="tablist" aria-label="Tip category">
           {CATS.map((c) => (

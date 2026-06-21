@@ -257,7 +257,14 @@ function TourTooltip({
   )
 }
 
+import { useSEO } from '../hooks/useSEO'
+
 export function DashboardView() {
+  useSEO({
+    title: 'Dashboard',
+    description: 'Your daily cycle overview: track symptoms, view hormone updates, and access supportive partner checklists.',
+    keywords: 'cycle dashboard, daily cycle status, tracking home, partner notifications'
+  })
   const { dashboard: ownDashboard, partnerStatus, fetchPartnerStatus, updateDashboard: update, isSaving, user, pairPartner, requestDetailedAccessAction, settings, notificationCount } = useStore()
   const { logout, isAuthenticated, openAuthModal } = useAuth()
   const { data: dailyGuidance } = useDailyGuidance()

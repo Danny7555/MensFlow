@@ -9,6 +9,7 @@ import { educationApi } from '../services/educationService'
 import type { ApiEducationArticle } from '../services/educationService'
 import { toast } from 'sonner'
 import { EducationFormModal } from '../components/education/EducationFormModal'
+import { useSEO } from '../hooks/useSEO'
 import {
   Brain,
   Drop,
@@ -117,6 +118,11 @@ function ArticleCard({ article, isFeatured }: ArticleCardProps) {
 
 // ─── Main View ────────────────────────────────────────────────────────────────
 export function EducationView() {
+  useSEO({
+    title: 'Educational Guides',
+    description: 'Browse expert-reviewed medical guides on hormones, cycle phases, and care suggestions.',
+    keywords: 'menstrual education, hormone guides, cycle phases, phase care, women health guides'
+  })
   const { isAuthenticated, openAuthModal } = useAuth()
   const [articles, setArticles] = useState<ApiEducationArticle[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -185,8 +191,13 @@ export function EducationView() {
 
   return (
     <div className="flex-1 w-full max-w-[1200px] mx-auto p-6 space-y-8 animate-in fade-in duration-500 relative">
+      <div className="flex flex-col gap-1.5 text-left">
+        <h1 className="text-2xl sm:text-3xl font-normal tracking-tight text-[var(--mf-text-strong)]" id="education-title">Educational Guides</h1>
+        <p className="text-xs text-muted-foreground">Expert-reviewed resources on hormones, cycle phases, and self-care.</p>
+      </div>
+
       {/* Daily Quiz Integration */}
-      <section className="w-full">
+      <section className="w-full" aria-labelledby="education-title">
         <DailyQuiz />
       </section>
 

@@ -14,6 +14,7 @@ import { SYMPTOM_DEFS } from '../data/symptomsData'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
 import { hapticSelection } from '@/lib/haptics'
+import { useSEO } from '../hooks/useSEO'
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -45,6 +46,11 @@ const handlePrintPDF = () => {
 }
 
 export function InsightsView() {
+  useSEO({
+    title: 'Cycle Insights',
+    description: 'Analyze your symptom trends, hormone fluctuations, and download reports for your healthcare provider.',
+    keywords: 'cycle insights, cycle analytics, hormone trends, symptoms charts, export cycle report'
+  })
   const { isAuthenticated, openAuthModal } = useAuth()
 
   const { logs, customSymptoms, user, partnerStatus, fetchPartnerStatus, requestDetailedAccessAction, isSaving } = useStore()
@@ -214,6 +220,11 @@ export function InsightsView() {
       variants={containerVariants}
       className="insights-page relative"
     >
+      <div className="flex flex-col gap-1.5 text-left mb-6 px-4 sm:px-0">
+        <h1 className="text-2xl sm:text-3xl font-normal tracking-tight text-[var(--mf-text-strong)]" id="insights-title">Cycle Insights</h1>
+        <p className="text-xs text-muted-foreground">Detailed trends, analytics, and medical-friendly export options.</p>
+      </div>
+
       <m.div variants={itemVariants}>
         <HormoneWave />
       </m.div>

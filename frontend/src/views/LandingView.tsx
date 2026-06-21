@@ -10,8 +10,14 @@ import { toast } from 'sonner'
 import { MarkdownText } from '../components/MarkdownText'
 import { cn } from '../lib/utils'
 import { useChatSuggestions } from '../services/chatService'
+import { useSEO } from '../hooks/useSEO'
 
 export function LandingView() {
+  useSEO({
+    title: 'Menstrual Health & Partner Support Companion',
+    description: 'Ask MensFlow cycle questions, log symptoms, get personalized insights, and securely pair with your partner to share tracking context.',
+    keywords: 'cycle tracking, period tracker, partner sync, menstrual AI, self-care'
+  })
   const [draft, setDraft] = useState('')
   const [messages, setMessages] = useState<{ id: string; role: 'user' | 'assistant'; text: string }[]>([])
   const [isLoading, setIsLoading] = useState(false)

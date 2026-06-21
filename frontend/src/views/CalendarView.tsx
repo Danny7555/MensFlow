@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
 import { useStore } from "@/store/useStore"
 import { LogSymptomsModal } from "@/components/tracker/LogSymptomsModal"
 import { RequestAccessModal } from "@/components/dashboard/RequestAccessModal"
+import { useSEO } from "@/hooks/useSEO"
 
 const DAYS_OF_WEEK = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
 
@@ -597,6 +598,11 @@ function useCalendarState() {
 }
 
 export function CalendarView() {
+  useSEO({
+    title: 'Cycle Calendar',
+    description: 'Interactive calendar showing cycle predictions, logged symptoms history, and fertile windows.',
+    keywords: 'period calendar, cycle predictions, ovulation calendar, symptom logs calendar'
+  })
   const {
     isAuthenticated,
     openAuthModal,
@@ -651,6 +657,9 @@ export function CalendarView() {
 
   return (
     <div className="flex flex-col h-full bg-background overflow-auto relative" suppressHydrationWarning>
+      <header className="sr-only">
+        <h1>Period Prediction & Cycle Calendar</h1>
+      </header>
       <div className="absolute right-0 top-20 opacity-10 pointer-events-none z-0">
         <img loading="lazy" src="/images/girl.jpg" alt="" className="size-[800px] object-contain" />
       </div>

@@ -10,6 +10,7 @@ import { sendEmailReminder } from "../lib/emailService"
 import { toast } from "sonner"
 import { partnerApi } from '../services/partnerService'
 import { playNotificationSound } from '../lib/sound'
+import { useSEO } from '../hooks/useSEO'
 
 interface Notification {
   id: string
@@ -21,6 +22,11 @@ interface Notification {
 }
 
 export function NotificationsView() {
+  useSEO({
+    title: 'Alerts & Notifications',
+    description: 'Review cycle updates, access requests, and daily wellness logs notifications.',
+    keywords: 'cycle notifications, period alerts, partner access requests, support notifications'
+  })
   const navigate = useNavigate()
   const { user: authUser } = useAuth()
   const { dashboard: data, settings, logs, supportStreak, partnerStatus, updateSettings, user, resetNotificationCount } = useStore()
