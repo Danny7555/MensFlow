@@ -127,7 +127,7 @@ export function DashboardHeader({
           <Link to="/notifications" className="flo-icon-btn !hidden md:!flex hover:bg-muted/50 transition-colors relative" aria-label="Notifications">
             <Bell size={24} weight="light" />
             {unreadNotifications > 0 && (
-              <span className="absolute -top-1 -right-1 size-5 rounded-full bg-[var(--mf-accent)] text-white text-[10px] font-bold flex items-center justify-center/30 animate-in fade-in zoom-in-95 duration-200">
+              <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[var(--mf-accent)] text-white text-[9px] font-bold flex items-center justify-center leading-none shadow-sm animate-in fade-in zoom-in-95 duration-200">
                 {unreadNotifications > 99 ? '99+' : unreadNotifications}
               </span>
             )}

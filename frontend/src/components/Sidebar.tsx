@@ -4,6 +4,7 @@ import { NavLink, useLocation } from 'react-router-dom'
 import { m } from 'framer-motion'
 import type { IconProps } from '@phosphor-icons/react'
 import {
+  Bell,
   BookOpen,
   CalendarBlank,
   CalendarHeart,
@@ -60,6 +61,7 @@ const authItems: NavItem[] = [
   { id: 'tracker', label: 'Tracker', Icon: CalendarHeart },
   { id: 'tips', label: 'Wellness Tips', Icon: Heart },
   { id: 'sync', label: 'Partner Sync', Icon: Users },
+  { id: 'notifications', label: 'Alerts', Icon: Bell },
   { id: 'settings', label: 'Settings', Icon: GearSix },
 ]
 
@@ -87,7 +89,7 @@ export function Sidebar({
 }: SidebarProps) {
   const { logout, onboardingCompleted } = useAuth()
 
-  const { dashboard: data, user, partnerStatus } = useStore()
+  const { dashboard: data, user, partnerStatus, notificationCount, settings: sideSettings } = useStore()
   const { pathname } = useLocation()
 
   const rawItems = isAuthenticated ? [...authItems] : [...guestItems]
@@ -237,7 +239,17 @@ export function Sidebar({
                     )}
                     onClick={onCloseMobile}
                   >
-                    <item.Icon size={navIconSize} className="sidebar-link-icon" aria-hidden />
+                    <div className="relative">
+                      <item.Icon size={navIconSize} className="sidebar-link-icon" aria-hidden />
+                      {item.id === 'notifications' && (() => {
+                        const badgeCount = notificationCount + (user?.role === 'lady' && sideSettings?.privacyPendingAccessRequest ? 1 : 0)
+                        return badgeCount > 0 ? (
+                          <span className="absolute -top-1.5 -right-2 min-w-[14px] h-[14px] rounded-full bg-[var(--mf-accent)] text-white text-[8px] font-bold flex items-center justify-center leading-none animate-in fade-in zoom-in-95 duration-200">
+                            {badgeCount > 99 ? '99+' : badgeCount}
+                          </span>
+                        ) : null
+                      })()}
+                    </div>
                     <span className="sidebar-link-label">{item.label}</span>
                   </NavLink>
                   {item.children && (

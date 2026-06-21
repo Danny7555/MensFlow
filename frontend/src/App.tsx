@@ -618,7 +618,7 @@ function MainShell() {
                   <div className="relative">
                     <Bell size={24} weight={location.pathname === '/notifications' ? "fill" : "light"} />
                     {dashboardNotificationCount > 0 && (
-                      <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-[var(--mf-accent)] text-white text-[9px] font-bold flex items-center justify-center animate-in fade-in zoom-in-95 duration-200">
+                      <span className="absolute -top-1.5 -right-2 min-w-[16px] h-[15px] px-1 rounded-full bg-[var(--mf-accent)] text-white text-[8px] font-bold flex items-center justify-center leading-none animate-in fade-in zoom-in-95 duration-200">
                         {dashboardNotificationCount > 99 ? '99+' : dashboardNotificationCount}
                       </span>
                     )}
