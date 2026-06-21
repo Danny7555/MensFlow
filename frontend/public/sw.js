@@ -4,7 +4,13 @@ const ASSETS_TO_CACHE = [
   '/index.html',
   '/manifest.json',
   '/images/track.png',
-  '/images/apple.png'
+  '/images/apple.png',
+  '/images/heart.png',
+  '/images/cramps.jpg',
+  '/images/fatique.jpg',
+  '/images/cravings.png',
+  '/images/calm.jpg',
+  '/images/happy.jpg'
 ];
 
 self.addEventListener('install', (event) => {

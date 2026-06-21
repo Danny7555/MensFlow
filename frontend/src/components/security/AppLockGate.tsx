@@ -216,6 +216,9 @@ export function FaceIDScanner({
     const ctx = canvas.getContext('2d')
     if (!ctx) return
     
+    // Read user's brand accent RGB coordinates dynamically from custom CSS variables
+    const accentRgb = getComputedStyle(document.documentElement).getPropertyValue('--mf-accent-rgb').trim() || '236, 72, 153'
+    
     let animationFrameId: number
     let angle = 0
     let scanY = 0
@@ -228,7 +231,7 @@ export function FaceIDScanner({
       
       if (phase === 'scanning') {
         // Draw the Face ID rounded square bracket frame
-        ctx.strokeStyle = 'rgba(236, 72, 153, 0.4)' // Pink border soft
+        ctx.strokeStyle = `rgba(${accentRgb}, 0.4)` // Custom accent border soft
         ctx.lineWidth = 3
         ctx.beginPath()
         
@@ -252,9 +255,9 @@ export function FaceIDScanner({
         ctx.moveTo(cx - size + r, cy + size)
         ctx.quadraticCurveTo(cx - size, cy + size, cx - size, cy + size - r)
         ctx.stroke()
-
+ 
         // Draw pulsing bracket indicators
-        ctx.strokeStyle = 'rgba(236, 72, 153, 0.85)' // Pink border strong
+        ctx.strokeStyle = `rgba(${accentRgb}, 0.85)` // Custom accent border strong
         ctx.lineWidth = 4.5
         
         const bLen = 28 // bracket line length
@@ -290,10 +293,10 @@ export function FaceIDScanner({
         ctx.quadraticCurveTo(cx - size, cy + size, cx - size, cy + size - r)
         ctx.lineTo(cx - size, cy + size - bLen)
         ctx.stroke()
-
+ 
         // Draw simulated face outline made of points
-        ctx.fillStyle = 'rgba(236, 72, 153, 0.15)'
-        ctx.strokeStyle = 'rgba(236, 72, 153, 0.25)'
+        ctx.fillStyle = `rgba(${accentRgb}, 0.15)`
+        ctx.strokeStyle = `rgba(${accentRgb}, 0.25)`
         ctx.lineWidth = 1
         
         // Head circle
@@ -306,9 +309,9 @@ export function FaceIDScanner({
         ctx.beginPath()
         ctx.arc(cx, cy + 20, 30, 0, Math.PI)
         ctx.stroke()
-
+ 
         // Scanning grid/points
-        ctx.fillStyle = 'rgba(236, 72, 153, 0.75)'
+        ctx.fillStyle = `rgba(${accentRgb}, 0.75)`
         for (let i = -4; i <= 4; i++) {
           for (let j = -4; j <= 4; j++) {
             // Only draw inside the face shape or circle
@@ -324,12 +327,12 @@ export function FaceIDScanner({
             }
           }
         }
-
+ 
         // Draw scanning laser beam
         const gradient = ctx.createLinearGradient(0, cy + scanY - 15, 0, cy + scanY + 2)
-        gradient.addColorStop(0, 'rgba(236, 72, 153, 0)')
-        gradient.addColorStop(0.8, 'rgba(236, 72, 153, 0.35)')
-        gradient.addColorStop(1, 'rgba(236, 72, 153, 0.95)')
+        gradient.addColorStop(0, `rgba(${accentRgb}, 0)`)
+        gradient.addColorStop(0.8, `rgba(${accentRgb}, 0.35)`)
+        gradient.addColorStop(1, `rgba(${accentRgb}, 0.95)`)
         
         ctx.fillStyle = gradient
         ctx.fillRect(cx - size + 4, cy + scanY - 15, (size * 2) - 8, 16)
@@ -337,7 +340,7 @@ export function FaceIDScanner({
         // Bright laser center line
         ctx.strokeStyle = '#ffffff'
         ctx.lineWidth = 1.5
-        ctx.shadowColor = 'rgba(236, 72, 153, 1)'
+        ctx.shadowColor = `rgba(${accentRgb}, 1)`
         ctx.shadowBlur = 8
         ctx.beginPath()
         ctx.moveTo(cx - size + 4, cy + scanY)
