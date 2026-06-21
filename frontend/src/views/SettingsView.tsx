@@ -26,7 +26,10 @@ import {
   LockKey,
   FileText,
   Brain,
+  Check,
 } from '@phosphor-icons/react'
+import { cn } from '../lib/utils'
+import { hapticMedium } from '../lib/haptics'
 import { DoctorReportModal } from '../components/dashboard/DoctorReportModal'
 import { toast } from 'sonner'
 import { useAIUsageStats } from '../services/chatService'
@@ -405,20 +408,45 @@ function GeneralPanel({
           { value: 'high', label: 'High' },
         ]}
       />
-      <SelectRow
-        label="Accent color"
-        value={settings.accentPreset}
-        onChange={(v) => updateSettings({ accentPreset: v as AccentPreset })}
-        options={[
-          { value: 'default', label: 'Default' },
-          { value: 'orchid', label: 'Orchid' },
-          { value: 'ocean', label: 'Ocean' },
-          { value: 'emerald', label: 'Emerald' },
-          { value: 'amber', label: 'Amber' },
-          { value: 'sapphire', label: 'Sapphire' },
-          { value: 'ruby', label: 'Ruby' },
-        ]}
-      />
+      <div className="settings-field-row flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-3">
+        <div className="settings-field-text">
+          <span className="settings-field-label">Accent color</span>
+          <p className="settings-field-desc">Personalize the primary color theme of the interface.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2.5">
+          {[
+            { value: 'default', color: 'bg-[#ff6b8b] dark:bg-[#ff8da1]', label: 'Default' },
+            { value: 'orchid', color: 'bg-[#c84b9e] dark:bg-[#e272be]', label: 'Orchid' },
+            { value: 'ocean', color: 'bg-[#0284c7] dark:bg-[#38bdf8]', label: 'Ocean' },
+            { value: 'emerald', color: 'bg-[#059669] dark:bg-[#34d399]', label: 'Emerald' },
+            { value: 'amber', color: 'bg-[#d97706] dark:bg-[#fbbf24]', label: 'Amber' },
+            { value: 'sapphire', color: 'bg-[#2563eb] dark:bg-[#60a5fa]', label: 'Sapphire' },
+            { value: 'ruby', color: 'bg-[#dc2626] dark:bg-[#f87171]', label: 'Ruby' },
+          ].map((preset) => {
+            const isSelected = settings.accentPreset === preset.value
+            return (
+              <button
+                key={preset.value}
+                type="button"
+                onClick={() => {
+                  hapticMedium()
+                  updateSettings({ accentPreset: preset.value as AccentPreset })
+                }}
+                title={preset.label}
+                className={cn(
+                  "size-8 rounded-full flex items-center justify-center transition-all duration-300 relative border border-black/10 dark:border-white/10 cursor-pointer active-squish",
+                  preset.color,
+                  isSelected ? "scale-110 ring-2 ring-[var(--mf-accent)] ring-offset-2 ring-offset-background" : "hover:scale-105 opacity-80 hover:opacity-100"
+                )}
+              >
+                {isSelected && (
+                  <Check size={14} className="text-white dark:text-gray-900 font-bold" weight="bold" />
+                )}
+              </button>
+            )
+          })}
+        </div>
+      </div>
       <SelectRow
         label="Language"
         value={settings.languageUi}
