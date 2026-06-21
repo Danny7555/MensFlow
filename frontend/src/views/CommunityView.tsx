@@ -429,7 +429,11 @@ function PostDetailView({
               </div>
             </div>
             <h1 className="text-xl md:text-2xl font-semibold text-[var(--mf-text-strong)] leading-tight">{detail.post.title}</h1>
-            <p className="text-sm text-[var(--mf-text)] leading-relaxed whitespace-pre-wrap">{detail.post.body}</p>
+            <div className="text-sm text-[var(--mf-text)] leading-relaxed space-y-3">
+              {detail.post.body.split(/\n{2,}/).map((para, i) => (
+                <p key={i} className="whitespace-pre-wrap">{para}</p>
+              ))}
+            </div>
           </div>
 
           <div className="mt-6 md:mt-8 space-y-4">

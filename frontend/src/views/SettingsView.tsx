@@ -1597,7 +1597,7 @@ function LockChatSetupModal({
                 onClick={() => {
                   updateSettings({ 
                     privacyLockChats: true, 
-                    privacyLockChatsPassword: password,
+                    privacyLockChatsPassword: hashPin(password),
                     privacyLockChatsSecurityQuestion: questionId,
                     privacyLockChatsSecurityAnswer: answer.trim().toLowerCase()
                   })

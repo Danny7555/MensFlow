@@ -293,6 +293,21 @@ export function AppLockGate({ children }: { children: React.ReactNode }) {
     }
   }, [settings.appLockEnabled, state.isUnlocked, updateState])
 
+  // Lock when page is restored from browser back/forward cache (bfcache — Safari/Firefox)
+  useEffect(() => {
+    if (!settings.appLockEnabled) return
+
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted && !readSessionUnlock()) {
+        // Page was restored from bfcache but session token is gone — lock immediately
+        updateState({ isUnlocked: false, pin: '' })
+      }
+    }
+
+    window.addEventListener('pageshow', handlePageShow)
+    return () => window.removeEventListener('pageshow', handlePageShow)
+  }, [settings.appLockEnabled, updateState])
+
   // Biometric unlock
   const handleBiometricUnlock = useCallback(async () => {
     if (!settings.appLockEnabled || !settings.appLockBiometric || state.isUnlocked || state.lockoutTimeLeft > 0) {
