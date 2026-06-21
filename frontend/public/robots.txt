@@ -9,4 +9,4 @@ Disallow: /settings
 Disallow: /sync
 Disallow: /ask
 
-Sitemap: https://mensflow.app/sitemap.xml
+Sitemap: https://menstrualflow.vercel.app/sitemap.xml
