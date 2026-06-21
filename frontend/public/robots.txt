@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Allow: /education
+Allow: /tips
+Allow: /locked-chats
+Allow: /community
+Disallow: /dashboard
+Disallow: /settings
+Disallow: /sync
+Disallow: /ask
+
+Sitemap: https://mensflow.app/sitemap.xml
