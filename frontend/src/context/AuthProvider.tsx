@@ -18,7 +18,7 @@ import { useStore } from '../store/useStore'
 import { queryClient } from '../lib/queryClient'
 
 
-const getLocalOnboarding = () => sessionStorage.getItem('mf_onboarding') === 'true'
+const getLocalOnboarding = () => localStorage.getItem('mf_onboarding') === 'true'
 const getLocalPartnerCode = () => sessionStorage.getItem('mf_partner_code')
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -127,7 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const handleAuthExpired = () => {
       console.warn('[AuthProvider] Session expired — logging out')
       clearToken()
-      sessionStorage.removeItem('mf_onboarding')
+      localStorage.removeItem('mf_onboarding')
       if (typeof window !== 'undefined') {
         localStorage.removeItem('mensflow_user_role')
       }
@@ -375,7 +375,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ── Logout ─────────────────────────────────────────────────────────────────
   const logout = useCallback(() => {
     clearToken()
-    sessionStorage.removeItem('mf_onboarding')
+    localStorage.removeItem('mf_onboarding')
     if (typeof window !== 'undefined') {
       localStorage.removeItem('mensflow_user_role')
     }
@@ -392,7 +392,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // ── Onboarding ─────────────────────────────────────────────────────────────
   const completeOnboarding = useCallback(() => {
-    sessionStorage.setItem('mf_onboarding', 'true')
+    localStorage.setItem('mf_onboarding', 'true')
     setState(prev => ({
       ...prev,
       onboardingCompleted: true,
