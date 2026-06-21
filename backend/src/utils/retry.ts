@@ -20,27 +20,27 @@ export async function withRetry<T>(
     onRetry,
   } = options;
 
-  let lastErr: unknown;
-
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+  async function attempt(currentAttempt: number): Promise<T> {
     try {
       return await fn();
     } catch (err) {
-      lastErr = err;
-      if (attempt === maxAttempts || !shouldRetry(err)) throw err;
+      if (currentAttempt === maxAttempts || !shouldRetry(err)) {
+        throw err;
+      }
 
-      const delay = Math.min(baseDelayMs * 2 ** (attempt - 1), maxDelayMs);
+      const delay = Math.min(baseDelayMs * 2 ** (currentAttempt - 1), maxDelayMs);
       const jitter = Math.random() * delay * 0.2;
       const totalDelay = Math.round(delay + jitter);
 
-      onRetry?.(attempt, err, totalDelay);
-      logger.warn(`Retry attempt ${attempt}/${maxAttempts - 1} after ${totalDelay}ms`, {
+      onRetry?.(currentAttempt, err, totalDelay);
+      logger.warn(`Retry attempt ${currentAttempt}/${maxAttempts - 1} after ${totalDelay}ms`, {
         error: err instanceof Error ? err.message : String(err),
       });
 
       await new Promise((r) => setTimeout(r, totalDelay));
+      return attempt(currentAttempt + 1);
     }
   }
 
-  throw lastErr;
+  return attempt(1);
 }
