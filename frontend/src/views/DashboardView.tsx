@@ -257,6 +257,73 @@ function TourTooltip({
   )
 }
 
+function PartnerCareTipsCard({ phase, bodySignals, ladyName }: { phase: string; bodySignals: string; ladyName: string }) {
+  const normalizedPhase = phase.toLowerCase()
+  const symptoms = (bodySignals || '').toLowerCase()
+
+  const tips = useMemo(() => {
+    const list: string[] = []
+
+    if (normalizedPhase.includes('menstru')) {
+      list.push("Prepare iron-rich foods (spinach, red meat, lentils) to help her body replenish.")
+      list.push("Suggest gentle activities like a slow walk, or simply watching a favorite movie together.")
+      if (symptoms.includes('cramps') || symptoms.includes('pain')) {
+        list.push("Prepare a hot water bottle or heating pad to soothe period cramps.")
+        list.push("Offer a warm cup of red raspberry leaf or ginger tea.")
+      }
+    } else if (normalizedPhase.includes('follicul')) {
+      list.push("Support her rising creativity and energy by planning a fun outdoor date or activity.")
+      list.push("Encourage her to explore new projects—this is her peak planning phase.")
+      if (symptoms.includes('fatigue') || symptoms.includes('tired')) {
+        list.push("Even during energy peaks, transition fatigue can happen. Offer a morning coffee or healthy snack.")
+      }
+    } else if (normalizedPhase.includes('fertile') || normalizedPhase.includes('ovulat')) {
+      list.push("Schedule a special date night or social event; her social energy is at its biological peak.")
+      list.push("Leave a sweet post-it note or small surprise gesture to match her heightened openness and mood.")
+    } else {
+      // Luteal
+      list.push("Prioritize a calm, stress-free home environment; reduce planning heavy or stressful debates.")
+      list.push("Bring home some dark chocolate or her favorite comfort snack to satisfy luteal cravings.")
+      if (symptoms.includes('fatigue') || symptoms.includes('sleep') || symptoms.includes('tired')) {
+        list.push("Take over dinner prep or household chores to let her get extra rest.")
+      }
+      if (symptoms.includes('bloat') || symptoms.includes('tender')) {
+        list.push("Suggest a warm bath with Epsom salts to help reduce physical bloating and water retention.")
+      }
+    }
+
+    if (list.length < 3) {
+      list.push(`Ask ${ladyName} how she is feeling today and actively listen without immediately trying to solve problems.`)
+      list.push(`Take care of small daily chores (dishes, trash) to reduce her mental load.`)
+    }
+
+    return list.slice(0, 3)
+  }, [normalizedPhase, symptoms, ladyName])
+
+  return (
+    <div className="flo-card p-6 text-left space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="size-8 rounded-lg bg-[var(--mf-accent-soft)] text-[var(--mf-accent)] flex items-center justify-center">
+          <Sparkle size={18} weight="fill" />
+        </div>
+        <div>
+          <h4 className="text-sm font-semibold text-[var(--mf-text-strong)]">Daily Support Digest</h4>
+          <p className="text-[10px] text-muted-foreground">Actionable care tips tailored to her state today</p>
+        </div>
+      </div>
+
+      <div className="space-y-3 pt-1">
+        {tips.map((tip, idx) => (
+          <div key={idx} className="flex items-start gap-2.5 text-xs text-[var(--mf-text)] leading-relaxed">
+            <span className="size-1.5 rounded-full bg-[var(--mf-accent)] mt-2 shrink-0" />
+            <span>{tip}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 import { useSEO } from '../hooks/useSEO'
 
 export function DashboardView() {
@@ -781,6 +848,14 @@ export function DashboardView() {
                   label={phase}
                   onCopy={handleCopyGesture}
                 />
+
+                {shareSymptoms && (
+                  <PartnerCareTipsCard 
+                    phase={phase}
+                    bodySignals={data.bodySignals}
+                    ladyName={ladyName}
+                  />
+                )}
 
                 {/* 3. Quick empathy actions (secondary to education) */}
                 <QuickEmpathyBoostCard ladyName={ladyName} isAuthenticated={isAuthenticated} />

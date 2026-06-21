@@ -7,7 +7,7 @@ import { Dashboard } from '../models/Dashboard';
 import { SymptomLog, CustomSymptom } from '../models/Symptom';
 import { IChatMessage, ISessionSummary } from '../interfaces';
 import { httpError } from '../utils/http';
-import { encryptPasscode, decryptPasscode } from '../utils/crypto';
+import { encryptPasscode, decryptPasscode, encryptTextWithPasscode, decryptTextWithPasscode } from '../utils/crypto';
 import { buildCycleModel } from '../utils/cycleModel';
 import { callGroqWithLogging } from '../utils/groqClient';
 import { AILog } from '../utils/aiLogger';
@@ -69,7 +69,13 @@ export async function getMessages(
   }
 
   const messages = await ChatMessage.find({ userId, sessionId }).sort({ createdAt: 1 }).lean();
-  return messages.map(toMessageInterface);
+  return messages.map((m) => {
+    const item = toMessageInterface(m);
+    if (meta.isLocked && passcode) {
+      item.text = decryptTextWithPasscode(item.text, passcode);
+    }
+    return item;
+  });
 }
 
 // ─── Send Message ─────────────────────────────────────────────────────────────
@@ -120,7 +126,13 @@ export async function sendMessage(
   }
 
   const history = await ChatMessage.find({ userId, sessionId }).sort({ createdAt: 1 }).lean();
-  const historyMessages = history.map(toMessageInterface);
+  const historyMessages = history.map((m) => {
+    const item = toMessageInterface(m);
+    if (isLocked && passcode) {
+      item.text = decryptTextWithPasscode(item.text, passcode);
+    }
+    return item;
+  });
 
   const now = Date.now();
 
@@ -128,7 +140,7 @@ export async function sendMessage(
     userId,
     sessionId,
     role: 'user',
-    text,
+    text: isLocked && passcode ? encryptTextWithPasscode(text, passcode) : text,
     isLocked,
     passcode: passcodeHash,
     securityQuestion,
@@ -145,7 +157,7 @@ export async function sendMessage(
     userId,
     sessionId,
     role: 'assistant',
-    text: aiText,
+    text: isLocked && passcode ? encryptTextWithPasscode(aiText, passcode) : aiText,
     isLocked,
     passcode: passcodeHash,
     securityQuestion,
@@ -153,9 +165,16 @@ export async function sendMessage(
     createdAt: now + 10,
   });
 
+  const userMsgInterface = toMessageInterface(userMsg);
+  const assistantMsgInterface = toMessageInterface(assistantMsg);
+  if (isLocked && passcode) {
+    userMsgInterface.text = text;
+    assistantMsgInterface.text = aiText;
+  }
+
   return {
-    userMessage: toMessageInterface(userMsg),
-    assistantMessage: toMessageInterface(assistantMsg),
+    userMessage: userMsgInterface,
+    assistantMessage: assistantMsgInterface,
   };
 }
 
@@ -202,6 +221,14 @@ export async function lockSession(
     { userId, sessionId },
     { $set: { isLocked: true, passcode: passcodeHash, passcodeEncrypted: encryptedPasscode, securityQuestion: finalQuestion, securityAnswerHash } }
   );
+
+  const messages = await ChatMessage.find({ userId, sessionId }).lean();
+  for (const m of messages) {
+    if (m.text && !m.text.startsWith('[ENC]:')) {
+      const encryptedText = encryptTextWithPasscode(m.text, finalPasscode);
+      await ChatMessage.updateOne({ _id: m._id }, { $set: { text: encryptedText } });
+    }
+  }
 }
 
 export async function unlockSession(
@@ -267,6 +294,14 @@ export async function unlockSessionPermanent(
     }
     if (!isMatch) {
       throw httpError('Invalid passcode/password', 400);
+    }
+  }
+
+  const messages = await ChatMessage.find({ userId, sessionId }).lean();
+  for (const m of messages) {
+    if (m.text && m.text.startsWith('[ENC]:') && passcode) {
+      const decryptedText = decryptTextWithPasscode(m.text, passcode);
+      await ChatMessage.updateOne({ _id: m._id }, { $set: { text: decryptedText } });
     }
   }
 

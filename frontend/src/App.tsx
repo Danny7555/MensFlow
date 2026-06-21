@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { useCallback, useState, useMemo, lazy, Suspense } from 'react'
+import { useCallback, useState, useMemo, lazy, Suspense, useEffect } from 'react'
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { LazyMotion, domAnimation, AnimatePresence, m } from 'framer-motion'
 import { cn } from './lib/utils'
@@ -356,7 +356,18 @@ function ChatLockGate({ children }: { children: React.ReactNode }) {
 function MainShell() {
   useReactQuerySync()
   const { isAuthenticated, onboardingCompleted, logout, openAuthModal, isRehydrating } = useAuth()
-  const { settings, updateSettings, user, notificationCount } = useStore()
+  const { settings, updateSettings, user, notificationCount, syncOfflineLogs } = useStore()
+
+  useEffect(() => {
+    const handleOnline = () => {
+      void syncOfflineLogs()
+    }
+    window.addEventListener('online', handleOnline)
+    if (typeof navigator !== 'undefined' && navigator.onLine) {
+      void syncOfflineLogs()
+    }
+    return () => window.removeEventListener('online', handleOnline)
+  }, [syncOfflineLogs])
   const navigate = useNavigate()
   const location = useLocation()
   const isMobile = useMediaQuery('(max-width: 768px)')

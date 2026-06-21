@@ -7,6 +7,52 @@ import { userApi, userKeys } from '../../services/userService'
 import { queryClient } from '../../lib/queryClient'
 import { toast } from 'sonner'
 
+const OFFLINE_LOGS_KEY = 'mensflow-offline-logs:v1'
+const OLD_OFFLINE_LOGS_KEY = 'mensflow-offline-logs'
+
+let cachedQueue: any[] | null = null
+
+function getOfflineQueue(): any[] {
+  if (cachedQueue !== null) {
+    return cachedQueue
+  }
+  try {
+    const oldQueueJson = localStorage.getItem(OLD_OFFLINE_LOGS_KEY)
+    if (oldQueueJson) {
+      localStorage.setItem(OFFLINE_LOGS_KEY, oldQueueJson)
+      localStorage.removeItem(OLD_OFFLINE_LOGS_KEY)
+      const parsed = JSON.parse(oldQueueJson) || []
+      cachedQueue = parsed
+      return parsed
+    }
+    const queueJson = localStorage.getItem(OFFLINE_LOGS_KEY)
+    const parsed = queueJson ? JSON.parse(queueJson) : []
+    cachedQueue = parsed
+    return parsed
+  } catch (err) {
+    console.error('Failed to read offline logs queue:', err)
+    return []
+  }
+}
+
+function setOfflineQueue(queue: any[]) {
+  cachedQueue = queue
+  try {
+    localStorage.setItem(OFFLINE_LOGS_KEY, JSON.stringify(queue))
+  } catch (err) {
+    console.error('Failed to write offline logs queue:', err)
+  }
+}
+
+function clearOfflineQueue() {
+  cachedQueue = []
+  try {
+    localStorage.removeItem(OFFLINE_LOGS_KEY)
+  } catch (err) {
+    console.error('Failed to clear offline logs queue:', err)
+  }
+}
+
 export const createLogsSlice: StateCreator<AppState, [], [], LogsSlice> = (set, get) => ({
   logs: [],
   monthInReview: null,
@@ -72,8 +118,17 @@ export const createLogsSlice: StateCreator<AppState, [], [], LogsSlice> = (set, 
           queryClient.invalidateQueries({ queryKey: ['monthInReview'] })
           queryClient.invalidateQueries({ queryKey: userKeys.profile })
         } catch (err) {
-          set({ logs: previousLogs })
-          throw err
+          const isOffline = typeof navigator !== 'undefined' && !navigator.onLine
+          if (isOffline || (err instanceof Error && (err.message.includes('fetch') || err.message.includes('NetworkError') || err.message.includes('Failed to fetch')))) {
+            const queue = getOfflineQueue()
+            const filteredQueue = queue.filter((item: any) => item.date !== date)
+            filteredQueue.push({ date, symptoms, water: targetWater ?? 1000, weight: targetWeight ?? 62.5, lhLevel: targetLhLevel ?? null, mucus: targetMucus ?? null })
+            setOfflineQueue(filteredQueue)
+            toast.info('Saved locally. Will sync when online.')
+          } else {
+            set({ logs: previousLogs })
+            throw err
+          }
         }
       } else {
         set((state) => ({
@@ -108,16 +163,37 @@ export const createLogsSlice: StateCreator<AppState, [], [], LogsSlice> = (set, 
       const isLocalOnly = get().settings.privacyStrictLocalOnly
 
       if (isLoggedIn() && !isLocalOnly) {
-        const log = await logsApi.upsert(date, undefined, targetWater, targetWeight, targetLhLevel, targetMucus)
+        const previousLogs = get().logs
         set((state) => ({
           logs: [
             ...state.logs.filter((l) => l.date !== date),
-            { date: log.date, symptoms: log.symptoms, water: log.water, weight: log.weight, lhLevel: log.lhLevel, mucus: log.mucus },
+            { date, symptoms: existingSymptoms, water: targetWater, weight: targetWeight, lhLevel: targetLhLevel, mucus: targetMucus },
           ],
         }))
-        queryClient.invalidateQueries({ queryKey: ['symptomLogs'] })
-        queryClient.invalidateQueries({ queryKey: ['monthInReview'] })
-        queryClient.invalidateQueries({ queryKey: userKeys.profile })
+        try {
+          const log = await logsApi.upsert(date, undefined, targetWater, targetWeight, targetLhLevel, targetMucus)
+          set((state) => ({
+            logs: [
+              ...state.logs.filter((l) => l.date !== date),
+              { date: log.date, symptoms: log.symptoms, water: log.water, weight: log.weight, lhLevel: log.lhLevel, mucus: log.mucus },
+            ],
+          }))
+          queryClient.invalidateQueries({ queryKey: ['symptomLogs'] })
+          queryClient.invalidateQueries({ queryKey: ['monthInReview'] })
+          queryClient.invalidateQueries({ queryKey: userKeys.profile })
+        } catch (err) {
+          const isOffline = typeof navigator !== 'undefined' && !navigator.onLine
+          if (isOffline || (err instanceof Error && (err.message.includes('fetch') || err.message.includes('NetworkError') || err.message.includes('Failed to fetch')))) {
+            const queue = getOfflineQueue()
+            const filteredQueue = queue.filter((item: any) => item.date !== date)
+            filteredQueue.push({ date, symptoms: existingSymptoms, water: targetWater, weight: targetWeight, lhLevel: targetLhLevel, mucus: targetMucus })
+            setOfflineQueue(filteredQueue)
+            toast.info('Metrics saved locally. Will sync when online.')
+          } else {
+            set({ logs: previousLogs })
+            throw err
+          }
+        }
       } else {
         set((state) => ({
           logs: [
@@ -187,5 +263,66 @@ export const createLogsSlice: StateCreator<AppState, [], [], LogsSlice> = (set, 
     set((state) => ({
       customSymptoms: state.customSymptoms.filter((s) => s.id !== id),
     }))
+  },
+
+  syncOfflineLogs: async () => {
+    if (!isLoggedIn()) return
+    const queue = getOfflineQueue()
+    if (!queue || queue.length === 0) return
+
+    toast.loading('Syncing offline updates...', { id: 'mensflow-sync' })
+
+    const results = await Promise.allSettled(
+      queue.map((item: any) =>
+        logsApi.upsert(
+          item.date,
+          item.symptoms,
+          item.water,
+          item.weight,
+          item.lhLevel,
+          item.mucus
+        ).then(() => ({ success: true, item }))
+         .catch((err) => {
+           console.error('Failed to sync offline log for date:', item.date, err)
+           return { success: false, item }
+         })
+      )
+    )
+
+    let successCount = 0
+    const remainingQueue: any[] = []
+
+    for (const res of results) {
+      if (res.status === 'fulfilled') {
+        if (res.value.success) {
+          successCount++
+        } else {
+          remainingQueue.push(res.value.item)
+        }
+      } else {
+        console.error('Unexpected promise rejection during sync', res.reason)
+      }
+    }
+
+    if (remainingQueue.length > 0) {
+      setOfflineQueue(remainingQueue)
+    } else {
+      clearOfflineQueue()
+    }
+
+    if (successCount > 0) {
+      toast.success(`Successfully synced ${successCount} offline logs!`, { id: 'mensflow-sync' })
+      try {
+        const freshLogs = await logsApi.getAll()
+        set({ logs: freshLogs })
+        queryClient.invalidateQueries({ queryKey: ['symptomLogs'] })
+        queryClient.invalidateQueries({ queryKey: ['monthInReview'] })
+        queryClient.invalidateQueries({ queryKey: userKeys.profile })
+      } catch (err) {
+        console.error('Error refreshing state after offline sync:', err)
+      }
+    } else {
+      toast.dismiss('mensflow-sync')
+    }
   },
 })
