@@ -270,16 +270,6 @@ function RelationshipAura() {
           borderColor: `rgba(${colors.primary}, 0.25)`
         }}
       >
-        <span className="relative flex h-2 w-2">
-          <span 
-            className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-            style={{ backgroundColor: `rgb(${colors.primary})` }}
-          ></span>
-          <span 
-            className="relative inline-flex rounded-full h-2 w-2"
-            style={{ backgroundColor: `rgb(${colors.primary})` }}
-          ></span>
-        </span>
         <span 
           className="text-[10px] font-semibold uppercase tracking-wider transition-colors duration-300"
           style={{ color: `rgb(${colors.primary})` }}
