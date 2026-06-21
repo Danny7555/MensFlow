@@ -1,53 +1,25 @@
 import { useCallback, useEffect, useRef, useState, useReducer } from 'react'
-import { m } from 'framer-motion'
-import {
-  Ghost,
-  Question,
-  Lock,
-  LockOpen,
-  SidebarSimple,
-  Sparkle,
-  WarningCircle,
-  CaretRight
-} from '@phosphor-icons/react'
-import { ChatComposer } from '../components/ChatComposer'
 import { useChatSession } from '../context/useChatSession'
 import { useStore } from '../store/useStore'
 import { CLEAR_LOCAL_CHATS_EVENT, SECURITY_QUESTIONS } from '../lib/constants'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../components/ui/tooltip'
 import { ChatSkeleton } from '../components/skeletons/ChatSkeleton'
 import { SYMPTOM_DEFS } from '../data/symptomsData'
 import { chatApi, type ApiChatSession, useChatSuggestions } from '../services/chatService'
 import { userApi } from '../services/userService'
 import { toast } from 'sonner'
 import { computeCycleDay } from '../lib/cycleUtils'
-import { MarkdownText } from '../components/MarkdownText'
-import { Button } from '@/components/ui/button'
 import { generateAIResponse } from '../lib/chatAI'
 import { ChatSidebar } from '../components/chat/ChatSidebar'
 import { ChatLockScreen } from '../components/chat/ChatLockScreen'
 import { PermanentUnlockModal } from '../components/chat/PermanentUnlockModal'
 import { LockSetupModal } from '../components/chat/LockSetupModal'
 import { hapticSelection, hapticMedium } from '../lib/haptics'
+import { ChatHeader } from '../components/chat/ChatHeader'
+import { ChatEmptyState } from '../components/chat/ChatEmptyState'
+import { ChatLanding } from '../components/chat/ChatLanding'
+import { ChatThread, type Msg } from '../components/chat/ChatThread'
 
 const generateNewSessionId = () => `chat-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
-const fmtTime = (t: number) => {
-  const d = new Date(t)
-  let hours = d.getHours()
-  const minutes = String(d.getMinutes()).padStart(2, '0')
-  const ampm = hours >= 12 ? 'PM' : 'AM'
-  hours = hours % 12
-  hours = hours ? hours : 12
-  return `${hours}:${minutes} ${ampm}`
-}
-const getIsoString = (t: number) => new Date(t).toISOString()
-
-type Msg = {
-  id: string
-  role: 'user' | 'assistant'
-  text: string
-  createdAt: number
-}
 
 // ── ChatSessionState reducer ──────────────────────────────────────────────────
 
@@ -184,342 +156,88 @@ const initialLockForm: LockFormState = {
   isLockingSession: false,
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
-
-function ChatHeader({
-  title,
-  sidebarOpen,
-  onToggleSidebar,
-  hasActiveSession,
-  isLocked,
-  isLocking,
-  onLock,
-  onUnlock,
+function useChatLockForm({
+  rawPrivacyLockChats,
+  setSessions,
+  session,
+  welcomeText,
+  dispatch,
 }: {
-  title: string
-  sidebarOpen: boolean
-  onToggleSidebar: () => void
-  hasActiveSession: boolean
-  isLocked: boolean
-  isLocking: boolean
-  onLock: (e: React.MouseEvent) => void
-  onUnlock: () => void
+  rawPrivacyLockChats: boolean
+  setSessions: React.Dispatch<React.SetStateAction<ApiChatSession[]>>
+  session: ChatSessionState
+  welcomeText: string
+  dispatch: React.Dispatch<ChatSessionAction>
 }) {
-  return (
-    <div className="chat-header-bar">
-      <div className="chat-header-left">
-        <button
-          type="button"
-          className="chat-toggle-sidebar-btn active-squish"
-          onClick={onToggleSidebar}
-          title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
-        >
-          <SidebarSimple size={20} />
-        </button>
-        <span className="chat-header-title">{title}</span>
-      </div>
+  const [lockForm, lockDispatch] = useReducer(lockFormReducer, initialLockForm)
+  const unlockedPasscodesRef = useRef<Record<string, string>>({})
 
-      <div className="flex items-center gap-2">
-        {hasActiveSession && !isLocked && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-lg h-8 text-xs gap-1.5"
-            onClick={onLock}
-            disabled={isLocking}
-          >
-            <Lock size={14} />
-            {isLocking ? 'Locking…' : 'Lock Chat'}
-          </Button>
-        )}
-        {hasActiveSession && isLocked && (
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] bg-amber-500/10 text-amber-500 px-2.5 py-1 rounded-full font-medium flex items-center gap-1">
-              <Lock size={10} weight="fill" />
-              Locked
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-lg h-8 text-xs gap-1.5 hover:text-emerald-500 hover:border-emerald-500/30"
-              title="Remove password protection and make this chat public"
-              onClick={onUnlock}
-            >
-              <LockOpen size={14} />
-              Unlock
-            </Button>
-          </div>
-        )}
-      </div>
-    </div>
-  )
+  const openLockModal = async (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (lockForm.isLockingSession || lockForm.isSettingUpLock) return
+
+    if (rawPrivacyLockChats) {
+      lockDispatch({ type: 'START_LOCKING' })
+      try {
+        await chatApi.lock(sessionId)
+        toast.success('Chat locked!')
+        setSessions((prev) => prev.map((s) => s.sessionId === sessionId ? { ...s, isLocked: true } : s))
+        if (session.activeSessionId === sessionId) {
+          dispatch({ type: 'NEW_CHAT', sessionId: generateNewSessionId(), messages: [{ id: 'welcome', role: 'assistant', text: welcomeText, createdAt: Date.now() }] })
+        }
+      } catch (err: unknown) {
+        toast.error(err instanceof Error ? err.message : 'Failed to lock session')
+      } finally {
+        lockDispatch({ type: 'DONE_LOCKING' })
+      }
+      return
+    }
+
+    lockDispatch({ type: 'OPEN_LOCK_SETUP', sessionId })
+  }
+
+  const handleLockSetupSubmit = async () => {
+    if (!lockForm.lockSetupSessionId || !lockForm.lockSetupPasscode.trim()) return
+    lockDispatch({ type: 'START_SETTING_UP' })
+    try {
+      const activeQuestion = SECURITY_QUESTIONS.find(q => q.id === lockForm.lockSetupQuestionId)!
+      await chatApi.lock(lockForm.lockSetupSessionId, lockForm.lockSetupPasscode, activeQuestion.label, lockForm.lockSetupAnswer)
+      toast.success('Chat locked!')
+      setSessions((prev) => prev.map((s) => s.sessionId === lockForm.lockSetupSessionId ? { ...s, isLocked: true } : s))
+      if (session.activeSessionId === lockForm.lockSetupSessionId) {
+        dispatch({ type: 'NEW_CHAT', sessionId: generateNewSessionId(), messages: [{ id: 'welcome', role: 'assistant', text: welcomeText, createdAt: Date.now() }] })
+      }
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to lock session')
+    } finally {
+      lockDispatch({ type: 'DONE_SETTING_UP' })
+    }
+  }
+
+  const handlePermanentUnlock = async () => {
+    if (!lockForm.permanentUnlockSessionId) return
+    try {
+      await chatApi.unlockPermanent(lockForm.permanentUnlockSessionId, lockForm.permanentUnlockPasscode || undefined)
+      toast.success('Chat is now public again!')
+      setSessions((prev) => prev.map((s) => s.sessionId === lockForm.permanentUnlockSessionId ? { ...s, isLocked: false } : s))
+      const next = { ...unlockedPasscodesRef.current }; delete next[lockForm.permanentUnlockSessionId]; unlockedPasscodesRef.current = next
+      lockDispatch({ type: 'CLOSE_ALL' })
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Incorrect passcode, try again.')
+    }
+  }
+
+  return {
+    lockForm,
+    lockDispatch,
+    unlockedPasscodesRef,
+    openLockModal,
+    handleLockSetupSubmit,
+    handlePermanentUnlock,
+  }
 }
 
-function ChatEmptyState() {
-  return (
-    <div className="flex-1 overflow-y-auto flex items-center justify-center p-4">
-      <div className="text-center max-w-sm mx-auto space-y-4">
-        <div className="size-16 rounded-full bg-[var(--mf-accent-soft)]/20 flex items-center justify-center text-[var(--mf-accent)] mx-auto animate-pulse">
-          <Lock size={32} />
-        </div>
-        <h2 className="text-lg font-semibold text-[var(--mf-text-strong)]">No Locked Chats</h2>
-        <p className="text-xs text-muted-foreground leading-relaxed">
-          You haven&apos;t locked any conversation sessions yet. Go to the main chat, select a conversation, and click the &quot;Lock Chat&quot; button to secure it.
-        </p>
-      </div>
-    </div>
-  )
-}
-
-function ChatLanding({
-  suggestions,
-  suggestionsLoading,
-  isTyping,
-  draft,
-  onSend,
-  onDraftChange,
-}: {
-  suggestions: string[] | undefined
-  suggestionsLoading: boolean
-  isTyping: boolean
-  draft: string
-  onSend: (overrideText?: string) => void
-  onDraftChange: (v: string) => void
-}) {
-  return (
-    <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-5 flex flex-col">
-      <div className="landing-center animate-in fade-in zoom-in duration-700 w-full mx-auto my-auto">
-        <div className="landing-hero-image-wrap">
-          <div className="landing-hero-glow" />
-          <img loading="lazy" src="/images/lady.jpg" alt="" className="landing-hero-image" />
-        </div>
-        <div className="w-full max-w-[500px] mx-auto space-y-1 sm:space-y-1.5">
-          <h1 className="landing-title">Ask MensFlow about your cycle?</h1>
-          <div className="landing-sub">
-            <span>Education, tracking context, and supportive guidance; </span>
-            <strong className="font-semibold text-rose-600 dark:text-rose-400">not a substitute for medical care.</strong>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button type="button" className="p-1 hover:bg-black/5 rounded-full transition-colors inline-flex items-center justify-center cursor-help align-middle ml-0.5" aria-label="Medical disclaimer information">
-                  <Question size={14} weight="bold" className="opacity-40" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="text-center">
-                <p className="max-w-[240px]">
-                  MensFlow is an educational tool. Always consult a healthcare professional for medical advice, diagnosis, or treatment.
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        </div>
-
-        <div className="landing-composer-wrap mt-5 sm:mt-7">
-          {!suggestionsLoading && suggestions && suggestions.length > 0 && !isTyping && (
-            <div className="chat-suggestions-container">
-              <div className="chat-suggestions-label">
-                <Sparkle size={14} weight="fill" className="text-[var(--mf-accent)]" />
-                <span>Suggested Questions</span>
-              </div>
-              <div className="chat-suggestions-grid">
-                {suggestions.map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => { hapticSelection(); onSend(s); }}
-                    className="chat-suggestion-chip"
-                  >
-                    <span>{s}</span>
-                    <span className="chat-suggestion-icon">
-                      <CaretRight size={14} weight="bold" />
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-          <ChatComposer
-            value={draft}
-            onChange={onDraftChange}
-            onSubmit={() => onSend()}
-            placeholder="Ask MensFlow"
-          />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function ChatThread({
-  messages,
-  isTyping,
-  suggestions,
-  suggestionsLoading,
-  draft,
-  onSend,
-  onDraftChange,
-  chatShowTimestamps,
-  temporaryChat,
-  userXp,
-  threadEndRef,
-}: {
-  messages: Msg[]
-  isTyping: boolean
-  suggestions: string[] | undefined
-  suggestionsLoading: boolean
-  draft: string
-  onSend: (overrideText?: string) => void
-  onDraftChange: (v: string) => void
-  chatShowTimestamps: boolean
-  temporaryChat: boolean
-  userXp: number | undefined
-  threadEndRef: React.RefObject<HTMLDivElement | null>
-}) {
-  return (
-    <div className="chat-view">
-      {temporaryChat && (
-        <output className="chat-temporary-banner chat-thread-spacing">
-          <Ghost size={18} weight="duotone" aria-hidden />
-          <span>
-            Temporary chat - this conversation won&apos;t be saved to history or used to
-            improve Ai models.
-          </span>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button type="button" className="ml-1 p-0.5 hover:bg-black/10 rounded-full transition-colors flex items-center justify-center" aria-label="More information">
-                <Question size={14} weight="bold" className="opacity-60" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="top">
-              <p className="max-w-[200px]">
-                Temporary chats are private sessions that aren&apos;t saved to your history or used for training.
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </output>
-      )}
-
-      {!temporaryChat && (!userXp || userXp < 500) && (
-        <output className="chat-temporary-banner chat-thread-spacing bg-amber-500/10 border-amber-500/20 text-[var(--mf-text-strong)] flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <WarningCircle size={18} className="text-amber-500 shrink-0" />
-            <span className="text-[11.5px] font-normal">
-              Free Tier Chat Limit: Reach 100 XP via daily quizzes to unlock unlimited AI translation. (Current XP: {userXp || 0}/100)
-            </span>
-          </div>
-          <div className="w-24 bg-muted/40 h-1.5 rounded-full overflow-hidden border border-border/20 relative shrink-0">
-            <div
-              className="bg-amber-500 h-full rounded-full transition-all duration-500"
-              style={{ width: `${Math.min(100, ((userXp || 0) / 500) * 100)}%` }}
-            />
-          </div>
-        </output>
-      )}
-
-      <div className="chat-thread" role="log" aria-live="polite">
-        {messages.map((m) => (
-          <div key={m.id} className={`chat-bubble chat-bubble--${m.role}`}>
-            <span className="chat-role flex items-center gap-1.5">
-              {m.role === 'user' ? 'You' : 'MensFlow'}
-              {chatShowTimestamps && (
-                <time className="chat-time" dateTime={getIsoString(m.createdAt)} suppressHydrationWarning>
-                  {fmtTime(m.createdAt)}
-                </time>
-              )}
-            </span>
-            {m.role === 'user' ? (
-              <p className="chat-text whitespace-pre-line">{m.text}</p>
-            ) : (
-              <MarkdownText text={m.text} />
-            )}
-          </div>
-        ))}
-
-        {isTyping && (
-          <div className="chat-bubble chat-bubble--assistant animate-pulse duration-1000">
-            <span className="chat-role flex items-center gap-1.5">MensFlow</span>
-            <div className="flex items-center gap-1.5 py-3 px-1">
-              {[0, 150, 300].map((delay) => (
-                <m.div
-                  key={delay}
-                  initial={{ y: 0 }}
-                  animate={{ y: [0, -6, 0] }}
-                  transition={{
-                    duration: 0.8,
-                    repeat: Infinity,
-                    ease: [0.16, 1, 0.3, 1],
-                    delay: delay / 1000
-                  }}
-                  className="size-2 rounded-full bg-[var(--mf-accent)]"
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {!suggestionsLoading && suggestions && suggestions.length > 0 && !isTyping && (
-          <div className="chat-suggestions-container mobile-only-suggestions mt-2">
-            <div className="chat-suggestions-label">
-              <Sparkle size={14} weight="fill" className="text-[var(--mf-accent)]" />
-              <span>Suggested Questions</span>
-            </div>
-            <div className="chat-suggestions-grid">
-              {suggestions.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => { hapticSelection(); onSend(s); }}
-                  className="chat-suggestion-chip"
-                >
-                  <span>{s}</span>
-                  <span className="chat-suggestion-icon">
-                    <CaretRight size={14} weight="bold" />
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-        <div ref={threadEndRef} />
-      </div>
-
-      <div className="chat-composer-dock p-3 bg-background/80 backdrop-blur-md border-t border-border">
-        <div className="max-w-[800px] mx-auto w-full">
-          {!suggestionsLoading && suggestions && suggestions.length > 0 && !isTyping && (
-            <div className="chat-suggestions-container desktop-only-suggestions">
-              <div className="chat-suggestions-label">
-                <Sparkle size={14} weight="fill" className="text-[var(--mf-accent)]" />
-                <span>Suggested Questions</span>
-              </div>
-              <div className="chat-suggestions-grid">
-                {suggestions.map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => { hapticSelection(); onSend(s); }}
-                    className="chat-suggestion-chip"
-                  >
-                    <span>{s}</span>
-                    <span className="chat-suggestion-icon">
-                      <CaretRight size={14} weight="bold" />
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-          <ChatComposer
-            value={draft}
-            onChange={onDraftChange}
-            onSubmit={() => onSend()}
-            placeholder="Ask MensFlow"
-            minimal
-            showKeyboardHint
-          />
-        </div>
-      </div>
-    </div>
-  )
-}
+// Helper components removed (now imported from components/chat/)
 
 // ── Main component ────────────────────────────────────────────────────────────
 
@@ -553,13 +271,25 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
     return true
   })
   const [session, dispatch] = useReducer(chatSessionReducer, initialChatSession)
-  const [lockForm, lockDispatch] = useReducer(lockFormReducer, initialLockForm)
 
   const [draft, setDraft] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const { data: suggestions, isLoading: suggestionsLoading } = useChatSuggestions()
 
-  const unlockedPasscodesRef = useRef<Record<string, string>>({})
+  const {
+    lockForm,
+    lockDispatch,
+    unlockedPasscodesRef,
+    openLockModal,
+    handleLockSetupSubmit,
+    handlePermanentUnlock,
+  } = useChatLockForm({
+    rawPrivacyLockChats,
+    setSessions,
+    session,
+    welcomeText,
+    dispatch,
+  })
 
   const fetchSessions = useCallback(async () => {
     if (temporaryChat) return
@@ -644,14 +374,23 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
     })
   })()
 
+  const fetchSessionsRef = useRef(fetchSessions)
+  fetchSessionsRef.current = fetchSessions
+
+  const welcomeTextRef = useRef(welcomeText)
+  welcomeTextRef.current = welcomeText
+
+  const temporaryChatRef = useRef(temporaryChat)
+  temporaryChatRef.current = temporaryChat
+
   useEffect(() => {
     const onClear = () => {
-      dispatch({ type: 'CLEAR_SESSION', messages: [{ id: 'welcome', role: 'assistant', text: welcomeText, createdAt: Date.now() }] })
-      if (!temporaryChat) fetchSessions()
+      dispatch({ type: 'CLEAR_SESSION', messages: [{ id: 'welcome', role: 'assistant', text: welcomeTextRef.current, createdAt: Date.now() }] })
+      if (!temporaryChatRef.current) fetchSessionsRef.current()
     }
     window.addEventListener(CLEAR_LOCAL_CHATS_EVENT, onClear)
     return () => window.removeEventListener(CLEAR_LOCAL_CHATS_EVENT, onClear)
-  }, [welcomeText, temporaryChat, fetchSessions])
+  }, [])
 
   useEffect(() => {
     threadEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -730,60 +469,7 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
     })
   }
 
-  const openLockModal = async (sessionId: string, e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (lockForm.isLockingSession || lockForm.isSettingUpLock) return
-
-    if (rawPrivacyLockChats) {
-      lockDispatch({ type: 'START_LOCKING' })
-      try {
-        await chatApi.lock(sessionId)
-        toast.success('Chat locked!')
-        setSessions((prev) => prev.map((s) => s.sessionId === sessionId ? { ...s, isLocked: true } : s))
-        if (session.activeSessionId === sessionId) {
-          dispatch({ type: 'NEW_CHAT', sessionId: generateNewSessionId(), messages: [{ id: 'welcome', role: 'assistant', text: welcomeText, createdAt: Date.now() }] })
-        }
-      } catch (err: unknown) {
-        toast.error(err instanceof Error ? err.message : 'Failed to lock session')
-      } finally {
-        lockDispatch({ type: 'DONE_LOCKING' })
-      }
-      return
-    }
-
-    lockDispatch({ type: 'OPEN_LOCK_SETUP', sessionId })
-  }
-
-  const handleLockSetupSubmit = async () => {
-    if (!lockForm.lockSetupSessionId || !lockForm.lockSetupPasscode.trim()) return
-    lockDispatch({ type: 'START_SETTING_UP' })
-    try {
-      const activeQuestion = SECURITY_QUESTIONS.find(q => q.id === lockForm.lockSetupQuestionId)!
-      await chatApi.lock(lockForm.lockSetupSessionId, lockForm.lockSetupPasscode, activeQuestion.label, lockForm.lockSetupAnswer)
-      toast.success('Chat locked!')
-      setSessions((prev) => prev.map((s) => s.sessionId === lockForm.lockSetupSessionId ? { ...s, isLocked: true } : s))
-      if (session.activeSessionId === lockForm.lockSetupSessionId) {
-        dispatch({ type: 'NEW_CHAT', sessionId: generateNewSessionId(), messages: [{ id: 'welcome', role: 'assistant', text: welcomeText, createdAt: Date.now() }] })
-      }
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Failed to lock session')
-    } finally {
-      lockDispatch({ type: 'DONE_SETTING_UP' })
-    }
-  }
-
-  const handlePermanentUnlock = async () => {
-    if (!lockForm.permanentUnlockSessionId) return
-    try {
-      await chatApi.unlockPermanent(lockForm.permanentUnlockSessionId, lockForm.permanentUnlockPasscode || undefined)
-      toast.success('Chat is now public again!')
-      setSessions((prev) => prev.map((s) => s.sessionId === lockForm.permanentUnlockSessionId ? { ...s, isLocked: false } : s))
-      const next = { ...unlockedPasscodesRef.current }; delete next[lockForm.permanentUnlockSessionId]; unlockedPasscodesRef.current = next
-      lockDispatch({ type: 'CLOSE_ALL' })
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Incorrect passcode, try again.')
-    }
-  }
+  // Lock handlers moved to custom useChatLockForm hook
 
   const handleUnlockSubmit = async (passcode: string, isSecurityReset: boolean, securityAnswer: string) => {
     if (!session.lockedSessionToUnlock) return

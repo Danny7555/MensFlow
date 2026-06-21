@@ -1,10 +1,71 @@
-import { useState } from 'react'
+import { useReducer } from 'react'
 import { m } from 'framer-motion'
 import { Plus, Trash, Pill, Clock } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { useMedications, useCreateMedication, useDeleteMedication } from '../services/medicationService'
 import { Button } from '@/components/ui/button'
 import { useSEO } from '../hooks/useSEO'
+
+interface MedicationsState {
+  showForm: boolean
+  confirmDeleteId: string | null
+  name: string
+  dosage: string
+  frequency: string
+  timeOfDay: string
+  notes: string
+}
+
+type MedicationsAction =
+  | { type: 'SET_SHOW_FORM'; payload: boolean }
+  | { type: 'SET_CONFIRM_DELETE_ID'; payload: string | null }
+  | { type: 'SET_NAME'; payload: string }
+  | { type: 'SET_DOSAGE'; payload: string }
+  | { type: 'SET_FREQUENCY'; payload: string }
+  | { type: 'SET_TIME_OF_DAY'; payload: string }
+  | { type: 'SET_NOTES'; payload: string }
+  | { type: 'RESET_FORM' }
+
+const initialMedicationsState: MedicationsState = {
+  showForm: false,
+  confirmDeleteId: null,
+  name: '',
+  dosage: '',
+  frequency: 'daily',
+  timeOfDay: '08:00',
+  notes: '',
+}
+
+function medicationsReducer(state: MedicationsState, action: MedicationsAction): MedicationsState {
+  switch (action.type) {
+    case 'SET_SHOW_FORM':
+      return { ...state, showForm: action.payload }
+    case 'SET_CONFIRM_DELETE_ID':
+      return { ...state, confirmDeleteId: action.payload }
+    case 'SET_NAME':
+      return { ...state, name: action.payload }
+    case 'SET_DOSAGE':
+      return { ...state, dosage: action.payload }
+    case 'SET_FREQUENCY':
+      return { ...state, frequency: action.payload }
+    case 'SET_TIME_OF_DAY':
+      return { ...state, timeOfDay: action.payload }
+    case 'SET_NOTES':
+      return { ...state, notes: action.payload }
+    case 'RESET_FORM':
+      return {
+        ...state,
+        name: '',
+        dosage: '',
+        frequency: 'daily',
+        timeOfDay: '08:00',
+        notes: '',
+        showForm: false,
+      }
+    default:
+      return state
+  }
+}
 
 export function MedicationsView() {
   useSEO({
@@ -15,25 +76,16 @@ export function MedicationsView() {
   const { data: meds, isLoading } = useMedications()
   const createMed = useCreateMedication()
   const deleteMed = useDeleteMedication()
-  const [showForm, setShowForm] = useState(false)
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
-  const [name, setName] = useState('')
-  const [dosage, setDosage] = useState('')
-  const [frequency, setFrequency] = useState('daily')
-  const [timeOfDay, setTimeOfDay] = useState('08:00')
-  const [notes, setNotes] = useState('')
+
+  const [state, dispatch] = useReducer(medicationsReducer, initialMedicationsState)
+  const { showForm, confirmDeleteId, name, dosage, frequency, timeOfDay, notes } = state
 
   const handleSubmit = async () => {
     if (!name.trim()) return
     try {
       await createMed.mutateAsync({ name: name.trim(), dosage, frequency, timeOfDay, notes })
       toast.success('Medication added')
-      setName('')
-      setDosage('')
-      setFrequency('daily')
-      setTimeOfDay('08:00')
-      setNotes('')
-      setShowForm(false)
+      dispatch({ type: 'RESET_FORM' })
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to add medication')
     }
@@ -50,7 +102,7 @@ export function MedicationsView() {
             </div>
             <button
               type="button"
-              onClick={() => setShowForm(!showForm)}
+              onClick={() => dispatch({ type: 'SET_SHOW_FORM', payload: !showForm })}
               className="size-11 shrink-0 rounded-2xl bg-[var(--mf-accent)] text-white flex items-center justify-center hover:brightness-110 transition-all cursor-pointer"
             >
               <Plus size={22} weight="bold" />
@@ -65,7 +117,7 @@ export function MedicationsView() {
             >
               <input
                 value={name}
-                onChange={e => setName(e.target.value)}
+                onChange={e => dispatch({ type: 'SET_NAME', payload: e.target.value })}
                 placeholder="Medication name *"
                 aria-label="Medication name"
                 className="w-full h-11 px-4 rounded-xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm text-[var(--mf-text-strong)] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[var(--mf-ring)]"
@@ -73,14 +125,14 @@ export function MedicationsView() {
               <div className="flex gap-3">
                 <input
                   value={dosage}
-                  onChange={e => setDosage(e.target.value)}
+                  onChange={e => dispatch({ type: 'SET_DOSAGE', payload: e.target.value })}
                   placeholder="Dosage (e.g. 500mg)"
                   aria-label="Dosage"
                   className="flex-1 h-11 px-4 rounded-xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm text-[var(--mf-text-strong)] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[var(--mf-ring)]"
                 />
                 <select
                   value={frequency}
-                  onChange={e => setFrequency(e.target.value)}
+                  onChange={e => dispatch({ type: 'SET_FREQUENCY', payload: e.target.value })}
                   aria-label="Frequency"
                   className="h-11 px-3 rounded-xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm text-[var(--mf-text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--mf-ring)]"
                 >
@@ -93,13 +145,13 @@ export function MedicationsView() {
                 <input
                   type="time"
                   value={timeOfDay}
-                  onChange={e => setTimeOfDay(e.target.value)}
+                  onChange={e => dispatch({ type: 'SET_TIME_OF_DAY', payload: e.target.value })}
                   aria-label="Time of day"
                   className="h-11 px-4 rounded-xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm text-[var(--mf-text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--mf-ring)]"
                 />
                 <input
                   value={notes}
-                  onChange={e => setNotes(e.target.value)}
+                  onChange={e => dispatch({ type: 'SET_NOTES', payload: e.target.value })}
                   placeholder="Notes (optional)"
                   aria-label="Notes"
                   className="flex-1 h-11 px-4 rounded-xl bg-[var(--mf-elevated)] border border-[var(--mf-border)] text-sm text-[var(--mf-text-strong)] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[var(--mf-ring)]"
@@ -109,7 +161,7 @@ export function MedicationsView() {
                 <Button onClick={handleSubmit} disabled={!name.trim() || createMed.isPending} className="flex-1 rounded-xl">
                   {createMed.isPending ? 'Adding...' : 'Add Medication'}
                 </Button>
-                <Button variant="outline" onClick={() => setShowForm(false)} className="rounded-xl">Cancel</Button>
+                <Button variant="outline" onClick={() => dispatch({ type: 'SET_SHOW_FORM', payload: false })} className="rounded-xl">Cancel</Button>
               </div>
             </m.div>
           )}
@@ -138,7 +190,7 @@ export function MedicationsView() {
                     {med.notes && <p className="text-xs text-muted-foreground mt-1">{med.notes}</p>}
                   </div>
                   <>{confirmDeleteId === med._id && (
-                    <button type="button" className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 cursor-default" onClick={() => setConfirmDeleteId(null)} onKeyDown={e => { if (e.key === 'Escape' || e.key === 'Enter') setConfirmDeleteId(null) }}>
+                    <button type="button" className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 cursor-default" onClick={() => dispatch({ type: 'SET_CONFIRM_DELETE_ID', payload: null })} onKeyDown={e => { if (e.key === 'Escape' || e.key === 'Enter') dispatch({ type: 'SET_CONFIRM_DELETE_ID', payload: null }) }}>
                       <m.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -149,14 +201,14 @@ export function MedicationsView() {
                         <div className="flex gap-2">
                           <button
                             type="button"
-                            onClick={() => { deleteMed.mutate(med._id); setConfirmDeleteId(null) }}
+                            onClick={() => { deleteMed.mutate(med._id); dispatch({ type: 'SET_CONFIRM_DELETE_ID', payload: null }) }}
                             className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-[var(--mf-danger)] text-white hover:brightness-110 transition-all cursor-pointer"
                           >
                             Remove
                           </button>
                           <button
                             type="button"
-                            onClick={() => setConfirmDeleteId(null)}
+                            onClick={() => dispatch({ type: 'SET_CONFIRM_DELETE_ID', payload: null })}
                             className="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-muted text-muted-foreground hover:text-[var(--mf-text-strong)] transition-all cursor-pointer"
                           >
                             Cancel
@@ -167,7 +219,7 @@ export function MedicationsView() {
                   )}</>
                   <button
                     type="button"
-                    onClick={() => setConfirmDeleteId(med._id)}
+                    onClick={() => dispatch({ type: 'SET_CONFIRM_DELETE_ID', payload: med._id })}
                     className="text-muted-foreground hover:text-[var(--mf-danger)] transition-colors cursor-pointer shrink-0 mt-1"
                   >
                     <Trash size={16} />
