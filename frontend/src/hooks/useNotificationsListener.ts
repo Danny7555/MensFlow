@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../store/useStore'
 import { useAuth } from '../context/useAuth'
-import { partnerApi } from '../services/partnerService'
+import { partnerApi, type ApiPing } from '../services/partnerService'
 import { playNotificationSound } from '../lib/sound'
 import { toast } from 'sonner'
 import React from 'react'
@@ -61,7 +61,7 @@ export function useNotificationsListener() {
     let active = true
     const isAccessPing = (pingId?: string) => Boolean(pingId?.startsWith('access-'))
 
-    const processReceivedPing = async (ping: any) => {
+    const processReceivedPing = async (ping: ApiPing) => {
       const lastProcessed = getLastPingProcessed()
       if (lastProcessed === String(ping.timestamp)) return
 

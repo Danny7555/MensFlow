@@ -116,7 +116,7 @@ const generateHormoneLevels = (): HormoneData[] => {
   const data: HormoneData[] = []
   for (let day = 1; day <= 28; day++) {
     // Estrogen: Big peak at day 12, secondary hump at day 21
-    let estrogen = 10
+    let estrogen: number
     if (day <= 13) {
       estrogen = 10 + 75 * Math.pow(Math.sin(((day - 1) / 12) * Math.PI), 2.5)
     } else {

@@ -131,7 +131,7 @@ export function forecastSymptoms(
           forecasts.push({
             symptomId: sId,
             label,
-            phase: phaseKey as any,
+            phase: phaseKey as 'menstrual' | 'follicular' | 'fertile' | 'luteal',
             phaseLabel: PHASE_LABELS[phaseKey as keyof typeof PHASE_LABELS],
             probability: prob,
             confidence,

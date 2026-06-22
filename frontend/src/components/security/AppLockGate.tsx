@@ -167,31 +167,17 @@ export function AppLockGate({ children }: { children: React.ReactNode }) {
   // Security references
   const failedAttemptsRef = useRef<number>(0)
   
-  const getInitialLockoutUntil = () => {
-    if (typeof window === 'undefined') return null
-    const rawLockout = localStorage.getItem('mensflow_lockout_until')
-    if (rawLockout) {
-      const until = parseInt(rawLockout, 10)
-      if (!isNaN(until) && until > Date.now()) {
-        return until
-      }
-    }
-    return null
-  }
-
-  const initialLockoutUntil = getInitialLockoutUntil()
-  const lockoutUntilRef = useRef<number | null>(initialLockoutUntil)
+  const lockoutUntilRef = useRef<number | null>(null)
 
   // Lazy initialize all Lock states to group related useState calls
   const [state, setState] = useState<AppLockState>(() => {
     const isUnlockedInit = !settings.appLockEnabled || readSessionUnlock()
-    const lockoutInit = initialLockoutUntil ? Math.ceil((initialLockoutUntil - Date.now()) / 1000) : 0
     return {
       isUnlocked: isUnlockedInit,
       pin: '',
       error: false,
       showBiometricSim: false,
-      lockoutTimeLeft: lockoutInit
+      lockoutTimeLeft: 0
     }
   })
 
@@ -216,6 +202,24 @@ export function AppLockGate({ children }: { children: React.ReactNode }) {
       setState(prev => ({ ...prev, isUnlocked: true }))
     }
   }
+
+  // Check for active lockout on mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const rawLockout = localStorage.getItem('mensflow_lockout_until')
+    if (rawLockout) {
+      const until = parseInt(rawLockout, 10)
+      if (!isNaN(until)) {
+        const left = Math.ceil((until - Date.now()) / 1000)
+        if (left > 0) {
+          lockoutUntilRef.current = until
+          updateState({ lockoutTimeLeft: left })
+        } else {
+          localStorage.removeItem('mensflow_lockout_until')
+        }
+      }
+    }
+  }, [updateState])
 
   // Lockout countdown timer using the cached ref value instead of localStorage calls
   useEffect(() => {

@@ -1,6 +1,8 @@
 import { format } from 'date-fns'
 import { SYMPTOM_DEFS, type SymptomDef } from '../../data/symptomsData'
 
+import type { AppUser } from '../../store/types'
+
 interface Log {
   date: string
   symptoms: string[]
@@ -33,7 +35,7 @@ export function DoctorPrintReport({
   customSymptoms,
   activeMeds,
 }: {
-  user: any
+  user: AppUser
   dashboard: Dashboard
   logs: Log[]
   customSymptoms: SymptomDef[]
