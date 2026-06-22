@@ -213,7 +213,9 @@ export function AppLockGate({ children }: { children: React.ReactNode }) {
         const left = Math.ceil((until - Date.now()) / 1000)
         if (left > 0) {
           lockoutUntilRef.current = until
-          updateState({ lockoutTimeLeft: left })
+          setTimeout(() => {
+            updateState({ lockoutTimeLeft: left })
+          }, 0)
         } else {
           localStorage.removeItem('mensflow_lockout_until')
         }

@@ -39,7 +39,7 @@ function base64ToArrayBuffer(base64: string): ArrayBuffer {
 async function deriveKey(pairingCode: string, salt: Uint8Array): Promise<CryptoKey> {
   const baseKey = await window.crypto.subtle.importKey(
     'raw',
-    stringToArrayBuffer(pairingCode.toUpperCase().trim()) as any,
+    stringToArrayBuffer(pairingCode.toUpperCase().trim()) as unknown as ArrayBuffer,
     'PBKDF2',
     false,
     ['deriveKey']
@@ -48,12 +48,12 @@ async function deriveKey(pairingCode: string, salt: Uint8Array): Promise<CryptoK
   return window.crypto.subtle.deriveKey(
     {
       name: 'PBKDF2',
-      salt: salt as any,
+      salt,
       iterations: 1000,
       hash: 'SHA-256'
-    } as any,
+    } as Pbkdf2Params,
     baseKey,
-    { name: 'AES-GCM', length: 256 } as any,
+    { name: 'AES-GCM', length: 256 } as AesKeyGenParams,
     false,
     ['encrypt', 'decrypt']
   )
@@ -70,9 +70,9 @@ export async function encryptData(plaintext: string, pairingCode: string): Promi
     const key = await deriveKey(pairingCode, salt)
 
     const encryptedBuf = await window.crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv: iv as any } as any,
+      { name: 'AES-GCM', iv } as AesGcmParams,
       key,
-      stringToArrayBuffer(plaintext) as any
+      stringToArrayBuffer(plaintext) as unknown as ArrayBuffer
     )
 
     // Construct unified payload: salt (16 bytes) + iv (12 bytes) + ciphertext
@@ -84,7 +84,7 @@ export async function encryptData(plaintext: string, pairingCode: string): Promi
     return '[E2E]:' + arrayBufferToBase64(payload.buffer)
   } catch (err) {
     console.error('E2EE Encryption failed:', err)
-    throw new Error('E2EE Encryption failed')
+    throw new Error('E2EE Encryption failed', { cause: err })
   }
 }
 
@@ -107,14 +107,14 @@ export async function decryptData(cipherPayload: string, pairingCode: string): P
 
     const key = await deriveKey(pairingCode, salt)
     const decryptedBuf = await window.crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv: iv as any } as any,
+      { name: 'AES-GCM', iv } as AesGcmParams,
       key,
-      ciphertext.buffer as any
+      ciphertext.buffer
     )
 
     return arrayBufferToString(decryptedBuf)
   } catch (err) {
     console.error('E2EE Decryption failed (invalid key/code?):', err)
-    throw new Error('E2EE Decryption failed')
+    throw new Error('E2EE Decryption failed', { cause: err })
   }
 }
