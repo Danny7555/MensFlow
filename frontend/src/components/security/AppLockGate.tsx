@@ -166,22 +166,26 @@ export function AppLockGate({ children }: { children: React.ReactNode }) {
 
   // Security references
   const failedAttemptsRef = useRef<number>(0)
-  const lockoutUntilRef = useRef<number | null>(null)
+  
+  const getInitialLockoutUntil = () => {
+    if (typeof window === 'undefined') return null
+    const rawLockout = localStorage.getItem('mensflow_lockout_until')
+    if (rawLockout) {
+      const until = parseInt(rawLockout, 10)
+      if (!isNaN(until) && until > Date.now()) {
+        return until
+      }
+    }
+    return null
+  }
+
+  const initialLockoutUntil = getInitialLockoutUntil()
+  const lockoutUntilRef = useRef<number | null>(initialLockoutUntil)
 
   // Lazy initialize all Lock states to group related useState calls
   const [state, setState] = useState<AppLockState>(() => {
     const isUnlockedInit = !settings.appLockEnabled || readSessionUnlock()
-    let lockoutInit = 0
-    if (typeof window !== 'undefined') {
-      const rawLockout = localStorage.getItem('mensflow_lockout_until')
-      if (rawLockout) {
-        const until = parseInt(rawLockout, 10)
-        if (!isNaN(until) && until > Date.now()) {
-          lockoutInit = Math.ceil((until - Date.now()) / 1000)
-          lockoutUntilRef.current = until
-        }
-      }
-    }
+    const lockoutInit = initialLockoutUntil ? Math.ceil((initialLockoutUntil - Date.now()) / 1000) : 0
     return {
       isUnlocked: isUnlockedInit,
       pin: '',
@@ -203,14 +207,15 @@ export function AppLockGate({ children }: { children: React.ReactNode }) {
     failedAttemptsRef.current = 0
   }, [updateState])
 
-  // If the user disables the lock in settings while the gate is mounted,
-  // clear the session key so the next load behaves correctly.
-  useEffect(() => {
+  // Adjust state during render when settings.appLockEnabled changes
+  const [prevAppLockEnabled, setPrevAppLockEnabled] = useState(settings.appLockEnabled)
+  if (settings.appLockEnabled !== prevAppLockEnabled) {
+    setPrevAppLockEnabled(settings.appLockEnabled)
     if (!settings.appLockEnabled) {
       writeSessionUnlock(false)
-      updateState({ isUnlocked: true })
+      setState(prev => ({ ...prev, isUnlocked: true }))
     }
-  }, [settings.appLockEnabled, updateState])
+  }
 
   // Lockout countdown timer using the cached ref value instead of localStorage calls
   useEffect(() => {
@@ -433,7 +438,9 @@ export function FaceIDScanner({
   // Cache onSuccess in a ref so the audio effect never re-subscribes when the
   // parent re-renders (satisfies react-doctor/prefer-use-effect-event)
   const onSuccessRef = useRef(onSuccess)
-  onSuccessRef.current = onSuccess
+  useEffect(() => {
+    onSuccessRef.current = onSuccess
+  })
 
   // Audio scanning tick loop
   useEffect(() => {
