@@ -21,6 +21,7 @@ export interface UserDocument extends Document {
   otpHash: string | null;
   otpExpiry: Date | null;
   otpTempToken: string | null;
+  isDeactivated: boolean;
 }
 
 const UserSchema = new Schema<UserDocument>(
@@ -44,6 +45,7 @@ const UserSchema = new Schema<UserDocument>(
     otpHash: { type: String, default: null },
     otpExpiry: { type: Date, default: null },
     otpTempToken: { type: String, default: null },
+    isDeactivated: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

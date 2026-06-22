@@ -302,12 +302,17 @@ export function useChatViewState({
     }
 
     const loadingTimer = setTimeout(() => dispatch({ type: 'LOAD_MESSAGES_START' }), 0)
-    fetchSessions()
-      .then((data) => {
+    const loadData = async () => {
+      try {
+        const data = await fetchSessions()
         dispatch({ type: 'INIT_LOADED', sessions: data ?? [], showOnlyLocked: showOnlyLockedRef.current })
-      })
-      .catch(() => dispatch({ type: 'LOAD_MESSAGES_ERROR' }))
-      .finally(() => clearTimeout(loadingTimer))
+      } catch {
+        dispatch({ type: 'LOAD_MESSAGES_ERROR' })
+      } finally {
+        clearTimeout(loadingTimer)
+      }
+    }
+    void loadData()
   }, [temporaryChat, fetchSessions, welcomeText])
 
   useEffect(() => {
@@ -366,13 +371,14 @@ export function useChatViewState({
   })()
 
   const fetchSessionsRef = useRef(fetchSessions)
-  fetchSessionsRef.current = fetchSessions
-
   const welcomeTextRef = useRef(welcomeText)
-  welcomeTextRef.current = welcomeText
-
   const temporaryChatRef = useRef(temporaryChat)
-  temporaryChatRef.current = temporaryChat
+
+  useEffect(() => {
+    fetchSessionsRef.current = fetchSessions
+    welcomeTextRef.current = welcomeText
+    temporaryChatRef.current = temporaryChat
+  })
 
   useEffect(() => {
     const onClear = () => {

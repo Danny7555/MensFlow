@@ -71,7 +71,7 @@ export function ChatView({ showOnlyLocked = false, privacyPassword }: { showOnly
           hasActiveSession={!!session.activeSessionId}
           isLocked={!!(session.activeSessionId && sessions.find(s => s.sessionId === session.activeSessionId)?.isLocked)}
           isLocking={lockForm.isLockingSession || lockForm.isSettingUpLock}
-          onLock={(e) => { hapticMedium(); session.activeSessionId && openLockModal(session.activeSessionId, e) }}
+          onLock={(e) => { hapticMedium(); if (session.activeSessionId) { void openLockModal(session.activeSessionId, e) } }}
           onUnlock={() => session.activeSessionId && lockDispatch({ type: 'OPEN_PERMANENT_UNLOCK', sessionId: session.activeSessionId })}
         />
 

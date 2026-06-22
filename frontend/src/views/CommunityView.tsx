@@ -430,9 +430,12 @@ function PostDetailView({
             </div>
             <h1 className="text-xl md:text-2xl font-semibold text-[var(--mf-text-strong)] leading-tight">{detail.post.title}</h1>
             <div className="text-sm text-[var(--mf-text)] leading-relaxed space-y-3">
-              {detail.post.body.split(/\n{2,}/).map((para, i) => (
-                <p key={i} className="whitespace-pre-wrap">{para}</p>
-              ))}
+              {detail.post.body.split(/\n{2,}/)
+                .map((para, idx) => ({ id: `${detail.post._id}-p-${idx}`, text: para }))
+                .map((paraObj) => (
+                  <p key={paraObj.id} className="whitespace-pre-wrap">{paraObj.text}</p>
+                ))
+              }
             </div>
           </div>
 

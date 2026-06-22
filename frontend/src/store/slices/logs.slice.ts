@@ -1,5 +1,5 @@
 import type { StateCreator } from 'zustand'
-import type { AppState, LogsSlice } from '../types'
+import type { AppState, LogsSlice, SymptomLog } from '../types'
 import type { SymptomCategory } from '../../data/symptomsData'
 import { isLoggedIn } from '../../lib/auth-token'
 import { logsApi } from '../../services/logsService'
@@ -10,9 +10,9 @@ import { toast } from 'sonner'
 const OFFLINE_LOGS_KEY = 'mensflow-offline-logs:v1'
 const OLD_OFFLINE_LOGS_KEY = 'mensflow-offline-logs'
 
-let cachedQueue: any[] | null = null
+let cachedQueue: SymptomLog[] | null = null
 
-function getOfflineQueue(): any[] {
+function getOfflineQueue(): SymptomLog[] {
   if (cachedQueue !== null) {
     return cachedQueue
   }
@@ -35,7 +35,7 @@ function getOfflineQueue(): any[] {
   }
 }
 
-function setOfflineQueue(queue: any[]) {
+function setOfflineQueue(queue: SymptomLog[]) {
   cachedQueue = queue
   try {
     localStorage.setItem(OFFLINE_LOGS_KEY, JSON.stringify(queue))
@@ -121,7 +121,7 @@ export const createLogsSlice: StateCreator<AppState, [], [], LogsSlice> = (set, 
           const isOffline = typeof navigator !== 'undefined' && !navigator.onLine
           if (isOffline || (err instanceof Error && (err.message.includes('fetch') || err.message.includes('NetworkError') || err.message.includes('Failed to fetch')))) {
             const queue = getOfflineQueue()
-            const filteredQueue = queue.filter((item: any) => item.date !== date)
+            const filteredQueue = queue.filter((item) => item.date !== date)
             filteredQueue.push({ date, symptoms, water: targetWater ?? 1000, weight: targetWeight ?? 62.5, lhLevel: targetLhLevel ?? null, mucus: targetMucus ?? null })
             setOfflineQueue(filteredQueue)
             toast.info('Saved locally. Will sync when online.')
@@ -185,7 +185,7 @@ export const createLogsSlice: StateCreator<AppState, [], [], LogsSlice> = (set, 
           const isOffline = typeof navigator !== 'undefined' && !navigator.onLine
           if (isOffline || (err instanceof Error && (err.message.includes('fetch') || err.message.includes('NetworkError') || err.message.includes('Failed to fetch')))) {
             const queue = getOfflineQueue()
-            const filteredQueue = queue.filter((item: any) => item.date !== date)
+            const filteredQueue = queue.filter((item) => item.date !== date)
             filteredQueue.push({ date, symptoms: existingSymptoms, water: targetWater, weight: targetWeight, lhLevel: targetLhLevel, mucus: targetMucus })
             setOfflineQueue(filteredQueue)
             toast.info('Metrics saved locally. Will sync when online.')
@@ -273,7 +273,7 @@ export const createLogsSlice: StateCreator<AppState, [], [], LogsSlice> = (set, 
     toast.loading('Syncing offline updates...', { id: 'mensflow-sync' })
 
     const results = await Promise.allSettled(
-      queue.map((item: any) =>
+      queue.map((item) =>
         logsApi.upsert(
           item.date,
           item.symptoms,
@@ -290,7 +290,7 @@ export const createLogsSlice: StateCreator<AppState, [], [], LogsSlice> = (set, 
     )
 
     let successCount = 0
-    const remainingQueue: any[] = []
+    const remainingQueue: SymptomLog[] = []
 
     for (const res of results) {
       if (res.status === 'fulfilled') {

@@ -19,6 +19,9 @@ import { useSEO } from '../hooks/useSEO'
 import { useMedications } from '../services/medicationService'
 import { DoctorPrintReport } from '../components/dashboard/DoctorPrintReport'
 
+import type { SymptomLog } from '../store/types'
+import type { DashboardSnapshot } from '../lib/dashboardStorage'
+
 const SymptomCorrelationChart = lazy(() => import('../components/dashboard/SymptomCorrelationChart').then(m => ({ default: m.SymptomCorrelationChart })))
 
 const containerVariants: Variants = {
@@ -110,8 +113,8 @@ function PatternsOverTimeSection({ itemVariants }: SectionProps) {
 }
 
 interface SymptomFrequencySectionProps extends SectionProps {
-  logs: any[]
-  dashboard: any
+  logs: SymptomLog[]
+  dashboard: DashboardSnapshot
 }
 
 function SymptomFrequencySection({ itemVariants, logs, dashboard }: SymptomFrequencySectionProps) {
@@ -176,8 +179,8 @@ function ExportSection({ itemVariants, handleExportCSV, handlePrintPDF }: Export
 }
 
 interface ForecastingSectionProps extends SectionProps {
-  logs: any[]
-  dashboard: any
+  logs: SymptomLog[]
+  dashboard: DashboardSnapshot
 }
 
 function ForecastingSection({ itemVariants, logs, dashboard }: ForecastingSectionProps) {

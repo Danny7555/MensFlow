@@ -1,12 +1,16 @@
 import { User } from '../models/User';
 import { Settings, SettingsDocument } from '../models/Settings';
 import { Dashboard, DashboardDocument } from '../models/Dashboard';
-import { PartnerPing } from '../models/Partner';
+import { PartnerPing, SupportStreak, SupportAction, PartnerChatMessage } from '../models/Partner';
 import { SymptomLog } from '../models/Symptom';
 import { IUser, ISettings, IDashboard } from '../interfaces';
 import { sendReminderEmail, sendGuardianEmail } from './emailService';
 import { buildCycleModel } from '../utils/cycleModel';
 import { LoginHistory } from '../models/LoginHistory';
+import { ChatMessage } from '../models/Chat';
+import { Medication } from '../models/Medication';
+import { CommunityPost, CommunityComment } from '../models/Community';
+import { disconnectPartner } from './partnerService';
 
 export async function getUserProfile(
   userId: string
@@ -14,6 +18,10 @@ export async function getUserProfile(
   const user = await User.findById(userId).lean();
   if (!user) {
     throw Object.assign(new Error('User not found'), { status: 404 });
+  }
+
+  if (user.isDeactivated) {
+    throw Object.assign(new Error('Account is deactivated'), { status: 401 });
   }
 
   const [settings, dashboard] = await Promise.all([
@@ -395,3 +403,41 @@ export async function getUserLoginHistory(userId: string): Promise<any[]> {
     timestamp: r.timestamp.toISOString(),
   }));
 }
+
+export async function deactivateUserProfile(userId: string): Promise<void> {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw Object.assign(new Error('User not found'), { status: 404 });
+  }
+
+  await disconnectPartner(userId);
+
+  user.isDeactivated = true;
+  await user.save();
+}
+
+export async function deleteUserProfile(userId: string): Promise<void> {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw Object.assign(new Error('User not found'), { status: 404 });
+  }
+
+  await disconnectPartner(userId);
+
+  await Promise.all([
+    User.deleteOne({ _id: userId }),
+    Settings.deleteOne({ userId }),
+    Dashboard.deleteOne({ userId }),
+    SupportStreak.deleteOne({ userId }),
+    SymptomLog.deleteMany({ userId }),
+    ChatMessage.deleteMany({ userId }),
+    LoginHistory.deleteMany({ userId }),
+    Medication.deleteMany({ userId }),
+    PartnerPing.deleteMany({ $or: [{ senderId: userId }, { receiverId: userId }] }),
+    SupportAction.deleteMany({ userId }),
+    PartnerChatMessage.deleteMany({ $or: [{ senderId: userId }, { receiverId: userId }] }),
+    CommunityPost.deleteMany({ userId }),
+    CommunityComment.deleteMany({ userId }),
+  ]);
+}
+

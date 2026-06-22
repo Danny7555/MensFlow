@@ -223,12 +223,14 @@ export async function lockSession(
   );
 
   const messages = await ChatMessage.find({ userId, sessionId }).lean();
+  const updatePromises: Promise<any>[] = [];
   for (const m of messages) {
     if (m.text && !m.text.startsWith('[ENC]:')) {
-      const encryptedText = encryptTextWithPasscode(m.text, finalPasscode);
-      await ChatMessage.updateOne({ _id: m._id }, { $set: { text: encryptedText } });
+      const encryptedText = encryptTextWithPasscode(m.text, finalPasscode!);
+      updatePromises.push(ChatMessage.updateOne({ _id: m._id }, { $set: { text: encryptedText } }));
     }
   }
+  await Promise.all(updatePromises);
 }
 
 export async function unlockSession(
@@ -298,12 +300,14 @@ export async function unlockSessionPermanent(
   }
 
   const messages = await ChatMessage.find({ userId, sessionId }).lean();
+  const decryptPromises: Promise<any>[] = [];
   for (const m of messages) {
     if (m.text && m.text.startsWith('[ENC]:') && passcode) {
       const decryptedText = decryptTextWithPasscode(m.text, passcode);
-      await ChatMessage.updateOne({ _id: m._id }, { $set: { text: decryptedText } });
+      decryptPromises.push(ChatMessage.updateOne({ _id: m._id }, { $set: { text: decryptedText } }));
     }
   }
+  await Promise.all(decryptPromises);
 
   await ChatMessage.updateMany(
     { userId, sessionId },

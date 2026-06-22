@@ -23,7 +23,7 @@ export function SymptomCorrelationChart({
   lastPeriodStart: string
   typicalCycleDays: number
 }) {
-  const [recharts, setRecharts] = useState<any>(null)
+  const [recharts, setRecharts] = useState<typeof import('recharts') | null>(null)
 
   useEffect(() => {
     loadRecharts().then(setRecharts)
