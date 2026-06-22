@@ -2135,6 +2135,42 @@ function AccountPanel({
     }
   }
 
+  const { showConfirm } = useStore()
+
+  const handleDeactivate = () => {
+    showConfirm({
+      title: 'Deactivate Account',
+      description: 'Are you sure you want to deactivate your account? You will be logged out immediately, and any sync connection with your partner will be disconnected. You can reactivate anytime by simply logging back in.',
+      onConfirm: async () => {
+        const toastId = toast.loading('Deactivating account...')
+        try {
+          await userApi.deactivateAccount()
+          toast.success('Your account has been deactivated.', { id: toastId })
+          if (onLogout) onLogout()
+        } catch (err) {
+          toast.error(err instanceof Error ? err.message : 'Failed to deactivate account.', { id: toastId })
+        }
+      }
+    })
+  }
+
+  const handleDelete = () => {
+    showConfirm({
+      title: 'Permanently Delete Account',
+      description: 'Are you sure you want to permanently delete your account? This action is irreversible. All of your symptom logs, settings, chat history, medication schedules, and partner connections will be deleted forever.',
+      onConfirm: async () => {
+        const toastId = toast.loading('Permanently deleting account...')
+        try {
+          await userApi.deleteAccount()
+          toast.success('Your account has been permanently deleted.', { id: toastId })
+          if (onLogout) onLogout()
+        } catch (err) {
+          toast.error(err instanceof Error ? err.message : 'Failed to delete account.', { id: toastId })
+        }
+      }
+    })
+  }
+
   return (
     <>
       {isGuest ? (
@@ -2343,6 +2379,38 @@ function AccountPanel({
                 Log out
               </button>
             )}
+          </section>
+
+          <section className="settings-logout-card mt-6" aria-labelledby="deactivate-heading">
+            <h3 id="deactivate-heading" className="settings-logout-title">
+              Deactivate account
+            </h3>
+            <p className="settings-logout-desc">
+              Your account will be deactivated and you will be signed out. Your data remains safe, and you can reactivate anytime by logging back in.
+            </p>
+            <button
+              type="button"
+              className="btn btn-logout bg-amber-500 hover:bg-amber-600 text-white rounded-full py-2 px-5 text-sm font-medium transition-colors"
+              onClick={handleDeactivate}
+            >
+              Deactivate account
+            </button>
+          </section>
+
+          <section className="settings-logout-card mt-6 border-red-500/20 bg-red-500/5" aria-labelledby="delete-heading">
+            <h3 id="delete-heading" className="settings-logout-title text-red-600 dark:text-red-400">
+              Permanently delete account
+            </h3>
+            <p className="settings-logout-desc text-red-700/80 dark:text-red-300/80">
+              Permanently delete your profile, symptom history, chats, and partner connection. This action is irreversible.
+            </p>
+            <button
+              type="button"
+              className="btn btn-logout bg-red-600 hover:bg-red-700 text-white"
+              onClick={handleDelete}
+            >
+              Permanently delete account
+            </button>
           </section>
         </>
       )}

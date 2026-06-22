@@ -2,7 +2,7 @@ export function computeCycleDay(startIso: string, cycleLen: number): number {
   const safeCycleLen = Math.min(60, Math.max(15, Math.round(cycleLen || 28)))
   const start = new Date(`${startIso}T12:00:00`)
   if (Number.isNaN(+start)) return 1
-  const days = Math.floor((Date.now() - +start) / 86400000)
+  const days = Math.round((Date.now() - +start) / 86400000)
   const m = ((days % safeCycleLen) + safeCycleLen) % safeCycleLen
   return m + 1
 }

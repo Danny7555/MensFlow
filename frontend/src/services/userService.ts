@@ -1,4 +1,4 @@
-import { get, post, put, upload } from '../lib/apiClient'
+import { get, post, put, upload, del } from '../lib/apiClient'
 
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -113,6 +113,12 @@ export const userApi = {
     formData.append('image', file)
     return upload<{ url: string }>(`/upload?type=${type}`, formData)
   },
+
+  deactivateAccount: () =>
+    post<{ success: boolean; message: string }>('/user/deactivate'),
+
+  deleteAccount: () =>
+    del<{ success: boolean; message: string }>('/user/delete'),
 }
 
 export const userKeys = {

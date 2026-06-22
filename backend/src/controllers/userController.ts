@@ -141,3 +141,22 @@ export async function getLoginHistory(req: AuthRequest, res: Response, next: Nex
     next(err);
   }
 }
+
+export async function deactivateAccount(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    await userService.deactivateUserProfile(req.user!.id);
+    res.json({ success: true, message: 'Account deactivated successfully.' });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteAccount(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    await userService.deleteUserProfile(req.user!.id);
+    res.json({ success: true, message: 'Account permanently deleted.' });
+  } catch (err) {
+    next(err);
+  }
+}
+

@@ -97,6 +97,11 @@ export async function loginUser(
   const isMatch = await bcrypt.compare(password, user.passwordHash);
   if (!isMatch) throw httpError('Invalid credentials', 400);
 
+  if (user.isDeactivated) {
+    user.isDeactivated = false;
+    await user.save();
+  }
+
   // Check if OTP is enabled for this user via their Settings doc
   const settings = await Settings.findOne({ userId: user._id }).lean();
   const otpEnabled = settings?.otpEnabled ?? user.otpEnabled ?? true;

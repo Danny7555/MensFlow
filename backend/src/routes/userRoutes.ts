@@ -12,5 +12,7 @@ router.put('/settings', userController.updateSettings);
 router.put('/dashboard', requireFullAccess, userController.updateDashboard);
 router.post('/xp', userController.addUserXp);
 router.get('/login-history', userController.getLoginHistory);
+router.post('/deactivate', userController.deactivateAccount);
+router.delete('/delete', userController.deleteAccount);
 
 export default router;
