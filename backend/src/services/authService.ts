@@ -10,15 +10,7 @@ import { getJwtSecret } from '../config/env';
 import { httpError } from '../utils/http';
 import { createOtpSession } from './otpService';
 import { getUserProfile } from './userService';
-
-export async function generateUniquePartnerCode(): Promise<string> {
-  const allCodes = Array.from({ length: 100 }, () => crypto.randomBytes(3).toString('hex').toUpperCase());
-  const used = await User.find({ partnerCode: { $in: allCodes } }, { partnerCode: 1 }).lean();
-  const usedSet = new Set(used.map(u => u.partnerCode));
-  const available = allCodes.find(c => !usedSet.has(c));
-  if (available) return available;
-  throw new Error('Unable to generate a unique partner code — please try again');
-}
+import { generateUniquePartnerCode } from './partnerService';
 
 function userToResponse(user: InstanceType<typeof User>): Partial<IUser> {
   return {

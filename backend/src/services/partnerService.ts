@@ -5,10 +5,19 @@ import { SymptomLog, CustomSymptom } from '../models/Symptom';
 import { Settings } from '../models/Settings';
 import { IPartnerPing, IPartnerChatMessage } from '../interfaces';
 import { httpError } from '../utils/http';
-import { generateUniquePartnerCode } from './authService';
+import crypto from 'crypto';
 import { sendInviteEmail, sendReminderEmail } from './emailService';
 import { buildCycleModel } from '../utils/cycleModel';
 import { callGroqWithLogging } from '../utils/groqClient';
+
+export async function generateUniquePartnerCode(): Promise<string> {
+  const allCodes = Array.from({ length: 100 }, () => crypto.randomBytes(3).toString('hex').toUpperCase());
+  const used = await User.find({ partnerCode: { $in: allCodes } }, { partnerCode: 1 }).lean();
+  const usedSet = new Set(used.map(u => u.partnerCode));
+  const available = allCodes.find(c => !usedSet.has(c));
+  if (available) return available;
+  throw new Error('Unable to generate a unique partner code — please try again');
+}
 
 
 // ─── Pairing ─────────────────────────────────────────────────────────────────

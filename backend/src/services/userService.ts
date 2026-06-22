@@ -10,6 +10,7 @@ import { LoginHistory } from '../models/LoginHistory';
 import { ChatMessage } from '../models/Chat';
 import { Medication } from '../models/Medication';
 import { CommunityPost, CommunityComment } from '../models/Community';
+import { disconnectPartner } from './partnerService';
 
 export async function getUserProfile(
   userId: string
@@ -409,7 +410,6 @@ export async function deactivateUserProfile(userId: string): Promise<void> {
     throw Object.assign(new Error('User not found'), { status: 404 });
   }
 
-  const { disconnectPartner } = await import('./partnerService');
   await disconnectPartner(userId);
 
   user.isDeactivated = true;
@@ -422,7 +422,6 @@ export async function deleteUserProfile(userId: string): Promise<void> {
     throw Object.assign(new Error('User not found'), { status: 404 });
   }
 
-  const { disconnectPartner } = await import('./partnerService');
   await disconnectPartner(userId);
 
   await Promise.all([
