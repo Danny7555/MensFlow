@@ -31,8 +31,24 @@ createRoot(document.getElementById('root')!).render(
 
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then((reg) => console.log('Service worker registered with scope:', reg.scope))
-      .catch((err) => console.error('Service worker registration failed:', err))
+    navigator.serviceWorker.register('/sw.js').then((reg) => {
+      console.log('Service worker registered with scope:', reg.scope)
+
+      // Detect when a new service worker has taken over and reload
+      let refreshing = false
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing = true
+          window.location.reload()
+        }
+      })
+
+      // Check for updates periodically (every 60 min) and on visibility change
+      const checkUpdate = () => reg.update().catch(() => {})
+      setInterval(checkUpdate, 60 * 60 * 1000)
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') checkUpdate()
+      })
+    }).catch((err) => console.error('Service worker registration failed:', err))
   })
 }
